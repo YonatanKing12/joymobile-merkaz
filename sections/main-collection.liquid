@@ -344,6 +344,35 @@
 
   {%- if desc_bottom != blank -%}
     <div class="collection__description collection__description--bottom rte">{{ desc_bottom }}</div>
+
+    {%- comment -%}
+      FAQPage structured data from the description's questions: each <h3> is a question and the text up to the
+      next heading is its answer. Only when there are at least two of them.
+    {%- endcomment -%}
+    {%- if desc_bottom contains '<h3' -%}
+      {%- liquid
+        assign faq_json = ''
+        assign faq_count = 0
+        assign faq_parts = desc_bottom | split: '<h3'
+        for faq_part in faq_parts offset: 1
+          assign faq_q = faq_part | split: '</h3>' | first | remove_first: '>' | strip_html | strip
+          assign faq_rest = faq_part | split: '</h3>' | last | split: '<h2' | first
+          assign faq_a = faq_rest | strip_html | strip_newlines | strip
+          if faq_q != blank and faq_a != blank
+            assign faq_count = faq_count | plus: 1
+            assign faq_q_json = faq_q | json
+            assign faq_a_json = faq_a | json
+            if faq_json != blank
+              assign faq_json = faq_json | append: ','
+            endif
+            assign faq_json = faq_json | append: '{"@type":"Question","name":' | append: faq_q_json | append: ',"acceptedAnswer":{"@type":"Answer","text":' | append: faq_a_json | append: '}}'
+          endif
+        endfor
+      -%}
+      {%- if faq_count > 1 -%}
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{{ faq_json | replace: '</', '<\/' }}]}</script>
+      {%- endif -%}
+    {%- endif -%}
   {%- endif -%}
 </div>
 
