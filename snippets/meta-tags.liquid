@@ -16,7 +16,8 @@
   give way to the Hebrew breadcrumb names.
 
   Description: never empty. The SEO description from the admin, else
-  - product: its description as plain text, else general.meta.product_description
+  - product: its description as plain text from the first paragraph on (an opening heading is
+    skipped), else general.meta.product_description
     (…_tax_free, with "ללא מע״מ", only for a non-taxable variant — the theme's TAX FREE rule);
   - collection: the opening paragraph of its description, else general.meta.collection_description;
   - article: its excerpt or content; page: the opening paragraph of its body;
@@ -128,7 +129,17 @@
   {%- else -%}
     {%- case request.page_type -%}
       {%- when 'product' -%}
-        {%- render 'plain-text', html: product.description, limit: 160 -%}
+        {%- liquid
+          # From the first paragraph on: a heading that opens the description is not a sentence.
+          assign meta_product_html = product.description
+          if meta_product_html contains '<p'
+            assign meta_product_head = meta_product_html | split: '<p' | first
+            if meta_product_head != blank
+              assign meta_product_html = meta_product_html | remove_first: meta_product_head
+            endif
+          endif
+        -%}
+        {%- render 'plain-text', html: meta_product_html, limit: 160 -%}
       {%- when 'collection' -%}
         {%- render 'plain-text', html: collection.description, first_paragraph: true, limit: 160 -%}
       {%- when 'article' -%}

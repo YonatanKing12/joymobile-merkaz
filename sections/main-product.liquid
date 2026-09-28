@@ -57,8 +57,20 @@
     {%- case block.type -%}
       {%- when 'short_description' -%}
         {%- liquid
+          # The opening paragraphs from the first <p> on (a heading before it is not part of the excerpt),
+          # whole paragraphs until there are at least 60 characters; line breaks become spaces.
           assign excerpt_source = product.description | replace: '<br />', ' ' | replace: '<br/>', ' ' | replace: '<br>', ' '
-          assign excerpt = excerpt_source | split: '</p>' | first | strip_html | strip
+          assign excerpt = ''
+          assign excerpt_paragraphs = excerpt_source | split: '<p'
+          for excerpt_paragraph in excerpt_paragraphs offset: 1
+            assign excerpt_text = excerpt_paragraph | prepend: '<p' | split: '</p>' | first | strip_html | strip
+            if excerpt_text != blank
+              assign excerpt = excerpt | append: ' ' | append: excerpt_text | strip
+            endif
+            if excerpt.size >= 60
+              break
+            endif
+          endfor
           if excerpt == blank
             assign excerpt = product.description | strip_html | strip | truncatewords: 40
           endif
