@@ -1,17 +1,27 @@
 {%- comment -%}
   Branches + pickup facts (anchor id "branches", so any link can point to
   <page>#branches). Konimbo's branches page stacked 5 branches, each with a name,
-  services line, address, hours and an eagerly loaded Google Maps iframe. The store
-  now has one pickup point (the Shopify location at המלאכה 7, Eilat —
-  local pickup ready within 24 hours, ID required, held up to 21 business days —
-  data-model.md), so the defaults show that branch and those facts; everything is
-  editable and more branches are more blocks.
+  services line, address, hours and an eagerly loaded Google Maps iframe; here every
+  branch is a block. templates/page.branches.json holds the chain's five locations from
+  the live site (the flagship on the promenade, ICE MALL, מרכז השלום, JOY התחנה and the
+  JOY FIX lab) and the pickup facts (a message when the order is ready, ID required, held
+  up to 21 business days), with the same data and wording as the contact page.
 
   Maps: the address builds a Google Maps link and a Waze link; the embedded map is
   click-to-load (a closed <details> keeps its lazy iframe from loading), so no
   third-party request happens until the visitor asks for it. Opening hours are not
   stored in Shopify: the block's hours, else the theme setting, else a line
   asking to call the branch, whose number follows (never invented hours).
+
+  Structured data (section setting "נתונים מובנים", on in templates/page.branches.json
+  only): every branch block with a name and an address becomes a store in one
+  JSON-LD @graph (snippets/branch-json.liquid: address, phone, hours, coordinates, link to
+  its card, parent Organization). The machine-readable hours come from the block setting
+  "שעות פתיחה למנועי חיפוש" (Su-Th 10:00-23:00; Fr 10:00-14:00), never from the free
+  text, and hours that move with Shabbat stay out of it. Only one page should carry the
+  stores (the contact page shows the same branches without them). The home page's
+  Organization lists the same stores from snippets/branches-json.liquid, which must
+  follow any change made here.
 {%- endcomment -%}
 {{ 'section-branches.css' | asset_url | stylesheet_tag }}
 
@@ -205,6 +215,36 @@
   {%- endif -%}
 </div>
 
+{%- if section.settings.structured_data -%}
+  {%- liquid
+    assign ld_page_url = request.origin | append: request.path
+    assign ld_store_count = 0
+  -%}
+  {%- capture ld_stores -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'branch' and block.settings.name != blank and block.settings.address != blank -%}
+        {%- if ld_store_count > 0 -%},{%- endif -%}
+        {%- assign ld_store_count = ld_store_count | plus: 1 -%}
+        {%- render 'branch-json',
+          id: block.id,
+          name: block.settings.name,
+          address: block.settings.address,
+          services: block.settings.services,
+          phone: block.settings.phone,
+          hours_spec: block.settings.hours_spec,
+          geo: block.settings.geo,
+          map_query: block.settings.map_query,
+          image: block.settings.image,
+          page_url: ld_page_url
+        -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- if ld_store_count > 0 -%}
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{{ ld_stores | strip_newlines | replace: '</', '<\/' }}]}</script>
+  {%- endif -%}
+{%- endif -%}
+
 {% schema %}
 {
   "name": "סניפים ואיסוף",
@@ -222,13 +262,13 @@
       "type": "text",
       "id": "heading",
       "label": "כותרת",
-      "default": "הסניף שלנו באילת"
+      "default": "הסניפים שלנו באילת"
     },
     {
       "type": "richtext",
       "id": "intro",
       "label": "טקסט פתיחה",
-      "default": "<p>משריינים באתר ואוספים מהסניף באילת, במחירי אילת ללא מע״מ.</p>"
+      "default": "<p>משריינים באתר ואוספים באחד הסניפים באילת, במחירי אילת ללא מע״מ.</p>"
     },
     {
       "type": "checkbox",
@@ -242,6 +282,17 @@
       "id": "facts_heading",
       "label": "כותרת עובדות האיסוף",
       "default": "איך אוספים הזמנה"
+    },
+    {
+      "type": "header",
+      "content": "מנועי חיפוש"
+    },
+    {
+      "type": "checkbox",
+      "id": "structured_data",
+      "label": "נתונים מובנים (סניפים)",
+      "info": "כל סניף עם שם וכתובת נכנס לנתונים המובנים של העמוד (LocalBusiness). להפעיל רק בעמוד הסניפים, כדי שלכל סניף יהיה עמוד אחד. דף הבית מציג את אותם סניפים מתוך קוד התבנית (snippets/branches-json.liquid), ולכן שינוי בסניף צריך להגיע גם לשם.",
+      "default": false
     }
   ],
   "blocks": [
@@ -254,25 +305,32 @@
           "type": "text",
           "id": "name",
           "label": "שם הסניף",
-          "default": "JOY Mobile — המלאכה 7"
+          "default": "סניף JOY Mobile"
         },
         {
           "type": "text",
           "id": "services",
           "label": "שירותים",
-          "default": "חנות · איסוף הזמנות מהאתר"
+          "default": "מכירה · איסוף הזמנות"
         },
         {
           "type": "text",
           "id": "address",
           "label": "כתובת",
-          "default": "המלאכה 7, אילת"
+          "info": "מסתיימת בעיר, למשל: דרבן 150, פנינת אילת (מול מול הים), אילת. בנתונים המובנים העיר נרשמת בנפרד מהרחוב."
         },
         {
           "type": "textarea",
           "id": "hours",
           "label": "שעות פתיחה",
           "info": "שורה לכל טווח ימים. כשריק: שעות הפתיחה מהגדרות התבנית, ואם גם הן ריקות — הפניה לטלפון."
+        },
+        {
+          "type": "text",
+          "id": "hours_spec",
+          "label": "שעות פתיחה למנועי חיפוש",
+          "placeholder": "Su-Th 10:00-23:00; Fr 10:00-14:00",
+          "info": "לא מוצג באתר. רק שעות קבועות, באותיות לועזיות: ימים (Su ראשון, Mo שני, Tu שלישי, We רביעי, Th חמישי, Fr שישי, Sa שבת, או טווח כמו Su-Th), רווח ושעות פתיחה-סגירה. טווחים נוספים אחרי נקודה-פסיק. שעות שתלויות בשבת (עד כניסת שבת, מוצאי שבת) לא כותבים כאן."
         },
         {
           "type": "text",
@@ -290,6 +348,13 @@
           "id": "map_query",
           "label": "חיפוש במפה",
           "info": "כשריק: הכתובת. אפשר לכתוב שם מקום או קואורדינטות, למשל 29.5634,34.9576."
+        },
+        {
+          "type": "text",
+          "id": "geo",
+          "label": "קואורדינטות (לא חובה)",
+          "placeholder": "29.55406,34.96547",
+          "info": "לא מוצג באתר. קו רוחב,קו אורך — רק כשהם ידועים בדיוק. משמשים את הנתונים המובנים."
         },
         {
           "type": "image_picker",
@@ -344,8 +409,8 @@
           "type": "fact",
           "settings": {
             "icon": "clock",
-            "title": "מוכן לאיסוף תוך 24 שעות",
-            "text": "בדרך כלל ההזמנה ממתינה לכם בסניף תוך 24 שעות מהשריון."
+            "title": "נודיע כשההזמנה מוכנה",
+            "text": "כשההזמנה מחכה לכם בסניף תקבלו הודעה, ואז אפשר לבוא לאסוף."
           }
         },
         {
@@ -361,7 +426,7 @@
           "settings": {
             "icon": "store",
             "title": "נשמר עד 21 ימי עסקים",
-            "text": "המוצר ממתין לכם בנקודת האיסוף עד 21 ימי עסקים."
+            "text": "ההזמנה ממתינה לכם בסניף עד 21 ימי עסקים."
           }
         }
       ]
