@@ -8,7 +8,7 @@
   - Sold out: the product (or the passed variant) is not available.
   - Last units: the variant tracks inventory in Shopify (`inventory_management ==
     'shopify'`) and 0 < inventory_quantity <= `settings.badge_low_stock_threshold`
-    (default 2).
+    (default 2). Product page only: cards say it in their stock line instead.
   - New in store: the product carries one of the tags listed in
     `settings.badge_new_tags` (default "חדש,new"; exact tag, case-insensitive).
   At most one status badge is shown, by priority: sold out, then last units,
@@ -50,7 +50,7 @@
     endif
   else
     assign low_threshold = settings.badge_low_stock_threshold | default: 2
-    if settings.badge_show_low_stock and badge_variant.inventory_management == 'shopify' and badge_variant.inventory_quantity > 0 and badge_variant.inventory_quantity <= low_threshold
+    if settings.badge_show_low_stock and badge_context != 'card' and badge_variant.inventory_management == 'shopify' and badge_variant.inventory_quantity > 0 and badge_variant.inventory_quantity <= low_threshold
       assign badge_status = 'low-stock'
     endif
 

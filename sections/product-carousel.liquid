@@ -1,11 +1,10 @@
 {%- comment -%}
-  Product carousel: "מוצרים פופולאריים מקטגוריית …" title bar (#f8f8f8, 20px/500, centred), a collection,
-  up to N product cards (snippets/card-product.liquid) and a "view all" link. Sold-out products are skipped by
-  default (store rule: homepage strips show available products only) and the strip is not rendered at all when
-  fewer than 2 products are left. Measured per view: 1 (<768) · 2 (768) · 3 (992) · 4 (1200, cards 275px).
-  The arrows wrap around at the ends, like the old strips. The "view all" link sits at the end of the title bar
-  from 992px (the old strips had none; below 992 it is hidden to keep the old vertical rhythm).
-  Cards near the top of the page (section index <= 3, first four) are not lazy-loaded.
+  Product carousel: a heading row (bold title at the start, a "view all" link at the end), a collection and up
+  to N product cards (snippets/card-product.liquid). Sold-out products are skipped by default (store rule:
+  homepage strips show available products only) and the strip is not rendered at all when fewer than 2
+  products are left. Per view: 2.2 (<768, the next card peeks in) · 3.2 (768) · 4 (992) · 5 (1200).
+  The arrows wrap around at the ends. Cards near the top of the page (section index <= 3, first five) are not
+  lazy-loaded.
 {%- endcomment -%}
 {%- liquid
   assign pc_collection = section.settings.collection
@@ -18,7 +17,7 @@
 
   assign pc_eager = 0
   if section.index != blank and section.index <= 3
-    assign pc_eager = 4
+    assign pc_eager = 5
   endif
 
   assign pc_count = 0
@@ -66,15 +65,14 @@
 -%}
 
 {%- if pc_render -%}
-  {%- comment -%} Arrows only where the cards overflow: 1 · 2 (768) · 3 (992) · 4 (1200) per view. {%- endcomment -%}
+  {%- comment -%} Arrows only where the cards overflow: 2 · 3 (768) · 4 (992) · 5 (1200) whole cards per view. {%- endcomment -%}
   {%- style -%}
     #shopify-section-{{ section.id }} {
       --pc-pad-top: {{ section.settings.padding_top }}px;
       --pc-pad-bottom: {{ section.settings.padding_bottom }}px;
-      --pc-scroll-sm: {% if pc_count > 1 %}grid{% else %}none{% endif %};
-      --pc-scroll-md: {% if pc_count > 2 %}grid{% else %}none{% endif %};
-      --pc-scroll-lg: {% if pc_count > 3 %}grid{% else %}none{% endif %};
-      --pc-scroll-xl: {% if pc_count > 4 %}grid{% else %}none{% endif %};
+      --pc-scroll-md: {% if pc_count > 3 %}grid{% else %}none{% endif %};
+      --pc-scroll-lg: {% if pc_count > 4 %}grid{% else %}none{% endif %};
+      --pc-scroll-xl: {% if pc_count > 5 %}grid{% else %}none{% endif %};
     }
   {%- endstyle -%}
 
@@ -90,8 +88,18 @@
 
   <div class="product-carousel">
     <div class="product-carousel__inner">
-      {%- if pc_title != blank -%}
-        <h2 class="product-carousel__title">{{ pc_title | escape }}</h2>
+      {%- if pc_title != blank or section.settings.show_view_all -%}
+        <div class="product-carousel__head">
+          {%- if pc_title != blank -%}
+            <h2 class="product-carousel__title">{{ pc_title | escape }}</h2>
+          {%- endif -%}
+          {%- if section.settings.show_view_all and pc_collection != blank -%}
+            <a class="product-carousel__view-all" href="{{ pc_collection.url }}">
+              {{- pc_view_all_label | escape -}}
+              {%- render 'icon', name: 'chevron-left', size: 16 -%}
+            </a>
+          {%- endif -%}
+        </div>
       {%- endif -%}
 
       {%- if pc_placeholder -%}
@@ -126,19 +134,13 @@
           {%- endif -%}
         </div>
         <button class="carousel__btn carousel__btn--prev product-carousel__arrow" type="button" aria-label="{{ 'accessibility.carousel.previous' | t }}">
-          {%- render 'icon', name: 'chevron-right', size: 44 -%}
+          {%- render 'icon', name: 'chevron-right', size: 20 -%}
         </button>
         <button class="carousel__btn carousel__btn--next product-carousel__arrow" type="button" aria-label="{{ 'accessibility.carousel.next' | t }}">
-          {%- render 'icon', name: 'chevron-left', size: 44 -%}
+          {%- render 'icon', name: 'chevron-left', size: 20 -%}
         </button>
       </carousel-slider>
 
-      {%- if section.settings.show_view_all and pc_collection != blank -%}
-        <a class="product-carousel__view-all" href="{{ pc_collection.url }}">
-          {{- pc_view_all_label | escape -}}
-          {%- render 'icon', name: 'chevron-left', size: 14 -%}
-        </a>
-      {%- endif -%}
     </div>
   </div>
 {%- endif -%}
@@ -168,7 +170,7 @@
       "type": "range",
       "id": "products_limit",
       "label": "מספר מוצרים",
-      "info": "8 = שני עמודים במחשב. כל כרטיס מוסיף כ-23 רכיבים לעמוד; 12 כמו באתר הקודם.",
+      "info": "10 = שני עמודים במחשב. כל כרטיס מוסיף כ-25 רכיבים לעמוד.",
       "min": 2,
       "max": 24,
       "step": 1,
@@ -185,7 +187,7 @@
       "type": "checkbox",
       "id": "show_view_all",
       "label": "קישור \"לכל המוצרים\"",
-      "info": "מוצג בקצה פס הכותרת, ממסך 992 פיקסלים.",
+      "info": "מוצג בקצה שורת הכותרת.",
       "default": true
     },
     {

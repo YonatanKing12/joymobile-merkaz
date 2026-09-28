@@ -1,11 +1,14 @@
-/* Product card (snippets/card-product). Measured 275×568 @1440: image 220 · brand 45 · swatches 35 · title 20px lines
-   · price 62 · button 33. Stretched title link; heart/button above it. Needs price/badges/swatches/wishlist css. */
+/* Product card (snippets/card-product): a rounded white card with a soft image well, the brand, a two-line
+   title, colour dots, the price, a stock line and one full-width button. Price, stock and button sit at the
+   bottom (the footer's auto top margin), so cards in one grid row or carousel track end level: the grid
+   item / slide stretches them. Needs price/badges/swatches/wishlist css. */
 
-/* Height: the old card's fixed 568px from 768px up; below that it follows the content. Cards in
-   one grid row or carousel track still end level: the grid item / slide stretches them and the
-   price's auto top margin keeps price + button at the bottom. */
 .card-product {
-  --card-pad-inline: 1.1875rem;
+  --card-inset: 0.5rem; /* the image well's distance from the card edge */
+  --card-radius: var(--radius-card, 16px);
+  --card-well: color-mix(in srgb, var(--color-ink) 4%, var(--color-background));
+  --card-border: color-mix(in srgb, var(--color-ink) 9%, var(--color-background));
+  --card-stock-low: #b54708; /* amber, 5.3:1 on white */
   container: card-product / inline-size; /* narrow cards compact their rows, see the end */
   position: relative;
   display: flex;
@@ -13,57 +16,62 @@
   width: 100%;
   min-width: 0;
   height: 100%;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  padding: var(--card-inset);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
   background-color: var(--color-background);
   color: var(--color-ink);
-  text-align: center;
+  text-align: start;
+  transition:
+    box-shadow var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    translate var(--duration-base) var(--ease-out);
 }
 
-@media (max-width: 767px) {
-  .card-product {
-    --card-pad-inline: 0.5625rem;
+@media (hover: hover) {
+  .card-product:hover {
+    border-color: transparent;
+    box-shadow:
+      0 14px 32px -12px color-mix(in srgb, var(--color-ink) 28%, transparent),
+      0 2px 6px color-mix(in srgb, var(--color-ink) 6%, transparent);
   }
 }
 
-@media (min-width: 768px) {
-  .card-product {
-    min-height: 35.5rem;
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card-product:hover {
+    translate: 0 -3px;
   }
 }
 
+html.a11y-no-motion .card-product:hover {
+  translate: none;
+}
+
+/* ---------- Image well ---------- */
 .card-product__media {
   position: relative;
   display: grid;
   place-items: center;
-  width: 98%;
-  height: 13.75rem;
-  margin: 0.625rem auto 0.5rem;
+  aspect-ratio: var(--card-image-ratio, 1 / 1);
   overflow: hidden;
+  border-radius: max(calc(var(--card-radius) - var(--card-inset)), 4px);
+  background-color: var(--card-well);
+  isolation: isolate; /* the photos' multiply blend stops at the well */
 }
 
+/* Product photos on white melt into the well (multiply: white takes the well's colour). */
 .card-product__img {
   grid-area: 1 / 1;
-  width: 13.75rem;
-  max-width: 100%;
-  height: 13.75rem;
+  width: 100%;
+  height: 100%;
+  padding: 9%;
   object-fit: var(--card-image-fit, contain);
+  mix-blend-mode: multiply;
 }
 
-.card-product--ratio .card-product__media {
-  height: auto;
-  aspect-ratio: var(--card-image-ratio);
-}
-
-.card-product--ratio .card-product__img {
-  width: 100%;
-  height: 100%;
-}
-
-.card-product__media .placeholder-svg {
-  width: 100%;
-  height: 100%;
+.card-product--cover .card-product__img {
+  padding: 0;
+  mix-blend-mode: normal;
 }
 
 .card-product__img--second {
@@ -84,12 +92,12 @@
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .card-product__img {
     transition:
-      transform 2s var(--ease-out),
+      transform 1.2s var(--ease-out),
       opacity var(--duration-slow) var(--ease-in-out);
   }
 
   .card-product:hover .card-product__img {
-    transform: scale(1.076);
+    transform: scale(1.06);
   }
 }
 
@@ -97,68 +105,81 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   transform: none;
 }
 
+/* No photo: the brand's logo, or the JOY Mobile symbol, faint in the well. */
+.card-product__placeholder {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.card-product__placeholder-logo {
+  width: 30%;
+  height: auto;
+  max-height: 40%;
+  object-fit: contain;
+  opacity: 0.12;
+}
+
+.card-product__placeholder--brand .card-product__placeholder-logo {
+  width: 42%;
+  max-height: 30%;
+  opacity: 0.35;
+  filter: grayscale(1);
+  mix-blend-mode: multiply;
+}
+
+/* ---------- Over the image: badges (start) and the heart (end) ---------- */
 .card-product__badges {
   position: absolute;
-  top: 1.3125rem;
-  inset-inline-start: 0;
+  top: 0.625rem;
+  inset-inline-start: 0.625rem;
+  z-index: 2;
   pointer-events: none;
 }
 
 .card-product__wishlist {
   position: absolute;
-  top: 0.3125rem;
-  inset-inline-end: 0.3125rem;
+  top: 0.375rem;
+  inset-inline-end: 0.375rem;
   z-index: 3;
 }
 
-.card-product__brand {
+/* ---------- Body ---------- */
+.card-product__body {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 2.8125rem;
-  margin-block: 0.3125rem;
-  padding-inline: var(--space-sm);
-}
-
-.card-product__brand-logo {
-  width: auto;
-  max-width: 70%;
-  height: auto;
-  max-height: 2.8125rem;
-  object-fit: contain;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.3125rem;
+  padding: 0.875rem 0.375rem 0.375rem;
 }
 
 .card-product__vendor {
-  color: var(--color-muted);
-  font-size: var(--text-sm);
-  font-weight: 500;
-}
-
-.card-product__swatches {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 2.1875rem;
-  margin-block: 0.625rem;
-  padding-inline: var(--space-sm);
   overflow: hidden;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .card-product__title {
   display: -webkit-box;
-  min-height: calc(var(--card-title-lines, 3) * 1.25rem);
-  margin: 0 0 2.375rem;
-  padding: 0 0.625rem;
+  min-height: calc(var(--card-title-lines, 2) * 1.35em);
+  margin: 0;
   overflow: hidden;
   color: var(--color-ink);
   font-family: var(--font-body-family);
-  font-size: var(--text-sm);
-  font-weight: 400;
-  line-height: 1.25rem;
-  text-align: center;
-  text-wrap: wrap;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1.35;
+  text-wrap: pretty;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--card-title-lines, 3);
+  -webkit-line-clamp: var(--card-title-lines, 2);
 }
 
 .card-product__link {
@@ -171,6 +192,13 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   position: absolute;
   inset: 0;
   z-index: 1;
+  border-radius: inherit;
+}
+
+@media (hover: hover) {
+  .card-product:hover .card-product__link {
+    color: var(--color-brand-text);
+  }
 }
 
 /* Keyboard focus: an inset ring on the whole card (a ring outside it would be clipped by
@@ -187,9 +215,20 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   outline-offset: -2px;
 }
 
-.card-product__price {
+.card-product__swatches {
+  --swatch-size: 0.875rem;
+  justify-content: flex-start;
+  gap: 0.375rem;
+  margin-block-start: 0.125rem;
+}
+
+/* ---------- Footer: price, stock, button ---------- */
+.card-product__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-block-start: auto;
-  padding-inline: var(--space-xs);
+  padding-block-start: 0.625rem;
 }
 
 /* The disabled "אזל מהמלאי" button already says it. */
@@ -197,10 +236,34 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   display: none;
 }
 
+.card-product__stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: -0.25rem 0 0;
+  color: var(--color-brand-text);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.card-product__stock::before {
+  content: "";
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background-color: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.card-product__stock--low {
+  color: var(--card-stock-low);
+}
+
 .card-product__actions {
   position: relative;
   z-index: 2;
-  margin: 0 var(--card-pad-inline) 1.5625rem;
 }
 
 .card-product__form {
@@ -210,20 +273,25 @@ html.a11y-no-motion .card-product:hover .card-product__img {
 .card-product__button {
   --button-bg: var(--color-button-bg);
   --button-text: var(--color-button-text);
+  gap: 0.5rem;
   width: 100%;
-  min-height: 2.0625rem;
-  padding: 0 var(--space-xs);
-  border-radius: 0;
-  font-size: var(--text-xs);
+  min-height: 2.625rem;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-button);
+  font-size: var(--text-md);
   font-weight: 700;
-  line-height: calc(2.0625rem - 2px); /* 33px including the 1px border */
+  line-height: 1.2;
 }
 
-/* Tap target: 44px tall hit area around the 33px button. */
+.card-product__button-icon {
+  flex: none;
+}
+
+/* Tap target: at least 44px tall around the 42px button. */
 .card-product__button::before {
   content: "";
   position: absolute;
-  inset: -0.34375rem 0;
+  inset: -0.0625rem 0;
 }
 
 /* The whole card answers the pointer: its navy button turns mint with navy text (10.4:1). */
@@ -244,9 +312,9 @@ html.a11y-no-motion .card-product:hover .card-product__img {
 
 .card-product__button:disabled,
 .card-product__button:disabled:hover {
-  border-color: var(--color-muted);
-  background-color: var(--color-muted);
-  color: var(--color-background);
+  border-color: var(--card-well);
+  background-color: var(--card-well);
+  color: var(--color-muted);
   opacity: 1;
 }
 
@@ -262,46 +330,41 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   line-height: var(--leading-snug);
 }
 
-.card-product--sold-out .card-product__img {
-  opacity: 0.6;
+.card-product--sold-out .card-product__img,
+.card-product--sold-out .card-product__placeholder {
+  opacity: 0.55;
 }
 
-/* Narrow cards on phones (the 2-column grid, ≈174px wide): a square image box that follows the
-   card width instead of the fixed 220px one, and tighter rows, so there are no empty bands. */
-@media (max-width: 767px) {
-  @container card-product (max-width: 15rem) {
-    .card-product__media {
-      height: auto;
-      aspect-ratio: 1;
-      margin-block: 0.5rem 0.25rem;
-    }
+/* Narrow cards (the 2-column phone grid, ≈170px wide): tighter insets and smaller type. */
+@container card-product (max-width: 15rem) {
+  .card-product__img {
+    padding: 7%;
+  }
 
-    .card-product__img {
-      width: 100%;
-      height: 100%;
-    }
+  .card-product__body {
+    gap: 0.25rem;
+    padding: 0.625rem 0.125rem 0.125rem;
+  }
 
-    .card-product__brand {
-      height: 2rem;
-      margin-block: 0.25rem;
-    }
+  .card-product__vendor {
+    font-size: var(--text-2xs);
+  }
 
-    .card-product__brand-logo {
-      max-height: 2rem;
-    }
+  .card-product__title {
+    font-size: var(--text-sm);
+  }
 
-    .card-product__swatches {
-      height: 1.5rem;
-      margin-block: 0.375rem;
-    }
+  .card-product__footer {
+    gap: 0.4375rem;
+    padding-block-start: 0.5rem;
+  }
 
-    .card-product__title {
-      margin-block-end: 1rem;
-      padding-inline: 0.375rem;
-    }
+  .card-product__button {
+    min-height: 2.5rem;
+    font-size: var(--text-sm);
+  }
 
-    .card-product__actions {
-      margin-block-end: 0.75rem;
-    }
+  .card-product__button-icon {
+    display: none;
   }
 }

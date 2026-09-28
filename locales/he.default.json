@@ -136,7 +136,10 @@
     },
     "card": {
       "reserve": "שריון באילת",
-      "sold_out": "אזל מהמלאי"
+      "sold_out": "אזל מהמלאי",
+      "stock_in": "במלאי",
+      "stock_low": "נותרו {{ count }} יחידות",
+      "stock_last": "יחידה אחרונה במלאי"
     },
     "product": {
       "sku": "מק״ט",

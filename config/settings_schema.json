@@ -4,8 +4,8 @@
     "theme_name": "JOY Mobile",
     "theme_version": "1.0.0",
     "theme_author": "JOY Mobile",
-    "theme_documentation_url": "https://i6qzve-zj.myshopify.com/pages/contact",
-    "theme_support_url": "https://i6qzve-zj.myshopify.com/pages/contact"
+    "theme_documentation_url": "https://x511g0-rj.myshopify.com/pages/contact",
+    "theme_support_url": "https://x511g0-rj.myshopify.com/pages/contact"
   },
   {
     "name": "לוגו ופאביקון",
@@ -391,7 +391,7 @@
         "max": 24,
         "step": 1,
         "unit": "px",
-        "default": 3
+        "default": 10
       },
       {
         "type": "range",
@@ -401,7 +401,7 @@
         "max": 24,
         "step": 1,
         "unit": "px",
-        "default": 3
+        "default": 10
       },
       {
         "type": "range",
@@ -411,7 +411,7 @@
         "max": 24,
         "step": 1,
         "unit": "px",
-        "default": 0
+        "default": 16
       },
       {
         "type": "range",
@@ -421,7 +421,7 @@
         "max": 24,
         "step": 1,
         "unit": "px",
-        "default": 3
+        "default": 12
       }
     ]
   },
@@ -475,14 +475,14 @@
         "min": 1,
         "max": 4,
         "step": 1,
-        "default": 3
+        "default": 2
       },
       {
         "type": "checkbox",
         "id": "card_show_vendor",
         "label": "הצגת המותג",
         "info": "מוצרים שהמותג שלהם הוא שם החנות לעולם לא מציגים מותג.",
-        "default": false
+        "default": true
       },
       {
         "type": "checkbox",
