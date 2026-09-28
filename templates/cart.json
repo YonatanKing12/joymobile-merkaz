@@ -1,0 +1,64 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-cart",
+      "blocks": {
+        "notice": {
+          "type": "notice",
+          "settings": {
+            "text": "<p><strong>חשוב לדעת:</strong> כל ההזמנות באתר הן לאיסוף עצמי מהסניף באילת — זה מה שמקנה את הפטור ממע״מ, ולכן אין משלוחים, גם לא בתוך אילת.</p>"
+          }
+        },
+        "condition-ready": {
+          "type": "condition",
+          "settings": {
+            "icon": "clock",
+            "text": "ההזמנה מוכנה לאיסוף בדרך כלל תוך 24 שעות מהשריון."
+          }
+        },
+        "condition-id": {
+          "type": "condition",
+          "settings": {
+            "icon": "account",
+            "text": "האיסוף מתבצע על ידי הרוכש/ת בלבד, בהצגת תעודה מזהה."
+          }
+        },
+        "condition-hold": {
+          "type": "condition",
+          "settings": {
+            "icon": "store",
+            "text": "ההזמנה ממתינה בנקודת האיסוף (המלאכה 7, אילת) עד 21 ימי עסקים."
+          }
+        },
+        "condition-vat": {
+          "type": "condition",
+          "settings": {
+            "icon": "shield",
+            "text": "<strong>תנאי הפטור ממע״מ:</strong> בעת השריון אתם מאשרים שלא רכשתם באילת מוצר אחר מאותה קטגוריה ב־90 הימים שקדמו להזמנה."
+          }
+        }
+      },
+      "block_order": [
+        "notice",
+        "condition-ready",
+        "condition-id",
+        "condition-hold",
+        "condition-vat"
+      ],
+      "settings": {
+        "show_breadcrumbs": true,
+        "checkout_label": "המשך לשריון",
+        "checkout_note": "בשלב הבא ממלאים פרטים ובוחרים איך לשלם: באתר, בתשלום מאובטח, או בסניף בעת האיסוף.",
+        "show_payment_icons": true,
+        "show_dynamic_checkout": false,
+        "conditions_heading": "תנאי השריון והאיסוף",
+        "require_consent": false,
+        "consent_label": "קראתי ואני מאשר/ת את תנאי השריון והאיסוף",
+        "empty_menu": "main-menu"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

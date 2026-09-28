@@ -1,0 +1,238 @@
+/* <carousel-slider role="group" aria-roledescription aria-label> (assets/carousel.js). Per view from --per-view-mobile/-tablet(768)/-desktop(992)/-wide(1200)
+   or --per-view on the track; gap --carousel-gap(-mobile/-desktop); peek --carousel-peek(-mobile/-desktop).
+   All rules are :where() (specificity 0) so section styles win. Modifiers: .carousel--arrows-outside (≥1300),
+   .carousel--arrows-round, .carousel--mobile-arrows, .carousel--dots-light. */
+
+:where(carousel-slider) {
+  --per-view: var(--per-view-mobile, 1);
+  --carousel-gap: var(--carousel-gap-mobile, 0.625rem);
+  --carousel-peek: var(--carousel-peek-mobile, 0px);
+  --carousel-arrow-size: var(--tap-target);
+  --carousel-arrow-offset: 0px;
+  /* Dots (WCAG 1.4.11): a hollow muted ring (7:1 on white) and a filled green disc for the current page. */
+  --carousel-dot-color: transparent;
+  --carousel-dot-ring: var(--color-muted);
+  --carousel-dot-active: var(--color-brand);
+  --carousel-dot-active-ring: var(--color-brand);
+  position: relative;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  :where(carousel-slider) {
+    --per-view: var(--per-view-tablet, 2);
+    --carousel-gap: var(--carousel-gap-desktop, 0.625rem);
+    --carousel-peek: var(--carousel-peek-desktop, 0px);
+  }
+}
+
+@media (min-width: 992px) {
+  :where(carousel-slider) {
+    --per-view: var(--per-view-desktop, 3);
+  }
+}
+
+@media (min-width: 1200px) {
+  :where(carousel-slider) {
+    --per-view: var(--per-view-wide, 4);
+  }
+}
+
+:where(.carousel__track) {
+  display: flex;
+  gap: var(--carousel-gap);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--carousel-peek);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--carousel-peek);
+  scrollbar-width: none;
+  list-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+:where(.carousel__track)::-webkit-scrollbar {
+  display: none;
+}
+
+:where(.carousel__track):focus-visible {
+  outline-offset: -2px;
+}
+
+:where(.carousel__track):focus:not(:focus-visible) {
+  outline: none;
+}
+
+:where(.carousel__slide) {
+  display: flex;
+  flex: 0 0 calc((100% - (var(--per-view) - 1) * var(--carousel-gap)) / var(--per-view));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+/* Cards and banners fill their slide: equal heights across a row. */
+:where(.carousel__slide) > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+:where(.carousel__btn) {
+  position: absolute;
+  top: 50%;
+  z-index: var(--z-raised);
+  display: none;
+  place-items: center;
+  width: var(--carousel-arrow-size);
+  height: var(--carousel-arrow-size);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  translate: 0 -50%;
+  transition: color var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
+}
+
+:where(.carousel__btn--prev) {
+  inset-inline-start: var(--carousel-arrow-offset);
+}
+
+:where(.carousel__btn--next) {
+  inset-inline-end: var(--carousel-arrow-offset);
+}
+
+:where(.carousel__btn):hover {
+  color: var(--color-brand-text);
+}
+
+/* Fade the chevron, not the button: a keyboard ring on a disabled arrow stays at full strength. */
+:where(.carousel__btn)[aria-disabled="true"] {
+  cursor: default;
+}
+
+:where(.carousel__btn)[aria-disabled="true"] .icon {
+  opacity: 0.3;
+}
+
+:where(.carousel__btn)[aria-disabled="true"]:hover {
+  color: var(--color-ink);
+}
+
+:where(.carousel__btn) .icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+/* Arrows once the script has upgraded the element (they do nothing without it): from 768px,
+   or at every width with .carousel--mobile-arrows. */
+@media (min-width: 768px) {
+  :where(carousel-slider:defined) :where(.carousel__btn) {
+    display: grid;
+  }
+}
+
+:where(carousel-slider.carousel--mobile-arrows:defined) :where(.carousel__btn) {
+  display: grid;
+}
+
+/* Nothing to scroll: without looping, carousel.js disables both arrows → hide them.
+   (Works with or without the [data-scrollable] attribute on the host.) */
+:where(carousel-slider:has(> .carousel__btn--prev[aria-disabled="true"]):has(> .carousel__btn--next[aria-disabled="true"])) :where(.carousel__btn) {
+  display: none;
+}
+
+/* The old product carousels: chevrons ≈30px outside the content edge. With 44px buttons that
+   needs ≥48px of gutter, so from 1300px (inside the edges below). */
+@media (min-width: 1300px) {
+  :where(carousel-slider.carousel--arrows-outside) {
+    --carousel-arrow-offset: calc(-1 * var(--carousel-arrow-size) - 0.25rem);
+  }
+}
+
+/* The old category arrows: 36px round, black 24px chevron (32px at 992–1199). */
+:where(carousel-slider.carousel--arrows-round) :where(.carousel__btn) .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+:where(.carousel__pause) {
+  position: absolute;
+  inset-block-end: var(--space-xs);
+  inset-inline-end: var(--space-xs);
+  z-index: var(--z-raised);
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-background) 85%, transparent);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+/* The pressed button (paused) shows "play"; icons inside are marked --play / --pause. */
+:where(.carousel__pause) .icon--play,
+:where(.carousel__pause)[aria-pressed="true"] .icon--pause {
+  display: none;
+}
+
+:where(.carousel__pause)[aria-pressed="true"] .icon--play {
+  display: inline-block;
+}
+
+:where(.carousel__dots) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0;
+  margin-block-start: var(--space-xs);
+}
+
+:where(.carousel__dot) {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* 15×15 disc inside a 24px hit area (4px apart, as measured on the hero). */
+:where(.carousel__dot)::before {
+  content: "";
+  width: 0.9375rem;
+  height: 0.9375rem;
+  border-radius: 50%;
+  background: var(--carousel-dot-color);
+  box-shadow: inset 0 0 0 1.5px var(--carousel-dot-ring);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+:where(.carousel__dot)[aria-current="true"]::before {
+  background: var(--carousel-dot-active);
+  box-shadow: inset 0 0 0 1.5px var(--carousel-dot-active-ring);
+}
+
+/* Over photos (any colour): white discs with a navy ring, the current one navy with a white ring —
+   one of the two colours always stands out (19.6:1 between them). */
+:where(carousel-slider.carousel--dots-light) {
+  --carousel-dot-color: var(--color-background);
+  --carousel-dot-ring: var(--color-ink);
+  --carousel-dot-active: var(--color-ink);
+  --carousel-dot-active-ring: var(--color-background);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.carousel__track) {
+    scroll-behavior: auto;
+  }
+}

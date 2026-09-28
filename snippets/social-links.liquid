@@ -1,0 +1,85 @@
+{% doc %}
+  Links to the store's social profiles (theme settings → "יצירת קשר ורשתות חברתיות").
+  Only filled-in networks are shown. WhatsApp comes from the WhatsApp number setting
+  (snippets/whatsapp-url). Links open in a new tab and say so to screen readers.
+
+  @param {string} [class] - Extra classes on the list.
+  @param {number} [size] - Icon size in px. Default 24.
+  @param {boolean} [whatsapp] - Include the WhatsApp link. Default true.
+
+  @example
+  {% render 'social-links' %}
+  {% render 'social-links', class: 'footer__social', size: 20, whatsapp: false %}
+{% enddoc %}
+{%- liquid
+  assign social_size = size | default: 24
+
+  assign wa_url = ''
+  if whatsapp != false
+    capture wa_url
+      render 'whatsapp-url'
+    endcapture
+  endif
+  assign show_whatsapp = false
+  if wa_url != blank
+    assign show_whatsapp = true
+  endif
+
+  assign networks = 'facebook,instagram,telegram,tiktok,youtube' | split: ','
+  assign has_links = show_whatsapp
+  for network in networks
+    assign setting_key = 'social_' | append: network | append: '_link'
+    if settings[setting_key] != blank
+      assign has_links = true
+    endif
+  endfor
+-%}
+{%- if has_links -%}
+  <ul class="social-links{% if class != blank %} {{ class }}{% endif %}" role="list" aria-label="{{ 'general.social.label' | t }}">
+    {%- for network in networks -%}
+      {%- assign setting_key = 'social_' | append: network | append: '_link' -%}
+      {%- assign network_url = settings[setting_key] -%}
+      {%- if network_url != blank -%}
+        {%- assign network_label_key = 'general.social.' | append: network -%}
+        {%- assign network_name = network_label_key | t -%}
+        <li class="social-links__item">
+          <a class="social-links__link social-links__link--{{ network }}" href="{{ network_url | escape }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.link_label' | t: network: network_name }}">
+            {%- render 'icon', name: network, size: social_size -%}
+          </a>
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+    {%- if show_whatsapp -%}
+      {%- assign whatsapp_name = 'general.social.whatsapp' | t -%}
+      <li class="social-links__item">
+        <a class="social-links__link social-links__link--whatsapp" href="{{ wa_url }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.link_label' | t: network: whatsapp_name }}">
+          {%- render 'icon', name: 'whatsapp', size: social_size -%}
+        </a>
+      </li>
+    {%- endif -%}
+  </ul>
+{%- endif -%}
+
+{% stylesheet %}
+  .social-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .social-links__link {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap-target);
+    height: var(--tap-target);
+    border-radius: 50%;
+    color: inherit;
+    transition: color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+  }
+  .social-links__link:hover {
+    background: color-mix(in srgb, currentColor 12%, transparent);
+  }
+{% endstylesheet %}

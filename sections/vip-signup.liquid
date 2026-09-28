@@ -1,0 +1,295 @@
+{%- comment -%}
+  VIP / newsletter signup ("הישארו מעודכנים"). Shopify customer form (POST /contact, form_type=customer):
+  it creates or updates a customer WITH email-marketing consent, so the visitor must actively tick an
+  (unchecked, required) consent box first. Fields: first name + email; phone is optional and off by default
+  (`contact[phone]` is not documented for this form). Tags from the section settings are added to the customer.
+  After the redirect the section shows a success message or Shopify's errors (`form.errors`).
+  Measured @1440: full-bleed band (the old one had 15px white gutters), padding 80px 20px (25px 15px < 1200),
+  background image cover, title 60px/72px 700, subtitle 21px, one 1200px row of four 284×50 cells (name · phone ·
+  email · black 19px/700 button; without the phone field the email cell spans two), consent line 16px/24px.
+  Phones: 28px title, stacked 50px fields (the old white-on-photo look needs an owner image: set the mobile
+  background image and the mobile text colour).
+{%- endcomment -%}
+{%- liquid
+  assign v_form_id = 'VipSignup-' | append: section.id
+  assign v_image = section.settings.image
+  assign v_image_mobile = section.settings.image_mobile | default: v_image
+  assign v_button = section.settings.button_label
+  if v_button == blank
+    assign v_button = 'newsletter.submit' | t
+  endif
+-%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --vip-bg: {{ section.settings.background_color }};
+    --vip-text: {{ section.settings.text_color }};
+    --vip-text-mobile: {{ section.settings.text_color_mobile }};
+    --vip-pad-top: {{ section.settings.padding_top }}px;
+    --vip-pad-bottom: {{ section.settings.padding_bottom }}px;
+  }
+{%- endstyle -%}
+
+{{ 'section-vip-signup.css' | asset_url | stylesheet_tag }}
+
+<div class="vip-signup-wrap">
+  <div class="vip-signup">
+    {%- if v_image != blank or v_image_mobile != blank -%}
+      <div class="vip-signup__media" aria-hidden="true">
+        {%- if v_image != blank and section.settings.image_mobile != blank -%}
+          {%- liquid
+            assign v_srcset = ''
+            assign v_widths = '768,1100,1500,1920,2400' | split: ','
+            for width in v_widths
+              assign w = width | plus: 0
+              if w < v_image.width
+                assign candidate = v_image | image_url: width: w
+                assign v_srcset = v_srcset | append: candidate | append: ' ' | append: w | append: 'w, '
+              endif
+            endfor
+            assign candidate = v_image | image_url: width: v_image.width
+            assign v_srcset = v_srcset | append: candidate | append: ' ' | append: v_image.width | append: 'w'
+          -%}
+          <picture>
+            <source
+              media="(min-width: 768px)"
+              srcset="{{ v_srcset }}"
+              sizes="100vw"
+              width="{{ v_image.width }}"
+              height="{{ v_image.height }}"
+            >
+            {%- render 'image',
+              image: v_image_mobile,
+              widths: '390,540,750,1080',
+              sizes: '100vw',
+              class: 'vip-signup__img',
+              decorative: true
+            -%}
+          </picture>
+        {%- else -%}
+          {%- render 'image',
+            image: v_image_mobile,
+            widths: '390,750,1100,1500,1920,2400',
+            sizes: '100vw',
+            class: 'vip-signup__img',
+            decorative: true
+          -%}
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="vip-signup__inner">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="vip-signup__title">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.subheading != blank -%}
+        <p class="vip-signup__subtitle">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+
+      {%- form 'customer', id: v_form_id, class: 'vip-signup__form' -%}
+        <input type="hidden" name="contact[tags]" value="{{ section.settings.tags | escape }}">
+
+        {%- if form.posted_successfully? -%}
+          <p class="vip-signup__message vip-signup__message--success" role="status">
+            {%- render 'icon', name: 'check', size: 20 -%}
+            <span>{{ 'newsletter.success' | t }}</span>
+          </p>
+        {%- else -%}
+          {%- if form.errors -%}
+            <div class="vip-signup__message vip-signup__message--error" id="{{ v_form_id }}-error" role="alert">
+              {%- render 'icon', name: 'alert', size: 20 -%}
+              <div>
+                <p>{{ 'newsletter.error' | t }}</p>
+                {{ form.errors | default_errors }}
+              </div>
+            </div>
+          {%- endif -%}
+
+          <fieldset class="vip-signup__fieldset">
+            <legend class="visually-hidden">{{ 'newsletter.form_label' | t }}</legend>
+            <div class="vip-signup__fields{% unless section.settings.show_phone %} vip-signup__fields--no-phone{% endunless %}">
+              <div class="vip-signup__field">
+                <label class="visually-hidden" for="{{ v_form_id }}-name">{{ 'newsletter.name_label' | t }}</label>
+                <input
+                  class="vip-signup__input"
+                  id="{{ v_form_id }}-name"
+                  type="text"
+                  name="contact[first_name]"
+                  value="{{ form.first_name | escape }}"
+                  autocomplete="given-name"
+                  placeholder="{{ 'newsletter.name_placeholder' | t }}"
+                  {% if section.settings.name_required %}required{% endif %}
+                >
+              </div>
+              {%- if section.settings.show_phone -%}
+                <div class="vip-signup__field">
+                  <label class="visually-hidden" for="{{ v_form_id }}-phone">{{ 'newsletter.phone_label' | t }}</label>
+                  <input
+                    class="vip-signup__input"
+                    id="{{ v_form_id }}-phone"
+                    type="tel"
+                    name="contact[phone]"
+                    autocomplete="tel"
+                    inputmode="tel"
+                    placeholder="{{ 'newsletter.phone_placeholder' | t }}"
+                  >
+                </div>
+              {%- endif -%}
+              <div class="vip-signup__field vip-signup__field--email">
+                <label class="visually-hidden" for="{{ v_form_id }}-email">{{ 'newsletter.email_label' | t }}</label>
+                <input
+                  class="vip-signup__input"
+                  id="{{ v_form_id }}-email"
+                  type="email"
+                  name="contact[email]"
+                  value="{{ form.email | escape }}"
+                  autocomplete="email"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  placeholder="{{ 'newsletter.email_placeholder' | t }}"
+                  required
+                  {% if form.errors contains 'email' %}
+                    aria-invalid="true"
+                    aria-describedby="{{ v_form_id }}-error"
+                  {% endif %}
+                >
+              </div>
+              <button class="vip-signup__submit" type="submit">{{ v_button | escape }}</button>
+            </div>
+
+            <div class="vip-signup__consent">
+              <input
+                class="vip-signup__checkbox"
+                id="{{ v_form_id }}-consent"
+                type="checkbox"
+                name="contact[marketing_consent]"
+                value="express-email-opt-in"
+                required
+              >
+              <label class="vip-signup__consent-label" for="{{ v_form_id }}-consent">
+                <span class="vip-signup__required" aria-hidden="true">*</span>
+                {{ section.settings.consent_text }}
+              </label>
+            </div>
+          </fieldset>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "הרשמה למועדון VIP",
+  "tag": "section",
+  "class": "section-vip-signup",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "הישארו מעודכנים"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "כותרת משנה",
+      "default": "ותהנו מהטבות ומבצעים מיוחדים ללקוחות VIP"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "תווית הכפתור",
+      "default": "הרשמה"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "consent_text",
+      "label": "טקסט ההסכמה לדיוור",
+      "info": "תיבת הסימון לא מסומנת מראש והיא חובה (חוק הספאם). מומלץ לקשר למדיניות הפרטיות.",
+      "default": "אני מסכים/ה לקבל מ-JOY Mobile דברי פרסומת, הטבות ועדכונים בדוא״ל. אפשר להסיר את ההרשמה בכל עת. קראתי את <a href=\"/policies/privacy-policy\">מדיניות הפרטיות</a>."
+    },
+    {
+      "type": "checkbox",
+      "id": "name_required",
+      "label": "שם הוא שדה חובה",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_phone",
+      "label": "שדה טלפון",
+      "info": "שופיפיי לא מתעדת שמירת טלפון בטופס הזה, ולכן הוא כבוי כברירת מחדל.",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "tags",
+      "label": "תגיות ללקוח",
+      "info": "מופרדות בפסיקים. נוספות לכרטיס הלקוח בשופיפיי.",
+      "default": "newsletter, vip, express-email-opt-in"
+    },
+    {
+      "type": "header",
+      "content": "עיצוב"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "תמונת רקע (מחשב)"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "תמונת רקע (מובייל)"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "צבע רקע",
+      "default": "#e0fff2"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "צבע טקסט (מחשב וטאבלט)",
+      "default": "#060433"
+    },
+    {
+      "type": "color",
+      "id": "text_color_mobile",
+      "label": "צבע טקסט (מובייל)",
+      "info": "למשל לבן, כשתמונת הרקע במובייל כהה.",
+      "default": "#060433"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח מעל הרצועה",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח מתחת לרצועה",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "הרשמה למועדון VIP"
+    }
+  ]
+}
+{% endschema %}

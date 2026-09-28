@@ -1,0 +1,147 @@
+{%- comment -%}
+  Rich text: optional heading, formatted text and a button, on an optional light panel.
+{%- endcomment -%}
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --rich-text-pad-top: {{ section.settings.padding_top }}px;
+    --rich-text-pad-bottom: {{ section.settings.padding_bottom }}px;
+  }
+{%- endstyle -%}
+
+{{ 'section-rich-text.css' | asset_url | stylesheet_tag }}
+
+<div class="rich-text rich-text--{{ section.settings.background }}">
+  <div class="page-width{% if section.settings.width == 'narrow' %} page-width--narrow{% endif %}">
+    <div class="rich-text__inner rich-text__inner--{{ section.settings.alignment }}">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="rich-text__heading rich-text__heading--{{ section.settings.heading_size }}">
+          {{- section.settings.heading | escape -}}
+        </h2>
+      {%- endif -%}
+      {%- if section.settings.text != blank -%}
+        <div class="rich-text__text rte">{{ section.settings.text }}</div>
+      {%- endif -%}
+      {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+        <a
+          class="button rich-text__button{% if section.settings.button_style == 'accent' %} button--accent{% elsif section.settings.button_style == 'outline' %} button--outline{% endif %}"
+          href="{{ section.settings.button_link }}"
+        >
+          {{- section.settings.button_label | escape -}}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "טקסט עשיר",
+  "tag": "section",
+  "class": "section-rich-text",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "כותרת"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "גודל הכותרת",
+      "options": [
+        { "value": "small", "label": "קטן" },
+        { "value": "medium", "label": "בינוני" },
+        { "value": "large", "label": "גדול" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "טקסט",
+      "default": "<p>כתבו כאן על החנות, על מבצע או על כל דבר שחשוב שהלקוחות ידעו.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "תווית כפתור"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "קישור הכפתור"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "סגנון הכפתור",
+      "options": [
+        { "value": "dark", "label": "שחור" },
+        { "value": "accent", "label": "ירוק" },
+        { "value": "outline", "label": "מסגרת" }
+      ],
+      "default": "dark"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "יישור",
+      "options": [
+        { "value": "start", "label": "לימין" },
+        { "value": "center", "label": "למרכז" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "רוחב",
+      "options": [
+        { "value": "narrow", "label": "צר" },
+        { "value": "page", "label": "רוחב העמוד" }
+      ],
+      "default": "narrow"
+    },
+    {
+      "type": "select",
+      "id": "background",
+      "label": "רקע",
+      "options": [
+        { "value": "none", "label": "ללא" },
+        { "value": "surface", "label": "אפור בהיר" },
+        { "value": "surface-alt", "label": "אפור" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "טקסט עשיר"
+    }
+  ]
+}
+{% endschema %}

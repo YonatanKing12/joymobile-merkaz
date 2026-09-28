@@ -1,0 +1,493 @@
+{%- comment -%}
+  Search results page (/search). H1 "תוצאות חיפוש עבור ״…״", a search form, the results
+  count, the same sort row / filter sidebar / product grid / "טען עוד" as the collection
+  page (facets are shown when the results include products and the store has filters),
+  and articles/pages as a text list under the products.
+
+  Every search URL this section builds keeps `options[prefix]=last` (partial match on
+  the last word — needed for Hebrew, where the store's search also serves the header's
+  suggestions) and the `type` restriction when there is one (e.g. the blog's article
+  search). `search.terms` comes HTML-escaped from Shopify: it is printed as is and
+  un-escaped before it is URL-encoded.
+
+  States: no query yet (form + popular searches + popular categories), no results
+  (message + the same suggestions), filters without matches (inside the results, with
+  "ניקוי כל הסינונים").
+  Styles: section-main-collection.css (shared results layout), component-facets.css,
+  section-main-search.css; cards: Track F's component CSS.
+{%- endcomment -%}
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'component-badges.css' | asset_url | stylesheet_tag }}
+{{ 'component-swatches.css' | asset_url | stylesheet_tag }}
+{{ 'component-wishlist-button.css' | asset_url | stylesheet_tag }}
+{{ 'component-facets.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-collection.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-search.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'facets.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product.js' | asset_url }}"></script>
+
+{%- liquid
+  assign sid = section.id
+  assign bar_prefix = 'Bar-' | append: sid
+  assign grid_id = 'ProductGrid-' | append: sid
+  assign terms = search.terms | strip
+  assign terms_raw = terms | replace: '&quot;', '"' | replace: '&#39;', "'" | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&amp;', '&'
+  assign terms_param = terms_raw | url_encode
+
+  assign results_url = routes.search_url
+  assign type_param = ''
+  if search.types.size > 0 and search.types.size < 3
+    assign type_param = search.types | join: ','
+  endif
+
+  assign base_query = 'q=' | append: terms_param | append: '&options%5Bprefix%5D=last'
+  if type_param != blank
+    assign type_encoded = type_param | url_encode
+    assign base_query = base_query | append: '&type=' | append: type_encoded
+  endif
+
+  assign sort_value = ''
+  if search.sort_by != blank and search.sort_by != search.default_sort_by
+    assign sort_value = search.sort_by
+  endif
+
+  assign show_filters = false
+  if section.settings.enable_filtering and search.filters.size > 0
+    assign show_filters = true
+  endif
+
+  assign clear_url = results_url | append: '?' | append: base_query
+  if sort_value != blank
+    assign clear_url = clear_url | append: '&sort_by=' | append: sort_value
+  endif
+-%}
+{%- capture filter_query -%}
+  {%- render 'active-filters', results: search, format: 'query' -%}
+{%- endcapture -%}
+{%- capture active_count -%}
+  {%- render 'active-filters', results: search, format: 'count' -%}
+{%- endcapture -%}
+{%- liquid
+  assign filter_query = filter_query | strip
+  assign active_count = active_count | strip | plus: 0
+-%}
+
+{%- capture suggestions -%}
+  {%- assign trending = settings.search_trending | split: ',' -%}
+  {%- if section.settings.show_popular_searches and trending.size > 0 -%}
+    <div class="search-suggestions__group">
+      <h2 class="search-suggestions__title" id="PopularSearches-{{ sid }}">{{ 'search.page.popular_searches' | t }}</h2>
+      <ul class="search-suggestions__list" role="list" aria-labelledby="PopularSearches-{{ sid }}">
+        {%- for trend in trending -%}
+          {%- assign trend_term = trend | strip -%}
+          {%- if trend_term == blank -%}
+            {%- continue -%}
+          {%- endif -%}
+          <li>
+            <a class="search-suggestions__chip" href="{{ routes.search_url }}?q={{ trend_term | url_encode }}&amp;options%5Bprefix%5D=last">
+              {%- render 'icon', name: 'search', size: 14, class: 'search-suggestions__icon' -%}
+              {{- trend_term | escape -}}
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+  {%- if section.settings.popular_collections != blank -%}
+    <div class="search-suggestions__group">
+      <h2 class="search-suggestions__title" id="PopularCollections-{{ sid }}">{{ 'search.page.popular_collections' | t }}</h2>
+      <ul class="search-suggestions__list" role="list" aria-labelledby="PopularCollections-{{ sid }}">
+        {%- for popular in section.settings.popular_collections -%}
+          <li><a class="search-suggestions__chip" href="{{ popular.url }}">{{ popular.title | escape }}</a></li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+  <a class="button search-suggestions__all" href="{{ routes.all_products_collection_url }}">
+    {{- 'search.page.all_products' | t -}}
+  </a>
+{%- endcapture -%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --collection-pad-top: {{ section.settings.padding_top }}px;
+    --collection-pad-bottom: {{ section.settings.padding_bottom }}px;
+    --pg-cols-mobile: {{ section.settings.columns_mobile }};
+    --pg-cols-desktop: {{ section.settings.columns_desktop }};
+  }
+{%- endstyle -%}
+
+<div class="search-page page-width">
+  {%- if section.settings.show_breadcrumbs -%}
+    {%- render 'breadcrumbs', class: 'collection__breadcrumbs' -%}
+  {%- endif -%}
+
+  <header class="search-page__header">
+    <h1 class="search-page__title">
+      {%- if terms != blank -%}
+        {{- 'search.page.title' | t }}
+        <span class="search-page__terms">{{ 'search.page.title_terms' | t: terms: terms }}</span>
+      {%- else -%}
+        {{- 'search.page.title_empty' | t -}}
+      {%- endif -%}
+    </h1>
+
+    {%- comment -%}
+      The old results page has no search box of its own (the header's field holds the terms), so the
+      form shows only when there is nothing to list: no query yet, or no results.
+    {%- endcomment -%}
+    {%- if terms == blank or search.results_count == 0 -%}
+    <form class="search-page__form" action="{{ routes.search_url }}" method="get" role="search">
+      <label class="visually-hidden" for="SearchPageInput-{{ sid }}">{{ 'search.page.label' | t }}</label>
+      <input
+        class="input search-page__input"
+        type="search"
+        id="SearchPageInput-{{ sid }}"
+        name="q"
+        value="{{ terms }}"
+        placeholder="{{ 'search.page.placeholder' | t }}"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="search"
+      >
+      <input type="hidden" name="options[prefix]" value="last">
+      {%- if type_param != blank -%}
+        <input type="hidden" name="type" value="{{ type_param | escape }}">
+      {%- endif -%}
+      <button class="button search-page__submit" type="submit">
+        {%- render 'icon', name: 'search', size: 20 -%}
+        <span class="search-page__submit-text">{{ 'search.page.submit' | t }}</span>
+      </button>
+    </form>
+    {%- endif -%}
+  </header>
+
+  {%- if terms == blank -%}
+    <div class="search-empty">
+      <p class="search-empty__text">{{ 'search.page.empty_query' | t }}</p>
+      <div class="search-suggestions">{{ suggestions }}</div>
+    </div>
+  {%- elsif search.results_count == 0 and active_count == 0 -%}
+    <div class="search-empty search-empty--no-results">
+      {%- render 'icon', name: 'search', size: 44, class: 'search-empty__icon' -%}
+      <h2 class="search-empty__title">{{ 'search.page.no_results.title' | t: terms: terms }}</h2>
+      <p class="search-empty__text">{{ 'search.page.no_results.text' | t }}</p>
+      <div class="search-suggestions">{{ suggestions }}</div>
+    </div>
+  {%- else -%}
+    {%- paginate search.results by section.settings.results_per_page -%}
+      {%- liquid
+        assign page_products = search.results | where: 'object_type', 'product'
+        assign eager = 0
+        if paginate.current_page == 1
+          assign eager = 4
+        endif
+        assign shown = paginate.current_offset | plus: paginate.page_size | at_most: paginate.items
+        assign progress = 100
+        if paginate.items > 0
+          assign progress = shown | times: 100 | divided_by: paginate.items
+        endif
+      -%}
+      {%- capture content_items -%}
+        {%- for item in search.results -%}
+          {%- if item.object_type == 'product' -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- liquid
+            if item.object_type == 'article'
+              assign item_type = 'search.page.article' | t
+              assign item_text = item.excerpt_or_content
+            else
+              assign item_type = 'search.page.page' | t
+              assign item_text = item.content
+            endif
+            # Plain text: a space before every tag keeps words of adjacent blocks apart, split/join
+            # condenses the whitespace (newlines too); entities stay encoded, so escape_once.
+            assign item_text = item_text | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncatewords: 26 | escape_once
+          -%}
+          <li class="search-content__item">
+            <a class="search-content__link" href="{{ item.url }}">
+              <span class="search-content__type">{{ item_type }}</span>
+              <span class="search-content__title">{{ item.title | escape }}</span>
+              {%- if item_text != blank -%}
+                <span class="search-content__excerpt">{{ item_text | highlight: terms }}</span>
+              {%- endif -%}
+            </a>
+          </li>
+        {%- endfor -%}
+      {%- endcapture -%}
+      <facet-filters
+        class="facets-layout{% unless show_filters %} facets-layout--no-filters{% endunless %}"
+        data-section-id="{{ sid }}"
+      >
+        <div class="facets-layout__toolbar">
+          {%- if show_filters -%}
+            <button
+              class="facets-toggle js-only"
+              type="button"
+              data-facets-open
+              aria-controls="FacetsDrawer-{{ sid }}"
+              aria-expanded="false"
+              aria-haspopup="dialog"
+            >
+              {%- render 'icon', name: 'filter', size: 18, class: 'facets-toggle__icon' -%}
+              <span class="facets-toggle__label">{{ 'facets.open' | t }}</span>
+              <span class="facets-toggle__count" data-swap="facet-count">
+                {%- if active_count > 0 -%}
+                  <span class="facets-toggle__badge" aria-hidden="true">{{ active_count }}</span>
+                  <span class="visually-hidden">, {{ 'facets.active_count' | t: count: active_count }}</span>
+                {%- endif -%}
+              </span>
+            </button>
+          {%- endif -%}
+
+          <p
+            class="facets-layout__count{% unless section.settings.show_count %} visually-hidden{% endunless %}"
+            id="ResultsCount-{{ sid }}"
+            data-swap="count"
+          >
+            {{ 'search.page.count_label' | t }} <strong>{{ search.results_count }}</strong>
+          </p>
+
+          <div class="facets-layout__sort" data-swap="sort">
+            {%- if section.settings.enable_sorting and page_products.size > 0 -%}
+              {%- render 'sort-by',
+                results: search,
+                results_url: results_url,
+                base_query: base_query,
+                filter_query: filter_query,
+                id_prefix: sid
+              -%}
+            {%- endif -%}
+          </div>
+        </div>
+
+        <div class="facets-layout__active" data-swap="active">
+          {%- if show_filters -%}
+            {%- render 'active-filters',
+              results: search,
+              clear_url: clear_url,
+              id_prefix: bar_prefix,
+              show_heading: false,
+              class: 'active-filters--bar'
+            -%}
+          {%- endif -%}
+        </div>
+
+        {%- render 'facets',
+          results: search,
+          section_id: sid,
+          results_url: results_url,
+          base_query: base_query,
+          sort_value: sort_value,
+          clear_url: clear_url,
+          results_count: search.results_count,
+          open_groups: section.settings.open_groups,
+          show_filters: show_filters
+        -%}
+        {%- if show_filters -%}
+          <div class="facets-layout__overlay" data-close></div>
+        {%- endif -%}
+
+        <div class="facets-layout__results">
+          <p class="facets-layout__error form-message form-message--error" data-facets-error hidden></p>
+
+          <div class="facets-layout__grid" id="ProductGridContainer-{{ sid }}" data-swap="grid">
+            {%- if paginate.previous -%}
+              <p class="load-previous">
+                <a class="load-previous__link" href="{{ paginate.previous.url }}">
+                  {%- render 'icon', name: 'arrow-up', size: 16 -%}
+                  {{- 'search.page.previous' | t -}}
+                </a>
+              </p>
+            {%- endif -%}
+
+            {%- if search.results_count == 0 -%}
+              <div class="collection-empty collection-empty--filtered">
+                {%- render 'icon', name: 'filter', size: 44, class: 'collection-empty__icon' -%}
+                <h2 class="collection-empty__title">{{ 'collections.no_matches.title' | t }}</h2>
+                <p class="collection-empty__text">{{ 'collections.no_matches.text' | t }}</p>
+                <a class="button collection-empty__button" href="{{ clear_url }}">
+                  {{- 'collections.no_matches.clear' | t -}}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- comment -%}
+              Both result lists are always printed (hidden while empty): "טען עוד" (@theme/facets) appends the next
+              page's products and articles/pages to their [data-grid] twins, even when this page had none of a kind.
+            {%- endcomment -%}
+            <div class="search-products"{% if page_products.size == 0 %} hidden{% endif %}>
+              <h2 class="visually-hidden">{{ 'search.page.products_heading' | t }}</h2>
+              {%- render 'product-grid',
+                products: page_products,
+                section_id: sid,
+                eager: eager,
+                heading: 'h3',
+                id: grid_id
+              -%}
+            </div>
+
+            <section class="search-content" aria-labelledby="SearchContent-{{ sid }}"{% if content_items == blank %} hidden{% endif %}>
+              <h2 class="search-content__heading" id="SearchContent-{{ sid }}">{{ 'search.page.content_heading' | t }}</h2>
+              <ul class="search-content__list" role="list" data-grid="content">
+                {{- content_items -}}
+              </ul>
+            </section>
+          </div>
+
+          <div class="facets-layout__pagination" data-swap="pagination">
+            {%- if paginate.pages > 1 -%}
+              <div class="load-more">
+                <p class="load-more__status">{{ 'search.page.progress' | t: shown: shown, total: paginate.items }}</p>
+                <span class="load-more__bar" aria-hidden="true">
+                  <span class="load-more__fill" style="inline-size: {{ progress }}%"></span>
+                </span>
+                {%- if paginate.next -%}
+                  <a class="button load-more__button" href="{{ paginate.next.url }}" rel="next" data-load-more>
+                    {{- 'collections.load_more' | t -}}
+                  </a>
+                {%- endif -%}
+              </div>
+              <div class="no-js-only">
+                {%- render 'pagination', paginate: paginate, class: 'load-more__pages' -%}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </facet-filters>
+    {%- endpaginate -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "תוצאות חיפוש",
+  "tag": "section",
+  "class": "section-main-search",
+  "enabled_on": {
+    "templates": ["search"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "פירורי לחם",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "תוצאות"
+    },
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "label": "תוצאות בכל טעינה",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "עמודות במחשב",
+      "options": [
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" },
+        { "value": "5", "label": "5" }
+      ],
+      "default": "4",
+      "info": "מ־1200 פיקסלים. בטאבלט: 3 עמודות."
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "עמודות במובייל",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_count",
+      "label": "מספר התוצאות",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "סינון ומיון"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "label": "סינון",
+      "default": true,
+      "info": "מוצג כשיש מוצרים בתוצאות. המסננים מוגדרים באפליקציית Search & Discovery."
+    },
+    {
+      "type": "select",
+      "id": "open_groups",
+      "label": "קבוצות סינון פתוחות",
+      "options": [
+        { "value": "first", "label": "הראשונה בלבד" },
+        { "value": "all", "label": "כולן" },
+        { "value": "none", "label": "אף אחת" }
+      ],
+      "default": "first"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "מיון",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "אין תוצאות / חיפוש ריק"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_popular_searches",
+      "label": "חיפושים פופולריים",
+      "default": true,
+      "info": "הרשימה נערכת בהגדרות העיצוב › חיפוש."
+    },
+    {
+      "type": "collection_list",
+      "id": "popular_collections",
+      "label": "קטגוריות פופולריות",
+      "limit": 12
+    },
+    {
+      "type": "header",
+      "content": "ריווח"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,303 @@
+/* ==========================================================================
+   section-branches.css — branches + pickup facts (sections/branches.liquid).
+   Konimbo's branches page: centred names in 48px Comic Sans, 24px address and
+   hours, 350px map iframes with 12px corners. Rebuilt as branch cards (theme font,
+   details as a labelled list, map links) with a click-to-load map of the same
+   350px height, and the pickup facts as a row of cards.
+   ========================================================================== */
+
+.branches {
+  padding-block: var(--space-lg) var(--section-space);
+}
+
+/* Long unbroken words wrap instead of widening boxes past the screen. */
+.branches :is(h2, h3, p, a, span, li, dt, dd) {
+  overflow-wrap: anywhere;
+}
+
+.branches__banner {
+  margin-block-end: var(--space-lg);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.branches__banner-image {
+  width: 100%;
+  height: auto;
+}
+
+.branches__head {
+  max-width: 48rem;
+  margin-block-end: var(--space-lg);
+}
+
+.branches__heading {
+  font-size: var(--text-3xl);
+}
+
+.branches__intro {
+  margin-block-start: var(--space-xs);
+  color: var(--color-text);
+  line-height: var(--leading-normal);
+}
+
+@media (min-width: 768px) {
+  .branches__heading {
+    font-size: var(--text-4xl);
+  }
+}
+
+/* ---------- Branch card ---------- */
+.branches__list {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.branch {
+  display: grid;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-background);
+}
+
+@media (min-width: 992px) {
+  .branch {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--space-xl);
+    padding: var(--space-xl);
+  }
+}
+
+.branch__name {
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+}
+
+.branch__services {
+  margin-block-start: var(--space-2xs);
+  color: var(--color-muted);
+  font-size: var(--text-md);
+}
+
+.branch__details {
+  display: grid;
+  gap: var(--space-md);
+  margin: var(--space-md) 0 0;
+}
+
+.branch__row dt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.branch__row dd {
+  margin: var(--space-2xs) 0 0;
+  padding-inline-start: calc(1.25rem + var(--space-xs));
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+}
+
+.branch__address {
+  font-weight: 700;
+}
+
+.branch__row .branch__hours-fallback {
+  color: var(--color-text);
+  font-size: var(--text-body);
+  font-weight: 400;
+}
+
+.branch__icon {
+  color: var(--color-brand);
+}
+
+.branch__phone {
+  display: inline-block;
+  padding-block: var(--space-2xs);
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.branch__phone:hover {
+  text-decoration-thickness: 2px;
+}
+
+.branch__text {
+  margin-block-start: var(--space-md);
+}
+
+.branch__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-block-start: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .branch__name {
+    font-size: var(--text-3xl);
+  }
+}
+
+.branch__media {
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.branch__image {
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- Click-to-load map ---------- */
+.branch__map {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-soft);
+}
+
+.branch__map-toggle {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-xs);
+  min-height: 12rem;
+  padding: var(--space-lg) var(--space-md);
+  background-image:
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-border-strong) 50%, transparent) 0 1px, transparent 1px 2.5rem),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-border-strong) 50%, transparent) 0 1px, transparent 1px 2.5rem);
+  color: var(--color-ink);
+  text-align: center;
+  list-style: none;
+  cursor: pointer;
+}
+
+.branch__map-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.branch__map-toggle:focus-visible {
+  outline-offset: -4px;
+}
+
+.branch__map-icon {
+  color: var(--color-brand);
+}
+
+.branch__map-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  padding-inline: var(--space-lg);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-ink);
+  color: var(--color-background);
+  font-size: var(--text-md);
+  font-weight: 700;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.branch__map-toggle:hover .branch__map-label {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.branch__map-hide,
+.branch__map[open] .branch__map-show {
+  display: none;
+}
+
+.branch__map[open] .branch__map-hide {
+  display: inline;
+}
+
+.branch__map-address {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+/* Open: the facade becomes a slim bar above the map. */
+.branch__map[open] .branch__map-toggle {
+  display: flex;
+  justify-content: space-between;
+  min-height: 0;
+  padding: var(--space-xs) var(--space-sm);
+  background-image: none;
+}
+
+.branch__map[open] .branch__map-icon,
+.branch__map[open] .branch__map-address {
+  display: none;
+}
+
+.branch__map-frame {
+  display: block;
+  width: 100%;
+  height: 21.875rem;
+  border: 0;
+}
+
+@media (min-width: 992px) {
+  .branch__map-toggle {
+    min-height: 21.875rem;
+  }
+}
+
+/* ---------- Pickup facts ---------- */
+.branches__facts {
+  margin-block-start: var(--space-xl);
+}
+
+.branches__facts-heading {
+  margin-block-end: var(--space-md);
+  font-size: var(--text-2xl);
+}
+
+.pickup-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pickup-fact {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+}
+
+.pickup-fact__icon {
+  color: var(--color-brand);
+}
+
+.pickup-fact__title {
+  color: var(--color-ink);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+}
+
+.pickup-fact__text {
+  margin-block-start: var(--space-2xs);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}

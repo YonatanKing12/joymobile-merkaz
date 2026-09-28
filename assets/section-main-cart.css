@@ -1,0 +1,701 @@
+/* ==========================================================================
+   section-main-cart.css — cart page (sections/main-cart.liquid).
+   Look of the Konimbo order page, rebuilt as a real cart: boxes on the light
+   surface with 1px rules (--color-border-strong), the centred pickup
+   notice, a table-like line list from 768px and the summary beside the lines
+   from 1200px. Mobile-first at 768 / 992 / 1200. Logical properties only.
+   ========================================================================== */
+
+.main-cart {
+  display: block;
+  padding-block: var(--space-md) var(--section-space);
+}
+
+.main-cart__breadcrumbs {
+  margin-block-end: var(--space-md);
+}
+
+/* Long unbroken words wrap in text blocks; prices and steppers keep their width
+   (base.css sets break-word on p/li/dd themselves, so the elements are named). */
+:is(.main-cart__breadcrumbs, .main-cart__header, .cart-notice, .cart-item__info, .cart-item__stock, .main-cart__note, .cart-summary__title, .cart-summary__pickup, .cart-conditions, .cart-consents, .cart-summary__next, .main-cart__empty),
+:is(.main-cart__breadcrumbs, .main-cart__header, .cart-notice, .cart-item__info, .main-cart__note, .cart-summary__pickup, .cart-conditions, .cart-consents, .main-cart__empty) :is(h1, h2, h3, p, a, span, li, dt, dd, label) {
+  overflow-wrap: anywhere;
+}
+
+.main-cart__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-sm);
+  margin-block-end: var(--space-lg);
+}
+
+.main-cart--empty .main-cart__header {
+  justify-content: center;
+  text-align: center;
+}
+
+.main-cart__title {
+  font-size: var(--text-3xl);
+}
+
+.main-cart__title:focus {
+  outline: 0;
+}
+
+@media (min-width: 768px) {
+  .main-cart__title {
+    font-size: var(--text-4xl);
+  }
+}
+
+.main-cart__count {
+  color: var(--color-muted);
+  font-size: var(--text-body);
+}
+
+/* ---------- Notice (Konimbo "התראה חשובה" box) ---------- */
+.cart-notice {
+  margin-block-end: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  text-align: center;
+}
+
+.cart-notice a {
+  color: var(--color-ink);
+}
+
+@media (min-width: 768px) {
+  .cart-notice {
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--text-xl);
+    line-height: var(--leading-loose);
+  }
+}
+
+/* ---------- Layout ---------- */
+.main-cart__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+
+.main-cart__main {
+  min-width: 0;
+}
+
+/* 992–1199: lines across the page, then the note and the summary side by side
+   (Konimbo's order page at 1024: notes box beside the summary box). The wrappers
+   step aside (display: contents) so their children join the layout grid; the
+   inputs keep their form association. */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .main-cart__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 25rem);
+    align-items: start;
+    gap: 0 var(--space-xl);
+  }
+
+  .main-cart__main,
+  .main-cart__form {
+    display: contents;
+  }
+
+  .cart-table,
+  .main-cart__actions {
+    grid-column: 1 / -1;
+  }
+
+  .main-cart__actions {
+    margin-block-end: var(--space-md);
+  }
+
+  .main-cart__note,
+  .main-cart__app {
+    grid-column: 1;
+  }
+
+  .main-cart__layout .main-cart__note {
+    margin-block-start: 0;
+  }
+
+  .main-cart__summary {
+    grid-column: 2;
+    grid-row: 3 / span 4;
+  }
+}
+
+@media (min-width: 1200px) {
+  .main-cart__layout {
+    grid-template-columns: minmax(0, 1fr) 23.75rem;
+    align-items: start;
+    gap: var(--space-xl);
+  }
+}
+
+/* Sticky only when the whole summary fits under the sticky header. */
+@media (min-width: 1200px) and (min-height: 56.25rem) {
+  .main-cart__summary {
+    position: sticky;
+    top: calc(var(--header-height, 0px) + var(--space-md));
+  }
+}
+
+/* ---------- Lines ---------- */
+.cart-table {
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+}
+
+.cart-table__head {
+  display: none;
+}
+
+.cart-table__lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  /* Phones: the stepper row runs under the image, so the fixed-width stepper
+     never collides with the line total (320px screens included). */
+  grid-template-areas:
+    "media info remove"
+    "qty qty total";
+  align-items: center;
+  gap: var(--space-sm);
+  padding-block: var(--space-md);
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.cart-item + .cart-item {
+  border-block-start: 1px solid var(--color-border-strong);
+}
+
+.cart-item.is-loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.cart-item__media {
+  grid-area: media;
+  align-self: start;
+}
+
+.cart-item__image-link {
+  display: block;
+}
+
+.cart-item__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-background);
+}
+
+.cart-item__info {
+  grid-area: info;
+  align-self: start;
+  display: grid;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.cart-item__title {
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  text-decoration: none;
+}
+
+.cart-item__title:hover {
+  text-decoration: underline;
+}
+
+.cart-item__options,
+.cart-item__properties,
+.cart-item__discounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cart-item__options,
+.cart-item__properties,
+.cart-item__discounts,
+.cart-item__meta,
+.cart-item__unit {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.cart-item__properties > div {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+.cart-item__properties dd {
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.cart-item__properties a {
+  color: var(--color-ink);
+}
+
+.cart-item__discounts li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--color-ink);
+}
+
+.cart-item__compare {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.cart-item__error {
+  margin-block-start: var(--space-2xs);
+}
+
+.cart-item__qty {
+  grid-area: qty;
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2xs);
+}
+
+/* Without JavaScript the +/− buttons cannot act: the number field and
+   "עדכון העגלה" do the work. */
+.no-js .cart-item .quantity__button {
+  display: none;
+}
+
+.no-js .cart-item .quantity__input {
+  width: 4.5rem;
+}
+
+.cart-item__stock {
+  color: var(--color-error);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.cart-item__total {
+  grid-area: total;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-self: end;
+  line-height: var(--leading-tight);
+}
+
+.cart-item__amount {
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cart-item__remove-cell {
+  grid-area: remove;
+  align-self: start;
+  justify-self: end;
+  /* Pull the 44px target into the corner without widening the row. */
+  margin-block-start: calc(var(--space-sm) * -1);
+  margin-inline-end: calc(var(--space-xs) * -1);
+}
+
+.cart-item__remove {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border-radius: var(--radius-button);
+  color: var(--color-muted);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.cart-item__remove:hover {
+  background-color: var(--color-background);
+  color: var(--color-error);
+}
+
+@media (min-width: 768px) {
+  .cart-table {
+    padding-inline: var(--space-md);
+  }
+
+  .cart-table__head,
+  .cart-item {
+    grid-template-columns: 5rem minmax(0, 1fr) 9rem 7.5rem var(--tap-target);
+    column-gap: var(--space-md);
+  }
+
+  .cart-table__head {
+    display: grid;
+    align-items: center;
+    padding-block: var(--space-sm);
+    border-block-end: 1px solid var(--color-border-strong);
+    color: var(--color-ink);
+    font-size: var(--text-md);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .cart-table__head-product {
+    grid-column: span 2;
+    text-align: start;
+  }
+
+  .cart-item {
+    grid-template-areas: "media info qty total remove";
+  }
+
+  .cart-item__info {
+    align-self: center;
+  }
+
+  .cart-item__qty {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .cart-item__total {
+    align-items: center;
+    justify-self: center;
+  }
+
+  .cart-item__remove-cell {
+    align-self: center;
+    margin: 0;
+  }
+}
+
+/* ---------- Under the lines ---------- */
+.main-cart__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-block-start: var(--space-sm);
+}
+
+.main-cart__continue {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--tap-target);
+  color: var(--color-brand-text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.main-cart__continue:hover {
+  color: var(--color-ink);
+}
+
+.main-cart__note {
+  margin-block-start: var(--space-md);
+}
+
+.main-cart__note .textarea {
+  min-height: 5.5rem;
+}
+
+.main-cart__app {
+  margin-block-start: var(--space-lg);
+}
+
+/* ---------- Summary ---------- */
+.cart-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+}
+
+.cart-summary__title {
+  font-size: var(--text-xl);
+}
+
+.cart-summary__rows {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.cart-summary__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: var(--text-md);
+}
+
+.cart-summary__row dt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.cart-summary__row dd {
+  margin: 0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cart-summary__row--total {
+  margin-block-start: var(--space-2xs);
+  padding-block-start: var(--space-sm);
+  border-block-start: 1px solid var(--color-border-strong);
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.cart-summary__row--total dd {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+cart-items[aria-busy="true"] .cart-summary__row--total dd {
+  opacity: 0.5;
+}
+
+.cart-summary__tax {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-block-start: calc(var(--space-xs) * -1);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.cart-summary__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.0625rem var(--space-xs);
+  border: 1px solid var(--color-badge-taxfree-text);
+  border-radius: var(--radius-badge);
+  background-color: var(--color-badge-taxfree-bg);
+  color: var(--color-badge-taxfree-text);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Pickup in Eilat · pay online or at the branch */
+.cart-summary__pickup {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-inline-start: 4px solid var(--color-brand);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+}
+
+.cart-summary__pickup-icon {
+  color: var(--color-brand);
+}
+
+.cart-summary__pickup-text {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.cart-summary__pickup-title {
+  font-weight: 500;
+  line-height: var(--leading-snug);
+}
+
+.cart-summary__pickup-address {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+/* Reservation conditions (plain text by default) */
+.cart-conditions__title {
+  margin-block-end: var(--space-xs);
+  font-size: var(--text-body);
+}
+
+.cart-conditions__list {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}
+
+.cart-conditions__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.cart-conditions__icon {
+  margin-block-start: 0.05em;
+  color: var(--color-brand);
+}
+
+.cart-conditions__item a {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+/* Optional required confirmations */
+.cart-consents {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.cart-consent .checkbox {
+  padding: var(--space-2xs);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}
+
+.cart-consent .checkbox input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-block-start: 0;
+}
+
+.cart-consent .checkbox a {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+.cart-consent__error {
+  display: none;
+  margin-block-start: var(--space-2xs);
+}
+
+.cart-consent:has(input:user-invalid) .checkbox {
+  outline: 2px solid var(--color-error);
+  outline-offset: 2px;
+  background-color: var(--color-background);
+}
+
+.cart-consent:has(input:user-invalid) .cart-consent__error {
+  display: flex;
+}
+
+.cart-summary__next {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  text-align: center;
+}
+
+.cart-summary__dynamic:empty {
+  display: none;
+}
+
+.cart-summary__payments {
+  justify-content: center;
+}
+
+/* ---------- Empty cart ---------- */
+.main-cart__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-block: var(--space-md) var(--space-lg);
+  text-align: center;
+}
+
+.main-cart__empty-icon {
+  color: var(--color-brand);
+}
+
+.main-cart__empty-text {
+  color: var(--color-text);
+  font-size: var(--text-xl);
+}
+
+.main-cart__empty-note {
+  color: var(--color-muted);
+}
+
+.main-cart__empty-nav {
+  margin-block-start: var(--space-lg);
+}
+
+.main-cart__empty-heading {
+  margin-block-end: var(--space-sm);
+  font-size: var(--text-body);
+}
+
+.main-cart__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.main-cart__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  padding: var(--space-2xs) var(--space-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.main-cart__chip:hover {
+  border-color: var(--color-brand);
+  background-color: var(--color-hover-bg);
+}

@@ -1,0 +1,964 @@
+/* ==========================================================================
+   base.css — JOY Mobile theme (Hebrew, RTL only)
+   Order: tokens → reset → typography → layout → buttons → forms → focus
+          → rich text → utilities → accessibility preferences → motion.
+   Setting-driven tokens (colours, radii, page width, fonts) are printed by
+   snippets/css-variables.liquid; the static scale lives here. Components use
+   tokens only. Logical properties only (RTL). Breakpoints (decisions.md): 768 / 992 / 1200px, mobile-first min-width.
+   Root font-size stays 16px (100%) at every width.
+   ========================================================================== */
+
+/* ---------- 1. Static tokens ---------- */
+:root {
+  /* Type scale in rem, so the accessibility text-size classes and browser font
+     settings scale everything. Measured sizes on the old site: 12 (most common),
+     13, 14, 15, 16, 18, 20 px. */
+  --text-2xs: 0.6875rem; /* 11px */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.8125rem;  /* 13px */
+  --text-md: 0.875rem;   /* 14px */
+  --text-lg: 0.9375rem;  /* 15px */
+  --text-body: 1rem;     /* 16px body */
+  --text-xl: 1.125rem;   /* 18px */
+  --text-2xl: 1.25rem;   /* 20px */
+  --text-3xl: 1.5rem;    /* 24px */
+  --text-4xl: 1.875rem;  /* 30px */
+  --text-5xl: 2.5rem;    /* 40px */
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.4;
+  --leading-normal: 1.5;
+  --leading-loose: 1.7;
+
+  /* Spacing */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --section-space: var(--space-xl);
+  --grid-gap: var(--space-sm);
+
+  /* Radii (measured: 3, 8, 16, 20px and circles). Button/input/card/badge radii
+     come from theme settings. */
+  --radius-sm: 3px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* Colours derived from the JOY Mobile palette (settings + the two mint accents below).
+     Contrast (default palette): control borders 3.7:1 on white / 3.4:1 on #f0f3ff (WCAG 1.4.11);
+     mint on navy 10.4:1; navy on mint 10.4:1; #267d61 on #e0fff2 4.7:1. */
+  --color-border-strong: color-mix(in srgb, var(--color-ink) 20%, var(--color-background)); /* dividers, card rules */
+  --color-border-control: color-mix(in srgb, var(--color-ink) 50%, var(--color-background)); /* field and swatch outlines ≥ 3:1 */
+  --color-swatch-border: var(--color-border-control);
+  --color-overlay: color-mix(in srgb, var(--color-ink) 60%, transparent);
+  --color-on-accent: var(--color-ink);
+  --color-hover-bg: var(--color-accent-soft); /* rows and options under the pointer, selected fills */
+  --color-focus: var(--color-brand-text);
+  --color-focus-on-dark: var(--color-accent); /* rings inside the navy header, nav, announcement strip, footer */
+
+  /* Third-party brand and functional colours, deliberately outside the palette. */
+  --color-whatsapp: #128c7e; /* WhatsApp teal green: white glyph 4.1:1, 4.7:1 on the navy header */
+  --color-whatsapp-text: #ffffff;
+  --color-highlight: #ffe600; /* the accessibility panel's "highlight links" marker */
+
+  --shadow-sm: 0 1px 3px color-mix(in srgb, var(--color-ink) 14%, transparent);
+  --shadow-md: 0 4px 14px color-mix(in srgb, var(--color-ink) 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, var(--color-ink) 22%, transparent);
+
+  /* Layers */
+  --z-raised: 2;
+  --z-sticky: 50;
+  --z-dropdown: 60;
+  --z-floating: 70;
+  --z-overlay: 90;
+  --z-drawer: 100;
+  --z-modal: 110;
+  --z-toast: 120;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Minimum touch target (WCAG 2.5.5 / IS 5568) */
+  --tap-target: 2.75rem;
+}
+
+/* The JOY Mobile palette's accents (brand kit: #309d7a · #060433 · #f0f3ff · #56d2aa · #e0fff2). The first three
+   are theme settings (css-variables); these two are not (yet): :where() keeps them at zero specificity, so a
+   setting printed later on :root replaces them. */
+:where(:root) {
+  --color-accent: #56d2aa;      /* mint: on navy (hover, active, focus), cart bubble, button hover with navy text */
+  --color-accent-soft: #e0fff2; /* mint wash: hover rows, selected options */
+}
+
+@media (min-width: 992px) {
+  :root {
+    --section-space: var(--space-2xl);
+    --grid-gap: var(--space-md);
+  }
+}
+
+/* "הגדלת טקסט קטן במובייל" (theme setting → class on <html>) */
+@media (max-width: 767px) {
+  html.text-boost {
+    --text-2xs: 0.75rem;
+    --text-xs: 0.8125rem;
+    --text-sm: 0.875rem;
+  }
+}
+
+/* ---------- 2. Reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  font-size: 100%; /* 16px; never changed per breakpoint (the old site's 12/14px root was a bug) */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: var(--header-height, 0px);
+  scrollbar-gutter: stable; /* the scroll lock's overflow: hidden keeps the gutter: no page shift when a drawer opens */
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+picture,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+svg {
+  flex-shrink: 0;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button,
+[role="button"],
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+li,
+dd,
+td,
+th {
+  overflow-wrap: break-word;
+}
+
+ul[role="list"],
+ol[role="list"] {
+  padding: 0;
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+fieldset {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- 3. Typography ---------- */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body-family);
+  font-size: var(--text-body);
+  font-weight: var(--font-body-weight);
+  line-height: var(--leading-normal);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4 {
+  color: var(--color-ink);
+  font-family: var(--font-heading-family);
+  font-weight: var(--font-heading-weight);
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+h1,
+.h1 {
+  font-size: var(--text-3xl);
+}
+
+h2,
+.h2 {
+  font-size: var(--text-2xl);
+}
+
+h3,
+.h3 {
+  font-size: var(--text-xl);
+}
+
+h4,
+.h4 {
+  font-size: var(--text-body);
+}
+
+h5,
+h6 {
+  font-size: var(--text-md);
+}
+
+@media (min-width: 992px) {
+  h1,
+  .h1 {
+    font-size: var(--text-4xl);
+  }
+
+  h2,
+  .h2 {
+    font-size: var(--text-3xl);
+  }
+
+  h3,
+  .h3 {
+    font-size: var(--text-2xl);
+  }
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.15em;
+}
+
+strong,
+b {
+  font-weight: 700;
+}
+
+small {
+  font-size: var(--text-xs);
+}
+
+/* Numbers and Latin model names inside Hebrew keep their own direction. */
+bdi {
+  unicode-bidi: isolate;
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.text-brand {
+  color: var(--color-brand-text);
+}
+
+.text-start {
+  text-align: start;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-end {
+  text-align: end;
+}
+
+/* ---------- 4. Layout ---------- */
+.page-width {
+  width: 100%;
+  max-width: calc(var(--page-width) + 2 * var(--page-gutter));
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.page-width--narrow {
+  max-width: calc(48rem + 2 * var(--page-gutter));
+}
+
+.page-width--full {
+  max-width: none;
+}
+
+.section {
+  padding-block: var(--section-space);
+}
+
+.section--flush {
+  padding-block: 0;
+}
+
+/* Columns come from custom properties so a section can set them per instance:
+   style="--grid-cols-mobile: 2; --grid-cols-desktop: 5" */
+.grid {
+  --grid-cols: var(--grid-cols-mobile, 2);
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  gap: var(--grid-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    --grid-cols: var(--grid-cols-tablet, 3);
+  }
+}
+
+@media (min-width: 992px) {
+  .grid {
+    --grid-cols: var(--grid-cols-desktop, 4);
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap, var(--space-md));
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cluster-gap, var(--space-xs));
+}
+
+@media (max-width: 767px) {
+  .small-hide {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .medium-up-hide {
+    display: none !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .below-desktop-hide {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .desktop-hide {
+    display: none !important;
+  }
+}
+
+/* ---------- 5. Buttons ---------- */
+/* One JOY Mobile system: navy primary, green accent with navy text (5.8:1, the logo's own pairing),
+   and every button turns mint (#56d2aa) with navy text under the pointer (10.4:1). */
+.button {
+  --button-bg: var(--color-button-bg);
+  --button-text: var(--color-button-text);
+  --button-border: var(--button-bg);
+  --button-hover-bg: var(--color-accent);
+  --button-hover-text: var(--color-on-accent);
+  --button-hover-border: var(--button-hover-bg);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: var(--tap-target);
+  padding: var(--space-xs) var(--space-lg);
+  border: 1px solid var(--button-border);
+  border-radius: var(--radius-button);
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  font-family: var(--font-body-family);
+  font-size: var(--text-md);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.button:hover {
+  border-color: var(--button-hover-border);
+  background-color: var(--button-hover-bg);
+  color: var(--button-hover-text);
+}
+
+/* Green: brand green with navy text (theme settings). */
+.button--accent {
+  --button-bg: var(--color-button-accent-bg);
+  --button-text: var(--color-button-accent-text);
+}
+
+.button--outline {
+  --button-bg: transparent;
+  --button-text: var(--color-ink);
+  --button-border: currentColor;
+  --button-hover-border: var(--color-ink);
+}
+
+.button--full {
+  width: 100%;
+}
+
+.button--small {
+  min-height: 2.25rem;
+  padding: var(--space-2xs) var(--space-md);
+  font-size: var(--text-xs);
+}
+
+.button--large {
+  min-height: 3.25rem;
+  font-size: var(--text-body);
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.button:disabled:hover,
+.button[aria-disabled="true"]:hover {
+  background-color: var(--button-bg);
+  border-color: var(--button-border);
+  color: var(--button-text);
+}
+
+/* Busy state set by scripts while a request is in flight. */
+.button[aria-busy="true"] {
+  color: transparent;
+  pointer-events: none;
+}
+
+.button[aria-busy="true"] > * {
+  visibility: hidden;
+}
+
+.button[aria-busy="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 1.25em;
+  height: 1.25em;
+  margin: auto;
+  border: 2px solid var(--button-text);
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Text-style button / link */
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--color-brand-text);
+}
+
+/* ---------- 6. Forms ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.field__label {
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.field__hint {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+.input,
+.textarea,
+.select > select {
+  width: 100%;
+  min-height: var(--tap-target);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-input);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-body-family);
+  font-size: max(16px, var(--text-lg)); /* ≥16px on phones: no iOS zoom on focus */
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+@media (min-width: 768px) {
+  .input,
+  .textarea,
+  .select > select {
+    font-size: var(--text-lg);
+  }
+}
+
+.textarea {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+
+/* The quantity stepper's box (snippets/quantity-input) is its field outline: ≥ 3:1, like every field. */
+quantity-input.quantity {
+  border-color: var(--color-border-control);
+}
+
+/* Emails, phone numbers and URLs are typed left-to-right but stay aligned with
+   the right-to-left form; the Hebrew placeholder keeps RTL. */
+.input:is([type="email"], [type="tel"], [type="url"]) {
+  direction: ltr;
+  text-align: end;
+}
+
+.input:is([type="email"], [type="tel"], [type="url"]):placeholder-shown {
+  direction: rtl;
+  text-align: start;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-muted);
+  font-weight: 400;
+  opacity: 1;
+}
+
+.input:hover,
+.textarea:hover,
+.select > select:hover {
+  border-color: var(--color-ink);
+}
+
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"],
+.select > select[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.select {
+  position: relative;
+  display: block;
+}
+
+.select > select {
+  padding-inline-end: 2.5rem;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: var(--space-sm);
+  top: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: solid currentColor;
+  border-width: 0 0 2px 2px;
+  pointer-events: none;
+  transform: translateY(-75%) rotate(-45deg);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--color-brand-text);
+  cursor: pointer;
+}
+
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  font-size: var(--text-sm);
+}
+
+.checkbox input {
+  flex-shrink: 0;
+  margin-block-start: 0.125em;
+}
+
+.form-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.form-message--error {
+  color: var(--color-error);
+}
+
+.form-message--success {
+  color: var(--color-success);
+}
+
+.form-message .icon {
+  margin-block-start: 0.1em;
+}
+
+/* ---------- 7. Focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.input:focus-visible,
+.textarea:focus-visible,
+.select > select:focus-visible {
+  border-color: var(--color-ink);
+  outline-offset: 0;
+}
+
+/* Controls that float over photos, or over both white pages and the navy footer, get a two-tone ring:
+   mint inside, navy outside — one of the two always stands out (mint 10.4:1 on navy, navy 19.6:1 on white). */
+.focus-ring-dual:focus-visible,
+.hero-slideshow :is(.carousel__btn, .carousel__dot, .carousel__pause, .hero-slideshow__button):focus-visible,
+.image-banner .button:focus-visible,
+.card-product__wishlist .wishlist-button__control:focus-visible,
+.product-media .product-media__arrow:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* The skip-link target is focused programmatically; no ring on the whole page. */
+#MainContent:focus {
+  outline: 0;
+}
+
+/* Sections on the navy header/footer colours set: --color-focus: var(--color-focus-on-dark) (mint, 10.4:1). */
+
+/* ---------- 8. Rich text (.rte) ---------- */
+.rte {
+  line-height: var(--leading-loose);
+  overflow-wrap: break-word;
+}
+
+.rte > * + * {
+  margin-block-start: 1em;
+}
+
+.rte > :first-child {
+  margin-block-start: 0;
+}
+
+.rte :is(h1, h2, h3, h4, h5, h6) {
+  margin-block: 1.5em 0.5em;
+}
+
+.rte :is(h1, h2, h3, h4, h5, h6):first-child {
+  margin-block-start: 0;
+}
+
+.rte a {
+  color: var(--color-brand-text);
+  text-decoration: underline;
+}
+
+.rte a:hover {
+  color: var(--color-ink);
+}
+
+.rte :is(ul, ol) {
+  padding-inline-start: 1.5em;
+}
+
+.rte li + li {
+  margin-block-start: 0.35em;
+}
+
+.rte img {
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.rte iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+}
+
+.rte table {
+  width: 100%;
+  font-size: var(--text-md);
+}
+
+.rte :is(th, td) {
+  padding: var(--space-xs);
+  border: 1px solid var(--color-border);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.rte th {
+  background-color: var(--color-surface);
+  font-weight: 700;
+}
+
+.rte blockquote {
+  padding-inline-start: var(--space-md);
+  border-inline-start: 4px solid var(--color-brand);
+  color: var(--color-muted);
+}
+
+.rte hr {
+  border: 0;
+  border-block-start: 1px solid var(--color-border);
+}
+
+.rte :is(code, pre) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.rte pre {
+  padding: var(--space-sm);
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+}
+
+/* ---------- 9. Utilities ---------- */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+.skip-link {
+  position: fixed;
+  inset-inline-start: var(--space-md);
+  top: var(--space-md);
+  z-index: var(--z-toast);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-button);
+  background-color: var(--color-ink);
+  color: var(--color-background);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.skip-link:focus-visible {
+  outline-color: var(--color-brand);
+}
+
+.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.icon--spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+.placeholder-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-surface);
+  fill: var(--color-muted);
+}
+
+.no-js .js-only,
+.js .no-js-only {
+  display: none !important;
+}
+
+.badge-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding-inline: 0.25rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  line-height: 1;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- 10. Accessibility preferences (<a11y-panel> sets these on <html>) ---------- */
+html.a11y-text-lg {
+  font-size: 115%;
+}
+
+html.a11y-text-xl {
+  font-size: 130%;
+}
+
+/* High contrast: navy text everywhere (19.6:1), control-strength borders, darker green for text
+   (7.3:1), plain white surfaces, the green button on mint (navy text 10.4:1). No token refers to itself. */
+html.a11y-contrast {
+  --color-text: var(--color-ink);
+  --color-muted: var(--color-ink);
+  --color-border: var(--color-ink);
+  --color-border-strong: var(--color-ink);
+  --color-border-control: var(--color-ink);
+  --color-brand-text: color-mix(in srgb, var(--color-brand) 60%, var(--color-ink));
+  --color-button-accent-bg: var(--color-accent);
+  --color-surface: var(--color-background);
+  --color-surface-alt: var(--color-background);
+  --color-surface-soft: var(--color-background);
+  --color-focus: var(--color-ink);
+}
+
+html.a11y-contrast a:not(.button) {
+  text-decoration: underline;
+}
+
+html.a11y-links a:not(.button) {
+  outline: 1px solid currentColor;
+  background-color: var(--color-highlight) !important;
+  color: var(--color-ink) !important;
+  text-decoration: underline !important;
+}
+
+html.a11y-readable {
+  --font-body-family: Arial, "Arial Hebrew", system-ui, sans-serif;
+  --font-heading-family: Arial, "Arial Hebrew", system-ui, sans-serif;
+}
+
+html.a11y-readable body {
+  letter-spacing: 0.02em;
+  word-spacing: 0.1em;
+  line-height: var(--leading-loose);
+}
+
+/* ---------- 11. Motion ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-no-motion) {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html.a11y-no-motion *,
+html.a11y-no-motion *::before,
+html.a11y-no-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media print {
+  .skip-link,
+  .no-print {
+    display: none !important;
+  }
+}

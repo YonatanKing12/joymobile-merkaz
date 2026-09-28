@@ -1,0 +1,24 @@
+{%- comment -%}
+  Cart count bubble. Never placed in a template or group: @theme/cart asks for it by file
+  name through bundled section rendering (`sections: 'cart-count'`) after every cart change
+  and copies the new children into every <cart-count> on the page. The header renders the
+  same markup — keep both identical.
+{%- endcomment -%}
+{%- liquid
+  assign cart_bubble = cart.item_count
+  if cart.item_count > 99
+    assign cart_bubble = '99+'
+  endif
+-%}
+<cart-count class="cart-count" data-count="{{ cart.item_count }}">
+  <span class="cart-count__bubble" aria-hidden="true" data-count-text>{{ cart_bubble }}</span>
+  <span class="visually-hidden">{{ 'header.cart.count' | t: count: cart.item_count }}</span>
+</cart-count>
+
+{% schema %}
+{
+  "name": "מונה העגלה",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,253 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero-slideshow",
+      "blocks": {
+        "slide-galaxy-s26": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/joy-hero-galaxy-s26-desktop.png",
+            "image_mobile": "shopify://shop_images/joy-hero-galaxy-s26-mobile.png",
+            "alt": "סדרת סמסונג S26 – חבילת השקה משתלמת במיוחד",
+            "link": "/search?q=Samsung+Galaxy+S26&type=product",
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
+        },
+        "slide-telegram-vip": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/joy-hero-telegram-vip-desktop.png",
+            "image_mobile": "shopify://shop_images/joy-hero-telegram-vip-mobile.png",
+            "alt": "קבוצת VIP בטלגרם של JOY Mobile – מבצעים בלעדיים ללקוחות. להצטרפות",
+            "link": "https://ms.connecto.site/join/joy/?c=3febd6",
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
+        }
+      },
+      "block_order": [
+        "slide-galaxy-s26",
+        "slide-telegram-vip"
+      ],
+      "settings": {
+        "label": "באנרים ראשיים",
+        "page_heading": "JOY Mobile — מוצרי חשמל, מחשבים ואלקטרוניקה באילת",
+        "autoplay": true,
+        "autoplay_speed": 6,
+        "show_arrows": true,
+        "show_dots": true,
+        "peek": true,
+        "padding_top": 30,
+        "padding_top_mobile": 14,
+        "padding_bottom": 0
+      }
+    },
+    "categories": {
+      "type": "category-circles",
+      "blocks": {
+        "circle-smartphones": {
+          "type": "circle",
+          "settings": {
+            "collection": "smartphones",
+            "label": "סמארטפונים"
+          }
+        },
+        "circle-tablets": {
+          "type": "circle",
+          "settings": {
+            "collection": "tablets",
+            "label": "טאבלטים"
+          }
+        },
+        "circle-smartwatches": {
+          "type": "circle",
+          "settings": {
+            "collection": "smartwatches",
+            "label": "שעונים חכמים"
+          }
+        },
+        "circle-vacuums": {
+          "type": "circle",
+          "settings": {
+            "collection": "vacuums",
+            "label": "שואבי אבק"
+          }
+        },
+        "circle-computers": {
+          "type": "circle",
+          "settings": {
+            "collection": "computers-gaming",
+            "label": "מחשבים"
+          }
+        },
+        "circle-consoles": {
+          "type": "circle",
+          "settings": {
+            "collection": "gaming-consoles",
+            "label": "קונסולות וגיימינג"
+          }
+        },
+        "circle-appliances": {
+          "type": "circle",
+          "settings": {
+            "collection": "appliances",
+            "label": "מוצרי חשמל"
+          }
+        },
+        "circle-audio": {
+          "type": "circle",
+          "settings": {
+            "collection": "audio",
+            "label": "שמע ואוזניות"
+          }
+        }
+      },
+      "block_order": [
+        "circle-smartphones",
+        "circle-tablets",
+        "circle-smartwatches",
+        "circle-vacuums",
+        "circle-computers",
+        "circle-consoles",
+        "circle-appliances",
+        "circle-audio"
+      ],
+      "settings": {
+        "heading": "קטגוריות מובילות",
+        "show_heading": false,
+        "circle_color": "#f0f3ff",
+        "per_view_desktop": 7,
+        "autoplay": false,
+        "autoplay_speed": 5,
+        "padding_top": 5,
+        "padding_bottom": 30
+      }
+    },
+    "products-smartphones": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "מוצרים פופולאריים מקטגוריית סמארטפונים",
+        "collection": "smartphones",
+        "products_limit": 8,
+        "hide_sold_out": true,
+        "show_view_all": true,
+        "view_all_label": "לכל הסמארטפונים",
+        "padding_top": 50,
+        "padding_bottom": 0
+      }
+    },
+    "products-tablets": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "מוצרים פופולאריים מקטגוריית טאבלטים",
+        "collection": "tablets",
+        "products_limit": 8,
+        "hide_sold_out": true,
+        "show_view_all": true,
+        "view_all_label": "לכל הטאבלטים",
+        "padding_top": 50,
+        "padding_bottom": 0
+      }
+    },
+    "products-vacuums": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "מוצרים פופולאריים מקטגוריית שואבי אבק",
+        "collection": "vacuums",
+        "products_limit": 8,
+        "hide_sold_out": true,
+        "show_view_all": true,
+        "view_all_label": "לכל שואבי האבק",
+        "padding_top": 50,
+        "padding_bottom": 0
+      }
+    },
+    "products-audio": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "מוצרים פופולאריים מקטגוריית שמע ואוזניות",
+        "collection": "audio",
+        "products_limit": 8,
+        "hide_sold_out": true,
+        "show_view_all": true,
+        "view_all_label": "לכל מוצרי השמע",
+        "padding_top": 50,
+        "padding_bottom": 0
+      }
+    },
+    "products-computers": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "מוצרים פופולאריים מקטגוריית מחשבים וגיימינג",
+        "collection": "computers-gaming",
+        "products_limit": 8,
+        "hide_sold_out": true,
+        "show_view_all": true,
+        "view_all_label": "לכל המחשבים והגיימינג",
+        "padding_top": 50,
+        "padding_bottom": 50
+      }
+    },
+    "about": {
+      "type": "brand-about",
+      "settings": {
+        "show_logo": true,
+        "logo_width": 220,
+        "heading": "",
+        "text": "<p>JOY Mobile באילת: סמארטפונים, מחשבים וגיימינג, מוצרי חשמל, שמע ושעונים חכמים במחירי אילת ללא מע״מ. בוחרים באתר, משריינים ואוספים מהחנות ברחוב המלאכה 7.</p>",
+        "button_label": "עוד עלינו",
+        "button_link": "shopify://pages/about",
+        "padding_top": 0,
+        "padding_bottom": 20
+      }
+    },
+    "guides": {
+      "type": "guides",
+      "settings": {
+        "heading": "מדריכים והשוואות מוצרים שיעזרו לך לבחור נכון",
+        "blog": "tips",
+        "articles_count": 3,
+        "show_preview": true,
+        "show_view_all": true,
+        "view_all_label": "לכל הכתבות",
+        "autoplay": false,
+        "autoplay_speed": 5,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "disabled": true,
+      "settings": {
+        "heading": "אז מה אומרים הלקוחות שלנו?",
+        "star_color": "#309d7a",
+        "autoplay": false,
+        "autoplay_speed": 6,
+        "padding_top": 30,
+        "padding_bottom": 20
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "categories",
+    "products-smartphones",
+    "products-tablets",
+    "products-vacuums",
+    "products-audio",
+    "products-computers",
+    "about",
+    "guides",
+    "testimonials"
+  ]
+}

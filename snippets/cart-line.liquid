@@ -1,0 +1,149 @@
+{% doc %}
+  One cart line for <cart-items> (@theme/cart), used by the cart drawer and available to the
+  cart page. Markup contract:
+  - the <li> carries `data-key` (the line item key) — cart.js finds the line from any control in it;
+  - the quantity stepper is `quantity-input` with name `updates[]`, `min: 0` and the same key;
+    cart.js debounces changes into /cart/change.js and re-renders the sections;
+  - the remove control is a real link to `item.url_to_remove` (works without JS) marked
+    `[data-cart-remove]`, which cart.js turns into an AJAX removal;
+  - `[data-line-error]` receives inline errors (e.g. only N left in stock);
+  - the stepper input and its −/+ buttons get ids derived from the line key (stable when
+    other lines are removed), so focus returns to them after the section re-renders.
+  Private line properties (names starting with "_") are never printed.
+  The cart page prints its lines itself (sections/main-cart: table layout, form= inputs); keep the
+  two in step — same data (title, options, properties, plan, discounts, prices, low stock) and the
+  same @theme/cart contract.
+
+  @param {line_item} item - The cart line.
+  @param {number} index - 1-based position of the line (forloop.index).
+  @param {string} [context] - 'drawer' (default) or 'page'; adds a modifier class.
+
+  @example
+  {% render 'cart-line', item: item, index: forloop.index, context: 'drawer' %}
+{% enddoc %}
+{%- liquid
+  assign line_context = context | default: 'drawer'
+  assign line_title = item.product.title | default: item.title
+
+  assign line_max = nil
+  assign line_low_stock = false
+  if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'deny'
+    assign line_max = item.variant.inventory_quantity
+    if line_max < item.quantity
+      assign line_max = item.quantity
+    endif
+    if item.variant.inventory_quantity > 0 and item.variant.inventory_quantity <= settings.badge_low_stock_threshold
+      assign line_low_stock = true
+    endif
+  endif
+
+  assign qty_prefix = 'CartDrawer-Qty-'
+  if line_context == 'page'
+    assign qty_prefix = 'CartPage-Qty-'
+  endif
+  assign qty_id = item.key | handleize | prepend: qty_prefix
+
+  assign show_options = true
+  if item.product.has_only_default_variant or item.variant.title == blank
+    assign show_options = false
+  endif
+-%}
+<li class="cart-line cart-line--{{ line_context }}" data-key="{{ item.key | escape }}" data-line="{{ index }}">
+  <a class="cart-line__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+    {%- render 'image',
+      image: item.image,
+      widths: '70,140,210',
+      sizes: '70px',
+      loading: 'lazy',
+      decorative: true,
+      placeholder: 'product-1',
+      class: 'cart-line__img'
+    -%}
+  </a>
+
+  <div class="cart-line__body">
+    <a class="cart-line__title" href="{{ item.url }}">{{ line_title | escape }}</a>
+
+    {%- if show_options -%}
+      <ul class="cart-line__options" role="list">
+        {%- for option in item.options_with_values -%}
+          <li>{{ option.name | escape }}: {{ option.value | escape }}</li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- if item.properties.size > 0 -%}
+      <ul class="cart-line__options" role="list">
+        {%- for property in item.properties -%}
+          {%- assign property_first = property.first | slice: 0 -%}
+          {%- if property.last != blank and property_first != '_' -%}
+            <li>
+              {{- property.first | escape }}:
+              {% if property.last contains '/uploads/' -%}
+                <a href="{{ property.last }}" target="_blank" rel="noopener">{{ property.last | split: '/' | last | escape }}</a>
+              {%- else -%}
+                {{- property.last | escape -}}
+              {%- endif -%}
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- if item.selling_plan_allocation -%}
+      <p class="cart-line__plan">{{ item.selling_plan_allocation.selling_plan.name | escape }}</p>
+    {%- endif -%}
+
+    {%- for discount in item.line_level_discount_allocations -%}
+      <p class="cart-line__discount">
+        {%- render 'icon', name: 'tag', size: 14 -%}
+        {{ discount.discount_application.title | escape }} (−{{ discount.amount | money_without_trailing_zeros }})
+      </p>
+    {%- endfor -%}
+
+    <div class="cart-line__price">
+      {%- if item.original_line_price > item.final_line_price -%}
+        <s class="cart-line__compare">
+          <span class="visually-hidden">{{ 'cart.drawer.line.original_price' | t }}</span>
+          {{ item.original_line_price | money_without_trailing_zeros }}
+        </s>
+      {%- endif -%}
+      <span class="cart-line__amount">
+        <span class="visually-hidden">{{ 'cart.drawer.line.final_price' | t }}</span>
+        {{ item.final_line_price | money_without_trailing_zeros }}
+      </span>
+      {%- if item.quantity > 1 -%}
+        {%- assign unit_price = item.final_price | money_without_trailing_zeros -%}
+        <span class="cart-line__unit">{{ 'cart.drawer.line.unit_price' | t: price: unit_price }}</span>
+      {%- endif -%}
+    </div>
+
+    <div class="cart-line__controls">
+      {%- render 'quantity-input',
+        id: qty_id,
+        name: 'updates[]',
+        value: item.quantity,
+        min: 0,
+        max: line_max,
+        line: index,
+        key: item.key,
+        label: line_title,
+        class: 'cart-line__quantity'
+      -%}
+      <a
+        class="cart-line__remove"
+        href="{{ item.url_to_remove }}"
+        data-cart-remove
+        aria-label="{{ 'cart.drawer.line.remove' | t: title: line_title }}"
+      >
+        {%- render 'icon', name: 'trash', size: 20 -%}
+      </a>
+    </div>
+
+    {%- if line_low_stock -%}
+      <p class="cart-line__stock">{{ 'cart.page.low_stock' | t: count: item.variant.inventory_quantity }}</p>
+    {%- endif -%}
+
+    <p class="cart-line__error form-message form-message--error" data-line-error hidden></p>
+  </div>
+</li>

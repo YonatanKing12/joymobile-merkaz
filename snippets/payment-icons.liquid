@@ -1,0 +1,43 @@
+{% doc %}
+  The payment methods enabled in the store's checkout (Shopify's own SVG marks,
+  `shop.enabled_payment_types`), for the footer and the cart. Renders nothing
+  when the store has no payment types enabled.
+
+  @param {string} [class] - Extra classes on the list.
+
+  @example
+  {% render 'payment-icons' %}
+{% enddoc %}
+{%- if shop.enabled_payment_types.size > 0 -%}
+  {%- liquid
+    # Shopify's marks carry fixed ids (<title id="pi-visa">, aria-labelledby="pi-visa"), and the
+    # footer, the cart drawer and the cart page can show them on one page: prefix them per list.
+    assign pi_prefix = class | default: 'payment-icons' | handle | prepend: 'pi-' | append: '-'
+    assign pi_attr = pi_prefix | prepend: '"'
+    assign pi_ref = pi_prefix | prepend: '#'
+  -%}
+  <ul class="payment-icons{% if class != blank %} {{ class }}{% endif %}" role="list" aria-label="{{ 'general.payment.label' | t }}">
+    {%- for payment_type in shop.enabled_payment_types -%}
+      <li class="payment-icons__item">
+        {{- payment_type | payment_type_svg_tag: class: 'payment-icons__icon' | replace: '"pi-', pi_attr | replace: '#pi-', pi_ref -}}
+      </li>
+    {%- endfor -%}
+  </ul>
+{%- endif -%}
+
+{% stylesheet %}
+  .payment-icons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .payment-icons__icon {
+    display: block;
+    width: 2.375rem;
+    height: 1.5rem;
+  }
+{% endstylesheet %}

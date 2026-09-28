@@ -1,0 +1,268 @@
+{% doc %}
+  Storefront filters of a collection or of the search results: the sidebar on the
+  inline-start side from 992px (black group headers with +/−, as on the old site) and the
+  same markup as an off-canvas drawer below 992px. Renders whatever filters the store has
+  enabled in Search & Discovery: list and boolean filters as multi-select checkboxes
+  with counts (swatch/image presentations get a small colour dot or picture), price as
+  min/max fields in shekels.
+
+  Works without JavaScript: a plain GET <form> with an apply button. With
+  <facet-filters> (@theme/facets) every change re-renders the results in place:
+  - `[data-facets-drawer]` is the drawer panel (never a swap region itself): a sidebar
+    landmark (role complementary) that the script turns into role="dialog" while open;
+  - `[data-swap="facets"]` holds the chips, the groups, the hidden inputs and the apply
+    button, so all of it is refreshed after each change;
+  - groups are `details[id]` with stable ids, so open/closed state survives a swap;
+  - checkboxes and price fields have stable ids, so focus is restored after a swap;
+  - price fields are named `filter.v.price.gte/lte` (debounced by the script).
+
+  The form is always rendered, even when there is nothing to filter (then the panel is
+  `hidden`): @theme/facets reads the first <form> inside <facet-filters>, and product
+  cards contain forms too. Form order is: kept query (search terms / vendor), filters,
+  sort — the same order the sections use for their links.
+
+  Classes: .facets, __header, __heading, __close, __form, __region, __active, __group,
+  __summary, __summary-text, __summary-count, __fieldset, __list, __item, __option,
+  __checkbox, __swatch, __image, __value, __count, __price, __price-field, __price-label,
+  __price-control, __price-input, __currency, __price-sep, __hint, __footer, __apply.
+
+  @param {object} results - The `collection` or `search` object.
+  @param {string} section_id - The calling section's id (unique ids, drawer id).
+  @param {string} results_url - Form action: the listing path without a query string.
+  @param {string} [base_query] - URL-encoded query to keep as hidden fields (search terms, vendor page `q`).
+  @param {string} [sort_value] - The current `sort_by` URL value, kept as a hidden field.
+  @param {string} [clear_url] - URL without any filter, for "נקה הכל".
+  @param {number} [results_count] - Number of results, shown on the apply button.
+  @param {string} [open_groups] - Groups open on load: 'first' (default), 'all' or 'none'. Groups with an active value are always open.
+  @param {boolean} [show_filters] - false renders only the (hidden) form. Default true.
+
+  @example
+  {% render 'facets', results: collection, section_id: section.id, results_url: results_url, sort_value: collection.sort_by, clear_url: clear_url, results_count: collection.products_count %}
+{% enddoc %}
+{%- liquid
+  assign fc_sid = section_id | default: 'facets'
+  assign fc_open = open_groups | default: 'first'
+  assign fc_show = true
+  if show_filters == false or results.filters.size == 0
+    assign fc_show = false
+  endif
+  assign fc_drawer_id = 'FacetsDrawer-' | append: fc_sid
+  assign fc_heading_id = 'FacetsHeading-' | append: fc_sid
+-%}
+<div
+  class="facets"
+  id="{{ fc_drawer_id }}"
+  role="complementary"
+  data-facets-drawer
+  aria-labelledby="{{ fc_heading_id }}"
+  {% unless fc_show %}
+    hidden
+  {% endunless %}
+>
+  <div class="facets__header">
+    <h2 class="facets__heading" id="{{ fc_heading_id }}">{{ 'facets.heading' | t }}</h2>
+    <button class="facets__close" type="button" data-close aria-label="{{ 'facets.close' | t }}">
+      {%- render 'icon', name: 'close', size: 22 -%}
+    </button>
+  </div>
+
+  <form class="facets__form" id="FacetsForm-{{ fc_sid }}" action="{{ results_url }}" method="get">
+    <div class="facets__region" data-swap="facets">
+      {%- if fc_show -%}
+        {%- render 'active-filters',
+          results: results,
+          clear_url: clear_url,
+          id_prefix: fc_drawer_id,
+          class: 'facets__active'
+        -%}
+      {%- endif -%}
+
+      {%- if base_query != blank -%}
+        {%- assign fc_pairs = base_query | split: '&' -%}
+        {%- for fc_pair in fc_pairs -%}
+          {%- liquid
+            assign fc_raw_name = fc_pair | split: '=' | first
+            assign fc_raw_value = fc_pair | remove_first: fc_raw_name | remove_first: '='
+            assign fc_pair_name = fc_raw_name | url_decode
+            assign fc_pair_value = fc_raw_value | url_decode
+          -%}
+          {%- if fc_pair_name != blank -%}
+            <input type="hidden" name="{{ fc_pair_name | escape }}" value="{{ fc_pair_value | escape }}">
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+
+      {%- if fc_show -%}
+        {%- for filter in results.filters -%}
+          {%- liquid
+            assign fc_group_id = filter.param_name | url_encode | replace: '%', '' | replace: '.', '-' | replace: '+', '-'
+            assign fc_group_id = 'Facet-' | append: fc_sid | append: '-' | append: fc_group_id
+
+            assign fc_active = 0
+            if filter.type == 'price_range'
+              if filter.min_value.value != blank or filter.max_value.value != blank
+                assign fc_active = 1
+              endif
+            else
+              assign fc_active = filter.active_values.size
+            endif
+
+            assign fc_is_open = false
+            if fc_open == 'all' or fc_active > 0
+              assign fc_is_open = true
+            elsif fc_open == 'first' and forloop.first
+              assign fc_is_open = true
+            endif
+          -%}
+          <details
+            class="facets__group facets__group--{{ filter.type | handle }}"
+            id="{{ fc_group_id }}"
+            {% if fc_is_open %}
+              open
+            {% endif %}
+          >
+            <summary class="facets__summary">
+              <span class="facets__summary-text">{{ filter.label | escape }}</span>
+              {%- if fc_active > 0 -%}
+                <span class="facets__summary-count">
+                  <span aria-hidden="true">({{ fc_active }})</span>
+                  <span class="visually-hidden">, {{ 'facets.active_count' | t: count: fc_active }}</span>
+                </span>
+              {%- endif -%}
+            </summary>
+
+            <fieldset class="facets__fieldset">
+              <legend class="visually-hidden">{{ filter.label | escape }}</legend>
+              {%- if filter.type == 'price_range' -%}
+                {%- liquid
+                  assign fc_max = filter.range_max | divided_by: 100 | floor
+                  assign fc_max_cents = filter.range_max | modulo: 100
+                  if fc_max_cents > 0
+                    assign fc_max = fc_max | plus: 1
+                  endif
+                  assign fc_max_money = filter.range_max | money_without_trailing_zeros
+                -%}
+                <div class="facets__price">
+                  {%- for fc_bound in (1..2) -%}
+                    {%- liquid
+                      if fc_bound == 1
+                        assign fc_price = filter.min_value
+                        assign fc_price_id = fc_group_id | append: '-gte'
+                        assign fc_price_text = 'facets.price.from' | t
+                        assign fc_price_label = 'facets.price.from_label' | t
+                        assign fc_placeholder = 0
+                      else
+                        assign fc_price = filter.max_value
+                        assign fc_price_id = fc_group_id | append: '-lte'
+                        assign fc_price_text = 'facets.price.to' | t
+                        assign fc_price_label = 'facets.price.to_label' | t
+                        assign fc_placeholder = fc_max
+                      endif
+
+                      assign fc_amount = ''
+                      if fc_price.value != blank
+                        assign fc_whole = fc_price.value | divided_by: 100 | floor
+                        assign fc_cents = fc_price.value | modulo: 100 | round
+                        assign fc_amount = fc_whole | append: ''
+                        if fc_cents > 0
+                          if fc_cents < 10
+                            assign fc_amount = fc_amount | append: '.0' | append: fc_cents
+                          else
+                            assign fc_amount = fc_amount | append: '.' | append: fc_cents
+                          endif
+                        endif
+                      endif
+                    -%}
+                    {%- if fc_bound == 2 -%}
+                      <span class="facets__price-sep" aria-hidden="true">–</span>
+                    {%- endif -%}
+                    <div class="facets__price-field">
+                      <label class="facets__price-label" for="{{ fc_price_id }}">
+                        {{- fc_price_text -}}
+                        <span class="visually-hidden"> ({{ fc_price_label }}, {{ cart.currency.symbol }})</span>
+                      </label>
+                      <span class="facets__price-control">
+                        <input
+                          class="input facets__price-input"
+                          type="number"
+                          inputmode="numeric"
+                          id="{{ fc_price_id }}"
+                          name="{{ fc_price.param_name }}"
+                          value="{{ fc_amount }}"
+                          placeholder="{{ fc_placeholder }}"
+                          min="0"
+                          step="1"
+                          aria-describedby="{{ fc_group_id }}-hint"
+                        >
+                        <span class="facets__currency" aria-hidden="true">{{ cart.currency.symbol }}</span>
+                      </span>
+                    </div>
+                  {%- endfor -%}
+                </div>
+                <p class="facets__hint" id="{{ fc_group_id }}-hint">{{ 'facets.price.max_hint' | t: price: fc_max_money }}</p>
+              {%- else -%}
+                <ul class="facets__list" role="list">
+                  {%- for value in filter.values -%}
+                    {%- liquid
+                      assign fc_value_id = value.value | url_encode | replace: '%', '' | replace: '.', '-' | replace: '+', '-'
+                      assign fc_value_id = fc_group_id | append: '-' | append: fc_value_id
+                      assign fc_disabled = false
+                      if value.count == 0 and value.active == false
+                        assign fc_disabled = true
+                      endif
+                    -%}
+                    <li class="facets__item">
+                      <label class="facets__option" for="{{ fc_value_id }}">
+                        <input
+                          class="facets__checkbox"
+                          type="checkbox"
+                          id="{{ fc_value_id }}"
+                          name="{{ value.param_name }}"
+                          value="{{ value.value | escape }}"
+                          {% if value.active %}
+                            checked
+                          {% endif %}
+                          {% if fc_disabled %}
+                            disabled
+                          {% endif %}
+                        >
+                        {%- if filter.presentation == 'swatch' -%}
+                          {%- if value.swatch.image != blank -%}
+                            {%- render 'image', image: value.swatch.image, widths: '48', sizes: '20px', decorative: true, class: 'facets__swatch facets__swatch--image' -%}
+                          {%- elsif value.swatch.color != blank -%}
+                            <span class="facets__swatch" style="--swatch-color: {{ value.swatch.color }}" aria-hidden="true"></span>
+                          {%- endif -%}
+                        {%- elsif filter.presentation == 'image' and value.image != blank -%}
+                          {%- render 'image', image: value.image, widths: '48,96', sizes: '24px', decorative: true, class: 'facets__image' -%}
+                        {%- endif -%}
+                        <span class="facets__value">{{ value.label | escape }}</span>
+                        <span class="facets__count" aria-hidden="true">({{ value.count }})</span>
+                        <span class="visually-hidden">, {{ 'facets.value_count' | t: count: value.count }}</span>
+                      </label>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+            </fieldset>
+          </details>
+        {%- endfor -%}
+      {%- endif -%}
+
+      {%- if sort_value != blank -%}
+        <input type="hidden" name="sort_by" value="{{ sort_value | escape }}">
+      {%- endif -%}
+
+      {%- if fc_show -%}
+        <div class="facets__footer">
+          <button class="button button--full facets__apply" type="submit">
+            {%- if results_count != blank -%}
+              {{- 'facets.apply' | t: count: results_count -}}
+            {%- else -%}
+              {{- 'facets.heading' | t -}}
+            {%- endif -%}
+          </button>
+        </div>
+      {%- endif -%}
+    </div>
+  </form>
+</div>

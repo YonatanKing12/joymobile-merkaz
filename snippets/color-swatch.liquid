@@ -1,0 +1,68 @@
+{% doc %}
+  The colour of one colour-option value, printed as an inline-style declaration for a swatch
+  element (callers capture it): `--swatch-image: url(…);` for a Shopify swatch image,
+  `--swatch-color: …;` for a Shopify swatch colour, otherwise the colour from the built-in map
+  of the Hebrew colour names used in this store's data (contains-match, most specific name
+  first: "תכלת" before "כחול"), or nothing for an unknown name — the caller then draws its
+  neutral "unknown" dot (no invented colour).
+  The one colour map of the theme: snippets/swatches (cards) and snippets/variant-picker
+  (product page) both use it. The closing doc tag trims the newline after it (see whatsapp-url).
+
+  @param {object} value - The product option value (an item of option.values).
+  @param {number} [image_width] - Width of a swatch image. Default 48.
+
+  @example
+  {%- capture swatch_style -%}{% render 'color-swatch', value: value, image_width: 72 %}{%- endcapture -%}
+{% enddoc -%}
+{% liquid
+  if value.swatch.image
+    assign cs_width = image_width | default: 48
+    assign cs_image = value.swatch.image | image_url: width: cs_width
+    echo '--swatch-image: url(' | append: cs_image | append: ');'
+  elsif value.swatch.color
+    echo '--swatch-color: ' | append: value.swatch.color | append: ';'
+  else
+    assign cs_name = value | append: ''
+    assign cs_hex = ''
+    if cs_name contains 'בורדו'
+      assign cs_hex = '#6d1a2a'
+    elsif cs_name contains 'תכלת' or cs_name contains 'שמיים'
+      assign cs_hex = '#86c5e6'
+    elsif cs_name contains 'טורקיז'
+      assign cs_hex = '#2ab3b1'
+    elsif cs_name contains 'שחור' or cs_name contains 'פחם' or cs_name contains 'גרפיט'
+      assign cs_hex = '#16181a'
+    elsif cs_name contains 'לבן' or cs_name contains 'שנהב'
+      assign cs_hex = '#ffffff'
+    elsif cs_name contains 'כסוף' or cs_name contains 'כסף' or cs_name contains 'טיטניום'
+      assign cs_hex = '#cfd3d6'
+    elsif cs_name contains 'אפור'
+      assign cs_hex = '#8e949a'
+    elsif cs_name contains 'זהב' or cs_name contains 'שמפניה'
+      assign cs_hex = '#d4b062'
+    elsif cs_name contains 'כחול' or cs_name contains 'נייבי'
+      assign cs_hex = '#2450c8'
+    elsif cs_name contains 'סגול' or cs_name contains 'לבנדר'
+      assign cs_hex = '#7d55c7'
+    elsif cs_name contains 'ורוד' or cs_name contains 'רוז'
+      assign cs_hex = '#f0a3c0'
+    elsif cs_name contains 'אדום'
+      assign cs_hex = '#c62828'
+    elsif cs_name contains 'מנטה'
+      assign cs_hex = '#9fdcc2'
+    elsif cs_name contains 'ירוק' or cs_name contains 'זית'
+      assign cs_hex = '#2e8b57'
+    elsif cs_name contains 'צהוב' or cs_name contains 'לימון'
+      assign cs_hex = '#f5c518'
+    elsif cs_name contains 'כתום'
+      assign cs_hex = '#f07c1b'
+    elsif cs_name contains 'חום' or cs_name contains 'קפה'
+      assign cs_hex = '#6e4b34'
+    elsif cs_name contains 'נטורל' or cs_name contains 'בז' or cs_name contains 'קרם'
+      assign cs_hex = '#dccfbf'
+    endif
+    if cs_hex != blank
+      echo '--swatch-color: ' | append: cs_hex | append: ';'
+    endif
+  endif
+-%}

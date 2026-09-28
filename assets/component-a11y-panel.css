@@ -1,0 +1,212 @@
+/* Accessibility panel (sections/accessibility-panel) on the drawer shell (.drawer--end). Trigger bottom-left as the
+   old widget: brand green with a navy figure (5.8:1), mint under the pointer; its focus ring is two-tone (mint
+   inside, navy outside) because the page behind it may be white or the navy footer. Preference classes: base.css.
+   --floating-offset-bottom (set on <body> by bottom-sticky UI such as the product page's phone buy bar) lifts the
+   trigger, as it lifts the floating-actions stack. */
+
+.a11y-trigger {
+  position: fixed;
+  inset-inline-end: 0;
+  inset-block-end: calc(var(--floating-offset-bottom, 0px) + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-floating);
+  display: grid;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  padding: 0;
+  border: 0;
+  border-start-start-radius: 0.625rem;
+  border-end-start-radius: 0.625rem;
+  background-color: var(--color-button-accent-bg);
+  color: var(--color-button-accent-text);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.a11y-trigger:hover {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.a11y-trigger:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+.a11y-trigger .icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+@media (min-width: 768px) {
+  .a11y-trigger {
+    width: 2.8125rem;
+    height: 2.8125rem;
+  }
+}
+
+.no-js .a11y-trigger {
+  display: none;
+}
+
+.a11y-panel__panel {
+  width: min(22.5rem, 100vw);
+}
+
+.a11y-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-md);
+}
+
+.a11y-panel__intro {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.a11y-panel__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.a11y-panel__group-title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.a11y-panel__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.a11y-panel__option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  min-height: 4.5rem;
+  padding: var(--space-xs);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.a11y-panel__option:hover {
+  border-color: var(--color-ink);
+  background-color: var(--color-hover-bg);
+}
+
+.a11y-panel__option[aria-pressed="true"] {
+  border-color: var(--color-brand-text);
+  background-color: var(--color-hover-bg);
+  box-shadow: inset 0 0 0 1px var(--color-brand-text);
+}
+
+/* A check in the corner marks an active option (not colour alone). */
+.a11y-panel__option[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  top: var(--space-2xs);
+  inset-inline-end: var(--space-2xs);
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  background-color: var(--color-brand-text);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Ccircle cx='9' cy='9' r='9'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Ccircle cx='9' cy='9' r='9'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.a11y-panel__option[aria-pressed="true"]::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--space-2xs) + 0.3125rem);
+  inset-inline-end: calc(var(--space-2xs) + 0.3125rem);
+  z-index: 1;
+  width: 0.5rem;
+  height: 0.3125rem;
+  border-block-end: 2px solid var(--color-background);
+  border-inline-end: 2px solid var(--color-background);
+  rotate: -45deg;
+}
+
+.a11y-panel__option-icon {
+  display: grid;
+  place-items: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  color: var(--color-ink);
+}
+
+.a11y-panel__option-icon--text {
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.a11y-panel__option-icon--xl {
+  font-size: var(--text-2xl);
+}
+
+.a11y-panel__option-icon--readable {
+  font-family: Arial, "Arial Hebrew", system-ui, sans-serif;
+}
+
+.a11y-panel__option-icon--contrast {
+  width: 1.375rem;
+  min-width: 0;
+  height: 1.375rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+
+.a11y-panel__option-svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.a11y-panel__reset {
+  min-height: var(--tap-target);
+}
+
+.a11y-panel__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding: var(--space-sm) 0 0;
+  border-block-start: 1px solid var(--color-border);
+  list-style: none;
+}
+
+.a11y-panel__links .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  font-size: var(--text-md);
+}
+
+@media print {
+  .a11y-trigger {
+    display: none;
+  }
+}

@@ -1,0 +1,273 @@
+{%- comment -%}
+  Category circles carousel. Each block = collection + optional custom image + optional label.
+  Default look is a clean circle (measured: 112px disc in a 143px box, 1px outline, 8px light ring).
+  The owner may upload a frame image ("מסגרת לעיגול קטגוריה") that is drawn over every circle box —
+  the theme never draws a frame of its own. Collection images are product photos on white, so the
+  image is blended into the disc colour (multiply) and sits inside the disc's inscribed square.
+  Per view: 2 (+35px peeks) < 576px, 3 < 768px, 5 at 768, 6 at 992, setting (default 7) at 1200 — the old strip
+  showed 7 at every width >= 768 but shrank the circles until the labels covered the images. No autoplay by default
+  (the old strip reads as a static row); when the owner turns it on, a pause button is shown.
+{%- endcomment -%}
+{%- liquid
+  assign cc_count = 0
+  for block in section.blocks
+    if block.settings.collection != blank or block.settings.image != blank or request.design_mode
+      assign cc_count = cc_count | plus: 1
+    endif
+  endfor
+  assign cc_per_view = section.settings.per_view_desktop
+  assign cc_per_view_md = cc_per_view | at_most: 5
+  assign cc_per_view_lg = cc_per_view | at_most: 6
+
+  assign autoplay_ms = 0
+  if section.settings.autoplay and cc_count > 1
+    assign autoplay_ms = section.settings.autoplay_speed | times: 1000
+  endif
+
+  assign heading = section.settings.heading
+  if heading == blank
+    assign heading = 'home.categories.label' | t
+  endif
+
+  # Near the top of the page the first circles are visible on load: don't lazy-load them.
+  assign eager_count = 0
+  if section.index != blank and section.index <= 3
+    assign eager_count = cc_per_view
+  endif
+
+  assign frame = section.settings.frame_image
+-%}
+
+{%- comment -%}
+  Arrows / pause show only where the circles overflow: per view 2 · 3 (576) · 5 (768) · 6 (992) · setting (1200).
+{%- endcomment -%}
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --circles-pad-top: {{ section.settings.padding_top }}px;
+    --circles-pad-bottom: {{ section.settings.padding_bottom }}px;
+    --circles-per-view-md: {{ cc_per_view_md }};
+    --circles-per-view-lg: {{ cc_per_view_lg }};
+    --circles-per-view-desktop: {{ cc_per_view }};
+    --circle-disc: {{ section.settings.circle_color }};
+    --cc-scroll-xs: {% if cc_count > 2 %}grid{% else %}none{% endif %};
+    --cc-scroll-sm: {% if cc_count > 3 %}grid{% else %}none{% endif %};
+    --cc-scroll-md: {% if cc_count > cc_per_view_md %}grid{% else %}none{% endif %};
+    --cc-scroll-lg: {% if cc_count > cc_per_view_lg %}grid{% else %}none{% endif %};
+    --cc-scroll-xl: {% if cc_count > cc_per_view %}grid{% else %}none{% endif %};
+    {%- if frame != blank %}
+      --circle-frame: url("{{ frame | image_url: width: 400 }}");
+    {%- endif %}
+  }
+{%- endstyle -%}
+
+{{ 'component-carousel.css' | asset_url | stylesheet_tag }}
+{{ 'section-category-circles.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+
+<div class="category-circles{% if frame != blank %} category-circles--framed{% endif %}">
+  <h2 class="category-circles__heading{% unless section.settings.show_heading %} visually-hidden{% endunless %}">
+    {{- heading | escape -}}
+  </h2>
+
+  {%- if cc_count > 0 -%}
+    <carousel-slider
+      role="group"
+      class="category-circles__carousel carousel--arrows-round"
+      data-autoplay="{{ autoplay_ms }}"
+      data-loop="true"
+      aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
+      aria-label="{{ heading | escape }}"
+    >
+      <div class="carousel__track category-circles__track" role="list" tabindex="-1">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign circle_collection = block.settings.collection
+            assign circle_image = block.settings.image | default: circle_collection.image
+            assign circle_label = block.settings.label | default: circle_collection.title
+            if circle_label == blank
+              assign circle_label = 'home.categories.placeholder' | t
+            endif
+            assign circle_url = circle_collection.url | default: routes.collections_url
+
+            assign circle_loading = 'lazy'
+            if forloop.index <= eager_count
+              assign circle_loading = 'eager'
+            endif
+          -%}
+          {%- if circle_collection != blank or block.settings.image != blank or request.design_mode -%}
+            <div class="carousel__slide category-circles__slide" role="listitem" {{ block.shopify_attributes }}>
+              <a class="category-circles__link" href="{{ circle_url }}">
+                <span class="category-circles__circle">
+                  <span class="category-circles__disc"></span>
+                  <span class="category-circles__media">
+                  {%- if circle_image != blank -%}
+                    {%- render 'image',
+                      image: circle_image,
+                      widths: '90,120,180,240,360',
+                      sizes: '(min-width: 1200px) 110px, (min-width: 768px) 100px, 90px',
+                      loading: circle_loading,
+                      class: 'category-circles__img',
+                      decorative: true
+                    -%}
+                  {%- else -%}
+                    <svg class="category-circles__img category-circles__placeholder" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                      <rect x="14" y="8" width="24" height="44" rx="5" fill="currentColor" opacity=".45"/>
+                      <circle cx="44" cy="40" r="14" fill="currentColor" opacity=".3"/>
+                      <rect x="21" y="45" width="10" height="2.5" rx="1.25" fill="currentColor" opacity=".6"/>
+                    </svg>
+                  {%- endif -%}
+                  </span>
+                </span>
+                <span class="category-circles__label">{{ circle_label | escape }}</span>
+              </a>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      <button class="carousel__btn carousel__btn--prev category-circles__arrow" type="button" aria-label="{{ 'accessibility.carousel.previous' | t }}">
+        {%- render 'icon', name: 'chevron-right', size: 40 -%}
+      </button>
+      <button class="carousel__btn carousel__btn--next category-circles__arrow" type="button" aria-label="{{ 'accessibility.carousel.next' | t }}">
+        {%- render 'icon', name: 'chevron-left', size: 40 -%}
+      </button>
+      {%- if autoplay_ms > 0 -%}
+        <button
+          class="carousel__pause category-circles__pause js-only"
+          type="button"
+          aria-pressed="false"
+          aria-label="{{ 'accessibility.carousel.pause' | t }}"
+        >
+          {%- render 'icon', name: 'pause', size: 14 -%}
+          {%- render 'icon', name: 'play', size: 14 -%}
+        </button>
+      {%- endif -%}
+    </carousel-slider>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "עיגולי קטגוריות",
+  "tag": "section",
+  "class": "section-category-circles",
+  "max_blocks": 16,
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "קטגוריות מובילות"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_heading",
+      "label": "הצגת הכותרת",
+      "info": "כשהכותרת מוסתרת היא נשארת לקוראי מסך.",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "frame_image",
+      "label": "מסגרת לעיגול קטגוריה",
+      "info": "תמונה שקופה (PNG) בגודל ריבועי, שמוצגת מעל כל עיגול. בלי מסגרת מוצג עיגול נקי."
+    },
+    {
+      "type": "color",
+      "id": "circle_color",
+      "label": "צבע העיגול",
+      "info": "הרקע הלבן של תמונות הקטגוריות מתמזג בצבע הזה. ברירת המחדל היא הגוון הבהיר של JOY Mobile ‎(#f0f3ff)‎; לבן = עיגול נקי לגמרי.",
+      "default": "#f0f3ff"
+    },
+    {
+      "type": "range",
+      "id": "per_view_desktop",
+      "label": "עיגולים בשורה (מחשב)",
+      "info": "ממסך 1200 פיקסלים. בטאבלט מוצגים עד 5 (768) ועד 6 (992), במובייל 2–3.",
+      "min": 5,
+      "max": 8,
+      "step": 1,
+      "default": 7
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "החלפה אוטומטית",
+      "info": "כבוי כברירת מחדל, כמו באתר הקודם. כשמופעל: נעצר במעבר עכבר ובפוקוס מקלדת, לא פועל כשמוגדרת \"הפחתת תנועה\", ומוצג כפתור עצירה.",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "זמן בין החלפות",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "שנ׳",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 30
+    }
+  ],
+  "blocks": [
+    {
+      "type": "circle",
+      "name": "קטגוריה",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "קטגוריה"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "תמונה מותאמת",
+          "info": "לא חובה. ברירת המחדל: תמונת הקטגוריה. מומלץ PNG שקוף, ריבועי."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "כיתוב",
+          "info": "לא חובה. ברירת המחדל: שם הקטגוריה."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "עיגולי קטגוריות",
+      "blocks": [
+        { "type": "circle" },
+        { "type": "circle" },
+        { "type": "circle" },
+        { "type": "circle" },
+        { "type": "circle" },
+        { "type": "circle" },
+        { "type": "circle" }
+      ]
+    }
+  ]
+}
+{% endschema %}

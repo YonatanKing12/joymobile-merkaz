@@ -1,0 +1,55 @@
+/* Colour dots (snippets/swatches): 20×20, 1px outline (--color-swatch-border, ≥ 3:1 so a white dot shows on the
+   white card), centred row; read-only. [data-unavailable] struck. */
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.swatches__item {
+  display: inline-flex;
+}
+
+.swatch {
+  position: relative;
+  display: block;
+  width: var(--swatch-size, 1.25rem);
+  height: var(--swatch-size, 1.25rem);
+  border: 1px solid var(--color-swatch-border);
+  border-radius: 50%;
+  background-color: var(--swatch-color, transparent);
+  background-image: var(--swatch-image, none);
+  background-position: center;
+  background-size: cover;
+}
+
+.swatch--unknown {
+  background-image: linear-gradient(135deg, var(--color-surface) 50%, var(--color-muted) 50%);
+}
+
+.swatches__more {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  line-height: 1;
+}
+
+.swatch[data-unavailable],
+[data-unavailable] > .swatch {
+  opacity: 0.45;
+}
+
+.swatch[data-unavailable]::after,
+[data-unavailable] > .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 50% -2px auto;
+  height: 1px;
+  background-color: var(--color-ink);
+  rotate: -45deg;
+}

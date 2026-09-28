@@ -1,0 +1,279 @@
+{%- comment -%}
+  Guides / latest blog articles ("מדריכים והשוואות מוצרים שיעזרו לך לבחור נכון").
+  Measured @1440: heading 25px/700 centred, 1px rule 13px below it with a centred 82×3 bar, 60px gap;
+  3 equal cards (gap 11px) on #f2f2f2, padding 20px 25px 15px: title 20px/700, 343:180 media box,
+  bold summary line with a bottom rule, 15px text, "קראו עוד"; "לכל הכתבות" 18px underlined, start-aligned.
+  Phones: a carousel, 1 card per view with 30px peeks. Each card links to its own article (the whole card is
+  one link). The store's articles have no images, so the media box is a brand-coloured panel showing the
+  article's topic: the collection named by its tag (title + collection image), with a geometric mark otherwise.
+{%- endcomment -%}
+{%- liquid
+  assign g_blog = section.settings.blog
+  assign g_view_all = section.settings.view_all_label
+  if g_view_all == blank
+    assign g_view_all = 'home.guides.view_all' | t
+  endif
+  assign g_skip_tags = 'reservable-eilat,frontpage,all' | split: ','
+  assign g_articles_count = 0
+  if g_blog != blank
+    assign g_articles_count = g_blog.articles_count
+  endif
+  assign g_count = 3
+  if g_articles_count > 0
+    assign g_count = g_articles_count | at_most: section.settings.articles_count
+  endif
+-%}
+
+{%- if g_articles_count > 0 or request.design_mode -%}
+  {%- style -%}
+    #shopify-section-{{ section.id }} {
+      --guides-pad-top: {{ section.settings.padding_top }}px;
+      --guides-pad-bottom: {{ section.settings.padding_bottom }}px;
+      --g-scroll-sm: {% if g_count > 1 %}grid{% else %}none{% endif %};
+      --g-scroll-md: {% if g_count > 3 %}grid{% else %}none{% endif %};
+      --g-scroll-lg: {% if g_count > 3 %}grid{% else %}none{% endif %};
+    }
+  {%- endstyle -%}
+
+  {{ 'component-carousel.css' | asset_url | stylesheet_tag }}
+  {{ 'section-guides.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+
+  <div class="guides">
+    <div class="page-width guides__inner">
+      {%- if section.settings.heading != blank -%}
+        <div class="guides__header">
+          <h2 class="guides__heading">{{ section.settings.heading | escape }}</h2>
+        </div>
+      {%- endif -%}
+
+      {%- if g_articles_count == 0 -%}
+        <p class="guides__notice">{{ 'home.guides.editor_empty' | t }}</p>
+      {%- endif -%}
+
+      <carousel-slider
+        role="group"
+        class="guides__carousel"
+        data-autoplay="{% if section.settings.autoplay %}{{ section.settings.autoplay_speed | times: 1000 }}{% else %}0{% endif %}"
+        data-loop="{% if section.settings.autoplay %}true{% else %}false{% endif %}"
+        aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
+        aria-label="{{ section.settings.heading | default: g_blog.title | escape }}"
+      >
+        <div class="carousel__track guides__track" role="list" tabindex="{% if g_articles_count > 0 %}-1{% else %}0{% endif %}">
+          {%- if g_articles_count > 0 -%}
+            {%- for article in g_blog.articles limit: section.settings.articles_count -%}
+              {%- liquid
+                # Plain text: a space before every tag keeps words of adjacent blocks apart
+                # ("ברור.</p><h2>כרטיס"), split/join condenses the whitespace. Entities stay
+                # encoded, so the output uses escape_once.
+                assign g_summary = article.excerpt | replace: '<', ' <' | strip_html | split: ' ' | join: ' '
+                assign g_preview = ''
+                if g_summary == blank
+                  assign g_summary = article.content | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncatewords: 24
+                elsif section.settings.show_preview
+                  assign g_preview = article.content | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncatewords: 18
+                endif
+
+                assign g_topic = nil
+                for tag in article.tags
+                  if g_skip_tags contains tag
+                    continue
+                  endif
+                  assign g_candidate = collections[tag]
+                  if g_candidate.id != blank
+                    assign g_topic = g_candidate
+                    break
+                  endif
+                endfor
+              -%}
+              <div class="carousel__slide guides__slide" role="listitem">
+                <article class="guides__card">
+                  <h3 class="guides__title">
+                    <a class="guides__link" href="{{ article.url }}">{{ article.title | escape }}</a>
+                  </h3>
+                  <div class="guides__media">
+                    {%- if article.image != blank -%}
+                      {%- render 'image',
+                        image: article.image,
+                        widths: '300,450,600,800',
+                        sizes: '(min-width: 992px) 340px, (min-width: 768px) 45vw, 80vw',
+                        class: 'guides__img',
+                        decorative: true
+                      -%}
+                    {%- else -%}
+                      <div class="guides__panel">
+                        <div class="guides__panel-text">
+                          <span class="guides__panel-badge">{{ 'home.guides.badge' | t }}</span>
+                          <span class="guides__panel-topic">{{ g_topic.title | default: g_blog.title | escape }}</span>
+                        </div>
+                        {%- if g_topic.image != blank -%}
+                          <span class="guides__panel-thumb">
+                            {%- render 'image',
+                              image: g_topic.image,
+                              widths: '120,180,240,360',
+                              sizes: '120px',
+                              class: 'guides__panel-img',
+                              decorative: true
+                            -%}
+                          </span>
+                        {%- else -%}
+                          <svg class="guides__panel-art" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+                            <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" stroke-width="2" opacity=".4"/>
+                            <circle cx="60" cy="60" r="40" fill="currentColor" opacity=".16"/>
+                            <rect x="43" y="35" width="34" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="3"/>
+                            <path d="M51 48h18M51 58h18M51 68h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                          </svg>
+                        {%- endif -%}
+                      </div>
+                    {%- endif -%}
+                  </div>
+                  {%- if g_summary != blank -%}
+                    <p class="guides__summary">{{ g_summary | escape_once }}</p>
+                  {%- endif -%}
+                  {%- if g_preview != blank -%}
+                    <p class="guides__excerpt">{{ g_preview | escape_once }}</p>
+                  {%- endif -%}
+                  <span class="guides__more" aria-hidden="true">
+                    {{- 'home.guides.read_more' | t -}}
+                    {%- render 'icon', name: 'chevron-left', size: 14 -%}
+                  </span>
+                </article>
+              </div>
+            {%- endfor -%}
+          {%- else -%}
+            {%- for i in (1..3) -%}
+              <div class="carousel__slide guides__slide" role="listitem">
+                <div class="guides__card">
+                  <p class="guides__title">{{ 'home.guides.placeholder_title' | t }}</p>
+                  <div class="guides__media">
+                    <div class="guides__panel">
+                      <div class="guides__panel-text">
+                        <span class="guides__panel-badge">{{ 'home.guides.badge' | t }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="guides__summary">{{ 'home.guides.placeholder_text' | t }}</p>
+                </div>
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+        <button class="carousel__btn carousel__btn--prev guides__arrow" type="button" aria-label="{{ 'accessibility.carousel.previous' | t }}">
+          {%- render 'icon', name: 'chevron-right', size: 24 -%}
+        </button>
+        <button class="carousel__btn carousel__btn--next guides__arrow" type="button" aria-label="{{ 'accessibility.carousel.next' | t }}">
+          {%- render 'icon', name: 'chevron-left', size: 24 -%}
+        </button>
+        {%- if section.settings.autoplay -%}
+          <button
+            class="carousel__pause guides__pause js-only"
+            type="button"
+            aria-pressed="false"
+            aria-label="{{ 'accessibility.carousel.pause' | t }}"
+          >
+            {%- render 'icon', name: 'pause', size: 14 -%}
+            {%- render 'icon', name: 'play', size: 14 -%}
+          </button>
+        {%- endif -%}
+      </carousel-slider>
+
+      {%- if section.settings.show_view_all and g_blog != blank -%}
+        <a class="guides__view-all" href="{{ g_blog.url }}">{{ g_view_all | escape }}</a>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "מדריכים ומאמרים",
+  "tag": "section",
+  "class": "section-guides",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "מדריכים והשוואות מוצרים שיעזרו לך לבחור נכון"
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "בלוג"
+    },
+    {
+      "type": "range",
+      "id": "articles_count",
+      "label": "מספר כתבות",
+      "min": 2,
+      "max": 9,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "show_preview",
+      "label": "הצגת פסקת פתיחה מתוך הכתבה",
+      "info": "מתחת לתקציר של הכתבה.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "קישור \"לכל הכתבות\"",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "טקסט הקישור",
+      "default": "לכל הכתבות"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "החלפה אוטומטית (כשיש גלילה)",
+      "info": "כבוי כברירת מחדל: טקסט שזז מקשה על קריאה.",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "זמן בין החלפות",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "שנ׳",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "presets": [
+    {
+      "name": "מדריכים ומאמרים"
+    }
+  ]
+}
+{% endschema %}

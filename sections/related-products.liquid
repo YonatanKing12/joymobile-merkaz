@@ -1,0 +1,276 @@
+{%- comment -%}
+  Related products under the product page (decisions.md "Catalog & product"): a carousel of
+  product cards (snippets/card-product) in the look of the homepage strips.
+  Source "collection" (default), all server-side:
+    1. the product's most specific collections — its collections sorted by size (smallest first),
+       skipping the handles in "exclude" and catch-all collections that hold ≥ 90% of the catalogue;
+       the first three are read in turn until the limit is reached (same product type and in-stock
+       only, by default; never the current product, never twice);
+    2. then the Search & Discovery "related products" the owner picked for this product
+       (metafield shopify--discovery--product_recommendation.related_products);
+    3. then the fallback collection from the settings.
+  Source "recommendations": the Search & Discovery related products, then the fallback collection.
+  Everything renders with the page (the theme never calls Shopify's recommendations API).
+  Nothing is printed with fewer than 2 products (a notice in the theme editor).
+{%- endcomment -%}
+{%- liquid
+  assign rp_limit = section.settings.products_limit
+  assign rp_min = 2
+  assign rp_count = 0
+  assign rp_seen = ','
+  if product != blank
+    assign rp_seen = ',' | append: product.handle | append: ','
+  endif
+  assign rp_exclude = section.settings.exclude_handles | downcase | remove: ' ' | prepend: ',' | append: ','
+  assign rp_type = product.type | strip
+  assign rp_hide_sold_out = section.settings.hide_sold_out
+-%}
+
+{%- capture rp_slides -%}
+  {%- if product != blank and section.settings.source == 'collection' -%}
+    {%- liquid
+      assign rp_catalogue = collections.all.products_count | default: 0
+      assign rp_catch_all = rp_catalogue | times: 9 | divided_by: 10
+      assign rp_sorted = product.collections | sort: 'products_count'
+      assign rp_tried = 0
+    -%}
+    {%- for rp_collection in rp_sorted -%}
+      {%- liquid
+        if rp_count >= rp_limit or rp_tried >= 3
+          break
+        endif
+        assign rp_key = ',' | append: rp_collection.handle | append: ','
+        if rp_exclude contains rp_key or rp_collection.products_count < 2
+          continue
+        endif
+        if rp_catch_all > 0 and rp_collection.products_count >= rp_catch_all
+          continue
+        endif
+        assign rp_tried = rp_tried | plus: 1
+      -%}
+      {%- for rp_product in rp_collection.products limit: 50 -%}
+        {%- liquid
+          assign rp_key = ',' | append: rp_product.handle | append: ','
+          if rp_seen contains rp_key
+            continue
+          endif
+          if rp_hide_sold_out and rp_product.available == false
+            continue
+          endif
+          if section.settings.same_type and rp_type != blank and rp_product.type != product.type
+            continue
+          endif
+          assign rp_seen = rp_seen | append: rp_product.handle | append: ','
+          assign rp_count = rp_count | plus: 1
+        -%}
+        <div class="carousel__slide related-products__slide" role="listitem">
+          {%- render 'card-product', product: rp_product, lazy: true, heading: 'h3', section_id: section.id -%}
+        </div>
+        {%- if rp_count >= rp_limit -%}
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- if product != blank and rp_count < rp_min -%}
+    {%- assign rp_manual = product.metafields['shopify--discovery--product_recommendation'].related_products.value -%}
+    {%- for rp_product in rp_manual -%}
+      {%- liquid
+        if rp_count >= rp_limit
+          break
+        endif
+        assign rp_key = ',' | append: rp_product.handle | append: ','
+        if rp_seen contains rp_key
+          continue
+        endif
+        if rp_hide_sold_out and rp_product.available == false
+          continue
+        endif
+        assign rp_seen = rp_seen | append: rp_product.handle | append: ','
+        assign rp_count = rp_count | plus: 1
+      -%}
+      <div class="carousel__slide related-products__slide" role="listitem">
+        {%- render 'card-product', product: rp_product, lazy: true, heading: 'h3', section_id: section.id -%}
+      </div>
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- if rp_count < rp_min and section.settings.fallback_collection != blank -%}
+    {%- for rp_product in section.settings.fallback_collection.products limit: 50 -%}
+      {%- liquid
+        if rp_count >= rp_limit
+          break
+        endif
+        assign rp_key = ',' | append: rp_product.handle | append: ','
+        if rp_seen contains rp_key
+          continue
+        endif
+        if rp_hide_sold_out and rp_product.available == false
+          continue
+        endif
+        assign rp_seen = rp_seen | append: rp_product.handle | append: ','
+        assign rp_count = rp_count | plus: 1
+      -%}
+      <div class="carousel__slide related-products__slide" role="listitem">
+        {%- render 'card-product', product: rp_product, lazy: true, heading: 'h3', section_id: section.id -%}
+      </div>
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- liquid
+  assign rp_heading = section.settings.heading | strip
+  if rp_heading == blank
+    assign rp_heading = 'products.related.heading' | t
+  endif
+  assign rp_heading_id = 'RelatedProducts-' | append: section.id
+-%}
+
+{%- if rp_count >= rp_min -%}
+  {%- style -%}
+    #shopify-section-{{ section.id }} {
+      --rp-pad-top: {{ section.settings.padding_top }}px;
+      --rp-pad-bottom: {{ section.settings.padding_bottom }}px;
+      --rp-scroll-sm: {% if rp_count > 1 %}grid{% else %}none{% endif %};
+      --rp-scroll-md: {% if rp_count > 2 %}grid{% else %}none{% endif %};
+      --rp-scroll-lg: {% if rp_count > 3 %}grid{% else %}none{% endif %};
+      --rp-scroll-xl: {% if rp_count > 4 %}grid{% else %}none{% endif %};
+    }
+  {%- endstyle -%}
+
+  {{ 'component-card.css' | asset_url | stylesheet_tag }}
+  {{ 'component-price.css' | asset_url | stylesheet_tag }}
+  {{ 'component-badges.css' | asset_url | stylesheet_tag }}
+  {{ 'component-swatches.css' | asset_url | stylesheet_tag }}
+  {{ 'component-wishlist-button.css' | asset_url | stylesheet_tag }}
+  {{ 'section-related-products.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+  <script type="module" src="{{ 'product.js' | asset_url }}"></script>
+
+  <div class="related-products">
+    <div class="related-products__inner">
+      <h2 class="related-products__heading" id="{{ rp_heading_id }}">{{ rp_heading | escape }}</h2>
+      <carousel-slider
+        role="group"
+        class="related-products__carousel"
+        data-autoplay="0"
+        data-loop="false"
+        aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
+        aria-labelledby="{{ rp_heading_id }}"
+      >
+        <div class="carousel__track related-products__track" role="list" tabindex="-1">
+          {{- rp_slides -}}
+        </div>
+        <button class="carousel__btn carousel__btn--prev related-products__arrow" type="button" aria-label="{{ 'accessibility.carousel.previous' | t }}">
+          {%- render 'icon', name: 'chevron-right', size: 24 -%}
+        </button>
+        <button class="carousel__btn carousel__btn--next related-products__arrow" type="button" aria-label="{{ 'accessibility.carousel.next' | t }}">
+          {%- render 'icon', name: 'chevron-left', size: 24 -%}
+        </button>
+      </carousel-slider>
+    </div>
+  </div>
+{%- elsif request.design_mode -%}
+  {{ 'section-related-products.css' | asset_url | stylesheet_tag }}
+  <div class="related-products related-products--empty">
+    <div class="related-products__inner">
+      <h2 class="related-products__heading">{{ rp_heading | escape }}</h2>
+      <p class="related-products__notice">{{ 'products.related.editor_empty' | t }}</p>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "מוצרים קשורים",
+  "tag": "section",
+  "class": "section-related-products",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "מוצרים נוספים שיעניינו אותך"
+    },
+    {
+      "type": "select",
+      "id": "source",
+      "label": "מקור המוצרים",
+      "options": [
+        {
+          "value": "collection",
+          "label": "הקטגוריה המדויקת ביותר של המוצר"
+        },
+        {
+          "value": "recommendations",
+          "label": "מוצרים קשורים מ-Search & Discovery"
+        }
+      ],
+      "default": "collection",
+      "info": "אם נמצאים פחות משני מוצרים, מוצגים המוצרים הקשורים שנבחרו באפליקציית Search & Discovery ואחר כך קטגוריית הגיבוי."
+    },
+    {
+      "type": "checkbox",
+      "id": "same_type",
+      "label": "רק מוצרים מאותו סוג מוצר",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_sold_out",
+      "label": "הסתרת מוצרים שאזלו מהמלאי",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "מספר מוצרים",
+      "min": 2,
+      "max": 16,
+      "step": 1,
+      "default": 12
+    },
+    {
+      "type": "text",
+      "id": "exclude_handles",
+      "label": "קטגוריות שלא ישמשו כמקור",
+      "info": "מזהי קטגוריות (handle) מופרדים בפסיקים. קטגוריות שמכילות כמעט את כל החנות מדולגות תמיד.",
+      "default": "all,frontpage,promoted,reservable-eilat"
+    },
+    {
+      "type": "collection",
+      "id": "fallback_collection",
+      "label": "קטגוריית גיבוי"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "מוצרים קשורים"
+    }
+  ]
+}
+{% endschema %}

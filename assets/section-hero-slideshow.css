@@ -1,0 +1,310 @@
+/* Hero slideshow — sections/hero-slideshow.liquid. Track, slides, dots: component-carousel.css.
+   Measured (Konimbo): >= 768 slide = viewport - 60 (30px gutters, neighbour peek), height =
+   width / image ratio; phones full bleed. Arrows: thin black ≈13×26 chevrons without a background
+   (a faint white halo keeps them visible on dark banners), in the 30px side gutters (the old site put them
+   22px inside the slide, over the banners' text; without the peek they stay 60px from the viewport edges);
+   15px dots 25px above the bottom. Top gap: 30px from 1200 (the old hero touched the header at
+   768–1199), the mobile value below. Per instance ({% style %}): --hero-ratio(-mobile), --hero-peek, --hero-gap,
+   --hero-pad-top(-mobile), --hero-pad-bottom. */
+
+.hero-slideshow {
+  padding-block: var(--hero-pad-top-mobile, 14px) var(--hero-pad-bottom, 0px);
+}
+
+.hero-slideshow__carousel {
+  --per-view-mobile: 1;
+  --per-view-tablet: 1;
+  --per-view-desktop: 1;
+  --per-view-wide: 1;
+  --carousel-gap-mobile: 0px;
+  --carousel-gap-desktop: var(--hero-gap, 0px);
+  --carousel-peek-mobile: 0px;
+  --carousel-peek-desktop: var(--hero-peek, 0px);
+}
+
+.hero-slideshow__slide {
+  position: relative;
+  scroll-snap-stop: always;
+}
+
+.hero-slideshow__cover {
+  position: relative;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The whole slide is the link: a mint ring between two navy lines, drawn over the photo (any colour). */
+a.hero-slideshow__cover:focus-visible {
+  outline: none;
+}
+
+a.hero-slideshow__cover:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  z-index: 2;
+  border: 2px solid var(--color-accent);
+  box-shadow:
+    0 0 0 2px var(--color-ink),
+    inset 0 0 0 2px var(--color-ink);
+  pointer-events: none;
+}
+
+/* The box keeps the first slide's ratio: nothing shifts when images load. */
+.hero-slideshow__media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: var(--hero-ratio-mobile, 1.28);
+  background-color: var(--color-surface-alt);
+}
+
+.hero-slideshow__media picture {
+  display: contents;
+}
+
+.hero-slideshow__img,
+.hero-slideshow__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-slideshow__placeholder {
+  color: var(--color-brand);
+}
+
+/* ---------- Optional text overlay (phones: bottom by default) ---------- */
+.hero-slideshow__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--space-md) var(--space-md) var(--space-2xl);
+  color: var(--color-ink);
+  text-align: center;
+}
+
+.hero-slideshow__content--mobile-top {
+  justify-content: flex-start;
+}
+
+.hero-slideshow__content--mobile-center {
+  justify-content: center;
+}
+
+.hero-slideshow__content--light {
+  color: var(--color-background);
+  text-shadow: 0 1px 3px color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+
+.hero-slideshow__box {
+  display: flex;
+  flex-direction: column;
+  align-items: inherit;
+  gap: var(--space-xs);
+  max-width: 34rem;
+}
+
+.hero-slideshow__heading {
+  color: inherit;
+  font-size: var(--text-3xl);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.hero-slideshow__text {
+  font-size: var(--text-lg);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+}
+
+.hero-slideshow__button {
+  margin-block-start: var(--space-2xs);
+  text-shadow: none;
+}
+
+/* One link per slide: the button's link covers the whole slide. */
+.hero-slideshow__stretched {
+  position: static;
+}
+
+.hero-slideshow__stretched::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.hero-slideshow__slide:hover .hero-slideshow__button {
+  border-color: var(--button-hover-border);
+  background-color: var(--button-hover-bg);
+  color: var(--button-hover-text);
+}
+
+/* ---------- Dots + pause, centred 25px above the bottom edge ---------- */
+.hero-slideshow__controls {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 20px;
+  z-index: var(--z-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.hero-slideshow__controls > * {
+  pointer-events: auto;
+}
+
+.hero-slideshow .carousel__dots {
+  margin: 0;
+}
+
+/* The pause button matches the dots: white disc, navy ring and glyph. */
+.hero-slideshow__pause {
+  position: static;
+  width: 24px;
+  height: 24px;
+  background-color: var(--color-background);
+  box-shadow: inset 0 0 0 1.5px var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* No autoplay with reduced motion: nothing to pause. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-slideshow__pause {
+    display: none;
+  }
+}
+
+html.a11y-no-motion .hero-slideshow__pause {
+  display: none;
+}
+
+/* ---------- Arrows: tablet & desktop only (rendered only with 2+ slides) ---------- */
+.hero-slideshow__arrow,
+html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hero-slideshow__media {
+    aspect-ratio: var(--hero-ratio, 4.79);
+  }
+
+  /* Clear of the arrows (8–52px inside the slide) on both sides. */
+  .hero-slideshow__content {
+    justify-content: center;
+    padding: var(--space-md) max(6%, 4.5rem);
+  }
+
+  .hero-slideshow__content--start {
+    align-items: flex-start;
+    text-align: start;
+  }
+
+  .hero-slideshow__content--end {
+    align-items: flex-end;
+    text-align: end;
+  }
+
+  .hero-slideshow__box {
+    max-width: min(34rem, 56%);
+  }
+
+  .hero-slideshow__content--center .hero-slideshow__box {
+    max-width: min(40rem, 70%);
+  }
+
+  .hero-slideshow__heading {
+    font-size: 1.375rem;
+  }
+
+  .hero-slideshow__text {
+    font-size: var(--text-md);
+  }
+
+  .hero-slideshow__arrow {
+    display: grid;
+    background-color: transparent;
+    color: var(--color-ink);
+  }
+
+  .hero-slideshow__arrow:hover {
+    color: var(--color-brand-text);
+  }
+
+  /* A thin white outline keeps the black chevron visible (3:1) over dark banner areas. */
+  .hero-slideshow__arrow .icon {
+    width: 3rem;
+    height: 3rem;
+    stroke-width: 1;
+    filter: drop-shadow(0 0 1px var(--color-background)) drop-shadow(0 0 1px var(--color-background));
+  }
+
+  /* Without the peek: chevron centre ≈ 60px from the viewport edge (measured 52px + 7.5px), inside the slide. */
+  .hero-slideshow__arrow.carousel__btn--prev {
+    inset-inline-start: calc(var(--hero-peek, 0px) + 8px);
+  }
+
+  .hero-slideshow__arrow.carousel__btn--next {
+    inset-inline-end: calc(var(--hero-peek, 0px) + 8px);
+  }
+
+  /* With the peek the arrows fill the side gutters, so they never cover a banner's baked-in text (the JOY banners
+     run their text up to the edge, and the old site's arrows sat on it). The chevron still fits in the gutter. */
+  .hero-slideshow--peek .hero-slideshow__arrow.carousel__btn--prev {
+    inset-inline-start: 0;
+  }
+
+  .hero-slideshow--peek .hero-slideshow__arrow.carousel__btn--next {
+    inset-inline-end: 0;
+  }
+
+  /* Fixed tracks: the 48px icon overflows the 30px button evenly on both sides instead of stretching the grid track
+     to one side, so the chevron stays centred in the gutter. */
+  .hero-slideshow--peek .hero-slideshow__arrow {
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+    width: var(--hero-peek);
+    border-radius: var(--radius-sm);
+  }
+}
+
+@media (min-width: 992px) {
+  .hero-slideshow__content {
+    padding-block: var(--space-lg);
+  }
+
+  .hero-slideshow__heading {
+    font-size: 2rem;
+  }
+
+  .hero-slideshow__text {
+    font-size: var(--text-xl);
+  }
+
+  .hero-slideshow__button {
+    min-width: 10rem;
+    font-size: var(--text-body);
+  }
+}
+
+@media (min-width: 1200px) {
+  .hero-slideshow {
+    padding-block-start: var(--hero-pad-top, 30px);
+  }
+
+  .hero-slideshow__box {
+    gap: var(--space-sm);
+  }
+
+  .hero-slideshow__heading {
+    font-size: var(--text-5xl);
+  }
+}

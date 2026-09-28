@@ -1,0 +1,250 @@
+/* Category circles — sections/category-circles.liquid. Track & slides: component-carousel.css.
+   Measured @1440: carousel 90% wide with 45px arrow lanes (track 1206), 7 per view, gap 34px,
+   slide 143×173: circle box 143², disc 112px bottom-aligned (1px outline, 8px light ring, grey inside →
+   JOY Mobile: white ring, #f0f3ff disc from the section setting), label 16px/500 5px below. Phones: full
+   width, 2 per view, 35px peeks, no arrows.
+   Per view: 2 · 3 (576) · 5 (768) · 6 (992) · setting, default 7 (1200); labels 14px below 1200
+   (the old strip kept 7 per view and shrank everything until the labels covered the images).
+   Arrows: transparent round buttons with a bold ≈11×22 black chevron (old: 36px, 24px chevron),
+   centred on the disc.
+   Arrows / pause only where the circles overflow: --cc-scroll-xs/sm/md/lg/xl (grid | none). */
+
+.category-circles {
+  padding-block: var(--circles-pad-top, 5px) var(--circles-pad-bottom, 30px);
+}
+
+.category-circles__heading {
+  margin-block-end: var(--space-md);
+  padding-inline: var(--page-gutter);
+  font-size: var(--text-2xl);
+  text-align: center;
+}
+
+.category-circles__carousel {
+  --per-view: 2;
+  --carousel-gap: 0px;
+  --carousel-peek: 35px;
+  margin-inline: auto;
+}
+
+.category-circles__slide {
+  position: relative;
+}
+
+.category-circles__link {
+  display: block;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+/* ---------- Circle: square box, disc bottom-aligned (112/143), image centred on the disc ---------- */
+.category-circles__circle {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  isolation: isolate;
+}
+
+/* Disc and image box are sized by all four insets only (78.3% and 58% of the square box, both centred
+   at 50% / 59.45%). Safari placed the old width + aspect-ratio image above and beside the disc centre. */
+.category-circles__disc {
+  position: absolute;
+  inset-inline: 10.85%;
+  top: 20.3%;
+  bottom: 1.4%;
+  border: 8px solid var(--color-background);
+  border-radius: 50%;
+  background-color: var(--circle-disc, var(--color-surface));
+  box-shadow: 0 0 0 1px var(--color-border-strong);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+/* Product photos on white: multiply turns their white margins into the disc/ring colour, so
+   the photo can be larger than the disc's inscribed square without showing a white box. */
+/* No z-index here: a stacking context on the wrapper would cut the image off from the disc behind
+   it and stop the multiply blend (the photo's white background would show as a square). */
+.category-circles__media {
+  position: absolute;
+  inset-inline: 21%;
+  top: 30.45%;
+  bottom: 11.55%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-circles__img {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  mix-blend-mode: multiply;
+}
+
+.category-circles__placeholder {
+  color: var(--color-brand);
+  mix-blend-mode: normal;
+}
+
+/* Owner-supplied frame ("מסגרת לעיגול קטגוריה"), drawn over the whole circle box. */
+.category-circles--framed .category-circles__circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--circle-frame) center / contain no-repeat;
+}
+
+.category-circles--framed .category-circles__disc {
+  border: 0;
+  box-shadow: none;
+}
+
+.category-circles__label {
+  display: block;
+  margin-block-start: 5px;
+  padding: 3px 4px;
+  font-size: var(--text-body);
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.category-circles__link:hover .category-circles__disc {
+  box-shadow: 0 0 0 2px var(--color-brand);
+}
+
+.category-circles__link:is(:hover, :focus-visible) .category-circles__label {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.category-circles__link:focus-visible {
+  outline: none;
+}
+
+.category-circles__link:focus-visible .category-circles__disc {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* ---------- Arrows (>= 768) and pause ---------- */
+.category-circles__arrow {
+  display: none;
+}
+
+.category-circles__arrow .icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  stroke-width: 1.9;
+}
+
+.category-circles__pause {
+  display: var(--cc-scroll-xs, none);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-circles__carousel .category-circles__pause {
+    display: none;
+  }
+}
+
+html.a11y-no-motion .category-circles__carousel .category-circles__pause,
+html.no-js .category-circles__carousel .category-circles__pause,
+html.no-js .category-circles__carousel .category-circles__arrow {
+  display: none;
+}
+
+@media (min-width: 576px) {
+  .category-circles__carousel {
+    --per-view: 3;
+  }
+
+  .category-circles__media {
+    inset-inline: 19%;
+    top: 28.45%;
+    bottom: 9.55%;
+  }
+
+  .category-circles__pause {
+    display: var(--cc-scroll-sm, none);
+  }
+}
+
+@media (min-width: 768px) {
+  .category-circles__carousel {
+    --per-view: var(--circles-per-view-md, 5);
+    --carousel-gap: 25px;
+    --carousel-peek: 0px;
+    width: 90%;
+    max-width: 81rem; /* 1296: the measured 1206px track at 1440 and wider */
+    padding-inline: 45px;
+  }
+
+  /* Centred on the circle box (above the label zone). */
+  .category-circles__arrow {
+    top: 0;
+    bottom: 1.75rem;
+    display: var(--cc-scroll-md, none);
+    margin-block: auto;
+    translate: none;
+  }
+
+  /* Centred on the disc (59.45% down the square circle box = slide width), whatever the label height. */
+  @supports (width: 1cqi) {
+    .category-circles__carousel {
+      container-type: inline-size;
+    }
+
+    .category-circles__arrow {
+      top: calc((100cqi - (var(--per-view) - 1) * var(--carousel-gap)) / var(--per-view) * 0.5945 - var(--carousel-arrow-size) / 2);
+      bottom: auto;
+      margin-block: 0;
+    }
+  }
+
+  .category-circles__arrow:hover {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  .category-circles__label {
+    font-size: var(--text-md);
+  }
+
+  .category-circles__pause {
+    display: var(--cc-scroll-md, none);
+  }
+}
+
+@media (min-width: 992px) {
+  .category-circles__carousel {
+    --per-view: var(--circles-per-view-lg, 6);
+    --carousel-gap: 30px;
+  }
+
+  .category-circles__arrow,
+  .category-circles__pause {
+    display: var(--cc-scroll-lg, none);
+  }
+}
+
+@media (min-width: 1200px) {
+  .category-circles__carousel {
+    --per-view: var(--circles-per-view-desktop, 7);
+    --carousel-gap: 34px;
+  }
+
+  .category-circles__label {
+    font-size: var(--text-body);
+  }
+
+  .category-circles__arrow,
+  .category-circles__pause {
+    display: var(--cc-scroll-xl, none);
+  }
+}

@@ -1,0 +1,177 @@
+{%- comment -%}
+  Search suggestions for <predictive-search> (@theme/predictive-search). This store's
+  predictive-search API rejects Hebrew (HTTP 417), so the script fetches the regular search
+  page rendered through this section:
+    /search?q=<terms>&type=product,article,page&options[prefix]=last
+      &options[unavailable_products]=last&section_id=predictive-search
+  and moves this section's children into the header's [data-results] element, which is the
+  combobox popup: role="listbox" with an aria-label (see sections/header.liquid). So the
+  output is listbox content only — groups and options, no free text:
+  - "מוצרים": up to 6 products (48px image, title with the match in bold, price via
+    snippets/price, sold-out products last);
+  - "מאמרים ועמודים": up to 3 articles/pages as text rows;
+  - "כל התוצאות (N)": an option marked [data-all] (not counted as a result).
+  No results: a disabled option with the message, then the theme's popular searches as
+  options (also [data-all], so the announced result count stays 0).
+  Every [role=option] has an id for aria-activedescendant.
+  Styles: assets/component-predictive-search.css (linked by the header section).
+{%- endcomment -%}
+{%- liquid
+  # search.terms arrives HTML-escaped (מע"מ → מע&quot;מ): printed as is, and decoded before
+  # url_encode so the "all results" link searches the real query (same rule as main-search).
+  assign ps_terms = search.terms | strip
+  assign ps_terms_raw = ps_terms | replace: '&quot;', '"' | replace: '&#39;', "'" | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&amp;', '&'
+  assign ps_query = ps_terms_raw | url_encode
+  assign ps_all_url = routes.search_url | append: '?q=' | append: ps_query | append: '&options%5Bprefix%5D=last'
+  assign ps_show_price = settings.predictive_search_show_price
+  assign ps_product_limit = 6
+  assign ps_content_limit = 3
+-%}
+{%- if search.performed and ps_terms != blank -%}
+  {%- paginate search.results by 24 -%}
+    {%- liquid
+      assign ps_products = 0
+      assign ps_content = 0
+      for item in search.results
+        if item.object_type == 'product'
+          assign ps_products = ps_products | plus: 1
+        else
+          assign ps_content = ps_content | plus: 1
+        endif
+      endfor
+    -%}
+    {%- if search.results_count > 0 -%}
+      {%- if ps_products > 0 -%}
+        <div class="predictive-search__group" role="group" aria-label="{{ 'search.predictive.products' | t }}">
+          <div class="predictive-search__heading" aria-hidden="true">{{ 'search.predictive.products' | t }}</div>
+          {%- assign shown = 0 -%}
+          {%- for item in search.results -%}
+            {%- if item.object_type != 'product' -%}
+              {%- continue -%}
+            {%- endif -%}
+            {%- if shown >= ps_product_limit -%}
+              {%- break -%}
+            {%- endif -%}
+            {%- assign shown = shown | plus: 1 -%}
+            <a
+              class="predictive-search__item predictive-search__item--product"
+              href="{{ item.url }}"
+              role="option"
+              id="PredictiveSearchOption-product-{{ item.id }}"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              <span class="predictive-search__thumb">
+                {%- render 'image',
+                  image: item.featured_media.preview_image,
+                  widths: '48,96,144',
+                  sizes: '48px',
+                  loading: 'lazy',
+                  decorative: true,
+                  placeholder: 'product-1',
+                  class: 'predictive-search__img'
+                -%}
+              </span>
+              <span class="predictive-search__body">
+                <span class="predictive-search__title">{{ item.title | escape | highlight: ps_terms }}</span>
+                {%- if ps_show_price -%}
+                  {%- render 'price', product: item, context: 'card', class: 'predictive-search__price' -%}
+                {%- elsif item.available == false -%}
+                  <span class="predictive-search__sold-out">{{ 'search.predictive.sold_out' | t }}</span>
+                {%- endif -%}
+              </span>
+            </a>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if ps_content > 0 -%}
+        <div class="predictive-search__group" role="group" aria-label="{{ 'search.predictive.content' | t }}">
+          <div class="predictive-search__heading" aria-hidden="true">{{ 'search.predictive.content' | t }}</div>
+          {%- assign shown = 0 -%}
+          {%- for item in search.results -%}
+            {%- if item.object_type == 'product' -%}
+              {%- continue -%}
+            {%- endif -%}
+            {%- if shown >= ps_content_limit -%}
+              {%- break -%}
+            {%- endif -%}
+            {%- assign shown = shown | plus: 1 -%}
+            {%- liquid
+              assign type_key = 'search.predictive.page'
+              if item.object_type == 'article'
+                assign type_key = 'search.predictive.article'
+              endif
+            -%}
+            <a
+              class="predictive-search__item predictive-search__item--text"
+              href="{{ item.url }}"
+              role="option"
+              id="PredictiveSearchOption-{{ item.object_type }}-{{ item.id }}"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              <span class="predictive-search__type">{{ type_key | t }}</span>
+              <span class="predictive-search__title">{{ item.title | escape | highlight: ps_terms }}</span>
+            </a>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      <a
+        class="predictive-search__item predictive-search__all"
+        href="{{ ps_all_url }}"
+        role="option"
+        id="PredictiveSearchOption-all"
+        aria-selected="false"
+        tabindex="-1"
+        data-all
+      >
+        <span>{{ 'search.predictive.view_all' | t: count: search.results_count }}</span>
+        {%- render 'icon', name: 'arrow-left', size: 16 -%}
+      </a>
+    {%- else -%}
+      <div
+        class="predictive-search__empty"
+        role="option"
+        id="PredictiveSearchOption-empty"
+        aria-selected="false"
+        aria-disabled="true"
+        data-all
+      >
+        <span class="predictive-search__message">{{ 'search.predictive.no_results' | t: terms: ps_terms }}</span>
+        <span class="predictive-search__hint">{{ 'search.predictive.no_results_hint' | t }}</span>
+      </div>
+      {%- assign trending = settings.search_trending | split: ',' -%}
+      {%- if trending.size > 0 -%}
+        <div class="predictive-search__group predictive-search__chips" role="group" aria-label="{{ 'search.predictive.trending' | t }}">
+          {%- for term in trending -%}
+            {%- assign clean_term = term | strip -%}
+            {%- if clean_term != blank -%}
+              <a
+                class="predictive-search__chip"
+                href="{{ routes.search_url }}?q={{ clean_term | url_encode }}&amp;options%5Bprefix%5D=last"
+                role="option"
+                id="PredictiveSearchOption-trending-{{ forloop.index }}"
+                aria-selected="false"
+                tabindex="-1"
+                data-all
+              >
+                {{- clean_term | escape -}}
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  {%- endpaginate -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "הצעות חיפוש",
+  "tag": "div",
+  "class": "section-predictive-search",
+  "settings": []
+}
+{% endschema %}

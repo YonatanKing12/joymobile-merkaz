@@ -1,0 +1,377 @@
+/* Footer (sections/footer). Measured: konimbo-home-chrome.md §3.8 — 1200px, 4 columns ≥768, 16px/52px headings
+   with a 41×2 rule, 15px/22px links. Full bleed; accordion menus on phones.
+   JOY Mobile colours: navy (footer setting), light text (footer text setting), mint headings, rules, icons and
+   link hover (--color-accent: 10.4:1 on navy), mint focus rings. */
+
+.footer {
+  --color-focus: var(--color-focus-on-dark);
+  --footer-accent: var(--color-accent);
+  --footer-divider: color-mix(in srgb, var(--color-footer-text) 22%, transparent);
+  background-color: var(--color-footer-bg);
+  color: var(--color-footer-text);
+  font-size: var(--text-lg);
+  line-height: 1.375rem;
+}
+
+.footer__inner {
+  max-width: calc(75rem + 2 * var(--page-gutter));
+  padding-block-start: 1.5625rem;
+}
+
+.footer a {
+  color: inherit;
+}
+
+.footer__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.footer__app {
+  grid-column: 1 / -1;
+}
+
+.footer__heading,
+.footer__accordion-toggle {
+  position: relative;
+  margin: 0 0 0.9375rem;
+  color: var(--footer-accent);
+  font-family: var(--font-body-family);
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 3.25rem;
+  text-wrap: wrap;
+}
+
+.footer__heading::after,
+.footer__heading-text::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 3.125rem;
+  width: 2.5625rem;
+  height: 2px;
+  background-color: var(--footer-accent);
+}
+
+.footer__links {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.375rem;
+  color: var(--color-footer-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.footer__link:hover,
+.footer__link[aria-current="page"] {
+  color: var(--footer-accent);
+  text-decoration: underline;
+}
+
+.footer__link:focus-visible {
+  outline-offset: 1px;
+}
+
+/* WCAG 2.2 target size (2.5.8, 24×24). Stacked menu links get 24px rows: the same 22px line with 1px above and
+   below. Each row is 2px taller than the old site's 22px rows; nothing else changes. The list starts 1px higher, so
+   its first line stays where it was. The branch details have space around them, so their hit area grows 1px up and
+   down into that space and nothing moves. Legal links are 24px tall from 768px and 44px below that (see below). */
+.footer__column .footer__links {
+  margin-block-start: -1px;
+}
+
+.footer__column .footer__link {
+  min-height: 1.5rem;
+}
+
+.footer__fact .footer__link {
+  padding-block: 1px;
+  margin-block: -1px;
+}
+
+.footer__block {
+  min-width: 0;
+}
+
+.footer__block--menu {
+  border-block-end: 1px solid var(--footer-divider);
+}
+
+.footer__column {
+  display: none;
+}
+
+.footer__accordion-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.25rem;
+  margin: 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.footer__accordion-toggle::-webkit-details-marker {
+  display: none;
+}
+
+/* An <h2> inside the phone accordion's <summary>: looks like the summary text. */
+.footer__heading-text {
+  position: relative;
+  display: block;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  text-wrap: inherit;
+}
+
+.footer__heading-text::after {
+  top: auto;
+  bottom: 0.3125rem;
+}
+
+.footer__accordion-icon {
+  flex-shrink: 0;
+  transition: rotate var(--duration-fast) var(--ease-out);
+}
+
+.footer__accordion[open] .footer__accordion-icon {
+  rotate: 180deg;
+}
+
+.footer__accordion .footer__links {
+  padding-block-end: var(--space-sm);
+}
+
+.footer__accordion .footer__link {
+  min-height: var(--tap-target);
+}
+
+.footer__accordion-toggle:focus-visible {
+  outline-offset: -2px;
+}
+
+.footer__block--branches {
+  padding-block: var(--space-md) var(--space-xs);
+}
+
+.footer__branch-name {
+  margin: 0 0 var(--space-xs);
+  font-weight: 700;
+}
+
+.footer__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.footer__fact {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.footer__fact dt {
+  display: flex;
+  flex-shrink: 0;
+  padding-block-start: 0.125rem;
+  color: var(--footer-accent);
+}
+
+.footer__fact dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0;
+}
+
+.footer__map-link {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.footer__text {
+  margin-block-start: var(--space-sm);
+  color: var(--color-footer-text);
+  line-height: 1.375rem;
+}
+
+.footer__text a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.footer__text a:hover,
+.footer__more:hover,
+.footer__map-link:hover,
+.footer__copyright a:hover {
+  color: var(--footer-accent);
+}
+
+.footer__more {
+  margin-block: calc(var(--space-xs) - 1px) -1px;
+  padding-block: 1px; /* 24px hit area, same place (target size, above) */
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.footer__social {
+  margin-block-start: var(--space-md);
+  text-align: center;
+}
+
+.footer__subheading {
+  margin: 0 0 var(--space-xs);
+  color: var(--footer-accent);
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+
+.footer__social-list {
+  justify-content: center;
+  gap: 0.125rem;
+}
+
+.footer__social-list .icon {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.footer__social-list .social-links__link:hover {
+  color: var(--footer-accent);
+}
+
+.footer__block--social {
+  padding-block: var(--space-md);
+  text-align: center;
+}
+
+.footer__block--text {
+  padding-block: var(--space-md);
+}
+
+.footer__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-block-start: 0.9375rem;
+  padding-block: var(--space-md);
+  border-block-start: 1px solid var(--footer-divider);
+  text-align: center;
+}
+
+.footer__payments {
+  justify-content: center;
+}
+
+.footer__legal-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-md);
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-sm);
+  list-style: none;
+}
+
+.footer__legal-list .footer__link {
+  min-height: var(--tap-target);
+}
+
+.footer__copyright {
+  margin: 0;
+  color: color-mix(in srgb, var(--color-footer-text) 80%, var(--color-footer-bg));
+  font-size: var(--text-sm);
+}
+
+.footer__copyright a {
+  color: inherit;
+}
+
+@media (min-width: 768px) {
+  .footer__columns {
+    grid-template-columns: repeat(var(--footer-columns, 4), minmax(0, 1fr));
+  }
+
+  .footer__block {
+    padding-inline-end: 1.875rem;
+  }
+
+  .footer__block--menu {
+    border-block-end: 0;
+  }
+
+  .footer__accordion {
+    display: none;
+  }
+
+  .footer__column {
+    display: block;
+  }
+
+  .footer__block--branches,
+  .footer__block--social,
+  .footer__block--text {
+    padding-block: 0;
+  }
+
+  .footer__social {
+    text-align: start;
+  }
+
+  .footer__social-list {
+    justify-content: flex-start;
+    margin-inline-start: -0.625rem;
+  }
+
+  .footer__block--social {
+    text-align: start;
+  }
+
+  .footer__block--social .footer__social-list {
+    justify-content: flex-start;
+  }
+
+  .footer__bottom {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    text-align: start;
+  }
+
+  .footer__legal-list {
+    justify-content: flex-start;
+  }
+
+  .footer__legal-list .footer__link {
+    min-height: 1.5rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .footer__bottom {
+    min-height: 3.4375rem;
+    padding-block: var(--space-sm);
+  }
+}
+
+@media print {
+  .footer {
+    background: none;
+    color: var(--color-ink);
+  }
+}

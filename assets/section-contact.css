@@ -1,0 +1,250 @@
+/* ==========================================================================
+   section-contact.css — contact form + contact details (sections/contact-form.liquid).
+   Konimbo: form column at the inline-start (400px at 1440), details column beside
+   it, heading 23px/700, labels 15px above the inputs, green submit button at the
+   inline-start, stacked on mobile. Inputs, checkboxes, focus rings and error
+   colours come from base.css (the theme font in every field, 16px on phones, AA contrast).
+   ========================================================================== */
+
+.contact {
+  padding-block: var(--space-lg) var(--section-space);
+}
+
+/* Long unbroken words wrap instead of widening boxes past the screen. */
+.contact :is(h2, p, a, span, label, li) {
+  overflow-wrap: anywhere;
+}
+
+.contact__grid {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+@media (min-width: 768px) {
+  .contact__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contact__grid--single {
+    grid-template-columns: minmax(0, 36rem);
+  }
+}
+
+@media (min-width: 992px) {
+  .contact__grid {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+    gap: var(--space-3xl);
+  }
+
+  .contact__grid--single {
+    grid-template-columns: minmax(0, 36rem);
+  }
+}
+
+/* ---------- Form ---------- */
+.contact__heading {
+  font-size: var(--text-2xl);
+}
+
+.contact__intro {
+  margin-block: var(--space-xs) var(--space-md);
+  color: var(--color-text);
+  line-height: var(--leading-normal);
+}
+
+.contact-form {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.contact-form__required-note {
+  color: var(--color-muted);
+  font-size: var(--text-md);
+}
+
+.contact-form .field__label {
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: 400;
+}
+
+.contact-form__req {
+  color: var(--color-error);
+  font-weight: 700;
+}
+
+.contact-form .textarea {
+  min-height: 8rem;
+}
+
+.contact-form__check {
+  color: var(--color-text);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}
+
+.contact-form__check input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-block-start: 0;
+}
+
+.contact-form__check a {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+/* Client-side check (Konimbo marked a bad field in red with a message under it):
+   once the visitor leaves a field or tries to send, an invalid field gets the error
+   border and its message; the browser's own validation still names the problem. */
+.contact-form :is(.input, .textarea):user-invalid {
+  border-color: var(--color-error);
+}
+
+.contact-form__error {
+  display: none;
+}
+
+.contact-form__consent > .contact-form__error {
+  margin-block-start: var(--space-xs);
+}
+
+.field:has(:user-invalid) > .contact-form__error,
+.contact-form__consent:has(:user-invalid) > .contact-form__error {
+  display: flex;
+}
+
+.contact-form__consent:has(:user-invalid) .contact-form__check {
+  outline: 2px solid var(--color-error);
+  outline-offset: 2px;
+}
+
+.contact-form__submit {
+  width: 100%;
+}
+
+/* Shopify's fixed hCaptcha badge (bottom-right, shown after the first field is used) is handled for every
+   form in component-floating-actions.css. Root scroll-padding scrolls a focused control (e.g. the consent
+   checkbox) clear of it, and the back-to-top moves up above it. The page continues below this form (details,
+   branches, VIP band, footer), so every control can also be scrolled clear by hand. */
+
+@media (min-width: 768px) {
+  .contact__heading {
+    font-size: var(--text-3xl);
+  }
+
+  .contact-form__submit {
+    justify-self: start;
+    width: auto;
+    min-width: 10rem;
+  }
+}
+
+/* Server-side result after posting */
+.contact-form__status,
+.contact-form__errors {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-md);
+  background-color: var(--color-background);
+}
+
+/* Focused on load (autofocus) so screen readers read them and the page scrolls to
+   them; they are not controls, so no focus ring on top of their border. */
+.contact-form__status:focus,
+.contact-form__errors:focus {
+  outline: 0;
+}
+
+.contact-form__status {
+  align-items: center;
+  color: var(--color-success);
+}
+
+.contact-form__errors {
+  color: var(--color-error);
+}
+
+.contact-form__error-list {
+  margin: var(--space-xs) 0 0;
+  padding-inline-start: 1.75em;
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}
+
+.contact-form__error-list a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* ---------- Contact details ---------- */
+.contact__info-col {
+  align-self: start;
+  padding: var(--space-lg) var(--space-md);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+}
+
+.contact__info-heading {
+  margin-block-end: var(--space-md);
+  font-size: var(--text-2xl);
+}
+
+.contact-info {
+  display: grid;
+  gap: var(--space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-info__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.contact-info__icon {
+  margin-block-start: 0.125rem;
+  color: var(--color-brand);
+}
+
+.contact-info__label {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.contact-info__value {
+  display: inline-block;
+  padding-block: var(--space-2xs);
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.contact-info__value:hover {
+  text-decoration-thickness: 2px;
+}
+
+.contact-info__text {
+  color: var(--color-text);
+  line-height: var(--leading-normal);
+}
+
+.contact__info-text {
+  margin-block-start: var(--space-md);
+}
+
+.contact__info-text a {
+  color: var(--color-ink);
+}
+
+@media (min-width: 768px) {
+  .contact__info-col {
+    padding: var(--space-xl);
+  }
+}

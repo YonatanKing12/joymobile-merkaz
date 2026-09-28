@@ -1,0 +1,209 @@
+{% doc %}
+  schema.org JSON-LD in a <script type="application/ld+json">.
+
+  Types:
+  - 'organization': the store as a LocalBusiness subtype (theme setting
+    store_business_type, default ElectronicsStore): name = the theme's brand name
+    (settings.brand_name, e.g. JOY Mobile), logo (settings.logo → the JOY Mobile
+    lockup assets/logo-joy.png; the shop-level Brand logo is deliberately not used),
+    phone, email, address from theme settings (street/city/postal code, IL) and sameAs
+    from the social links. layout/theme.liquid prints it on the home page.
+  - 'website': WebSite + SearchAction (/search?q=…), named after the brand. Home page.
+  - 'product': Product with brand (vendor, omitted when the vendor is the store's own
+    name or the brand name — 227 products carry no real brand), sku, gtin (barcode of 8/12/13/14 digits),
+    images, and one Offer per variant (price = the Eilat price actually charged,
+    ILS, availability, url with ?variant=); aggregateRating when the standard
+    `reviews.rating` metafields exist. Product sections render it.
+  - 'breadcrumbs': BreadcrumbList — delegates to the breadcrumbs snippet so the
+    JSON-LD always matches the visible trail.
+  - 'article': BlogPosting for the current article.
+  Every value is JSON-encoded and "</" is written as "<\/" (same string in JSON), so content
+  can never close the script.
+
+  @param {string} type - 'organization' | 'website' | 'product' | 'breadcrumbs' | 'article'.
+  @param {product} [product] - Product for 'product'. Default: the page's product.
+  @param {article} [article] - Article for 'article'. Default: the page's article.
+
+  @example
+  {% render 'structured-data', type: 'organization' %}
+  {% render 'structured-data', type: 'product', product: product %}
+{% enddoc %}
+{%- liquid
+  assign site_url = request.origin
+  assign org_id = site_url | append: '/#organization'
+  assign brand_name = settings.brand_name | strip | default: shop.name
+-%}
+{%- case type -%}
+  {%- when 'breadcrumbs' -%}
+    {%- render 'breadcrumbs', format: 'json' -%}
+
+  {%- when 'organization' -%}
+    {%- liquid
+      assign org_logo = settings.logo
+      assign org_type = settings.store_business_type | default: 'ElectronicsStore'
+      assign same_as = ''
+      assign networks = 'facebook,instagram,telegram,tiktok,youtube' | split: ','
+      for network in networks
+        assign setting_key = 'social_' | append: network | append: '_link'
+        if settings[setting_key] != blank
+          assign same_as = same_as | append: '|' | append: settings[setting_key]
+        endif
+      endfor
+      assign same_as_list = same_as | remove_first: '|' | split: '|'
+    -%}
+    {%- capture org_json -%}
+      {
+        "@context": "https://schema.org",
+        "@type": {{ org_type | json }},
+        "@id": {{ org_id | json }},
+        "name": {{ brand_name | json }},
+        "url": {{ site_url | append: routes.root_url | json }}
+        {%- if org_logo != blank -%}
+          {%- assign org_logo_url = org_logo | image_url: width: 600 | remove_first: 'https:' | prepend: 'https:' -%}
+        {%- else -%}
+          {%- assign org_logo_url = 'logo-joy.png' | asset_url | remove_first: 'https:' | prepend: 'https:' -%}
+        {%- endif -%}
+        ,"logo": {{ org_logo_url | json }},
+        "image": {{ org_logo_url | json }}
+        {%- if settings.contact_phone != blank -%}
+          ,"telephone": {{ settings.contact_phone | json }}
+        {%- endif -%}
+        {%- if settings.contact_email != blank -%}
+          ,"email": {{ settings.contact_email | json }}
+        {%- endif -%}
+        {%- if settings.store_street != blank or settings.store_city != blank -%}
+          ,"address": {
+            "@type": "PostalAddress",
+            "streetAddress": {{ settings.store_street | json }},
+            "addressLocality": {{ settings.store_city | json }}
+            {%- if settings.store_zip != blank -%},"postalCode": {{ settings.store_zip | json }}{%- endif -%},
+            "addressCountry": "IL"
+          }
+        {%- endif -%}
+        {%- if same_as_list.size > 0 -%}
+          ,"sameAs": {{ same_as_list | json }}
+        {%- endif -%}
+      }
+    {%- endcapture -%}
+    <script type="application/ld+json">{{ org_json | strip_newlines | replace: '</', '<\/' }}</script>
+
+  {%- when 'website' -%}
+    {%- assign search_template = site_url | append: routes.search_url | append: '?q={search_term_string}' -%}
+    {%- capture website_json -%}
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": {{ site_url | append: '/#website' | json }},
+        "name": {{ brand_name | json }},
+        "url": {{ site_url | append: routes.root_url | json }},
+        "inLanguage": "he",
+        "publisher": { "@id": {{ org_id | json }} },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": {{ search_template | json }}
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    {%- endcapture -%}
+    <script type="application/ld+json">{{ website_json | strip_newlines | replace: '</', '<\/' }}</script>
+
+  {%- when 'product' -%}
+    {%- liquid
+      assign ld_product = product
+      assign ld_url = site_url | append: ld_product.url
+      assign ld_description = ld_product.description | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncate: 5000
+    -%}
+    {%- if ld_product != blank -%}
+      {%- capture product_json -%}
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "@id": {{ ld_url | append: '#product' | json }},
+          "name": {{ ld_product.title | json }},
+          "url": {{ ld_url | json }}
+          {%- if ld_description != blank -%},"description": {{ ld_description | json }}{%- endif -%}
+          {%- if ld_product.vendor != blank and ld_product.vendor != shop.name and ld_product.vendor != brand_name -%},"brand": { "@type": "Brand", "name": {{ ld_product.vendor | json }} }{%- endif -%}
+          {%- if ld_product.type != blank -%},"category": {{ ld_product.type | json }}{%- endif -%}
+          {%- if ld_product.images.size > 0 -%}
+            ,"image": [
+              {%- for ld_image in ld_product.images limit: 5 -%}
+                {{ ld_image | image_url: width: 1200 | remove_first: 'https:' | prepend: 'https:' | json }}{% unless forloop.last %},{% endunless %}
+              {%- endfor -%}
+            ]
+          {%- endif -%}
+          {%- assign ld_first = ld_product.selected_or_first_available_variant -%}
+          {%- if ld_first.sku != blank -%},"sku": {{ ld_first.sku | json }}{%- endif -%}
+          {%- assign rating = ld_product.metafields.reviews.rating.value -%}
+          {%- assign rating_count = ld_product.metafields.reviews.rating_count.value -%}
+          {%- if rating != blank and rating_count > 0 -%}
+            ,"aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": {{ rating.rating | json }},
+              "bestRating": {{ rating.scale_max | json }},
+              "worstRating": {{ rating.scale_min | json }},
+              "ratingCount": {{ rating_count | json }}
+            }
+          {%- endif -%}
+          ,"offers": [
+            {%- for ld_variant in ld_product.variants limit: 100 -%}
+              {%- liquid
+                assign gtin_digits = ld_variant.barcode | strip
+                assign gtin_rest = gtin_digits | remove: '0' | remove: '1' | remove: '2' | remove: '3' | remove: '4' | remove: '5' | remove: '6' | remove: '7' | remove: '8' | remove: '9'
+                assign gtin_ok = false
+                if gtin_digits != blank and gtin_rest == blank
+                  case gtin_digits.size
+                    when 8, 12, 13, 14
+                      assign gtin_ok = true
+                  endcase
+                endif
+              -%}
+              {
+                "@type": "Offer",
+                "url": {{ ld_url | append: '?variant=' | append: ld_variant.id | json }},
+                "price": {{ ld_variant.price | divided_by: 100.0 | json }},
+                "priceCurrency": {{ cart.currency.iso_code | default: shop.currency | json }},
+                "availability": {% if ld_variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
+                "itemCondition": "https://schema.org/NewCondition",
+                "seller": { "@id": {{ org_id | json }} }
+                {%- if ld_product.variants.size > 1 -%},"name": {{ ld_product.title | append: ' – ' | append: ld_variant.title | json }}{%- endif -%}
+                {%- if ld_variant.sku != blank -%},"sku": {{ ld_variant.sku | json }}{%- endif -%}
+                {%- if gtin_ok -%},"gtin": {{ gtin_digits | json }}{%- endif -%}
+              }{% unless forloop.last %},{% endunless %}
+            {%- endfor -%}
+          ]
+        }
+      {%- endcapture -%}
+      <script type="application/ld+json">{{ product_json | strip_newlines | replace: '</', '<\/' }}</script>
+    {%- endif -%}
+
+  {%- when 'article' -%}
+    {%- liquid
+      assign ld_article = article
+      assign article_url = site_url | append: ld_article.url
+      assign article_summary = ld_article.excerpt_or_content | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncate: 300
+    -%}
+    {%- if ld_article != blank -%}
+      {%- capture article_json -%}
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "@id": {{ article_url | append: '#article' | json }},
+          "mainEntityOfPage": {{ article_url | json }},
+          "headline": {{ ld_article.title | truncate: 110 | json }},
+          "description": {{ article_summary | json }},
+          "inLanguage": "he",
+          "datePublished": {{ ld_article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+          "dateModified": {{ ld_article.updated_at | default: ld_article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+          "author": { "@type": "Person", "name": {{ ld_article.author | default: brand_name | json }} },
+          "publisher": { "@id": {{ org_id | json }} }
+          {%- if ld_article.image != blank -%}
+            ,"image": {{ ld_article.image | image_url: width: 1200 | remove_first: 'https:' | prepend: 'https:' | json }}
+          {%- endif -%}
+        }
+      {%- endcapture -%}
+      <script type="application/ld+json">{{ article_json | strip_newlines | replace: '</', '<\/' }}</script>
+    {%- endif -%}
+{%- endcase -%}

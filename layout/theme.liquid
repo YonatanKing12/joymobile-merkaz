@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="he" dir="rtl" class="no-js{% if settings.type_mobile_boost %} text-boost{% endif %}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% render 'meta-tags' %}
+
+    {%- comment -%}
+      Icons: the theme setting "פאביקון" when set, else the JOY rabbit from the owner's brand
+      sheet (assets/favicon.png: transparent 96×96, a multiple of 48 as Google Search asks;
+      assets/apple-touch-icon.png: 180×180 on white, since iOS turns transparency black).
+    {%- endcomment -%}
+    {%- if settings.favicon != blank %}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+      <link rel="apple-touch-icon" href="{{ settings.favicon | image_url: width: 180, height: 180 }}">
+    {%- else %}
+      <link rel="icon" type="image/png" sizes="96x96" href="{{ 'favicon.png' | asset_url }}">
+      <link rel="apple-touch-icon" sizes="180x180" href="{{ 'apple-touch-icon.png' | asset_url }}">
+    {%- endif %}
+
+    {%- comment -%}
+      Self-hosted fonts (assets/fonts.css): Assistant, the brand font, or Rubik — theme
+      setting "גופן". Only the selected family's two files are preloaded. fonts.css points
+      at the .woff2 files with relative URLs, which resolve to the asset URL without the ?v=
+      query; the preloads use exactly that URL so the browser reuses them instead of
+      downloading the fonts twice. Both subsets are needed on every page: Hebrew letters +
+      Latin (space, digits, punctuation).
+    {%- endcomment -%}
+    {%- liquid
+      assign font_file = 'assistant'
+      if settings.font_family == 'rubik'
+        assign font_file = 'rubik'
+      endif
+      assign font_hebrew = font_file | append: '-hebrew-wght.woff2'
+      assign font_latin = font_file | append: '-latin-wght.woff2'
+    -%}
+    {% # theme-check-disable AssetPreload %}
+    <link rel="preload" href="{{ font_hebrew | asset_url | split: '?' | first }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ font_latin | asset_url | split: '?' | first }}" as="font" type="font/woff2" crossorigin>
+    {% # theme-check-enable AssetPreload %}
+    {{ 'fonts.css' | asset_url | stylesheet_tag }}
+    {% render 'css-variables' %}
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+
+    <script type="importmap">
+      {
+        "imports": {
+          "@theme/global": {{ 'global.js' | asset_url | json }},
+          "@theme/cart": {{ 'cart.js' | asset_url | json }},
+          "@theme/carousel": {{ 'carousel.js' | asset_url | json }},
+          "@theme/header": {{ 'header.js' | asset_url | json }},
+          "@theme/predictive-search": {{ 'predictive-search.js' | asset_url | json }},
+          "@theme/facets": {{ 'facets.js' | asset_url | json }},
+          "@theme/product": {{ 'product.js' | asset_url | json }},
+          "@theme/wishlist": {{ 'wishlist.js' | asset_url | json }},
+          "@theme/a11y": {{ 'a11y.js' | asset_url | json }}
+        }
+      }
+    </script>
+    {%- liquid
+      # The 90-day VAT consent is collected in the cart (drawer or page): while it is on, no button may skip to checkout.
+      assign vat_consent = false
+      if settings.cart_vat_consent_enabled and settings.cart_vat_consent_text != blank
+        assign vat_consent = true
+      endif
+    -%}
+    <script>
+      document.documentElement.classList.replace('no-js', 'js');
+      window.theme = {
+        routes: {
+          root: {{ routes.root_url | json }},
+          cart: {{ routes.cart_url | json }},
+          cart_add: {{ routes.cart_add_url | json }},
+          cart_change: {{ routes.cart_change_url | json }},
+          cart_update: {{ routes.cart_update_url | json }},
+          search: {{ routes.search_url | json }},
+          predictive_search: {{ routes.predictive_search_url | json }}
+        },
+        cartType: {{ settings.cart_type | json }},
+        cartConsent: {{ vat_consent | json }},
+        strings: {
+          error: {{ 'errors.generic' | t | json }},
+          added: {{ 'general.js.cart_added' | t | json }},
+          cartUpdated: {{ 'general.js.cart_updated' | t | json }},
+          results: {{ 'general.js.results' | t | json }},
+          wishlist: {{ 'wishlist.button.label' | t | json }},
+          slide: {{ 'accessibility.carousel.slide' | t | json }},
+          a11yReset: {{ 'accessibility.reset_done' | t | json }}
+        }
+      };
+    </script>
+    <script type="module" src="{{ 'global.js' | asset_url }}"></script>
+    {%- if settings.a11y_panel_enabled %}
+      <script type="module" async src="{{ 'a11y.js' | asset_url }}"></script>
+    {%- endif %}
+    <script type="module" src="{{ 'header.js' | asset_url }}"></script>
+    <script type="module" src="{{ 'cart.js' | asset_url }}"></script>
+    {%- if settings.wishlist_enabled %}
+      <script type="module" src="{{ 'wishlist.js' | asset_url }}"></script>
+    {%- endif %}
+
+    {{ content_for_header }}
+
+    {%- if request.page_type == 'index' %}
+      {% render 'structured-data', type: 'organization' %}
+      {% render 'structured-data', type: 'website' %}
+    {%- endif %}
+  </head>
+
+  <body class="template-{{ template.name | handle }}{% if template.suffix != blank %} template-{{ template.name | handle }}--{{ template.suffix | handle }}{% endif %}">
+    <a class="skip-link" href="#MainContent">{{ 'accessibility.skip_to_content' | t }}</a>
+
+    {% sections 'header-group' %}
+
+    <main id="MainContent" class="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+    {% sections 'overlay-group' %}
+
+    {% render 'floating-actions' %}
+
+    <div id="a11y-live" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+  </body>
+</html>

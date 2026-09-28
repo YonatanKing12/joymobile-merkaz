@@ -1,0 +1,424 @@
+{%- comment -%}
+  Site header — JOY Mobile chrome (docs/rebuild/konimbo-home-chrome.md §2.3–2.10).
+  ≥992px: 76px row on the header colour — cart, WhatsApp, account, "סניפים באילת", search,
+  logo (the JOY layout: cart at the inline-start, logo at the inline-end) — over a 52px nav
+  bar with mega menus (snippets/mega-menu). Below 992px: one 60px row — ☰, search toggle,
+  centred logo, cart, WhatsApp — with the drawer (snippets/menu-drawer) and a search bar
+  that opens under the row. The announcement strip is a separate section above this one.
+  Sticky: this section sticks to the top (the strip scrolls away); <sticky-header>
+  publishes its height as --header-height, so nothing below shifts.
+{%- endcomment -%}
+{%- liquid
+  assign menu = section.settings.menu
+
+  assign whatsapp_url = ''
+  if section.settings.show_whatsapp
+    capture whatsapp_url
+      render 'whatsapp-url', text: settings.contact_whatsapp_message
+    endcapture
+  endif
+
+  assign branches_url = section.settings.branches_link
+  if branches_url == blank and settings.branches_page != blank
+    assign branches_url = settings.branches_page.url
+  endif
+  if branches_url == blank and pages.contact.url != blank
+    assign branches_url = pages.contact.url | append: '#branches'
+  endif
+  unless section.settings.show_branches
+    assign branches_url = ''
+  endunless
+  assign branches_label = section.settings.branches_label
+  if branches_label == blank
+    assign branches_label = 'header.branches' | t
+  endif
+
+  assign show_account = false
+  if section.settings.show_account and shop.customer_accounts_enabled
+    assign show_account = true
+  endif
+
+  assign cart_drawer = false
+  if settings.cart_type == 'drawer' and template.name != 'cart'
+    assign cart_drawer = true
+  endif
+
+  assign cart_bubble = cart.item_count
+  if cart.item_count > 99
+    assign cart_bubble = '99+'
+  endif
+
+  # Logo: the theme's logo settings, else the JOY Mobile lockup cropped from the owner's brand
+  # sheet (assets/logo-joy.png, 871×249 — its navy block is the header navy #060433, so on the
+  # header only the green block and the green "MOBILE" show). The shop-level Brand logo is
+  # deliberately not a fallback: only this theme decides what the header shows.
+  assign brand_name = settings.brand_name | strip | default: shop.name
+  assign header_logo = settings.logo_inverse | default: settings.logo
+  assign logo_desktop = settings.logo_width | default: 190
+  assign logo_mobile = settings.logo_width_mobile | default: 130
+  assign logo_sizes = '(min-width: 992px) ' | append: logo_desktop | append: 'px, ' | append: logo_mobile | append: 'px'
+  assign logo_widths = logo_mobile | append: ',' | append: logo_desktop
+  assign logo_2x_mobile = logo_mobile | times: 2
+  assign logo_2x_desktop = logo_desktop | times: 2
+  assign logo_widths = logo_widths | append: ',' | append: logo_2x_mobile | append: ',' | append: logo_2x_desktop
+  if header_logo != blank
+    assign logo_ratio = header_logo.aspect_ratio | default: 1
+  else
+    # Built-in lockup: 1x/2x/3x of both widths, resized by Shopify's CDN (never above the file's 871px).
+    assign logo_ratio = 871.0 | divided_by: 249
+    assign logo_url = 'logo-joy.png' | asset_url
+    assign logo_3x_mobile = logo_mobile | times: 3
+    assign logo_3x_desktop = logo_desktop | times: 3
+    assign logo_candidates = logo_widths | append: ',' | append: logo_3x_mobile | append: ',' | append: logo_3x_desktop | split: ','
+    assign logo_capped = ''
+    for candidate in logo_candidates
+      assign candidate_width = candidate | plus: 0 | at_most: 871
+      assign logo_capped = logo_capped | append: candidate_width | append: ','
+    endfor
+    assign logo_capped = logo_capped | split: ',' | uniq
+    assign logo_srcset = ''
+    for candidate in logo_capped
+      assign logo_srcset = logo_srcset | append: logo_url | append: '&amp;width=' | append: candidate | append: ' ' | append: candidate | append: 'w, '
+    endfor
+    assign logo_srcset = logo_srcset | remove_last: ', '
+    assign logo_src_width = logo_2x_desktop | at_most: 871
+  endif
+
+  assign search_on = settings.predictive_search_enabled
+  # search.terms is already HTML-escaped by Shopify: print it as is (escaping again shows מע&quot;מ).
+  assign search_terms = search.terms | default: ''
+  assign trending = settings.search_trending | split: ','
+-%}
+{{ 'section-header.css' | asset_url | stylesheet_tag }}
+{%- if search_on -%}
+  {{ 'component-predictive-search.css' | asset_url | stylesheet_tag }}
+  {{ 'component-price.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'predictive-search.js' | asset_url }}"></script>
+{%- endif -%}
+
+{%- comment -%}
+  Logo box: a definite width (the logo width setting, or less when the logo's height would pass
+  the max-height of .header__logo-img in section-header.css: 2.5rem / 3.4375rem from 992px), so
+  the space is reserved before the image arrives and nothing in the row shifts when it does.
+{%- endcomment -%}
+{% style %}
+  #shopify-section-{{ section.id }} .header__logo-img {
+    width: min(var(--logo-width), {{ logo_ratio }} * 2.5rem);
+    height: auto;
+  }
+  @media (min-width: 992px) {
+    #shopify-section-{{ section.id }} .header__logo-img {
+      width: min(var(--logo-width), {{ logo_ratio }} * 3.4375rem);
+    }
+  }
+{% endstyle %}
+
+{%- if section.settings.sticky -%}
+  {% style %}
+    #shopify-section-{{ section.id }} {
+      position: sticky;
+      top: 0;
+      z-index: calc(var(--z-floating) + 1);
+    }
+  {% endstyle %}
+{%- else -%}
+  {% style %}
+    #shopify-section-{{ section.id }} {
+      position: relative;
+      z-index: calc(var(--z-floating) + 1);
+    }
+  {% endstyle %}
+{%- endif -%}
+
+<sticky-header class="header-wrapper" data-threshold="16">
+  <header class="header">
+    <div class="header__row">
+      <div class="header__inner">
+        {%- comment -%} Mobile only: menu drawer and search toggle {%- endcomment -%}
+        <div class="header__drawer desktop-hide">
+          {%- render 'menu-drawer',
+            menu: menu,
+            secondary_menu: section.settings.menu_secondary,
+            branches_url: branches_url,
+            branches_label: branches_label,
+            whatsapp_url: whatsapp_url,
+            show_account: show_account,
+            id_prefix: 'MenuDrawer'
+          -%}
+        </div>
+
+        <menu-drawer class="header__search-drawer search-drawer desktop-hide" data-desktop="992">
+          <details class="search-drawer__details" id="SearchDrawer">
+            <summary class="header__icon search-drawer__toggle" aria-label="{{ 'header.search.open' | t }}" aria-expanded="false">
+              {%- render 'icon', name: 'search', size: 26 -%}
+            </summary>
+            <div class="search-drawer__panel">
+              <predictive-search class="search-form search-form--mobile">
+              <form class="search-form__form" action="{{ routes.search_url }}" method="get" role="search">
+                <label class="visually-hidden" for="HeaderSearch-Mobile">{{ 'header.search.label' | t }}</label>
+                <input
+                  class="search-form__input"
+                  type="search"
+                  id="HeaderSearch-Mobile"
+                  name="q"
+                  {% if search_on %}
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    aria-controls="PredictiveSearch-Mobile"
+                    autocomplete="off"
+                  {% endif %}
+                  value="{{ search_terms }}"
+                  placeholder="{{ 'header.search.placeholder' | t }}"
+                  enterkeyhint="search"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                >
+                <input type="hidden" name="options[prefix]" value="last">
+                <button class="search-form__submit" type="submit" aria-label="{{ 'header.search.submit' | t }}">
+                  {%- render 'icon', name: 'search', size: 22 -%}
+                </button>
+                <button class="search-form__close" type="button" data-close aria-label="{{ 'header.search.close' | t }}">
+                  {%- render 'icon', name: 'close', size: 22 -%}
+                </button>
+                {%- if search_on -%}
+                  <div class="predictive-search" id="PredictiveSearch-Mobile" role="listbox" aria-label="{{ 'search.predictive.label' | t }}" data-results hidden></div>
+                {%- endif -%}
+              </form>
+              </predictive-search>
+              {%- if settings.search_trending != blank -%}
+                <div class="search-drawer__trending">
+                  <p class="search-drawer__trending-title" id="SearchTrending-Mobile">{{ 'header.search.trending' | t }}</p>
+                  <ul class="search-drawer__chips" role="list" aria-labelledby="SearchTrending-Mobile">
+                    {%- for term in trending -%}
+                      {%- assign clean_term = term | strip -%}
+                      {%- if clean_term != blank -%}
+                        <li>
+                          <a class="search-drawer__chip" href="{{ routes.search_url }}?q={{ clean_term | url_encode }}&amp;options%5Bprefix%5D=last">
+                            {{- clean_term | escape -}}
+                          </a>
+                        </li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- endif -%}
+            </div>
+            <div class="search-drawer__overlay" data-close></div>
+          </details>
+        </menu-drawer>
+
+        <a
+          class="header__icon header__cart"
+          href="{{ routes.cart_url }}"
+          {% if cart_drawer %}
+            aria-haspopup="dialog" aria-controls="CartDrawer" aria-expanded="false"
+          {% endif %}
+        >
+          <span class="visually-hidden">{{ 'header.cart.label' | t }}</span>
+          {%- render 'icon', name: 'cart', size: 34, class: 'header__cart-icon' -%}
+          <cart-count class="cart-count" data-count="{{ cart.item_count }}">
+            <span class="cart-count__bubble" aria-hidden="true" data-count-text>{{ cart_bubble }}</span>
+            <span class="visually-hidden">{{ 'header.cart.count' | t: count: cart.item_count }}</span>
+          </cart-count>
+        </a>
+
+        {%- if whatsapp_url != blank -%}
+          <a
+            class="header__icon header__whatsapp"
+            href="{{ whatsapp_url }}"
+            target="_blank"
+            rel="noopener"
+            aria-label="{{ 'general.whatsapp.label' | t }}"
+          >
+            <span class="header__whatsapp-badge">
+              {%- render 'icon', name: 'whatsapp', size: 20 -%}
+            </span>
+          </a>
+        {%- endif -%}
+
+        {%- if show_account -%}
+          {%- if customer -%}
+            <a class="header__account below-desktop-hide" href="{{ routes.account_url }}">
+              <span class="header__account-icon">{%- render 'icon', name: 'account', size: 20 -%}</span>
+              <span class="header__account-text">
+                <span class="header__account-line">
+                  {%- if customer.first_name != blank -%}
+                    {%- # t already escapes interpolated values: no | escape (it would print ג&#39;ורג&#39;) -%}
+                    {{- 'header.account.greeting' | t: name: customer.first_name -}}
+                  {%- else -%}
+                    {{- 'header.account.greeting_no_name' | t -}}
+                  {%- endif -%}
+                </span>
+                <span class="header__account-action">{{ 'header.account.my_account' | t }}</span>
+              </span>
+            </a>
+          {%- else -%}
+            <a class="header__account below-desktop-hide" href="{{ routes.account_login_url }}">
+              <span class="header__account-icon">{%- render 'icon', name: 'account', size: 20 -%}</span>
+              <span class="header__account-text">
+                <span class="header__account-line">{{ 'header.account.guest' | t }}</span>
+                <span class="header__account-action">{{ 'header.account.login' | t }}</span>
+              </span>
+            </a>
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- if branches_url != blank -%}
+          <a class="header__branches below-desktop-hide" href="{{ branches_url }}">
+            <span>{{ branches_label | escape }}</span>
+            {%- render 'icon', name: 'chevron-left', size: 14, class: 'header__branches-icon' -%}
+            {%- render 'icon', name: 'chevron-left', size: 14, class: 'header__branches-icon' -%}
+          </a>
+        {%- endif -%}
+
+        <div class="header__search below-desktop-hide">
+          <predictive-search class="search-form search-form--desktop">
+          <form class="search-form__form" action="{{ routes.search_url }}" method="get" role="search">
+            <label class="visually-hidden" for="HeaderSearch-Desktop">{{ 'header.search.label' | t }}</label>
+            <input
+              class="search-form__input"
+              type="search"
+              id="HeaderSearch-Desktop"
+              name="q"
+              {% if search_on %}
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="PredictiveSearch-Desktop"
+                autocomplete="off"
+              {% endif %}
+              value="{{ search_terms }}"
+              placeholder="{{ 'header.search.placeholder' | t }}"
+              enterkeyhint="search"
+              spellcheck="false"
+            >
+            <input type="hidden" name="options[prefix]" value="last">
+            <button class="search-form__submit" type="submit" aria-label="{{ 'header.search.submit' | t }}">
+              {%- render 'icon', name: 'search', size: 16 -%}
+            </button>
+            {%- if search_on -%}
+              <div class="predictive-search" id="PredictiveSearch-Desktop" role="listbox" aria-label="{{ 'search.predictive.label' | t }}" data-results hidden></div>
+            {%- endif -%}
+          </form>
+          </predictive-search>
+        </div>
+
+        {%- comment -%} Logo last: on desktop the DOM (tab) order equals the visual RTL order; the mobile grid centres it {%- endcomment -%}
+        <a class="header__logo" href="{{ routes.root_url }}">
+          {%- if header_logo != blank -%}
+            {%- render 'image',
+              image: header_logo,
+              widths: logo_widths,
+              sizes: logo_sizes,
+              loading: 'eager',
+              alt: brand_name,
+              class: 'header__logo-img'
+            -%}
+          {%- else -%}
+            <img
+              class="header__logo-img"
+              src="{{ logo_url }}&amp;width={{ logo_src_width }}"
+              srcset="{{ logo_srcset }}"
+              sizes="{{ logo_sizes }}"
+              width="871"
+              height="249"
+              alt="{{ brand_name | escape }}"
+            >
+          {%- endif -%}
+        </a>
+      </div>
+    </div>
+
+    {%- if menu.links.size > 0 -%}
+      <nav class="header__nav below-desktop-hide" aria-label="{{ 'header.menu.label' | t }}">
+        {%- render 'mega-menu', menu: menu, id_prefix: 'HeaderMenu' -%}
+      </nav>
+    {%- endif -%}
+  </header>
+</sticky-header>
+
+{% schema %}
+{
+  "name": "כותרת עליונה",
+  "tag": "div",
+  "class": "section-header",
+  "enabled_on": {
+    "groups": [
+      "header"
+    ]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "תפריטים"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "תפריט ראשי",
+      "default": "main-menu",
+      "info": "עד 3 רמות. במחשב: שורת תפריט עם תפריט נפתח לכל פריט; במובייל: תפריט צד."
+    },
+    {
+      "type": "link_list",
+      "id": "menu_secondary",
+      "label": "תפריט משני במובייל",
+      "info": "קישורים נוספים בתחתית תפריט המובייל (למשל אודות, צרו קשר)."
+    },
+    {
+      "type": "header",
+      "content": "אזור האייקונים"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "label": "חשבון לקוח",
+      "info": "'שלום אורח / הרשמה - התחברות', או 'שלום, [שם]' ללקוח מחובר. מוצג רק כשחשבונות הלקוח פעילים בחנות.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_whatsapp",
+      "label": "אייקון וואטסאפ",
+      "info": "המספר והודעת הפתיחה נלקחים מהגדרות התבנית › יצירת קשר ורשתות חברתיות.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_branches",
+      "label": "כפתור סניפים",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "branches_label",
+      "label": "טקסט כפתור הסניפים",
+      "default": "סניפים באילת"
+    },
+    {
+      "type": "url",
+      "id": "branches_link",
+      "label": "קישור כפתור הסניפים",
+      "info": "אם ריק: עמוד הסניפים מהגדרות התבנית, ואם גם הוא ריק — /pages/contact#branches."
+    },
+    {
+      "type": "header",
+      "content": "התנהגות"
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky",
+      "label": "כותרת נצמדת בגלילה",
+      "info": "הכותרת ושורת התפריט נשארות בראש המסך; פס ההודעות נגלל החוצה.",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "כותרת עליונה"
+    }
+  ]
+}
+{% endschema %}

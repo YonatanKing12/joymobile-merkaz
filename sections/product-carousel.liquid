@@ -1,0 +1,224 @@
+{%- comment -%}
+  Product carousel: "מוצרים פופולאריים מקטגוריית …" title bar (#f8f8f8, 20px/500, centred), a collection,
+  up to N product cards (snippets/card-product.liquid) and a "view all" link. Sold-out products are skipped by
+  default (store rule: homepage strips show available products only) and the strip is not rendered at all when
+  fewer than 2 products are left. Measured per view: 1 (<768) · 2 (768) · 3 (992) · 4 (1200, cards 275px).
+  The arrows wrap around at the ends, like the old strips. The "view all" link sits at the end of the title bar
+  from 992px (the old strips had none; below 992 it is hidden to keep the old vertical rhythm).
+  Cards near the top of the page (section index <= 3, first four) are not lazy-loaded.
+{%- endcomment -%}
+{%- liquid
+  assign pc_collection = section.settings.collection
+  assign pc_limit = section.settings.products_limit
+  assign pc_title = section.settings.title | default: pc_collection.title
+  assign pc_view_all_label = section.settings.view_all_label
+  if pc_view_all_label == blank
+    assign pc_view_all_label = 'home.products.view_all' | t
+  endif
+
+  assign pc_eager = 0
+  if section.index != blank and section.index <= 3
+    assign pc_eager = 4
+  endif
+
+  assign pc_count = 0
+-%}
+
+{%- capture pc_slides -%}
+  {%- if pc_collection != blank -%}
+    {%- for card_product in pc_collection.products -%}
+      {%- if section.settings.hide_sold_out and card_product.available == false -%}
+        {%- continue -%}
+      {%- endif -%}
+      {%- liquid
+        assign pc_count = pc_count | plus: 1
+        assign pc_lazy = true
+        if pc_count <= pc_eager
+          assign pc_lazy = false
+        endif
+      -%}
+      <div class="carousel__slide product-carousel__slide" role="listitem">
+        {%- render 'card-product',
+          product: card_product,
+          lazy: pc_lazy,
+          heading: 'h3',
+          section_id: section.id,
+          show_swatches: settings.card_show_swatches
+        -%}
+      </div>
+      {%- if pc_count >= pc_limit -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- liquid
+  assign pc_render = false
+  assign pc_placeholder = false
+  if pc_count >= 2
+    assign pc_render = true
+  elsif request.design_mode
+    assign pc_render = true
+    assign pc_placeholder = true
+    assign pc_count = 4
+  endif
+-%}
+
+{%- if pc_render -%}
+  {%- comment -%} Arrows only where the cards overflow: 1 · 2 (768) · 3 (992) · 4 (1200) per view. {%- endcomment -%}
+  {%- style -%}
+    #shopify-section-{{ section.id }} {
+      --pc-pad-top: {{ section.settings.padding_top }}px;
+      --pc-pad-bottom: {{ section.settings.padding_bottom }}px;
+      --pc-scroll-sm: {% if pc_count > 1 %}grid{% else %}none{% endif %};
+      --pc-scroll-md: {% if pc_count > 2 %}grid{% else %}none{% endif %};
+      --pc-scroll-lg: {% if pc_count > 3 %}grid{% else %}none{% endif %};
+      --pc-scroll-xl: {% if pc_count > 4 %}grid{% else %}none{% endif %};
+    }
+  {%- endstyle -%}
+
+  {{ 'component-carousel.css' | asset_url | stylesheet_tag }}
+  {{ 'component-card.css' | asset_url | stylesheet_tag }}
+  {{ 'component-price.css' | asset_url | stylesheet_tag }}
+  {{ 'component-badges.css' | asset_url | stylesheet_tag }}
+  {{ 'component-swatches.css' | asset_url | stylesheet_tag }}
+  {{ 'component-wishlist-button.css' | asset_url | stylesheet_tag }}
+  {{ 'section-product-carousel.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+  <script type="module" src="{{ 'product.js' | asset_url }}"></script>
+
+  <div class="product-carousel">
+    <div class="product-carousel__inner">
+      {%- if pc_title != blank -%}
+        <h2 class="product-carousel__title">{{ pc_title | escape }}</h2>
+      {%- endif -%}
+
+      {%- if pc_placeholder -%}
+        <p class="product-carousel__notice">
+          {%- if pc_collection == blank -%}
+            {{ 'home.products.editor_empty' | t }}
+          {%- else -%}
+            {{ 'home.products.editor_too_few' | t }}
+          {%- endif -%}
+        </p>
+      {%- endif -%}
+
+      <carousel-slider
+        role="group"
+        class="product-carousel__carousel"
+        data-autoplay="0"
+        data-loop="true"
+        aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
+        aria-label="{{ pc_title | default: pc_view_all_label | escape }}"
+      >
+        <div class="carousel__track product-carousel__track" role="list" tabindex="{% if pc_placeholder %}0{% else %}-1{% endif %}">
+          {%- if pc_placeholder -%}
+            {%- for i in (1..4) -%}
+              <div class="carousel__slide product-carousel__slide" role="listitem">
+                <div class="product-carousel__placeholder">
+                  {{- 'product-' | append: i | placeholder_svg_tag: 'product-carousel__placeholder-svg' -}}
+                </div>
+              </div>
+            {%- endfor -%}
+          {%- else -%}
+            {{- pc_slides -}}
+          {%- endif -%}
+        </div>
+        <button class="carousel__btn carousel__btn--prev product-carousel__arrow" type="button" aria-label="{{ 'accessibility.carousel.previous' | t }}">
+          {%- render 'icon', name: 'chevron-right', size: 44 -%}
+        </button>
+        <button class="carousel__btn carousel__btn--next product-carousel__arrow" type="button" aria-label="{{ 'accessibility.carousel.next' | t }}">
+          {%- render 'icon', name: 'chevron-left', size: 44 -%}
+        </button>
+      </carousel-slider>
+
+      {%- if section.settings.show_view_all and pc_collection != blank -%}
+        <a class="product-carousel__view-all" href="{{ pc_collection.url }}">
+          {{- pc_view_all_label | escape -}}
+          {%- render 'icon', name: 'chevron-left', size: 14 -%}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "קרוסלת מוצרים",
+  "tag": "section",
+  "class": "section-product-carousel",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "כותרת",
+      "info": "ריק = שם הקטגוריה.",
+      "default": "מוצרים פופולאריים"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "קטגוריה"
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "מספר מוצרים",
+      "info": "8 = שני עמודים במחשב. כל כרטיס מוסיף כ-23 רכיבים לעמוד; 12 כמו באתר הקודם.",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_sold_out",
+      "label": "הסתרת מוצרים שאזלו מהמלאי",
+      "info": "כשנשארים פחות משני מוצרים זמינים הקרוסלה לא מוצגת.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "קישור \"לכל המוצרים\"",
+      "info": "מוצג בקצה פס הכותרת, ממסך 992 פיקסלים.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "טקסט הקישור",
+      "default": "לכל המוצרים"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "קרוסלת מוצרים"
+    }
+  ]
+}
+{% endschema %}

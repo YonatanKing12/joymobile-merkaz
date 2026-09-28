@@ -1,0 +1,168 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "short_description": {
+          "type": "short_description",
+          "settings": {
+            "lines": 2,
+            "show_read_more": true,
+            "read_more_label": "קרא עוד..."
+          }
+        },
+        "sku": {
+          "type": "sku",
+          "settings": {
+            "source": "sku",
+            "show_specs_link": true
+          }
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "color_style": "label"
+          }
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_quantity": true,
+            "show_checkout": true,
+            "show_cart": true,
+            "soldout_whatsapp": true,
+            "soldout_whatsapp_label": "לבירור זמינות בוואטסאפ"
+          }
+        },
+        "wishlist": {
+          "type": "wishlist",
+          "settings": {
+            "label": "הוסף למועדפים"
+          }
+        },
+        "info_lines": {
+          "type": "info_lines",
+          "settings": {
+            "show_stock": true,
+            "low_stock_threshold": 5,
+            "pickup_label": "איסוף עצמי מהחנות:",
+            "show_address": true,
+            "pickup_note": "באיסוף מציגים תעודה מזהה · המוצר ממתין עד 21 ימי עסקים",
+            "show_warranty": true,
+            "warranty_fallback": "",
+            "payment_text": "תשלום מאובטח באתר או בסניף",
+            "show_pickup_availability": true
+          }
+        },
+        "trust_warranty": {
+          "type": "trust_point",
+          "settings": {
+            "text": "",
+            "use_warranty": true
+          }
+        },
+        "trust_price": {
+          "type": "trust_point",
+          "settings": {
+            "text": "<strong>מחירי אילת</strong> — ללא מע״מ, באיסוף עצמי מהחנות",
+            "use_warranty": false,
+            "tax_free_only": true
+          }
+        },
+        "trust_pickup": {
+          "type": "trust_point",
+          "settings": {
+            "text": "שריון באתר ואיסוף עצמי מהחנות באילת",
+            "use_warranty": false
+          }
+        },
+        "trust_service": {
+          "type": "trust_point",
+          "settings": {
+            "text": "קנייה מאובטחת ושירות לקוחות אישי",
+            "use_warranty": false
+          }
+        },
+        "tab_description": {
+          "type": "tab_description",
+          "settings": {
+            "heading": "מידע נוסף"
+          }
+        },
+        "tab_specs": {
+          "type": "tab_specs",
+          "settings": {
+            "heading": "פרטים טכניים"
+          }
+        },
+        "tab_pickup": {
+          "type": "tab_custom",
+          "settings": {
+            "heading": "איסוף באילת",
+            "content": "<p>כל ההזמנות באתר הן לאיסוף עצמי מהחנות באילת. זה מה שמקנה את הפטור ממע״מ, ולכן אין באתר מסלול משלוח — גם לא בתוך אילת.</p><p>האיסוף מתבצע על ידי הרוכש/ת ובהצגת תעודת זהות בלבד.</p><p>המוצר ממתין בנקודת האיסוף עד 21 ימי עסקים.</p>"
+          }
+        },
+        "tab_terms": {
+          "type": "tab_custom",
+          "settings": {
+            "heading": "תנאי רכישה",
+            "content": "<p><strong>בעת השריון אתם מאשרים שלא רכשתם באילת מוצר אחר מאותה קטגוריה ב-90 הימים שקדמו להזמנה — זהו תנאי של הפטור ממע״מ.</strong></p><p>לכל שאלה על החזרה או החלפה: joymobileltd@gmail.com</p>"
+          }
+        }
+      },
+      "block_order": [
+        "short_description",
+        "sku",
+        "variant_picker",
+        "price",
+        "buy_buttons",
+        "wishlist",
+        "info_lines",
+        "trust_warranty",
+        "trust_price",
+        "trust_pickup",
+        "trust_service",
+        "tab_description",
+        "tab_specs",
+        "tab_pickup",
+        "tab_terms"
+      ],
+      "settings": {
+        "gallery_zoom": true,
+        "gallery_thumbnails": true,
+        "gallery_loop": true,
+        "gallery_badges": true,
+        "show_breadcrumbs": true,
+        "show_brand_logo": true,
+        "trust_enabled": true,
+        "trust_heading": "למה לקוחות קונים אצלנו:",
+        "trust_whatsapp": true,
+        "trust_whatsapp_label": "שאלו אותנו בוואטסאפ",
+        "sticky_bar": true,
+        "padding_top": 28,
+        "padding_bottom": 40
+      }
+    },
+    "related": {
+      "type": "related-products",
+      "settings": {
+        "heading": "מוצרים נוספים שיעניינו אותך",
+        "source": "collection",
+        "same_type": true,
+        "hide_sold_out": true,
+        "products_limit": 12,
+        "exclude_handles": "all,frontpage,promoted,reservable-eilat",
+        "padding_top": 50,
+        "padding_bottom": 40
+      }
+    }
+  },
+  "order": [
+    "main",
+    "related"
+  ]
+}

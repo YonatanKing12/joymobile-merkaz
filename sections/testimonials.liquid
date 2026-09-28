@@ -1,0 +1,259 @@
+{%- comment -%}
+  Customer testimonials ("אז מה אומרים הלקוחות שלנו?"). Blocks: name, title, stars, text, optional photo
+  (no photo → a circle with the name's first letter). There is NO default review text: the theme never
+  invents reviews. A block without name and text is not shown on the storefront (in the theme editor it
+  shows a hint card), and the section renders nothing until at least one real review exists.
+  Measured @1440: heading 30px/900; full-width track with 34px peeks, 4 per view, gap 24px; card 317×346,
+  1px #d4d4d4 border, radius 16px, centred column (gap 10px): photo, name 20px, title 18px/900, stars
+  110×20, text 14px. Phones: 1 per view with 30px peeks, name/title 16px, stars 12px, text 12px/18px.
+  Per view: 1 (+peek) · 2 (768) · 3 (992) · 4 (1200).
+{%- endcomment -%}
+{%- liquid
+  assign t_real = 0
+  for block in section.blocks
+    if block.settings.name != blank or block.settings.text != blank
+      assign t_real = t_real | plus: 1
+    endif
+  endfor
+
+  assign t_render = false
+  assign t_count = t_real
+  if t_real > 0
+    assign t_render = true
+  elsif request.design_mode and section.blocks.size > 0
+    assign t_render = true
+  endif
+  if request.design_mode
+    assign t_count = section.blocks.size
+  endif
+-%}
+
+{%- if t_render -%}
+  {%- style -%}
+    #shopify-section-{{ section.id }} {
+      --testimonials-pad-top: {{ section.settings.padding_top }}px;
+      --testimonials-pad-bottom: {{ section.settings.padding_bottom }}px;
+      --star-color: {{ section.settings.star_color }};
+      --t-scroll-sm: {% if t_count > 1 %}grid{% else %}none{% endif %};
+      --t-scroll-md: {% if t_count > 2 %}grid{% else %}none{% endif %};
+      --t-scroll-lg: {% if t_count > 3 %}grid{% else %}none{% endif %};
+      --t-scroll-xl: {% if t_count > 4 %}grid{% else %}none{% endif %};
+    }
+  {%- endstyle -%}
+
+  {{ 'component-carousel.css' | asset_url | stylesheet_tag }}
+  {{ 'section-testimonials.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+
+  <div class="testimonials">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="testimonials__heading">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+
+    <carousel-slider
+      role="group"
+      class="testimonials__carousel"
+      data-autoplay="{% if section.settings.autoplay %}{{ section.settings.autoplay_speed | times: 1000 }}{% else %}0{% endif %}"
+      data-loop="{% if section.settings.autoplay %}true{% else %}false{% endif %}"
+      aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
+      aria-label="{{ section.settings.heading | escape }}"
+    >
+      <div class="carousel__track testimonials__track" role="list" tabindex="0">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign t_name = block.settings.name | strip
+            assign t_text = block.settings.text | strip
+            assign t_empty = false
+            if t_name == blank and t_text == blank
+              assign t_empty = true
+            endif
+          -%}
+          {%- if t_empty == false or request.design_mode -%}
+            <div class="carousel__slide testimonials__slide" role="listitem" {{ block.shopify_attributes }}>
+              {%- if t_empty -%}
+                <div class="testimonials__card testimonials__card--empty">
+                  <p class="testimonials__hint">{{ 'home.testimonials.editor_empty' | t }}</p>
+                </div>
+              {%- else -%}
+                <figure class="testimonials__card">
+                  <figcaption class="testimonials__author">
+                    <span class="testimonials__avatar" aria-hidden="true">
+                      {%- if block.settings.photo != blank -%}
+                        {%- render 'image',
+                          image: block.settings.photo,
+                          widths: '80,160,240',
+                          sizes: '80px',
+                          class: 'testimonials__photo',
+                          decorative: true
+                        -%}
+                      {%- else -%}
+                        <span class="testimonials__initial">{{ t_name | slice: 0 }}</span>
+                      {%- endif -%}
+                    </span>
+                    {%- if t_name != blank -%}
+                      <span class="testimonials__name">{{ t_name | escape }}</span>
+                    {%- endif -%}
+                  </figcaption>
+                  {%- if block.settings.title != blank -%}
+                    <p class="testimonials__title">{{ block.settings.title | escape }}</p>
+                  {%- endif -%}
+                  {%- assign t_rating = block.settings.rating -%}
+                  {%- if t_rating > 0 -%}
+                    <p class="testimonials__stars">
+                      <span class="visually-hidden">{{ 'accessibility.star_rating' | t: rating: t_rating, max: 5 }}</span>
+                      {%- for i in (1..5) -%}
+                        {%- if i <= t_rating -%}
+                          {%- render 'icon', name: 'star', size: 20, class: 'testimonials__star testimonials__star--on' -%}
+                        {%- else -%}
+                          {%- render 'icon', name: 'star', size: 20, class: 'testimonials__star' -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </p>
+                  {%- endif -%}
+                  {%- if t_text != blank -%}
+                    <blockquote class="testimonials__text">
+                      <p>{{ t_text | escape | newline_to_br }}</p>
+                    </blockquote>
+                  {%- endif -%}
+                </figure>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      <button class="carousel__btn carousel__btn--prev testimonials__arrow" type="button" aria-label="{{ 'accessibility.carousel.previous' | t }}">
+        {%- render 'icon', name: 'chevron-right', size: 24 -%}
+      </button>
+      <button class="carousel__btn carousel__btn--next testimonials__arrow" type="button" aria-label="{{ 'accessibility.carousel.next' | t }}">
+        {%- render 'icon', name: 'chevron-left', size: 24 -%}
+      </button>
+      {%- if section.settings.autoplay -%}
+        <button
+          class="carousel__pause testimonials__pause js-only"
+          type="button"
+          aria-pressed="false"
+          aria-label="{{ 'accessibility.carousel.pause' | t }}"
+        >
+          {%- render 'icon', name: 'pause', size: 14 -%}
+          {%- render 'icon', name: 'play', size: 14 -%}
+        </button>
+      {%- endif -%}
+    </carousel-slider>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "המלצות לקוחות",
+  "tag": "section",
+  "class": "section-testimonials",
+  "max_blocks": 12,
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "הוסיפו רק ביקורות אמיתיות של לקוחות, באישורם. ביקורת בלי שם ובלי טקסט לא מוצגת, והסקשן כולו מוסתר עד שיש לפחות ביקורת אחת."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "אז מה אומרים הלקוחות שלנו?"
+    },
+    {
+      "type": "color",
+      "id": "star_color",
+      "label": "צבע הכוכבים",
+      "info": "ברירת המחדל: הירוק של JOY Mobile (ניגודיות 3.4:1 מול לבן, כנדרש לסמלים).",
+      "default": "#309d7a"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "החלפה אוטומטית",
+      "info": "כבוי כברירת מחדל: טקסט שזז מקשה על קריאה. כשמופעל מוצג כפתור עצירה.",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "זמן בין החלפות",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "unit": "שנ׳",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "ביקורת",
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "שם הלקוח/ה"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "כותרת הביקורת"
+        },
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "דירוג (0 = בלי כוכבים)",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "טקסט הביקורת"
+        },
+        {
+          "type": "image_picker",
+          "id": "photo",
+          "label": "תמונה (לא חובה)",
+          "info": "בלי תמונה מוצגת האות הראשונה של השם."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "המלצות לקוחות",
+      "blocks": [
+        { "type": "testimonial" },
+        { "type": "testimonial" },
+        { "type": "testimonial" }
+      ]
+    }
+  ]
+}
+{% endschema %}

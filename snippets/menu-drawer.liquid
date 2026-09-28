@@ -1,0 +1,164 @@
+{% doc %}
+  Mobile navigation (below 992px): the hamburger in the header row and a full-height panel
+  under the header, drawn with the old site's accordion rows (43px rows, 1px #ccc rules,
+  16px black text, green chevrons at the inline-end — konimbo-home-chrome.md §2.9) but
+  engineered as a real drawer: overlay, scroll lock, focus trap, Escape, no 370px cap.
+
+  Markup contract with <menu-drawer> (@theme/header): the first <details> is the drawer
+  (its summary is the ☰/✕ toggle, the panel is the summary's next sibling); every top-level
+  item with children is a nested <details> whose panel starts with a [data-back] button.
+  Opening a level slides its panel over the drawer and traps focus in it; "back" (or Escape)
+  returns focus to the item. [data-close] (the overlay) closes the drawer.
+  The third menu level is listed inside the second-level panel: each group title is a row
+  (a link to the group) followed by its links — as the old accordion showed them, one tap
+  fewer, and half the DOM of a third drill-down. Chevrons are CSS, not inline SVG.
+
+  Below the categories: account, branches, wishlist, WhatsApp and phone rows, then an
+  optional secondary menu (e.g. footer-1).
+
+  @param {linklist} menu - The main menu (up to 3 levels).
+  @param {linklist} [secondary_menu] - Extra links under the service rows.
+  @param {string} [branches_url] - Target of the "סניפים באילת" row; blank hides the row.
+  @param {string} [branches_label] - Text of that row. Default: the locale string header.branches.
+  @param {string} [whatsapp_url] - wa.me link; blank hides the row.
+  @param {boolean} [show_account] - Account row (only when customer accounts are enabled).
+  @param {string} [id_prefix] - Prefix for element ids. Default 'MenuDrawer'.
+
+  @example
+  {% render 'menu-drawer', menu: section.settings.menu, secondary_menu: section.settings.menu_secondary, branches_url: branches_url, whatsapp_url: whatsapp_url, show_account: true %}
+{% enddoc %}
+{%- liquid
+  assign drawer_prefix = id_prefix | default: 'MenuDrawer'
+  assign back_label = 'header.menu.back' | t
+  assign view_all_label = 'header.menu.view_all' | t
+  assign branches_text = branches_label
+  if branches_text == blank
+    assign branches_text = 'header.branches' | t
+  endif
+
+  assign phone_digits = settings.contact_phone | remove: ' ' | remove: '-' | remove: '(' | remove: ')' | strip
+  assign phone_first = phone_digits | slice: 0
+  assign phone_href = phone_digits
+  if phone_first == '0'
+    assign phone_href = phone_digits | remove_first: '0' | prepend: '+972'
+  endif
+
+  assign wishlist_url = nil
+  if settings.wishlist_enabled and settings.wishlist_page != blank
+    assign wishlist_url = settings.wishlist_page.url
+  endif
+-%}
+<menu-drawer class="menu-drawer" data-desktop="992">
+  <details class="menu-drawer__details" id="{{ drawer_prefix }}">
+    <summary class="header__icon menu-drawer__toggle" aria-label="{{ 'header.menu.open' | t }}" aria-expanded="false">
+      {%- render 'icon', name: 'menu', size: 26, class: 'menu-drawer__toggle-icon menu-drawer__toggle-icon--open' -%}
+      {%- render 'icon', name: 'close', size: 24, class: 'menu-drawer__toggle-icon menu-drawer__toggle-icon--close' -%}
+    </summary>
+    <div class="menu-drawer__panel" id="{{ drawer_prefix }}-Panel">
+      <nav aria-label="{{ 'header.menu.label' | t }}">
+        <ul class="menu-drawer__list" role="list">
+          {%- for link in menu.links -%}
+            <li>
+              {%- if link.links.size > 0 -%}
+                <details class="menu-drawer__level">
+                  <summary class="menu-drawer__row menu-drawer__row--parent" aria-expanded="false">{{ link.title | escape }}</summary>
+                  <div class="menu-drawer__submenu">
+                    <button class="menu-drawer__row menu-drawer__back" type="button" data-back aria-label="{{ back_label }}: {{ link.title | escape }}">{{ link.title | escape }}</button>
+                    <ul class="menu-drawer__list" role="list">
+                      {%- if link.url != blank and link.url != '#' -%}
+                        <li><a class="menu-drawer__row menu-drawer__row--all" href="{{ link.url }}">{{ view_all_label }}<span class="visually-hidden">: {{ link.title | escape }}</span></a></li>
+                      {%- endif -%}
+                      {%- for child in link.links -%}
+                        {%- if child.links.size > 0 -%}
+                          <li class="menu-drawer__group">
+                            <a class="menu-drawer__row menu-drawer__row--group" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a>
+                            <ul class="menu-drawer__list" role="list">
+                              {%- for grandchild in child.links -%}
+                                <li><a class="menu-drawer__row menu-drawer__row--sub" href="{{ grandchild.url }}"{% if grandchild.current %} aria-current="page"{% endif %}>{{ grandchild.title | escape }}</a></li>
+                              {%- endfor -%}
+                            </ul>
+                          </li>
+                        {%- else -%}
+                          <li><a class="menu-drawer__row" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a></li>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </ul>
+                  </div>
+                </details>
+              {%- else -%}
+                <a class="menu-drawer__row" href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title | escape }}</a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </nav>
+
+      <ul class="menu-drawer__list menu-drawer__service" role="list" aria-label="{{ 'header.menu.service' | t }}">
+        {%- if show_account and shop.customer_accounts_enabled -%}
+          <li>
+            {%- if customer -%}
+              <a class="menu-drawer__row menu-drawer__row--icon" href="{{ routes.account_url }}">
+                {%- render 'icon', name: 'account', size: 22 -%}
+                {%- if customer.first_name != blank -%}
+                  {{- 'header.account.greeting' | t: name: customer.first_name -}}
+                {%- else -%}
+                  {{- 'header.account.greeting_no_name' | t -}}
+                {%- endif %}
+                · {{ 'header.account.my_account' | t -}}
+              </a>
+            {%- else -%}
+              <a class="menu-drawer__row menu-drawer__row--icon" href="{{ routes.account_login_url }}">
+                {%- render 'icon', name: 'account', size: 22 -%}
+                {{- 'header.account.guest' | t }} · {{ 'header.account.login' | t -}}
+              </a>
+            {%- endif -%}
+          </li>
+        {%- endif -%}
+        {%- if branches_url != blank -%}
+          <li>
+            <a class="menu-drawer__row menu-drawer__row--icon" href="{{ branches_url }}">
+              {%- render 'icon', name: 'location', size: 22 -%}
+              {{- branches_text | escape -}}
+            </a>
+          </li>
+        {%- endif -%}
+        {%- if wishlist_url != blank -%}
+          <li>
+            <a class="menu-drawer__row menu-drawer__row--icon" href="{{ wishlist_url }}">
+              {%- render 'icon', name: 'heart', size: 22 -%}
+              {{- 'header.wishlist' | t -}}
+            </a>
+          </li>
+        {%- endif -%}
+        {%- if whatsapp_url != blank -%}
+          <li>
+            <a class="menu-drawer__row menu-drawer__row--icon" href="{{ whatsapp_url }}" target="_blank" rel="noopener">
+              {%- render 'icon', name: 'whatsapp', size: 22 -%}
+              {{- 'header.whatsapp' | t -}}
+              <span class="visually-hidden"> {{ 'general.new_window' | t }}</span>
+            </a>
+          </li>
+        {%- endif -%}
+        {%- if phone_digits != blank -%}
+          <li>
+            <a class="menu-drawer__row menu-drawer__row--icon" href="tel:{{ phone_href }}">
+              {%- render 'icon', name: 'phone', size: 22 -%}
+              {{- 'header.phone' | t: phone: settings.contact_phone -}}
+            </a>
+          </li>
+        {%- endif -%}
+      </ul>
+
+      {%- if secondary_menu.links.size > 0 -%}
+        <nav class="menu-drawer__secondary" aria-label="{{ 'header.menu.more' | t }}">
+          <ul class="menu-drawer__list" role="list">
+            {%- for link in secondary_menu.links -%}
+              <li><a class="menu-drawer__row menu-drawer__row--small" href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title | escape }}</a></li>
+            {%- endfor -%}
+          </ul>
+        </nav>
+      {%- endif -%}
+    </div>
+    <div class="menu-drawer__overlay" data-close></div>
+  </details>
+</menu-drawer>

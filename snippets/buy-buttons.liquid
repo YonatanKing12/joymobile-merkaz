@@ -1,0 +1,226 @@
+{% doc %}
+  Purchase controls of the product page, in two parts.
+
+  part 'form' (default) — the `[data-swap="buttons"]` region the section re-renders on
+  variant change. ONE `<product-form data-mode="cart">` (@theme/product) whose product form
+  holds the hidden `id`, the quantity stepper and both CTAs:
+  - green "שריון באילת": `name="return_to" value="/checkout" data-mode="checkout"` — with
+    JavaScript it adds through AJAX and goes to checkout; without JavaScript the submitter's
+    name/value makes /cart/add redirect to /checkout. While the 90-day VAT consent is required
+    (theme settings › עגלה) it never skips the cart, where the consent is ticked: no return_to
+    (/cart/add lands on /cart), and @theme/product opens the drawer (window.theme.cartConsent).
+  - black "הוסף לעגלה": AJAX add + cart drawer (without JavaScript: /cart).
+  - `[data-form-error]` shows Shopify's message (e.g. over stock); the script announces it.
+  Without JavaScript a `<noscript>` variant select (after the hidden id, so its value is the
+  one the server reads) replaces the radios of the variant picker.
+  Sold out: one disabled "אזל מהמלאי" button and an optional WhatsApp "לבירור זמינות" link
+  (theme setting "מספר וואטסאפ").
+  Quantity: min 1; max = stock when Shopify tracks it and overselling is off.
+
+  part 'sticky' — `[data-swap="sticky"]`: a bar fixed to the bottom of phone screens with the
+  same two CTAs, submitting the same form through `form="…"` (so it uses the chosen
+  quantity). It slides in once the in-page buttons leave the viewport (CSS scroll-driven
+  animation; always visible on phones in browsers without it). Not printed when the variant
+  is sold out (the empty region stays so a swap can bring it back).
+
+  Styles: assets/section-main-product.css.
+
+  @param {product} product - The product.
+  @param {variant} [variant] - The selected variant. Default: selected or first available.
+  @param {string} section_id - The section id.
+  @param {string} form_id - The id of the product form (the sticky bar submits it).
+  @param {string} [part] - 'form' (default) or 'sticky'.
+  @param {boolean} [show_quantity] - Quantity stepper. Default true.
+  @param {boolean} [show_checkout] - The green "שריון באילת" button. Default true.
+  @param {boolean} [show_cart] - The black "הוסף לעגלה" button. Default true.
+  @param {boolean} [whatsapp] - WhatsApp availability link when sold out. Default true.
+  @param {string} [whatsapp_label] - Text of that link.
+
+  @example
+  {% render 'buy-buttons', product: product, variant: current_variant, section_id: section.id, form_id: form_id %}
+  {% render 'buy-buttons', product: product, variant: current_variant, section_id: section.id, form_id: form_id, part: 'sticky' %}
+{% enddoc %}
+{%- liquid
+  assign bb_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
+  assign bb_part = part | default: 'form'
+  assign bb_error_id = 'ProductFormError-' | append: section_id
+  assign bb_checkout_url = routes.root_url | append: 'checkout' | replace: '//', '/'
+
+  assign bb_show_qty = true
+  if show_quantity == false
+    assign bb_show_qty = false
+  endif
+  assign bb_show_checkout = true
+  if show_checkout == false
+    assign bb_show_checkout = false
+  endif
+  assign bb_show_cart = true
+  if show_cart == false
+    assign bb_show_cart = false
+  endif
+  if bb_show_checkout == false and bb_show_cart == false
+    assign bb_show_cart = true
+  endif
+
+  # 90-day VAT consent required (same condition as layout/theme.liquid): no shortcut to checkout.
+  assign bb_to_checkout = true
+  if settings.cart_vat_consent_enabled and settings.cart_vat_consent_text != blank
+    assign bb_to_checkout = false
+  endif
+
+  assign bb_available = bb_variant.available
+-%}
+
+{%- if bb_part == 'sticky' -%}
+  {%- if bb_available -%}
+    <div class="product-sticky" data-swap="sticky" role="region" aria-label="{{ 'products.product.sticky_label' | t }}">
+      <div class="product-sticky__inner">
+        {%- if bb_show_checkout -%}
+          <button
+            type="submit"
+            form="{{ form_id }}"
+            {% if bb_to_checkout %}
+              name="return_to"
+              value="{{ bb_checkout_url }}"
+            {% endif %}
+            data-mode="checkout"
+            class="button button--accent product-sticky__button"
+          >
+            <span>{{ 'products.product.reserve' | t }}</span>
+          </button>
+        {%- endif -%}
+        {%- if bb_show_cart -%}
+          <button type="submit" form="{{ form_id }}" class="button product-sticky__button">
+            <span>{{ 'products.product.add_to_cart' | t }}</span>
+          </button>
+        {%- endif -%}
+      </div>
+      <a class="product-sticky__error" href="#{{ bb_error_id }}">
+        {%- render 'icon', name: 'alert', size: 18 -%}
+        <span>{{ 'products.product.sticky_error' | t }}</span>
+      </a>
+    </div>
+  {%- else -%}
+    <div class="product-sticky product-sticky--empty" data-swap="sticky" hidden></div>
+  {%- endif -%}
+{%- else -%}
+  {%- liquid
+    assign bb_max = nil
+    if bb_variant.inventory_management == 'shopify' and bb_variant.inventory_policy == 'deny' and bb_variant.inventory_quantity > 0
+      assign bb_max = bb_variant.inventory_quantity
+    endif
+
+    assign bb_wa_url = ''
+    if whatsapp != false and bb_available == false
+      assign bb_wa_link = request.origin | append: product.url | append: '?variant=' | append: bb_variant.id
+      assign bb_wa_title = product.title
+      unless product.has_only_default_variant
+        assign bb_wa_title = bb_wa_title | append: ' — ' | append: bb_variant.title
+      endunless
+      # An _html key: t leaves the interpolated title as is (it would print &quot; in the message); the
+      # snippet URL-encodes the whole text.
+      assign bb_wa_text = 'products.product.whatsapp_availability_message_html' | t: title: bb_wa_title, url: bb_wa_link
+      capture bb_wa_url
+        render 'whatsapp-url', text: bb_wa_text
+      endcapture
+    endif
+    assign bb_show_wa = false
+    if bb_wa_url != blank
+      assign bb_show_wa = true
+    endif
+    assign bb_wa_label = whatsapp_label
+    if bb_wa_label == blank
+      assign bb_wa_label = 'products.product.whatsapp_availability' | t
+    endif
+
+    assign bb_qty_id = 'ProductQuantity-' | append: section_id
+  -%}
+  <div class="product-buy" data-swap="buttons">
+    <product-form class="product-form" data-mode="cart" data-section-id="{{ section_id }}">
+      {%- form 'product', product, id: form_id, class: 'product-form__form', novalidate: 'novalidate' -%}
+        <input type="hidden" name="id" value="{{ bb_variant.id }}">
+        {%- unless product.has_only_default_variant -%}
+          <noscript>
+            <div class="product-form__noscript">
+              <label class="field__label" for="ProductVariants-{{ section_id }}">{{ 'products.product.choose_variant' | t }}</label>
+              <div class="select">
+                <select name="id" id="ProductVariants-{{ section_id }}">
+                  {%- for bb_option in product.variants -%}
+                    <option
+                      value="{{ bb_option.id }}"
+                      {% if bb_option.id == bb_variant.id %}
+                        selected
+                      {% endif %}
+                      {% unless bb_option.available %}
+                        disabled
+                      {% endunless %}
+                    >
+                      {{- bb_option.title | escape }} — {{ bb_option.price | money_without_trailing_zeros -}}
+                      {%- unless bb_option.available %} ({{ 'products.product.sold_out' | t }}){% endunless -%}
+                    </option>
+                  {%- endfor -%}
+                </select>
+              </div>
+            </div>
+          </noscript>
+        {%- endunless -%}
+
+        {%- if bb_available -%}
+          <div class="product-form__actions">
+            {%- if bb_show_qty -%}
+              {%- render 'quantity-input',
+                id: bb_qty_id,
+                max: bb_max,
+                label: product.title,
+                class: 'product-form__quantity'
+              -%}
+            {%- endif -%}
+            {%- if bb_show_checkout -%}
+              <button
+                type="submit"
+                {% if bb_to_checkout %}
+                  name="return_to"
+                  value="{{ bb_checkout_url }}"
+                {% endif %}
+                data-mode="checkout"
+                class="button button--accent product-form__button product-form__button--checkout"
+                aria-describedby="{{ bb_error_id }}"
+              >
+                <span>{{ 'products.product.reserve' | t }}</span>
+              </button>
+            {%- endif -%}
+            {%- if bb_show_cart -%}
+              <button
+                type="submit"
+                class="button product-form__button product-form__button--cart"
+                aria-describedby="{{ bb_error_id }}"
+              >
+                <span>{{ 'products.product.add_to_cart' | t }}</span>
+              </button>
+            {%- endif -%}
+          </div>
+        {%- else -%}
+          <div class="product-form__actions product-form__actions--sold-out">
+            <button type="button" class="button product-form__button product-form__button--sold-out" aria-disabled="true">
+              <span>{{ 'products.product.sold_out' | t }}</span>
+            </button>
+            {%- if bb_show_wa -%}
+              <a
+                class="product-form__whatsapp"
+                href="{{ bb_wa_url }}"
+                target="_blank"
+                rel="noopener"
+              >
+                {%- render 'icon', name: 'whatsapp', size: 22 -%}
+                <span>{{ bb_wa_label | escape }}</span>
+                <span class="visually-hidden">{{ 'general.new_window' | t }}</span>
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        <p class="form-message form-message--error product-form__error" id="{{ bb_error_id }}" data-form-error hidden></p>
+      {%- endform -%}
+    </product-form>
+  </div>
+{%- endif -%}

@@ -1,0 +1,153 @@
+{%- comment -%}
+  About the store: the logo, a paragraph and a black button.
+  Measured @1440: panel 90% wide, #f8f8f8 at 90%, padding 20px 0, centred column with 20px gaps,
+  logo 220px wide (30px above it), text 24px/400 black up to 936px wide, button 248×48 18px/700,
+  hover green. Phones: padding 35px 0, gap 12px, text 16px, logo up to 68% of the width.
+  Logo: section image → theme logo → the JOY Mobile lockup from the owner's brand sheet
+  (assets/logo-joy.png, 871×249: green + navy blocks, reads on the light panel as on the old site).
+  The shop-level Brand logo is deliberately not a fallback: only this theme decides the logo.
+{%- endcomment -%}
+{%- liquid
+  assign brand_name = settings.brand_name | strip | default: shop.name
+  assign about_logo = section.settings.logo | default: settings.logo
+  assign about_logo_sizes = 'min(68vw, ' | append: section.settings.logo_width | append: 'px)'
+-%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --about-pad-top: {{ section.settings.padding_top }}px;
+    --about-pad-bottom: {{ section.settings.padding_bottom }}px;
+    --about-logo-width: {{ section.settings.logo_width }}px;
+  }
+{%- endstyle -%}
+
+{{ 'section-brand-about.css' | asset_url | stylesheet_tag }}
+
+<div class="brand-about">
+  <div class="brand-about__panel">
+    <div class="brand-about__inner">
+      {%- if section.settings.show_logo -%}
+        <div class="brand-about__logo">
+          {%- if about_logo != blank -%}
+            {%- render 'image',
+              image: about_logo,
+              widths: '220,330,440,660,800',
+              sizes: about_logo_sizes,
+              class: 'brand-about__logo-img',
+              alt: brand_name
+            -%}
+          {%- else -%}
+            {%- assign about_logo_url = 'logo-joy.png' | asset_url -%}
+            <img
+              class="brand-about__logo-img"
+              src="{{ about_logo_url }}&amp;width=440"
+              srcset="{{ about_logo_url }}&amp;width=220 220w, {{ about_logo_url }}&amp;width=330 330w, {{ about_logo_url }}&amp;width=440 440w, {{ about_logo_url }}&amp;width=660 660w, {{ about_logo_url }} 871w"
+              sizes="{{ about_logo_sizes }}"
+              width="871"
+              height="249"
+              alt="{{ brand_name | escape }}"
+              loading="lazy"
+            >
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <h2 class="brand-about__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <div class="brand-about__text rte">{{ section.settings.text }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+        <a class="button brand-about__button" href="{{ section.settings.button_link }}">
+          {{- section.settings.button_label | escape -}}
+          {%- render 'icon', name: 'chevron-left', size: 16 -%}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "אודות החנות",
+  "tag": "section",
+  "class": "section-brand-about",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_logo",
+      "label": "הצגת לוגו",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "לוגו או תמונה",
+      "info": "ריק = הלוגו מהגדרות העיצוב, ואם גם הוא ריק — הלוגו של JOY Mobile."
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "label": "רוחב הלוגו",
+      "min": 100,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "default": 220
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת (לא חובה)"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "טקסט",
+      "default": "<p>JOY Mobile באילת: סמארטפונים, מחשבים וגיימינג, מוצרי חשמל, שמע ושעונים חכמים במחירי אילת ללא מע״מ. בוחרים באתר, משריינים ואוספים מהחנות ברחוב המלאכה 7.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "תווית כפתור",
+      "default": "עוד עלינו"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "קישור הכפתור"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "presets": [
+    {
+      "name": "אודות החנות"
+    }
+  ]
+}
+{% endschema %}

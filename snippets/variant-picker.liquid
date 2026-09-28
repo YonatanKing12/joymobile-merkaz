@@ -1,0 +1,118 @@
+{% doc %}
+  Variant picker for the product page: one `<fieldset>` per option, in option order, with
+  radio buttons whose values are the option values (the markup `<variant-picker>` in
+  @theme/product reads). Colour options (צבע / גוון / צבעים / color / colour) render as
+  swatch buttons, every other option as pill buttons.
+
+  - Swatch colour: snippets/color-swatch (shared with the card swatches) — the Shopify swatch of
+    the value (admin colour or image), otherwise the Hebrew colour-name map (unknown names get a
+    neutral split dot).
+  - The legend shows "<option>: <selected value>"; the value is a `[data-swap="option-N"]`
+    region that the section re-renders after a change (the script never writes text).
+  - `data-unavailable` marks values whose variant is sold out or missing (server-rendered
+    here, kept current by the script). They stay selectable, so a customer can see the
+    sold-out state and the "לבירור זמינות" link; CSS strikes them through and reveals a
+    screen-reader-only suffix ("אזל מהמלאי") inside the label only while the radio carries
+    `data-unavailable`, so the spoken name follows the script's marking.
+  - The variants JSON holds `{id, options, available, featured_media}` per variant.
+  - Without JavaScript the radios are hidden and the buy form's `<noscript>` select is used.
+  Nothing is rendered for products with only the default variant.
+  Styles: assets/component-variant-picker.css.
+
+  @param {product} product - The product.
+  @param {string} section_id - The section id (unique ids and radio group names).
+  @param {string} [color_style] - 'label' (swatch + colour name, default) or 'swatch' (round swatch only; the name stays in the legend and for screen readers).
+
+  @example
+  {% render 'variant-picker', product: product, section_id: section.id %}
+{% enddoc %}
+{%- unless product.has_only_default_variant -%}
+  {%- liquid
+    assign vp_colour_names = 'צבע,גוון,צבעים,color,colour,colors' | split: ','
+    assign vp_style = color_style | default: 'label'
+    assign vp_unavailable = 'products.product.variant_unavailable' | t
+  -%}
+  <variant-picker class="variant-picker" data-url="{{ product.url }}" data-section-id="{{ section_id }}">
+    {%- for option in product.options_with_values -%}
+      {%- liquid
+        assign vp_index = forloop.index
+        assign vp_probe = option.name | downcase | strip
+        assign vp_is_colour = false
+        if vp_colour_names contains vp_probe
+          assign vp_is_colour = true
+        endif
+        assign vp_group = 'option-' | append: vp_index | append: '-' | append: section_id
+
+        assign vp_class = 'variant-picker__option'
+        if vp_is_colour
+          assign vp_class = vp_class | append: ' variant-picker__option--colour'
+          if vp_style == 'swatch'
+            assign vp_class = vp_class | append: ' variant-picker__option--swatch-only'
+          endif
+        else
+          assign vp_class = vp_class | append: ' variant-picker__option--pill'
+        endif
+      -%}
+      <fieldset class="{{ vp_class }}">
+        <legend class="variant-picker__legend">
+          <span class="variant-picker__name">{{ option.name | escape }}:</span>
+          <span class="variant-picker__selected" data-swap="option-{{ vp_index }}">{{ option.selected_value | escape }}</span>
+        </legend>
+        <div class="variant-picker__values">
+          {%- for value in option.values -%}
+            {%- liquid
+              assign vp_id = 'Option-' | append: section_id | append: '-' | append: vp_index | append: '-' | append: forloop.index
+
+              assign vp_swatch_style = ''
+              if vp_is_colour
+                capture vp_swatch_style
+                  render 'color-swatch', value: value, image_width: 72
+                endcapture
+              endif
+            -%}
+            <input
+              class="variant-picker__input"
+              type="radio"
+              id="{{ vp_id }}"
+              name="{{ vp_group }}"
+              value="{{ value | escape }}"
+              {% if value.selected %}
+                checked
+              {% endif %}
+              {% unless value.available %}
+                data-unavailable
+              {% endunless %}
+            >
+            <label class="variant-picker__value" for="{{ vp_id }}">
+              {%- if vp_is_colour -%}
+                <span
+                  class="variant-picker__swatch{% if vp_swatch_style == blank %} variant-picker__swatch--unknown{% endif %}"
+                  {% if vp_swatch_style != blank %}
+                    style="{{ vp_swatch_style | escape }}"
+                  {% endif %}
+                  aria-hidden="true"
+                ></span>
+              {%- endif -%}
+              <span class="variant-picker__text">{{ value | escape }}</span>
+              <span class="variant-picker__status">({{ vp_unavailable }})</span>
+            </label>
+          {%- endfor -%}
+        </div>
+      </fieldset>
+    {%- endfor -%}
+
+    <script type="application/json">
+      [
+        {%- for vp_variant in product.variants -%}
+          {"id":{{ vp_variant.id }},"options":{{ vp_variant.options | json }},"available":{{ vp_variant.available | json }},"featured_media":
+          {%- if vp_variant.featured_media -%}
+            {"id":{{ vp_variant.featured_media.id }} }
+          {%- else -%}
+            null
+          {%- endif -%}
+          }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      ]
+    </script>
+  </variant-picker>
+{%- endunless -%}

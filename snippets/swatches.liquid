@@ -1,0 +1,60 @@
+{% doc %}
+  Read-only colour dots for a product card: the values of the product's colour
+  option (option named צבע / גוון / צבעים / color / colour), up to `limit`,
+  then "+N". The whole card is the link, so the dots are not interactive;
+  each colour name is available to screen readers.
+
+  Colour source (snippets/color-swatch, shared with the product page's variant picker): the
+  Shopify swatch set on the option value (colour or image, from the admin), otherwise the
+  built-in map of the Hebrew colour names used in this store's data. Unknown names get a
+  neutral split dot — no invented colour.
+  Renders nothing when the product has no colour option or only one colour.
+
+  Markup classes (styled by Track F's assets/component-swatches.css; baseline in
+  docs/rebuild/reports/liquid-core-component-css.css): ul.swatches, .swatches__item, span.swatch
+  with an inline `--swatch-color` or `--swatch-image` custom property, .swatch--unknown,
+  .swatches__more.
+
+  @param {product} product - The product.
+  @param {number} [limit] - Maximum dots before "+N". Default 5.
+  @param {string} [class] - Extra classes on the list.
+
+  @example
+  {% render 'swatches', product: product, limit: 5 %}
+{% enddoc %}
+{%- liquid
+  assign swatch_limit = limit | default: 5
+  assign colour_option = nil
+  assign colour_names = 'צבע,גוון,צבעים,color,colour,colors'
+  for option in product.options_with_values
+    assign option_probe = option.name | downcase | strip
+    assign colour_list = colour_names | split: ','
+    if colour_list contains option_probe
+      assign colour_option = option
+      break
+    endif
+  endfor
+-%}
+{%- if colour_option != nil and colour_option.values.size > 1 -%}
+  {%- assign extra_count = colour_option.values.size | minus: swatch_limit -%}
+  <ul class="swatches{% if class != blank %} {{ class }}{% endif %}" role="list" aria-label="{{ 'general.swatches.label' | t: count: colour_option.values.size }}">
+    {%- for value in colour_option.values limit: swatch_limit -%}
+      {%- liquid
+        assign colour_name = value | append: ''
+        capture swatch_style
+          render 'color-swatch', value: value, image_width: 48
+        endcapture
+      -%}
+      <li class="swatches__item">
+        <span class="swatch{% if swatch_style == blank %} swatch--unknown{% endif %}"{% if swatch_style != blank %} style="{{ swatch_style | escape }}"{% endif %} title="{{ colour_name | escape }}"></span>
+        <span class="visually-hidden">{{ colour_name | escape }}</span>
+      </li>
+    {%- endfor -%}
+    {%- if extra_count > 0 -%}
+      <li class="swatches__more">
+        <span aria-hidden="true">+{{ extra_count }}</span>
+        <span class="visually-hidden">{{ 'general.swatches.more' | t: count: extra_count }}</span>
+      </li>
+    {%- endif -%}
+  </ul>
+{%- endif -%}

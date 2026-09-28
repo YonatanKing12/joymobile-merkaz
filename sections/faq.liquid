@@ -1,0 +1,205 @@
+{%- comment -%}
+  FAQ accordion. Native <details>/<summary>: keyboard and screen-reader accessible,
+  works without JavaScript, find-in-page opens the matching answer. Optional
+  "one open at a time" uses the <details name> grouping (browsers without it simply
+  allow several open). The store's own 7 Q&A (they lived in the previous theme's
+  templates/page.faqs.json) ship as the defaults in templates/page.faqs.json.
+  A contact call-to-action closes the list; optional FAQPage structured data.
+{%- endcomment -%}
+{{ 'section-faq.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign question_count = 0
+  for block in section.blocks
+    if block.type == 'question' and block.settings.question != blank
+      assign question_count = question_count | plus: 1
+    endif
+  endfor
+-%}
+
+<div class="faq page-width">
+  <div class="faq__inner">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="faq__heading">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+    {%- if section.settings.intro != blank -%}
+      <div class="faq__intro rte">{{ section.settings.intro }}</div>
+    {%- endif -%}
+
+    {%- if question_count > 0 -%}
+      <div class="faq__list">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'question' and block.settings.question != blank -%}
+            <details
+              class="faq-item"
+              id="Faq-{{ block.id }}"
+              {{ block.shopify_attributes }}
+              {% if section.settings.one_open %}name="faq-{{ section.id }}"{% endif %}
+              {% if section.settings.open_first and forloop.first %}open{% endif %}
+            >
+              <summary class="faq-item__question">
+                <span class="faq-item__text">{{ block.settings.question | escape }}</span>
+                {%- render 'icon', name: 'chevron-down', size: 20, class: 'faq-item__icon' -%}
+              </summary>
+              <div class="faq-item__answer rte">{{ block.settings.answer }}</div>
+            </details>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.cta_heading != blank or section.settings.cta_text != blank or section.settings.cta_label != blank -%}
+      <div class="faq__cta">
+        {%- if section.settings.cta_heading != blank -%}
+          <p class="faq__cta-heading">{{ section.settings.cta_heading | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.cta_text != blank -%}
+          <p class="faq__cta-text">{{ section.settings.cta_text }}</p>
+        {%- endif -%}
+        {%- if section.settings.cta_label != blank and section.settings.cta_link != blank -%}
+          <a class="button button--accent faq__cta-button" href="{{ section.settings.cta_link }}">{{ section.settings.cta_label | escape }}</a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{%- if section.settings.structured_data and question_count > 0 -%}
+  {%- capture faq_json -%}
+    {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+    {%- assign faq_json_first = true -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'question' and block.settings.question != blank -%}
+        {%- unless faq_json_first -%},{%- endunless -%}
+        {%- assign faq_json_first = false -%}
+        {"@type": "Question", "name": {{ block.settings.question | strip_html | json }}, "acceptedAnswer": {"@type": "Answer", "text": {{ block.settings.answer | json }} } }
+      {%- endif -%}
+    {%- endfor -%}
+    ]}
+  {%- endcapture -%}
+  <script type="application/ld+json">{{ faq_json | strip_newlines | replace: '</', '<\/' }}</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "שאלות נפוצות",
+  "class": "section-faq",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "שאלות נפוצות"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "טקסט פתיחה"
+    },
+    {
+      "type": "checkbox",
+      "id": "one_open",
+      "label": "תשובה אחת פתוחה בכל פעם",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "open_first",
+      "label": "השאלה הראשונה פתוחה",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "פנייה בסוף הרשימה"
+    },
+    {
+      "type": "text",
+      "id": "cta_heading",
+      "label": "כותרת",
+      "default": "לא מצאתם את התשובה?"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "cta_text",
+      "label": "טקסט",
+      "default": "אנחנו כאן כדי לעזור."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "טקסט הכפתור",
+      "default": "צרו קשר"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "קישור"
+    },
+    {
+      "type": "header",
+      "content": "מנועי חיפוש"
+    },
+    {
+      "type": "checkbox",
+      "id": "structured_data",
+      "label": "נתונים מובנים (FAQPage)",
+      "info": "כדאי להפעיל רק בסקשן שאלות אחד בכל עמוד.",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "שאלה",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "שאלה",
+          "default": "שאלה"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "תשובה",
+          "default": "<p>התשובה לשאלה.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "שאלות נפוצות",
+      "settings": {
+        "heading": "לפני שמזמינים"
+      },
+      "blocks": [
+        {
+          "type": "question",
+          "settings": {
+            "question": "איזה מחיר מוצג באתר?",
+            "answer": "<p>המחירים באתר הם מחירי אילת ללא מע״מ, להזמנה ולאיסוף עצמי במלאכה 7, אילת.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "מה זה שריון?",
+            "answer": "<p>שריון הוא הזמנה מראש של מוצר לאיסוף עצמי במלאכה 7, אילת. פרטי האיסוף יופיעו במהלך ההזמנה ובאישור שלה.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "האם אפשר להזמין משלוח?",
+            "answer": "<p>האתר מיועד לאיסוף עצמי באילת בלבד. לא ניתן להזמין דרכו משלוח.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

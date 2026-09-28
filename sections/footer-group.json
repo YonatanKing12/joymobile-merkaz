@@ -1,0 +1,72 @@
+{
+  "type": "footer",
+  "name": "כותרת תחתונה",
+  "sections": {
+    "vip-signup": {
+      "type": "vip-signup",
+      "settings": {
+        "heading": "הישארו מעודכנים",
+        "subheading": "ותהנו מהטבות ומבצעים מיוחדים ללקוחות VIP",
+        "button_label": "הרשמה",
+        "consent_text": "אני מסכים/ה לקבל מ-JOY Mobile דברי פרסומת, הטבות ועדכונים בדוא״ל. אפשר להסיר את ההרשמה בכל עת. קראתי את <a href=\"/policies/privacy-policy\">מדיניות הפרטיות</a>.",
+        "name_required": true,
+        "show_phone": false,
+        "tags": "newsletter, vip, express-email-opt-in",
+        "background_color": "#e0fff2",
+        "text_color": "#060433",
+        "text_color_mobile": "#060433",
+        "padding_top": 30,
+        "padding_bottom": 0
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "menu-store": {
+          "type": "menu",
+          "settings": {
+            "heading": "החנות",
+            "menu": "footer-1"
+          }
+        },
+        "menu-shopping": {
+          "type": "menu",
+          "settings": {
+            "heading": "קניות",
+            "menu": "footer-2"
+          }
+        },
+        "menu-help": {
+          "type": "menu",
+          "settings": {
+            "heading": "עזרה ומידע",
+            "menu": "footer-3"
+          }
+        },
+        "branch": {
+          "type": "branches",
+          "settings": {
+            "heading": "הסניף שלנו באילת",
+            "name": "JOY Mobile",
+            "show_social": true
+          }
+        }
+      },
+      "block_order": [
+        "menu-store",
+        "menu-shopping",
+        "menu-help",
+        "branch"
+      ],
+      "settings": {
+        "bottom_menu": "footer",
+        "show_payment_icons": true,
+        "show_policies": true
+      }
+    }
+  },
+  "order": [
+    "vip-signup",
+    "footer"
+  ]
+}

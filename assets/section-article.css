@@ -1,0 +1,236 @@
+/* ==========================================================================
+   section-article.css — blog article (sections/main-article.liquid).
+   Body typography is `.prose` (section-page.css); related-article cards come
+   from section-blog.css.
+
+   Measured on the Konimbo article: title 38px/700 (30px mobile), reading time
+   14px grey, 40px round share buttons with a 1px border, lead 18px/600, section
+   headings 28–30px/700 over a 1px #e6e6e6 rule with a green "more" link. Kept:
+   the 900px column anchored at the inline-start under a full-width article search.
+   Fixed: the title is never clipped, share buttons are inline (no fixed rail over
+   the floating buttons) and at least 44px, greys meet AA.
+   ========================================================================== */
+
+/* Breadcrumbs and the article search span the page width; the text column is
+   Konimbo's 900px, anchored at the inline-start edge under them. */
+.article-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-md);
+  padding-block-start: var(--space-md);
+}
+
+/* Long unbroken words (Hebrew compounds, model numbers) wrap instead of
+   widening boxes past the screen (base.css sets break-word on the elements
+   themselves, which does not shrink a flex item). Product cards keep their
+   own rules. */
+:is(.article-top, .article, .article-section-head, .article-related) :is(h1, h2, h3, p, a, span, li) {
+  overflow-wrap: anywhere;
+}
+
+.article {
+  padding-block: var(--space-lg) var(--space-xl);
+}
+
+.article-top + .article {
+  padding-block-start: var(--space-lg);
+}
+
+.article__column {
+  max-width: 56.25rem;
+  margin-inline: 0 auto;
+}
+
+/* ---------- Header ---------- */
+.article__header {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-sm);
+  margin-block-end: var(--space-lg);
+}
+
+.article__topic a {
+  color: var(--color-brand-text);
+  font-size: var(--text-md);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.article__topic a:hover {
+  text-decoration: underline;
+}
+
+.article__title {
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.article__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+/* Phones: a row of round buttons spread over the width (measured); from 768px
+   they sit together under the meta line. */
+.article-share {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  justify-self: stretch;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.article-share__link {
+  display: inline-grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.article-share__link:hover {
+  border-color: var(--color-ink);
+  background-color: var(--color-hover-bg);
+}
+
+@media (min-width: 768px) {
+  .article__title {
+    font-size: 2.375rem;
+  }
+
+  .article-share {
+    justify-content: flex-start;
+    justify-self: start;
+  }
+
+  .article-share__link {
+    width: var(--tap-target);
+    height: var(--tap-target);
+  }
+}
+
+/* ---------- Body ---------- */
+.article__figure {
+  margin-block-end: var(--space-lg);
+}
+
+.article__image {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.article__lead {
+  margin-block-end: var(--space-lg);
+  color: var(--color-text);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: var(--leading-normal);
+}
+
+.article__lead > * + * {
+  margin-block-start: 0.75em;
+}
+
+.article__app {
+  margin-block-start: var(--space-lg);
+}
+
+/* ---------- Link to the article's collection ---------- */
+.article-cta {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-sm);
+  margin-block-start: var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--color-border);
+  border-inline-start: 4px solid var(--color-brand);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+}
+
+.article-cta__text {
+  color: var(--color-text);
+  line-height: var(--leading-normal);
+}
+
+.article-cta__text a {
+  color: var(--color-ink);
+}
+
+/* ---------- Back link ---------- */
+.article__footer {
+  margin-block-start: var(--space-xl);
+  padding-block-start: var(--space-sm);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.article__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--tap-target);
+  color: var(--color-brand-text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.article__back:hover {
+  color: var(--color-ink);
+}
+
+/* ---------- Products and more articles ---------- */
+.article-products,
+.article-related {
+  margin-block-end: var(--section-space);
+}
+
+.article-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-md);
+  margin-block-end: var(--space-lg);
+  padding-block-end: var(--space-2xs);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.article-section-head__title {
+  font-size: var(--text-2xl);
+}
+
+.article-section-head__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: var(--tap-target);
+  color: var(--color-brand-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.article-section-head__link:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .article-section-head__title {
+    font-size: var(--text-4xl);
+  }
+}

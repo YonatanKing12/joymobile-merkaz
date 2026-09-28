@@ -1,0 +1,92 @@
+{% doc %}
+  Product badges: TAX FREE, "חדש בחנות", "אחרונים במלאי" and "אזל מהמלאי".
+
+  Rules (ported from the previous theme and made configurable):
+  - TAX FREE: same rule as the price snippet — only when the variant is not
+    taxable in Shopify (`taxable == false`) and the theme setting `tax_free_labels`
+    and the badge setting `badge_show_tax_free` are on.
+  - Sold out: the product (or the passed variant) is not available.
+  - Last units: the variant tracks inventory in Shopify (`inventory_management ==
+    'shopify'`) and 0 < inventory_quantity <= `settings.badge_low_stock_threshold`
+    (default 2).
+  - New in store: the product carries one of the tags listed in
+    `settings.badge_new_tags` (default "חדש,new"; exact tag, case-insensitive).
+  At most one status badge is shown, by priority: sold out, then last units,
+  then new. Each badge type can be switched off in theme settings. Nothing is
+  rendered when there is no badge. Positioning is the caller's job (card/gallery CSS).
+
+  Markup classes (styled by Track F's assets/component-badges.css; baseline in
+  docs/rebuild/reports/liquid-core-component-css.css): ul.badges, .badges--card | .badges--product,
+  li.badge, .badge--sold-out | .badge--low-stock | .badge--new | .badge--tax-free,
+  .badge__title, .badge__subtitle. The status badge comes first, TAX FREE last.
+
+  @param {product} product - The product.
+  @param {variant} [variant] - The variant to evaluate (product page). Default: selected or first available variant.
+  @param {string} [context] - 'card' (default) or 'product'. Adds a modifier class.
+  @param {string} [class] - Extra classes on the list.
+
+  @example
+  {% render 'badges', product: product, context: 'card' %}
+  {% render 'badges', product: product, variant: product.selected_or_first_available_variant, context: 'product' %}
+{% enddoc %}
+{%- liquid
+  assign badge_context = context | default: 'card'
+  assign badge_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
+
+  assign badge_available = product.available
+  if variant != blank
+    assign badge_available = variant.available
+  endif
+
+  assign badge_tax_free = false
+  if settings.tax_free_labels and settings.badge_show_tax_free and badge_variant.taxable == false
+    assign badge_tax_free = true
+  endif
+
+  assign badge_status = ''
+  if badge_available == false
+    if settings.badge_show_sold_out
+      assign badge_status = 'sold-out'
+    endif
+  else
+    assign low_threshold = settings.badge_low_stock_threshold | default: 2
+    if settings.badge_show_low_stock and badge_variant.inventory_management == 'shopify' and badge_variant.inventory_quantity > 0 and badge_variant.inventory_quantity <= low_threshold
+      assign badge_status = 'low-stock'
+    endif
+
+    if badge_status == blank and settings.badge_show_new
+      assign new_tags = settings.badge_new_tags | default: 'חדש,new' | downcase | split: ','
+      for product_tag in product.tags
+        assign tag_probe = product_tag | downcase | strip
+        for new_tag in new_tags
+          assign new_probe = new_tag | strip
+          if new_probe != blank and tag_probe == new_probe
+            assign badge_status = 'new'
+            break
+          endif
+        endfor
+        if badge_status != blank
+          break
+        endif
+      endfor
+    endif
+  endif
+-%}
+{%- if badge_tax_free or badge_status != blank -%}
+  <ul class="badges badges--{{ badge_context }}{% if class != blank %} {{ class }}{% endif %}" role="list" aria-label="{{ 'products.badges.group_label' | t }}">
+    {%- case badge_status -%}
+      {%- when 'sold-out' -%}
+        <li class="badge badge--sold-out">{{ 'products.badges.sold_out' | t }}</li>
+      {%- when 'low-stock' -%}
+        <li class="badge badge--low-stock">{{ 'products.badges.low_stock' | t }}</li>
+      {%- when 'new' -%}
+        <li class="badge badge--new">{{ 'products.badges.new' | t }}</li>
+    {%- endcase -%}
+    {%- if badge_tax_free -%}
+      <li class="badge badge--tax-free">
+        <span class="badge__title" lang="en">{{ 'products.badges.tax_free_title' | t }}</span>
+        <span class="badge__subtitle">{{ 'products.badges.tax_free_subtitle' | t }}</span>
+      </li>
+    {%- endif -%}
+  </ul>
+{%- endif -%}

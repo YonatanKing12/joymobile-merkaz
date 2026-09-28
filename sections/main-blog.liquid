@@ -1,0 +1,318 @@
+{%- comment -%}
+  Blog listing (/blogs/<handle>). Konimbo structure — title row with an article
+  search, "latest" row with a featured article in a green panel, then "all
+  articles" in a 3-column grid — rebuilt for the store's real blog: its articles
+  have no images, so cards are text-first with a brand-coloured panel that names
+  the topic. An article tag that is a collection handle (the store tags articles
+  with handles such as `vacuums`) shows that collection's Hebrew title; raw tags
+  are never printed. Paginated; the featured article appears on page 1 only.
+  Rubik and the brand greens replace Konimbo's Assistant and olive #5b7d0d.
+{%- endcomment -%}
+{{ 'section-blog.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign tag_title = ''
+  if current_tags
+    assign current_tag = current_tags | first
+    assign tag_collection = collections[current_tag]
+    assign tag_title = tag_collection.title | default: current_tag
+  endif
+  assign grid_id = 'BlogGrid-' | append: section.id
+  assign grid_anchor = '#' | append: grid_id
+-%}
+
+<div class="blog page-width">
+  {%- if section.settings.show_breadcrumbs -%}
+    {%- render 'breadcrumbs', class: 'blog__breadcrumbs' -%}
+  {%- endif -%}
+
+  <div class="blog__header">
+    <h1 class="blog__title">
+      {%- if current_tags -%}
+        {{- 'blogs.blog.tagged_heading' | t: tag: tag_title -}}
+      {%- else -%}
+        {{- blog.title | escape -}}
+      {%- endif -%}
+    </h1>
+
+    {%- if section.settings.show_search -%}
+      <form class="blog-search" action="{{ routes.search_url }}" method="get" role="search">
+        <input type="hidden" name="type" value="article">
+        <input type="hidden" name="options[prefix]" value="last">
+        <label class="visually-hidden" for="BlogSearch-{{ section.id }}">{{ 'blogs.blog.search_label' | t }}</label>
+        <input
+          class="blog-search__input"
+          type="search"
+          id="BlogSearch-{{ section.id }}"
+          name="q"
+          placeholder="{{ 'blogs.blog.search_placeholder' | t }}"
+          autocomplete="off"
+          enterkeyhint="search"
+        >
+        <button class="blog-search__button" type="submit">
+          <span class="visually-hidden">{{ 'blogs.blog.search_submit' | t }}</span>
+          {%- render 'icon', name: 'search', size: 22 -%}
+        </button>
+      </form>
+    {%- endif -%}
+  </div>
+
+  {%- if section.settings.show_tags and blog.all_tags.size > 0 -%}
+    <nav class="blog-tags" aria-label="{{ 'blogs.blog.tags_label' | t }}">
+      <ul class="blog-tags__list" role="list">
+        <li>
+          <a class="blog-tags__link" href="{{ blog.url }}"{% if current_tags == blank %} aria-current="page"{% endif %}>
+            {{- 'blogs.blog.all_tags' | t -}}
+          </a>
+        </li>
+        {%- for tag in blog.all_tags -%}
+          {%- assign tag_collection = collections[tag] -%}
+          <li>
+            <a class="blog-tags__link" href="{{ blog.url }}/tagged/{{ tag | handle }}"{% if current_tags contains tag %} aria-current="page"{% endif %}>
+              {{- tag_collection.title | default: tag | escape -}}
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+  {%- endif -%}
+
+  {%- paginate blog.articles by section.settings.articles_per_page -%}
+    {%- if blog.articles.size == 0 -%}
+      <p class="blog__empty">{{ 'blogs.blog.empty' | t }}</p>
+    {%- else -%}
+      {%- if section.settings.show_featured and paginate.current_page == 1 and current_tags == blank -%}
+        {%- liquid
+          assign featured = blog.articles.first
+          assign featured_topic = ''
+          for tag in featured.tags
+            assign topic_collection = collections[tag]
+            if topic_collection.title != blank
+              assign featured_topic = topic_collection.title
+              break
+            endif
+          endfor
+          # Plain text: a space before every tag keeps words of adjacent blocks apart, split/join
+          # condenses the whitespace; entities stay encoded (printed with escape_once).
+          assign featured_excerpt = featured.excerpt | replace: '<', ' <' | strip_html | split: ' ' | join: ' '
+          if featured_excerpt == blank
+            assign featured_excerpt = featured.content | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncatewords: 40
+          endif
+          assign featured_words = featured.content | replace: '<', ' <' | strip_html | split: ' ' | size
+          assign featured_minutes = featured_words | plus: 199 | divided_by: 200 | at_least: 1
+        -%}
+        <section class="blog-featured"{% if section.settings.featured_heading != blank %} aria-labelledby="BlogFeatured-{{ section.id }}"{% else %} aria-label="{{ 'blogs.blog.featured_label' | t }}"{% endif %}>
+          {%- if section.settings.featured_heading != blank -%}
+            <div class="blog__row-head">
+              <h2 class="blog__row-title" id="BlogFeatured-{{ section.id }}">{{ section.settings.featured_heading | escape }}</h2>
+              <a class="blog__jump" href="#{{ grid_id }}">
+                <span>{{ 'blogs.blog.to_all' | t }}</span>
+                {%- render 'icon', name: 'chevron-down', size: 16 -%}
+              </a>
+            </div>
+          {%- endif -%}
+
+          <article class="featured-article">
+            <div class="featured-article__text">
+              {%- if featured_topic != blank -%}
+                <p class="featured-article__eyebrow">{{ featured_topic | escape }}</p>
+              {%- endif -%}
+              <h3 class="featured-article__title">
+                <a class="featured-article__link" href="{{ featured.url }}">{{ featured.title | escape }}</a>
+              </h3>
+              {%- if featured_excerpt != blank -%}
+                <p class="featured-article__excerpt">{{ featured_excerpt | escape_once }}</p>
+              {%- endif -%}
+              {%- if section.settings.show_date or section.settings.show_reading_time -%}
+                <p class="featured-article__meta">
+                  {%- if section.settings.show_date -%}
+                    {{- featured.published_at | time_tag: format: 'date' -}}
+                  {%- endif -%}
+                  {%- if section.settings.show_reading_time -%}
+                    <span>{{ 'blogs.article.reading_time' | t: count: featured_minutes }}</span>
+                  {%- endif -%}
+                </p>
+              {%- endif -%}
+              <span class="featured-article__cta" aria-hidden="true">
+                {{- 'blogs.article.read_more' | t -}}
+                {%- render 'icon', name: 'chevron-left', size: 16 -%}
+              </span>
+            </div>
+            <div class="featured-article__media" aria-hidden="true">
+              {%- if featured.image -%}
+                {%- render 'image',
+                  image: featured.image,
+                  widths: '375,600,900,1200',
+                  sizes: '(min-width: 768px) 50vw, 100vw',
+                  class: 'featured-article__image',
+                  decorative: true
+                -%}
+              {%- else -%}
+                <div class="article-panel article-panel--featured"></div>
+              {%- endif -%}
+            </div>
+          </article>
+        </section>
+      {%- endif -%}
+
+      <section class="blog-list" id="{{ grid_id }}"{% if current_tags == blank and section.settings.grid_heading != blank %} aria-labelledby="{{ grid_id }}-title"{% endif %}>
+        {%- if current_tags == blank and section.settings.grid_heading != blank -%}
+          <h2 class="blog-list__title" id="{{ grid_id }}-title">{{ section.settings.grid_heading | escape }}</h2>
+        {%- endif -%}
+
+        <ul class="blog-grid" role="list">
+          {%- for article in blog.articles -%}
+            {%- liquid
+              assign card_topic = ''
+              for tag in article.tags
+                assign topic_collection = collections[tag]
+                if topic_collection.title != blank
+                  assign card_topic = topic_collection.title
+                  break
+                endif
+              endfor
+              if card_topic == blank
+                assign card_topic = blog.title
+              endif
+              assign card_excerpt = article.excerpt | replace: '<', ' <' | strip_html | split: ' ' | join: ' '
+              if card_excerpt == blank
+                assign card_excerpt = article.content | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncatewords: 30
+              endif
+              assign card_words = article.content | replace: '<', ' <' | strip_html | split: ' ' | size
+              assign card_minutes = card_words | plus: 199 | divided_by: 200 | at_least: 1
+            -%}
+            <li class="blog-grid__item">
+              <article class="article-card">
+                <div class="article-card__media">
+                  {%- if article.image -%}
+                    {%- render 'image',
+                      image: article.image,
+                      widths: '360,540,720,900',
+                      sizes: '(min-width: 1200px) 380px, (min-width: 768px) 33vw, 100vw',
+                      class: 'article-card__image',
+                      decorative: true
+                    -%}
+                  {%- else -%}
+                    <div class="article-panel">
+                      <span class="article-panel__label">{{ card_topic | escape }}</span>
+                    </div>
+                  {%- endif -%}
+                </div>
+                <div class="article-card__body">
+                  {%- if article.image -%}
+                    <p class="article-card__topic">{{ card_topic | escape }}</p>
+                  {%- endif -%}
+                  <h3 class="article-card__title">
+                    <a class="article-card__link" href="{{ article.url }}">
+                      {{- article.title | escape -}}
+                      {%- render 'icon', name: 'chevron-left', size: 12, class: 'article-card__chevron' -%}
+                    </a>
+                  </h3>
+                  {%- if section.settings.show_excerpt and card_excerpt != blank -%}
+                    <p class="article-card__excerpt">{{ card_excerpt | escape_once }}</p>
+                  {%- endif -%}
+                  {%- if section.settings.show_date or section.settings.show_reading_time -%}
+                    <p class="article-card__meta">
+                      {%- if section.settings.show_date -%}
+                        {{- article.published_at | time_tag: format: 'date' -}}
+                      {%- endif -%}
+                      {%- if section.settings.show_reading_time -%}
+                        <span>{{ 'blogs.article.reading_time' | t: count: card_minutes }}</span>
+                      {%- endif -%}
+                    </p>
+                  {%- endif -%}
+                </div>
+              </article>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {%- render 'pagination', paginate: paginate, anchor: grid_anchor, class: 'blog__pagination' -%}
+      </section>
+    {%- endif -%}
+  {%- endpaginate -%}
+</div>
+
+{% schema %}
+{
+  "name": "בלוג — רשימת מאמרים",
+  "class": "section-main-blog",
+  "enabled_on": {
+    "templates": ["blog"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "מסלול ניווט (פירורי לחם)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "חיפוש במאמרים",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "סינון לפי נושא",
+      "info": "נושא הוא תגית של מאמר. תגית שהיא מזהה של קטגוריה (למשל vacuums) מוצגת בשם הקטגוריה בעברית.",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "המאמר האחרון"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_featured",
+      "label": "הבלטת המאמר האחרון",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "featured_heading",
+      "label": "כותרת",
+      "default": "מאמרים אחרונים בבלוג"
+    },
+    {
+      "type": "header",
+      "content": "כל המאמרים"
+    },
+    {
+      "type": "text",
+      "id": "grid_heading",
+      "label": "כותרת",
+      "default": "כל המאמרים בבלוג"
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "label": "מאמרים בעמוד",
+      "min": 3,
+      "max": 24,
+      "step": 3,
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "תקציר",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "תאריך פרסום",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_reading_time",
+      "label": "זמן קריאה",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

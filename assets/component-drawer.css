@@ -1,0 +1,120 @@
+/* Drawer shell for <cart-drawer>/<a11y-panel> (DialogElement): host[open], .drawer__overlay, .drawer__panel
+   (from the inline-start side; .drawer--end from the inline-end side), header/body/footer. Delayed visibility
+   transition so the panel can slide out and is focusable the frame after opening. */
+
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  visibility: hidden;
+  transition: visibility 0s linear var(--duration-base);
+}
+
+.drawer[open] {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.drawer__overlay {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-overlay);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.drawer[open] .drawer__overlay {
+  opacity: 1;
+}
+
+.drawer__panel {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(25rem, 100vw);
+  max-width: 100%;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.drawer--end .drawer__panel {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  transform: translateX(-100%);
+}
+
+.drawer[open] .drawer__panel {
+  transform: none;
+}
+
+/* The panel only takes focus as a fallback (e.g. its focused control was removed). */
+.drawer__panel:focus-visible {
+  outline: none;
+}
+
+.drawer__header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 3.75rem;
+  padding: var(--space-xs) var(--space-md);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.drawer__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+}
+
+.drawer__close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  margin-inline-end: calc(-1 * var(--space-xs));
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.drawer__close:hover {
+  background-color: var(--color-surface-alt);
+}
+
+.drawer__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.drawer__footer {
+  flex-shrink: 0;
+  padding: var(--space-md);
+  border-block-start: 1px solid var(--color-border);
+  background-color: var(--color-background);
+}
+
+@media print {
+  .drawer {
+    display: none;
+  }
+}

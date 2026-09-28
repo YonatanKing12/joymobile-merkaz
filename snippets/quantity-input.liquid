@@ -1,0 +1,119 @@
+{% doc %}
+  Quantity stepper: − [number] +. The number input works on its own (forms submit
+  without JavaScript); `<quantity-input>` (@theme/global, re-exported by @theme/product,
+  also used by the cart) maps `button[name=minus|plus]` to the input's native
+  stepDown()/stepUp(), which respect min/max/step, and dispatches a bubbling `change`
+  event on the input only when the value actually changed. The buttons are never
+  disabled or aria-disabled at the limits: they stay operable and a click there is a
+  harmless no-op (only the `disabled` parameter disables the control).
+  In RTL the "−" button sits on the right and "+" on the left.
+  Minimum font size on phones is 16px (no iOS zoom on focus).
+
+  @param {string} [id] - id of the <input> (for an external <label for>). The −/+ buttons get `{id}-minus` / `{id}-plus`, so focus returns to the same control after a section re-render (pass an id that is stable per line, e.g. derived from the line key).
+  @param {string} [name] - Input name. Default 'quantity'.
+  @param {number} [value] - Current value. Default 1.
+  @param {number} [min] - Minimum. Default 1 (pass 0 for cart lines, where 0 removes the line).
+  @param {number} [max] - Maximum (e.g. inventory when overselling is denied).
+  @param {number} [step] - Step. Default 1.
+  @param {string} [form] - id of the form the input belongs to (HTML form attribute).
+  @param {string} [label] - Accessible name of the input. Default "כמות".
+  @param {number} [line] - Cart line index (1-based), exposed as data-line (informational: @theme/cart addresses lines by key).
+  @param {string} [key] - Cart line item key, exposed as data-key. @theme/cart takes the key from the closest [data-key], so the line container must carry it too (it holds the remove link and [data-line-error]).
+  @param {boolean} [disabled] - Disable the whole control (e.g. sold out).
+  @param {string} [class] - Extra classes on the element.
+
+  @example
+  {% render 'quantity-input', id: quantity_id, form: product_form_id, max: current_variant.inventory_quantity %}
+  {% render 'quantity-input', name: 'updates[]', value: item.quantity, min: 0, line: forloop.index, key: item.key, label: item.product.title %}
+{% enddoc %}
+{%- liquid
+  assign qty_value = value | default: 1
+  assign qty_min = min | default: 1
+  if min == 0
+    assign qty_min = 0
+  endif
+  assign qty_step = step | default: 1
+  assign qty_name = name | default: 'quantity'
+  assign qty_label = 'general.quantity.label' | t
+  if label != blank
+    assign qty_label = 'general.quantity.label_for' | t: title: label
+  endif
+-%}
+<quantity-input class="quantity{% if class != blank %} {{ class }}{% endif %}"{% if line %} data-line="{{ line }}"{% endif %}{% if key != blank %} data-key="{{ key | escape }}"{% endif %}>
+  <button class="quantity__button" type="button" name="minus"{% if id != blank %} id="{{ id | escape }}-minus"{% endif %}{% if disabled %} disabled{% endif %}>
+    <span class="visually-hidden">{{ 'general.quantity.decrease' | t }}</span>
+    {%- render 'icon', name: 'minus', size: 16 -%}
+  </button>
+  <input
+    class="quantity__input"
+    type="number"
+    inputmode="numeric"
+    name="{{ qty_name }}"
+    {% if id != blank %}id="{{ id | escape }}"{% endif %}
+    value="{{ qty_value }}"
+    min="{{ qty_min }}"
+    {% if max != blank %}max="{{ max }}"{% endif %}
+    step="{{ qty_step }}"
+    {% if form != blank %}form="{{ form | escape }}"{% endif %}
+    aria-label="{{ qty_label }}"
+    {% if disabled %}disabled{% endif %}
+  >
+  <button class="quantity__button" type="button" name="plus"{% if id != blank %} id="{{ id | escape }}-plus"{% endif %}{% if disabled %} disabled{% endif %}>
+    <span class="visually-hidden">{{ 'general.quantity.increase' | t }}</span>
+    {%- render 'icon', name: 'plus', size: 16 -%}
+  </button>
+</quantity-input>
+
+{% stylesheet %}
+  .quantity {
+    display: inline-flex;
+    align-items: stretch;
+    min-height: var(--tap-target);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-input);
+    background: var(--color-background);
+    color: var(--color-ink);
+  }
+  .quantity__button {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap-target);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  .quantity__button:disabled,
+  .quantity__button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+  .quantity__input {
+    width: 3rem;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: max(16px, var(--text-md));
+    font-weight: 500;
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .quantity__input::-webkit-outer-spin-button,
+  .quantity__input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+  }
+  .quantity__input:focus-visible {
+    outline-offset: -2px;
+  }
+  @media (min-width: 768px) {
+    .quantity__input {
+      font-size: var(--text-md);
+    }
+  }
+{% endstylesheet %}

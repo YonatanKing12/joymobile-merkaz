@@ -1,0 +1,136 @@
+{%- comment -%}
+  Built-in accessibility panel (brief decision 8; replaces the old third-party widget).
+  The floating trigger sits at the bottom inline-end corner (bottom-left, as on the live site)
+  — accessible green with a white pictogram instead of the old 1.29:1 mint — and opens
+  <a11y-panel id="A11yPanel"> (@theme/a11y, a DialogElement: focus trap, Escape, overlay).
+  Toggles are [data-a11y="<class>"] buttons with aria-pressed; a11y.js sets the classes on
+  <html> (styled in base.css), remembers them and keeps the two text sizes exclusive.
+  Links: the accessibility statement (theme setting) and a report channel (contact page).
+  Hidden without JS (the preferences need it). Also links component-floating-actions.css,
+  the finishing styles for snippets/floating-actions (rendered on every page by the layout).
+{%- endcomment -%}
+{%- liquid
+  assign statement_url = ''
+  if settings.a11y_statement_page != blank
+    assign statement_url = settings.a11y_statement_page.url
+  elsif pages.accessibility.url != blank
+    assign statement_url = pages.accessibility.url
+  endif
+
+  assign report_url = ''
+  if section.settings.report_page != blank
+    assign report_url = section.settings.report_page.url
+  elsif pages.contact.url != blank
+    assign report_url = pages.contact.url
+  endif
+-%}
+{{ 'component-floating-actions.css' | asset_url | stylesheet_tag }}
+{%- if settings.a11y_panel_enabled -%}
+  {{ 'component-drawer.css' | asset_url | stylesheet_tag }}
+  {{ 'component-a11y-panel.css' | asset_url | stylesheet_tag }}
+
+  <button class="a11y-trigger" type="button" aria-haspopup="dialog" aria-controls="A11yPanel" aria-expanded="false">
+    {%- render 'icon', name: 'accessibility', size: 28 -%}
+    <span class="visually-hidden">{{ 'a11y_panel.open' | t }}</span>
+  </button>
+
+  <a11y-panel id="A11yPanel" class="drawer drawer--end a11y-panel">
+    <div class="drawer__overlay" data-close></div>
+    <div class="drawer__panel a11y-panel__panel" role="dialog" aria-modal="true" aria-labelledby="A11yPanel-Title" tabindex="-1">
+      <div class="drawer__header">
+        <h2 class="drawer__title" id="A11yPanel-Title">
+          {%- render 'icon', name: 'accessibility', size: 24 -%}
+          {{ 'a11y_panel.title' | t }}
+        </h2>
+        <button class="drawer__close" type="button" data-close aria-label="{{ 'a11y_panel.close' | t }}">
+          {%- render 'icon', name: 'close', size: 24 -%}
+        </button>
+      </div>
+
+      <div class="drawer__body a11y-panel__body">
+        <p class="a11y-panel__intro">{{ 'a11y_panel.intro' | t }}</p>
+
+        <div class="a11y-panel__group" role="group" aria-labelledby="A11yPanel-Size">
+          <h3 class="a11y-panel__group-title" id="A11yPanel-Size">{{ 'a11y_panel.text_size' | t }}</h3>
+          <div class="a11y-panel__options">
+            <button class="a11y-panel__option" type="button" data-a11y="a11y-text-lg" aria-pressed="false">
+              <span class="a11y-panel__option-icon a11y-panel__option-icon--text" aria-hidden="true">א+</span>
+              <span>{{ 'a11y_panel.text_lg' | t }}</span>
+            </button>
+            <button class="a11y-panel__option" type="button" data-a11y="a11y-text-xl" aria-pressed="false">
+              <span class="a11y-panel__option-icon a11y-panel__option-icon--text a11y-panel__option-icon--xl" aria-hidden="true">א+</span>
+              <span>{{ 'a11y_panel.text_xl' | t }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="a11y-panel__group" role="group" aria-labelledby="A11yPanel-Display">
+          <h3 class="a11y-panel__group-title" id="A11yPanel-Display">{{ 'a11y_panel.display' | t }}</h3>
+          <div class="a11y-panel__options">
+            <button class="a11y-panel__option" type="button" data-a11y="a11y-contrast" aria-pressed="false">
+              <span class="a11y-panel__option-icon a11y-panel__option-icon--contrast" aria-hidden="true"></span>
+              <span>{{ 'a11y_panel.contrast' | t }}</span>
+            </button>
+            <button class="a11y-panel__option" type="button" data-a11y="a11y-links" aria-pressed="false">
+              {%- render 'icon', name: 'external', size: 22, class: 'a11y-panel__option-svg' -%}
+              <span>{{ 'a11y_panel.links' | t }}</span>
+            </button>
+            <button class="a11y-panel__option" type="button" data-a11y="a11y-readable" aria-pressed="false">
+              <span class="a11y-panel__option-icon a11y-panel__option-icon--text a11y-panel__option-icon--readable" aria-hidden="true">Aa</span>
+              <span>{{ 'a11y_panel.readable' | t }}</span>
+            </button>
+            <button class="a11y-panel__option" type="button" data-a11y="a11y-no-motion" aria-pressed="false">
+              {%- render 'icon', name: 'pause', size: 22, class: 'a11y-panel__option-svg' -%}
+              <span>{{ 'a11y_panel.no_motion' | t }}</span>
+            </button>
+          </div>
+        </div>
+
+        <button class="button button--outline button--full a11y-panel__reset" type="button" data-a11y-reset>
+          {{- 'a11y_panel.reset' | t -}}
+        </button>
+
+        {%- if statement_url != blank or report_url != blank -%}
+          <ul class="a11y-panel__links" role="list">
+            {%- if statement_url != blank -%}
+              <li><a class="link" href="{{ statement_url }}">{{ 'a11y_panel.statement' | t }}</a></li>
+            {%- endif -%}
+            {%- if report_url != blank -%}
+              <li><a class="link" href="{{ report_url }}">{{ 'a11y_panel.report' | t }}</a></li>
+            {%- endif -%}
+          </ul>
+        {%- endif -%}
+      </div>
+    </div>
+  </a11y-panel>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "פאנל נגישות",
+  "tag": "div",
+  "class": "section-accessibility-panel",
+  "enabled_on": {
+    "groups": [
+      "aside"
+    ]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "הכפתור מופעל או מכובה בהגדרות התבנית › נגישות, ושם גם בוחרים את עמוד הצהרת הנגישות."
+    },
+    {
+      "type": "page",
+      "id": "report_page",
+      "label": "עמוד לדיווח על בעיית נגישות",
+      "info": "אם ריק: עמוד יצירת הקשר."
+    }
+  ],
+  "presets": [
+    {
+      "name": "פאנל נגישות"
+    }
+  ]
+}
+{% endschema %}

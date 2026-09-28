@@ -1,0 +1,208 @@
+{%- comment -%}
+  Announcement strip above the header (konimbo-home-chrome.md §2.2): 22px tall from 768px,
+  16px on phones, header colour, 12px white centred text. One message is static and has no
+  controls (as on the old site). Several messages either rotate (<carousel-slider>: autoplay
+  that pauses on hover/focus, swipe, and one small pause button at the inline-end edge for
+  WCAG 2.2.2 — no arrows, like the old strip) or run as a continuous RTL marquee (CSS, with a
+  pause toggle; static under reduced motion or the a11y panel's "עצירת אנימציות").
+  A message links only when a link is set — no dead "#" links. It scrolls away with the page;
+  the header below it stays pinned.
+{%- endcomment -%}
+{%- liquid
+  assign messages = section.blocks | where: 'type', 'message'
+  assign message_count = 0
+  for block in messages
+    if block.settings.text != blank
+      assign message_count = message_count | plus: 1
+    endif
+  endfor
+  assign mode = 'static'
+  if message_count > 1
+    assign mode = section.settings.mode
+  endif
+  assign autoplay_ms = section.settings.autoplay_seconds | times: 1000
+-%}
+{%- if message_count > 0 -%}
+  {{ 'section-announcement-bar.css' | asset_url | stylesheet_tag }}
+  <div class="announcement-bar announcement-bar--{{ mode }}" role="region" aria-label="{{ 'header.announcement.label' | t }}">
+    {%- case mode -%}
+      {%- when 'slide' -%}
+        {{ 'component-carousel.css' | asset_url | stylesheet_tag }}
+        <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+        <carousel-slider
+          class="announcement-bar__carousel page-width"
+          role="group"
+          data-autoplay="{{ autoplay_ms }}"
+          data-loop="true"
+          aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
+          aria-label="{{ 'header.announcement.label' | t }}"
+        >
+          <div class="carousel__track announcement-bar__track" role="list" tabindex="-1">
+            {%- for block in messages -%}
+              {%- if block.settings.text != blank -%}
+                <div class="carousel__slide announcement-bar__slide" role="listitem" {{ block.shopify_attributes }}>
+                  {%- if block.settings.link != blank -%}
+                    <a class="announcement-bar__message announcement-bar__link" href="{{ block.settings.link }}">
+                      {{- block.settings.text | escape -}}
+                    </a>
+                  {%- else -%}
+                    <p class="announcement-bar__message">{{ block.settings.text | escape }}</p>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+          {%- if autoplay_ms > 0 -%}
+            <button class="carousel__pause announcement-bar__pause" type="button" aria-pressed="false" aria-label="{{ 'accessibility.carousel.pause' | t }}">
+              {%- render 'icon', name: 'pause', size: 12, class: 'announcement-bar__pause-icon' -%}
+              {%- render 'icon', name: 'play', size: 12, class: 'announcement-bar__play-icon' -%}
+            </button>
+          {%- endif -%}
+        </carousel-slider>
+
+      {%- when 'marquee' -%}
+        <div class="announcement-bar__marquee" style="--marquee-duration: {{ message_count | times: section.settings.marquee_seconds }}s">
+          <input
+            class="announcement-bar__marquee-toggle"
+            type="checkbox"
+            id="AnnouncementPause-{{ section.id }}"
+            aria-label="{{ 'header.announcement.pause' | t }}"
+          >
+          <label class="announcement-bar__marquee-pause" for="AnnouncementPause-{{ section.id }}" aria-hidden="true">
+            {%- render 'icon', name: 'pause', size: 12, class: 'announcement-bar__pause-icon' -%}
+            {%- render 'icon', name: 'play', size: 12, class: 'announcement-bar__play-icon' -%}
+          </label>
+          <div class="announcement-bar__marquee-viewport">
+            <div class="announcement-bar__marquee-track">
+              {%- for copy in (1..2) -%}
+                <ul class="announcement-bar__marquee-group" role="list"{% if copy == 2 %} aria-hidden="true"{% endif %}>
+                  {%- for block in messages -%}
+                    {%- if block.settings.text != blank -%}
+                      <li class="announcement-bar__marquee-item" {% if copy == 1 %}{{ block.shopify_attributes }}{% endif %}>
+                        {%- if block.settings.link != blank -%}
+                          <a
+                            class="announcement-bar__message announcement-bar__link"
+                            href="{{ block.settings.link }}"
+                            {% if copy == 2 %}
+                              tabindex="-1"
+                            {% endif %}
+                          >
+                            {{- block.settings.text | escape -}}
+                          </a>
+                        {%- else -%}
+                          <span class="announcement-bar__message">{{ block.settings.text | escape }}</span>
+                        {%- endif -%}
+                      </li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              {%- endfor -%}
+            </div>
+          </div>
+        </div>
+
+      {%- else -%}
+        <div class="announcement-bar__static page-width">
+          {%- for block in messages -%}
+            {%- if block.settings.text != blank -%}
+              <div class="announcement-bar__slide" {{ block.shopify_attributes }}>
+                {%- if block.settings.link != blank -%}
+                  <a class="announcement-bar__message announcement-bar__link" href="{{ block.settings.link }}">
+                    {{- block.settings.text | escape -}}
+                  </a>
+                {%- else -%}
+                  <p class="announcement-bar__message">{{ block.settings.text | escape }}</p>
+                {%- endif -%}
+              </div>
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+    {%- endcase -%}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "פס הודעות",
+  "tag": "div",
+  "class": "section-announcement-bar",
+  "enabled_on": {
+    "groups": ["header"]
+  },
+  "max_blocks": 8,
+  "settings": [
+    {
+      "type": "select",
+      "id": "mode",
+      "label": "כשיש כמה הודעות",
+      "options": [
+        {
+          "value": "slide",
+          "label": "החלפה אחת אחרי השנייה"
+        },
+        {
+          "value": "marquee",
+          "label": "טקסט רץ"
+        }
+      ],
+      "default": "slide"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_seconds",
+      "label": "זמן לכל הודעה (החלפה)",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "unit": "שנ׳",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "marquee_seconds",
+      "label": "מהירות טקסט רץ להודעה",
+      "info": "שניות לכל הודעה במעבר מלא. יותר שניות = תנועה איטית יותר.",
+      "min": 6,
+      "max": 30,
+      "step": 1,
+      "unit": "שנ׳",
+      "default": 14
+    },
+    {
+      "type": "paragraph",
+      "content": "הודעה אחת מוצגת קבועה. התנועה נעצרת במעבר עכבר, בפוקוס מקלדת, ובהגדרת 'עצירת אנימציות' בפאנל הנגישות."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "הודעה",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "טקסט",
+          "default": "שריון באתר ואיסוף עצמי מהסניף באילת"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור",
+          "info": "אופציונלי. בלי קישור ההודעה מוצגת כטקסט."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "פס הודעות",
+      "blocks": [
+        {
+          "type": "message"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

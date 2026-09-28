@@ -1,0 +1,302 @@
+{% doc %}
+  Reassurance content of the product page, in three parts. Every line rests on real data
+  (store settings, the variant, Shopify locations or product metafields); a line without
+  data is not printed.
+
+  part 'lines' — the info lines under the buy buttons:
+  - stock (`[data-swap="availability"]`, inside a polite live region): "במלאי · מוכן לאיסוף",
+    "נותרו N יחידות במלאי" (tracked stock at or under the threshold), "זמין בהזמנה
+    מוקדמת" (overselling allowed) or "אזל מהמלאי";
+  - pickup: the label, the address from the theme settings (store_street, store_city) and a note;
+  - warranty from `custom.warranty_months` / `custom.warranty_channel` /
+    `custom.warranty_official` (fallback text optional);
+  - payment note;
+  - `[data-swap="pickup"]`: `<pickup-availability>` pre-filled with part 'pickup' for the
+    selected variant (no layout shift); @theme/product refreshes it from
+    /variants/<id>/?section_id=pickup-availability.
+
+  part 'pickup' — the per-branch list: every location with local pickup, with its status and
+  Shopify's pickup-time text. Nothing at all when the variant can't be picked up anywhere.
+  Also rendered by sections/pickup-availability.liquid.
+
+  part 'box' — "למה לקוחות קונים אצלנו": heading, the section's `trust_point` blocks (a block
+  with "use_warranty" prints the product's warranty and disappears when there is none; one with
+  "tax_free_only" is skipped when the variant is taxable), an optional image and a WhatsApp link
+  that carries the product title and URL.
+
+  Styles: assets/section-main-product.css (lines, box) and assets/component-pickup.css (pickup).
+
+  @param {string} part - 'lines', 'pickup' or 'box'.
+  @param {product} [product] - The product (lines, box).
+  @param {variant} [variant] - The selected variant (lines, pickup, box).
+  @param {string} [section_id] - The section id (lines, box).
+  @param {boolean} [show_stock] - lines: stock line. Default true.
+  @param {number} [low_stock] - lines: show the exact count at or under this stock level. Default 5; 0 turns it off.
+  @param {string} [pickup_label] - lines: label before the pickup address.
+  @param {boolean} [show_address] - lines: print the store address from the theme settings. Default true.
+  @param {string} [pickup_note] - lines: note under the pickup line.
+  @param {boolean} [show_warranty] - lines: warranty line from the metafields. Default true.
+  @param {string} [warranty_fallback] - lines: text when the product has no warranty data.
+  @param {string} [payment_text] - lines: payment note.
+  @param {boolean} [show_pickup] - lines: live pickup availability per branch. Default true.
+  @param {object} [blocks] - box: the section's blocks (`trust_point` blocks become the list).
+  @param {string} [heading] - box: heading.
+  @param {image} [image] - box: image under the list.
+  @param {boolean} [whatsapp] - box: WhatsApp link. Default true.
+  @param {string} [whatsapp_label] - box: text of the WhatsApp link.
+
+  @example
+  {% render 'product-trust', part: 'lines', product: product, variant: current_variant, section_id: section.id %}
+  {% render 'product-trust', part: 'pickup', variant: current_variant %}
+  {% render 'product-trust', part: 'box', product: product, section_id: section.id, blocks: section.blocks, heading: section.settings.trust_heading %}
+{% enddoc %}
+{%- liquid
+  # Warranty text from the product metafields (lines and box).
+  assign pt_warranty = ''
+  if product != blank and part != 'pickup'
+    assign pt_mf = product.metafields.custom
+    assign pt_months = pt_mf.warranty_months.value
+    assign pt_channel = pt_mf.warranty_channel.value | strip
+    assign pt_official = pt_mf.warranty_official.value
+    if pt_months != blank
+      assign pt_warranty = 'products.product.warranty_months' | t: count: pt_months
+    endif
+    if pt_channel != blank
+      if pt_warranty != blank
+        assign pt_warranty = pt_warranty | append: ' · '
+      endif
+      assign pt_warranty = pt_warranty | append: pt_channel
+    elsif pt_official == true
+      if pt_warranty != blank
+        assign pt_warranty = pt_warranty | append: ' · '
+      endif
+      assign pt_official_text = 'products.product.warranty_official' | t
+      assign pt_warranty = pt_warranty | append: pt_official_text
+    endif
+  endif
+
+  assign pt_variant = variant
+  if pt_variant == blank and product != blank
+    assign pt_variant = product.selected_or_first_available_variant | default: product.variants.first
+  endif
+-%}
+
+{%- comment -%} The per-branch pickup list: part 'pickup', and pre-filled into part 'lines'. {%- endcomment -%}
+{%- capture pt_pickup_html -%}
+  {%- if part == 'pickup' or part == 'lines' and show_pickup != false -%}
+    {%- liquid
+      assign pt_pickups = pt_variant.store_availabilities | where: 'pick_up_enabled', true
+      assign pt_ready = pt_pickups | where: 'available', true
+    -%}
+    {%- if pt_ready.size > 0 -%}
+      <ul class="pickup" role="list">
+        {%- for pt_pickup in pt_pickups -%}
+          <li class="pickup__item pickup__item--{% if pt_pickup.available %}available{% else %}unavailable{% endif %}">
+            {%- if pt_pickup.available -%}
+              {%- render 'icon', name: 'check', size: 18, class: 'pickup__icon' -%}
+            {%- else -%}
+              {%- render 'icon', name: 'close', size: 18, class: 'pickup__icon' -%}
+            {%- endif -%}
+            <span class="pickup__text">
+              <span class="pickup__status">
+                {%- if pt_pickup.available -%}
+                  {{ 'pickup.available_at' | t: location: pt_pickup.location.name }}
+                {%- else -%}
+                  {{ 'pickup.unavailable_at' | t: location: pt_pickup.location.name }}
+                {%- endif -%}
+              </span>
+              {%- if pt_pickup.available and pt_pickup.pick_up_time != blank -%}
+                <span class="pickup__time">{{ pt_pickup.pick_up_time }}</span>
+              {%- endif -%}
+            </span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- case part -%}
+  {%- when 'pickup' -%}
+    {{- pt_pickup_html -}}
+
+  {%- when 'lines' -%}
+    {%- liquid
+      assign pt_low = low_stock | default: 5
+      if low_stock == 0
+        assign pt_low = 0
+      endif
+
+      assign pt_state = 'in'
+      assign pt_stock_text = 'products.product.stock.in' | t
+      if pt_variant.available == false
+        assign pt_state = 'out'
+        assign pt_stock_text = 'products.product.stock.out' | t
+      elsif pt_variant.inventory_management == 'shopify' and pt_variant.inventory_quantity <= 0
+        assign pt_state = 'preorder'
+        assign pt_stock_text = 'products.product.stock.preorder' | t
+      elsif pt_variant.inventory_management == 'shopify' and pt_variant.inventory_quantity <= pt_low
+        assign pt_state = 'low'
+        assign pt_stock_text = 'products.product.stock.low' | t: count: pt_variant.inventory_quantity
+      endif
+
+      assign pt_address = ''
+      if show_address != false
+        assign pt_street = settings.store_street | strip
+        assign pt_city = settings.store_city | strip
+        assign pt_address = pt_street
+        if pt_city != blank
+          if pt_address != blank
+            assign pt_address = pt_address | append: ', '
+          endif
+          assign pt_address = pt_address | append: pt_city
+        endif
+      endif
+
+      assign pt_warranty_line = ''
+      if show_warranty != false
+        assign pt_warranty_line = pt_warranty | default: warranty_fallback
+      endif
+    -%}
+    <div class="product-lines">
+      {%- if show_stock != false -%}
+        <div class="product-lines__live" aria-live="polite" aria-atomic="true">
+          <p class="product-lines__stock product-lines__stock--{{ pt_state }}" data-swap="availability">
+            <span class="product-lines__dot" aria-hidden="true"></span>
+            <span>{{ pt_stock_text }}</span>
+          </p>
+        </div>
+      {%- endif -%}
+
+      {%- if pickup_label != blank or pt_address != blank or pickup_note != blank or pt_warranty_line != blank or payment_text != blank -%}
+        <ul class="product-lines__list" role="list">
+          {%- if pickup_label != blank or pt_address != blank or pickup_note != blank -%}
+            <li class="product-lines__item">
+              {%- render 'icon', name: 'store', size: 20, class: 'product-lines__icon' -%}
+              <span class="product-lines__text">
+                {%- if pickup_label != blank -%}
+                  <strong class="product-lines__label">{{ pickup_label | escape }}</strong>
+                {%- endif %}
+                {% if pt_address != blank -%}
+                  <span>{{ pt_address | escape }}</span>
+                {%- endif -%}
+                {%- if pickup_note != blank -%}
+                  <span class="product-lines__note">{{ pickup_note | escape }}</span>
+                {%- endif -%}
+              </span>
+            </li>
+          {%- endif -%}
+          {%- if pt_warranty_line != blank -%}
+            <li class="product-lines__item">
+              {%- render 'icon', name: 'shield', size: 20, class: 'product-lines__icon' -%}
+              <span class="product-lines__text">
+                <strong class="product-lines__label">{{ 'products.product.warranty_label' | t }}</strong>
+                <span>{{ pt_warranty_line | escape }}</span>
+              </span>
+            </li>
+          {%- endif -%}
+          {%- if payment_text != blank -%}
+            <li class="product-lines__item">
+              {%- render 'icon', name: 'credit-card', size: 20, class: 'product-lines__icon' -%}
+              <span class="product-lines__text">{{ payment_text | escape }}</span>
+            </li>
+          {%- endif -%}
+        </ul>
+      {%- endif -%}
+
+      {%- if show_pickup != false -%}
+        <div class="product-lines__pickup" data-swap="pickup">
+          <pickup-availability
+            class="product-lines__pickup-slot"
+            data-variant-id="{{ pt_variant.id }}"
+            {% if pt_pickup_html == blank %}
+              hidden
+            {% endif %}
+          >
+            {{- pt_pickup_html -}}
+          </pickup-availability>
+        </div>
+      {%- endif -%}
+    </div>
+
+  {%- when 'box' -%}
+    {%- capture pt_points -%}
+      {%- for pt_block in blocks -%}
+        {%- if pt_block.type != 'trust_point' -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- comment -%} "ללא מע״מ" is only true for VAT-exempt variants (data-model.md §12.4). {%- endcomment -%}
+        {%- if pt_block.settings.tax_free_only and pt_variant.taxable -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- liquid
+          assign pt_text = pt_block.settings.text
+          if pt_block.settings.use_warranty
+            assign pt_text = ''
+            if pt_warranty != blank
+              assign pt_text = 'products.product.warranty_label' | t | append: ' ' | append: pt_warranty
+              assign pt_text = pt_text | escape
+            endif
+          endif
+        -%}
+        {%- if pt_text != blank -%}
+          <li class="product-trust__item" {{ pt_block.shopify_attributes }}>{{ pt_text }}</li>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- liquid
+      assign pt_wa_url = ''
+      if whatsapp != false
+        assign pt_wa_text = settings.contact_whatsapp_message | strip
+        if pt_wa_text != blank
+          assign pt_wa_text = pt_wa_text | append: ' — '
+        endif
+        assign pt_wa_text = pt_wa_text | append: product.title | append: ' ' | append: request.origin | append: product.url
+        capture pt_wa_url
+          render 'whatsapp-url', text: pt_wa_text
+        endcapture
+      endif
+      assign pt_show_wa = false
+      if pt_wa_url != blank
+        assign pt_show_wa = true
+      endif
+      assign pt_wa_label = whatsapp_label
+      if pt_wa_label == blank
+        assign pt_wa_label = 'products.product.whatsapp_ask' | t
+      endif
+      assign pt_heading_id = 'ProductTrust-' | append: section_id
+    -%}
+    {%- if pt_points != blank or image != blank or pt_show_wa -%}
+      <div class="product-trust">
+        {%- if heading != blank -%}
+          <h2 class="product-trust__heading" id="{{ pt_heading_id }}">{{ heading | escape }}</h2>
+        {%- endif -%}
+        {%- if pt_points != blank -%}
+          <ul class="product-trust__list" role="list">{{ pt_points }}</ul>
+        {%- endif -%}
+        {%- if image != blank -%}
+          <div class="product-trust__media">
+            {%- render 'image',
+              image: image,
+              widths: '240,350,480,700',
+              sizes: '(min-width: 992px) 233px, 350px',
+              decorative: true,
+              class: 'product-trust__img'
+            -%}
+          </div>
+        {%- endif -%}
+        {%- if pt_show_wa -%}
+          <a
+            class="product-trust__whatsapp"
+            href="{{ pt_wa_url }}"
+            target="_blank"
+            rel="noopener"
+          >
+            {%- render 'icon', name: 'whatsapp', size: 22, class: 'product-trust__whatsapp-icon' -%}
+            <span>{{ pt_wa_label | escape }}</span>
+            <span class="visually-hidden">{{ 'general.new_window' | t }}</span>
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+{%- endcase -%}

@@ -1,0 +1,191 @@
+{%- comment -%}
+  Cart drawer — <cart-drawer id="CartDrawer"> (@theme/cart, a DialogElement): opened by the
+  header cart link ([aria-haspopup=dialog][aria-controls=CartDrawer]) and by every AJAX add;
+  focus trap, Escape, overlay click, scroll lock and focus return come from global.js.
+  Every cart mutation re-renders this section through bundled section rendering, so all
+  markup and prices come from Liquid (cart.js swaps the element's children and class).
+  Content: lines (snippets/cart-line) inside <cart-items>, the pickup-in-Eilat / payment
+  message (theme setting), the reservation conditions (section setting), the optional
+  required 90-day consent (theme setting, off by default; saved as a cart attribute on change), the order note, the total and the
+  green "המשך לשריון" checkout button (a POST to /cart with `checkout`, so the note and the
+  consent are saved on the way), plus app blocks. Without JS the header cart link simply
+  opens /cart.
+{%- endcomment -%}
+{%- liquid
+  assign drawer_count = cart.item_count
+  assign pickup_message = settings.cart_pickup_message
+-%}
+{{ 'component-drawer.css' | asset_url | stylesheet_tag }}
+{{ 'component-cart-drawer.css' | asset_url | stylesheet_tag }}
+
+<cart-drawer id="CartDrawer" class="drawer cart-drawer{% if drawer_count == 0 %} is-empty{% endif %}" data-section-id="{{ section.id }}">
+  <div class="drawer__overlay" data-close></div>
+  <div class="drawer__panel cart-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="CartDrawer-Title" tabindex="-1">
+    <div class="drawer__header">
+      <h2 class="drawer__title" id="CartDrawer-Title">
+        {{- 'cart.drawer.title' | t -}}
+        {%- if drawer_count > 0 %}
+          <span class="cart-drawer__count">({{ 'cart.drawer.count' | t: count: drawer_count }})</span>
+        {%- endif -%}
+      </h2>
+      <button class="drawer__close" type="button" data-close aria-label="{{ 'cart.drawer.close' | t }}">
+        {%- render 'icon', name: 'close', size: 24 -%}
+      </button>
+    </div>
+
+    {%- if drawer_count > 0 -%}
+      <cart-items class="drawer__body cart-drawer__body">
+        <ul class="cart-drawer__lines" role="list" aria-label="{{ 'cart.drawer.lines_label' | t }}">
+          {%- for item in cart.items -%}
+            {%- render 'cart-line', item: item, index: forloop.index, context: 'drawer' -%}
+          {%- endfor -%}
+        </ul>
+
+        {%- for block in section.blocks -%}
+          <div class="cart-drawer__app" {{ block.shopify_attributes }}>{% render block %}</div>
+        {%- endfor -%}
+
+        <form class="cart-drawer__form" action="{{ routes.cart_url }}" method="post" id="CartDrawer-Form" accept-charset="UTF-8">
+          {%- if pickup_message != blank -%}
+            <div class="cart-drawer__notice">
+              {%- render 'icon', name: 'store', size: 22 -%}
+              <p><span class="visually-hidden">{{ 'cart.drawer.pickup_label' | t }}: </span>{{ pickup_message }}</p>
+            </div>
+          {%- endif -%}
+
+          {%- if section.settings.conditions != blank -%}
+            <div class="cart-drawer__conditions rte">{{ section.settings.conditions }}</div>
+          {%- endif -%}
+
+          {%- if settings.cart_note_enabled -%}
+            <details class="cart-drawer__note"{% if cart.note != blank %} open{% endif %}>
+              <summary class="cart-drawer__note-toggle">
+                {{- 'cart.drawer.note_label' | t -}}
+                {%- render 'icon', name: 'chevron-down', size: 16, class: 'cart-drawer__note-icon' -%}
+              </summary>
+              <label class="visually-hidden" for="CartDrawer-Note">{{ 'cart.drawer.note_label' | t }}</label>
+              <textarea class="textarea cart-drawer__note-field" id="CartDrawer-Note" name="note" rows="3">{{ cart.note }}</textarea>
+            </details>
+          {%- endif -%}
+
+          <div class="drawer__footer cart-drawer__footer">
+            {%- if cart.cart_level_discount_applications.size > 0 -%}
+              <ul class="cart-drawer__discounts" role="list" aria-label="{{ 'cart.drawer.discounts' | t }}">
+                {%- for discount in cart.cart_level_discount_applications -%}
+                  <li>
+                    {%- render 'icon', name: 'tag', size: 14 -%}
+                    {{ discount.title | escape }} (−{{ discount.total_allocated_amount | money_without_trailing_zeros }})
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+
+            <p class="cart-drawer__total">
+              <span>{{ 'cart.drawer.subtotal' | t }}</span>
+              <span class="cart-drawer__total-amount">{{ cart.total_price | money_without_trailing_zeros }}</span>
+            </p>
+
+            {%- if settings.cart_vat_consent_enabled and settings.cart_vat_consent_text != blank -%}
+              {%- liquid
+                # Same cart attribute as the cart page (sections/main-cart). @theme/cart saves it on change, so
+                # re-renders (quantity, remove) keep the tick.
+                assign vat_consent_key = 'cart.page.vat_consent_attribute' | t
+              -%}
+              <label class="checkbox cart-drawer__consent">
+                <input
+                  type="checkbox"
+                  name="attributes[{{ vat_consent_key }}]"
+                  value="{{ 'cart.page.consent_value' | t }}"
+                  required
+                  {% if cart.attributes[vat_consent_key] != blank %}
+                    checked
+                  {% endif %}
+                >
+                <span>{{ settings.cart_vat_consent_text }}</span>
+              </label>
+            {%- endif -%}
+
+            <button class="button button--accent button--full button--large cart-drawer__checkout" type="submit" name="checkout">
+              {{- 'cart.drawer.checkout' | t -}}
+            </button>
+            <p class="cart-drawer__checkout-note">
+              {%- render 'icon', name: 'lock', size: 14 -%}
+              {{ 'cart.drawer.checkout_note' | t }}
+            </p>
+          </div>
+
+          <div class="cart-drawer__extras">
+            <div class="cart-drawer__secondary">
+              <button class="link cart-drawer__continue" type="button" data-close>{{ 'cart.drawer.continue' | t }}</button>
+              {%- if section.settings.show_view_cart -%}
+                <a class="link cart-drawer__view-cart" href="{{ routes.cart_url }}">{{ 'cart.drawer.view_cart' | t }}</a>
+              {%- endif -%}
+            </div>
+
+            {%- if section.settings.show_payment_icons -%}
+              {%- render 'payment-icons', class: 'cart-drawer__payments' -%}
+            {%- endif -%}
+          </div>
+        </form>
+      </cart-items>
+    {%- else -%}
+      <div class="drawer__body cart-drawer__empty">
+        {%- render 'icon', name: 'cart', size: 56, class: 'cart-drawer__empty-icon' -%}
+        <p class="cart-drawer__empty-title">{{ 'cart.drawer.empty' | t }}</p>
+        <p class="cart-drawer__empty-text">{{ 'cart.drawer.empty_text' | t }}</p>
+        {%- if pickup_message != blank -%}
+          <p class="cart-drawer__empty-note">{{ pickup_message }}</p>
+        {%- endif -%}
+        <button class="button cart-drawer__empty-button" type="button" data-close>{{ 'cart.drawer.continue' | t }}</button>
+        <a class="link" href="{{ routes.all_products_collection_url }}">{{ 'cart.drawer.all_products' | t }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</cart-drawer>
+
+{% schema %}
+{
+  "name": "עגלה צדדית",
+  "tag": "div",
+  "class": "section-cart-drawer",
+  "enabled_on": {
+    "groups": [
+      "aside"
+    ]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "הודעת האיסוף, הערת ההזמנה ותיבת האישור לתנאי 90 הימים נקבעות בהגדרות התבנית › עגלה (משותפות לעמוד העגלה)."
+    },
+    {
+      "type": "richtext",
+      "id": "conditions",
+      "label": "תנאי השריון",
+      "default": "<p>כל ההזמנות באתר הן לאיסוף עצמי מהסניף באילת — זה מה שמקנה את הפטור ממע״מ, ולכן אין משלוחים. האיסוף בהצגת תעודה מזהה, והמוצר ממתין בסניף עד 21 ימי עסקים.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_cart",
+      "label": "קישור לעמוד העגלה",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "סמלי אמצעי תשלום",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    }
+  ],
+  "presets": [
+    {
+      "name": "עגלה צדדית"
+    }
+  ]
+}
+{% endschema %}

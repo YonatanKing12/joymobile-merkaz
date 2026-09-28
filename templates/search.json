@@ -1,0 +1,31 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-search",
+      "settings": {
+        "show_breadcrumbs": true,
+        "results_per_page": 24,
+        "columns_desktop": "4",
+        "columns_mobile": "2",
+        "show_count": true,
+        "enable_filtering": false,
+        "open_groups": "first",
+        "enable_sorting": true,
+        "show_popular_searches": true,
+        "popular_collections": [
+          "smartphones",
+          "tablets",
+          "smartwatches",
+          "vacuums",
+          "computers-gaming",
+          "appliances",
+          "audio",
+          "kitchen"
+        ],
+        "padding_top": 30,
+        "padding_bottom": 40
+      }
+    }
+  },
+  "order": ["main"]
+}

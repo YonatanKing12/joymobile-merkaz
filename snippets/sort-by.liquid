@@ -1,0 +1,146 @@
+{% doc %}
+  Sort control of a collection or of the search results: the old site's inline row
+  "מיין לפי: מומלצים | מהזול ליקר | …" (desktop, from 992px) and a compact disclosure
+  "מיון לפי: מומלצים ▾" holding the same links (below 992px). Every option is a real link
+  (`sort_by` URL parameter, filters and search terms kept, page dropped) with
+  `aria-current="true"` on the current order, so sorting works without JavaScript and
+  <facet-filters> (@theme/facets) re-renders it in place.
+
+  Options shown, when the store offers them: the default order (labelled "מומלצים" for
+  manual/best-selling, "רלוונטיות" on search), price low→high, price high→low, name and
+  newest; the current order is always included. Labels live in `facets.sort.*`.
+
+  The caller wraps this in its `[data-swap]` region (the sort links change with the filters).
+
+  Classes: .sort-by, __inline, __label, __list, __item, __link, __menu, __summary, __current, __options.
+
+  @param {object} results - The `collection` or `search` object.
+  @param {string} results_url - Path of the listing without a query string, e.g. collection.url or routes.search_url.
+  @param {string} [base_query] - Query that every link keeps (search terms, vendor page `q`), already URL-encoded.
+  @param {string} [filter_query] - Active filters as a URL query string (see the 'query' format of active-filters).
+  @param {string} [id_prefix] - Unique prefix for element ids.
+
+  @example
+  {% render 'sort-by', results: collection, results_url: results_url, base_query: base_query, filter_query: filter_query, id_prefix: section.id %}
+{% enddoc %}
+{%- liquid
+  assign sb_id = id_prefix | default: 'Sort' | append: '-Sort'
+  assign sb_default = results.default_sort_by
+  assign sb_current = results.sort_by | default: sb_default
+
+  assign sb_available = results.sort_options | map: 'value' | join: ','
+  assign sb_available = ',' | append: sb_available | append: ','
+
+  assign sb_values = sb_default | append: ',price-ascending,price-descending,title-ascending,created-descending'
+  assign sb_token = ',' | append: sb_current | append: ','
+  assign sb_check = ',' | append: sb_values | append: ','
+  unless sb_check contains sb_token
+    assign sb_values = sb_values | append: ',' | append: sb_current
+  endunless
+  assign sb_values = sb_values | split: ','
+
+  assign sb_prefix = base_query | default: ''
+  if filter_query != blank
+    if sb_prefix != blank
+      assign sb_prefix = sb_prefix | append: '&'
+    endif
+    assign sb_prefix = sb_prefix | append: filter_query
+  endif
+
+  assign sb_seen = ','
+  assign sb_count = 0
+-%}
+{%- capture sb_links -%}
+  {%- for sb_value in sb_values -%}
+    {%- liquid
+      assign sb_token = ',' | append: sb_value | append: ','
+      if sb_value == blank or sb_seen contains sb_token
+        continue
+      endif
+      unless sb_available contains sb_token
+        continue
+      endunless
+      assign sb_seen = sb_seen | append: sb_value | append: ','
+      assign sb_count = sb_count | plus: 1
+
+      assign sb_key = sb_value | replace: '-', '_' | prepend: 'facets.sort.'
+      if sb_value == sb_default
+        if sb_value == 'manual' or sb_value == 'best-selling' or sb_value == 'most-relevant'
+          assign sb_key = 'facets.sort.featured'
+        endif
+      endif
+      assign sb_label = sb_key | t
+      if sb_label contains 'ranslation missing'
+        assign sb_label = sb_value
+        for sb_option in results.sort_options
+          if sb_option.value == sb_value
+            assign sb_label = sb_option.name
+            break
+          endif
+        endfor
+      endif
+
+      assign sb_query = sb_prefix
+      if sb_value != sb_default
+        if sb_query != blank
+          assign sb_query = sb_query | append: '&'
+        endif
+        assign sb_query = sb_query | append: 'sort_by=' | append: sb_value
+      endif
+      assign sb_href = results_url
+      if sb_query != blank
+        assign sb_href = results_url | append: '?' | append: sb_query
+      endif
+    -%}
+    <li class="sort-by__item">
+      <a
+        class="sort-by__link"
+        href="{{ sb_href }}"
+        rel="nofollow"
+        {% if sb_value == sb_current %}
+          aria-current="true"
+        {% endif %}
+      >
+        {{- sb_label | escape -}}
+      </a>
+    </li>
+  {%- endfor -%}
+{%- endcapture -%}
+{%- liquid
+  assign sb_current_key = sb_current | replace: '-', '_' | prepend: 'facets.sort.'
+  if sb_current == sb_default
+    if sb_current == 'manual' or sb_current == 'best-selling' or sb_current == 'most-relevant'
+      assign sb_current_key = 'facets.sort.featured'
+    endif
+  endif
+  assign sb_current_label = sb_current_key | t
+  if sb_current_label contains 'ranslation missing'
+    assign sb_current_label = sb_current
+    for sb_option in results.sort_options
+      if sb_option.value == sb_current
+        assign sb_current_label = sb_option.name
+        break
+      endif
+    endfor
+  endif
+-%}
+{%- if sb_count > 1 -%}
+  <div class="sort-by">
+    <div class="sort-by__inline" role="group" aria-labelledby="{{ sb_id }}-Label">
+      <span class="sort-by__label" id="{{ sb_id }}-Label">{{ 'facets.sort.label' | t }}</span>
+      <ul class="sort-by__list" role="list">
+        {{- sb_links -}}
+      </ul>
+    </div>
+    <details class="sort-by__menu">
+      <summary class="sort-by__summary">
+        <span class="sort-by__summary-label">{{ 'facets.sort.mobile_label' | t }}</span>
+        <span class="sort-by__current">{{ sb_current_label | escape }}</span>
+        {%- render 'icon', name: 'chevron-down', size: 16, class: 'sort-by__chevron' -%}
+      </summary>
+      <ul class="sort-by__options" role="list" aria-label="{{ 'facets.sort.mobile_label' | t }}">
+        {{- sb_links -}}
+      </ul>
+    </details>
+  </div>
+{%- endif -%}

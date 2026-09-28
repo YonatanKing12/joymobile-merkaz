@@ -1,0 +1,135 @@
+{%- comment -%}
+  Cookie notice and consent, the old site's bottom "עוגיות" bar rebuilt. Its text is kept word for word (its
+  plain-text "מדיניות האתר" is now a link to the privacy policy), and visitors can also keep essential cookies only.
+  - It is the first section of the header group, so it is the first stop after the skip link (GOV.UK places its
+    cookie banner the same way). It is drawn fixed at the bottom of the viewport.
+  - It ships hidden. assets/cookie-banner.js shows it only to visitors who have not chosen yet (checked in
+    localStorage, then in Shopify's Customer Privacy API). Returning visitors never see it flash, and without JS
+    nothing shows. Its stylesheet loads only when the banner is shown.
+  - The choice goes to Shopify's Customer Privacy API (setTrackingConsent), so Shopify analytics and app/marketing
+    pixels honour it. Visitors are asked again after `renew_days`. ✕ or Escape hides the banner for the current
+    browsing session only.
+  - If Shopify's own cookie banner is switched on (Settings › Customer privacy), this banner stays hidden.
+  - In the theme editor it shows while the section is selected, and choices made there are not saved.
+{%- endcomment -%}
+{%- if section.settings.enabled -%}
+  {%- liquid
+    assign accept_label = section.settings.accept_label
+    if accept_label == blank
+      assign accept_label = 'cookie_banner.accept' | t
+    endif
+  -%}
+  <cookie-banner
+    class="cookie-banner"
+    data-section-id="{{ section.id }}"
+    data-stylesheet="{{ 'component-cookie-banner.css' | asset_url }}"
+    data-audience="{{ section.settings.audience }}"
+    data-renew-days="{{ section.settings.renew_days }}"
+    data-saved="{{ 'cookie_banner.saved' | t }}"
+    hidden
+  >
+    <div class="cookie-banner__panel" role="region" aria-label="{{ 'cookie_banner.label' | t }}">
+      <div class="cookie-banner__inner page-width">
+        <div class="cookie-banner__text">{{ section.settings.text }}</div>
+        <div class="cookie-banner__actions">
+          <button type="button" class="button cookie-banner__button" data-consent="accept">
+            {{- accept_label | escape -}}
+          </button>
+          {%- if section.settings.decline_label != blank -%}
+            <button type="button" class="button button--outline cookie-banner__button" data-consent="decline">
+              {{- section.settings.decline_label | escape -}}
+            </button>
+          {%- endif -%}
+        </div>
+        <button type="button" class="cookie-banner__close" data-consent="dismiss" aria-label="{{ 'cookie_banner.close' | t }}">
+          {%- render 'icon', name: 'close', size: 20 -%}
+        </button>
+      </div>
+    </div>
+  </cookie-banner>
+  <script type="module" src="{{ 'cookie-banner.js' | asset_url }}"></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "באנר עוגיות",
+  "tag": "div",
+  "class": "section-cookie-banner",
+  "enabled_on": {
+    "groups": ["header"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "הצגת באנר העוגיות",
+      "default": true
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "טקסט",
+      "default": "<p>האתר עושה שימוש ב\"עוגיות\" (Cookies) במטרה לתפעל ולשפר את האתר, להראות לכם פרסום הקשור להעדפותיכם על סמך הרגלי הגלישה והמוצרים בהם התעניינתם ולמטרות אנליטיות. ג'וי מובייל עושה שימוש ב\"עוגיות\" (Cookies) שלה ושל צדדים שלישיים. מידע נוסף ניתן למצוא ב<a href=\"/policies/privacy-policy\">מדיניות הפרטיות</a>.</p>"
+    },
+    {
+      "type": "text",
+      "id": "accept_label",
+      "label": "כפתור אישור",
+      "default": "אישור"
+    },
+    {
+      "type": "text",
+      "id": "decline_label",
+      "label": "כפתור עוגיות חיוניות בלבד",
+      "info": "מסמן שהמבקר מסרב לעוגיות סטטיסטיקה ושיווק. השאירו ריק כדי להציג רק כפתור אישור, כמו באתר הקודם.",
+      "default": "רק עוגיות חיוניות"
+    },
+    {
+      "type": "select",
+      "id": "audience",
+      "label": "למי להציג",
+      "options": [
+        {
+          "value": "all",
+          "label": "לכל המבקרים (כמו באתר הקודם)"
+        },
+        {
+          "value": "required",
+          "label": "רק במדינות שבהן נדרשת הסכמה"
+        }
+      ],
+      "default": "all",
+      "info": "האפשרות השנייה פועלת לפי אזורי ההסכמה שמוגדרים ב-Shopify: הגדרות › פרטיות לקוחות."
+    },
+    {
+      "type": "select",
+      "id": "renew_days",
+      "label": "לשאול שוב אחרי",
+      "options": [
+        {
+          "value": "90",
+          "label": "3 חודשים"
+        },
+        {
+          "value": "180",
+          "label": "6 חודשים"
+        },
+        {
+          "value": "365",
+          "label": "שנה"
+        }
+      ],
+      "default": "365"
+    },
+    {
+      "type": "paragraph",
+      "content": "ההסכמה נשמרת ב-Shopify (Customer Privacy API), כך שכלי הסטטיסטיקה והפיקסלים של Shopify ושל האפליקציות מכבדים אותה. אם הפעלתם את באנר העוגיות של Shopify עצמו, הבאנר הזה לא מוצג."
+    }
+  ],
+  "presets": [
+    {
+      "name": "באנר עוגיות"
+    }
+  ]
+}
+{% endschema %}

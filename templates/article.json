@@ -1,0 +1,28 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-article",
+      "settings": {
+        "show_breadcrumbs": true,
+        "show_topic": true,
+        "show_date": true,
+        "show_reading_time": true,
+        "show_author": false,
+        "show_share": true,
+        "show_image": true,
+        "show_excerpt": true,
+        "show_collection_cta": true,
+        "cta_text": "כל המוצרים באתר זמינים לשריון ולאיסוף עצמי מהסניף באילת, במחירי אילת ללא מע״מ.",
+        "show_products": true,
+        "products_heading": "חשבנו שיכול לעניין אותך",
+        "products_limit": 4,
+        "show_related": true,
+        "related_heading": "מאמרים נוספים",
+        "related_limit": 3
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

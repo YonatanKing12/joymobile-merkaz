@@ -1,0 +1,57 @@
+{% doc %}
+  Heart toggle that saves a product in the wishlist (localStorage, see assets/wishlist.js).
+
+  Markup contract for `<wishlist-button>` (defined in @theme/wishlist): the element
+  carries `data-handle`; the real control is the inner <button type="button"> whose
+  `aria-pressed` the script sets to "true"/"false" from storage on connect and on
+  every `wishlist:changed` event. There is no live-region message: screen readers
+  announce the pressed state itself, so an extra message would be read twice.
+  The accessible name is constant (toggle-button pattern: the pressed state, not
+  the label, says whether the product is saved). The script keeps the aria-label
+  printed here and only adds the generic "הוספה/הסרה מהמועדפים" when it is missing.
+  Without JavaScript the button is hidden (the wishlist needs localStorage).
+
+  @param {product} product - The product to save.
+  @param {string} [class] - Extra classes on the element.
+  @param {number} [size] - Icon size in px. Default 22.
+
+  @example
+  {% render 'wishlist-button', product: product %}
+  {% render 'wishlist-button', product: card_product, class: 'card-product__wishlist', size: 20 %}
+{% enddoc %}
+{%- if product != blank and settings.wishlist_enabled -%}
+  {%- assign heart_size = size | default: 22 -%}
+  <wishlist-button class="wishlist-button{% if class != blank %} {{ class }}{% endif %}" data-handle="{{ product.handle | escape }}">
+    <button
+      type="button"
+      class="wishlist-button__control"
+      aria-pressed="false"
+      aria-label="{{ 'wishlist.button.label_product' | t: title: product.title }}"
+    >
+      {%- render 'icon', name: 'heart', size: heart_size, class: 'wishlist-button__icon wishlist-button__icon--off' -%}
+      {%- render 'icon', name: 'heart-filled', size: heart_size, class: 'wishlist-button__icon wishlist-button__icon--on' -%}
+    </button>
+  </wishlist-button>
+{%- endif -%}
+
+{% stylesheet %}
+  /* Structural only — the look (size, colours, hover) lives in Track F's
+     assets/component-wishlist-button.css. */
+  .no-js wishlist-button {
+    display: none;
+  }
+  .wishlist-button__control {
+    display: inline-grid;
+    place-items: center;
+  }
+  .wishlist-button__icon {
+    grid-area: 1 / 1;
+  }
+  .wishlist-button__icon--on,
+  .wishlist-button__control[aria-pressed="true"] .wishlist-button__icon--off {
+    visibility: hidden;
+  }
+  .wishlist-button__control[aria-pressed="true"] .wishlist-button__icon--on {
+    visibility: visible;
+  }
+{% endstylesheet %}

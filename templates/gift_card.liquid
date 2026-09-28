@@ -1,0 +1,156 @@
+{%- comment -%}
+  Gift card page (/gift_cards/<token>), sent to the customer by Shopify.
+  Stand-alone document: no header/footer, no scripts. The code is printed in an
+  LTR-isolated box so it reads and copies correctly inside the RTL page.
+{%- endcomment -%}
+{%- layout none -%}
+{%- liquid
+  assign gc_value = gift_card.initial_value | money_without_trailing_zeros
+  assign gc_balance = gift_card.balance | money_without_trailing_zeros
+  assign gc_logo = settings.logo
+  assign brand_name = settings.brand_name | strip | default: shop.name
+-%}
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{{ 'general.gift_card.title' | t }} – {{ brand_name | escape }}</title>
+    {%- if settings.favicon != blank %}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- else %}
+      <link rel="icon" type="image/png" sizes="96x96" href="{{ 'favicon.png' | asset_url }}">
+    {%- endif %}
+    {{ 'fonts.css' | asset_url | stylesheet_tag }}
+    {% render 'css-variables' %}
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+    {{ content_for_header }}
+    {% style %}
+      .gift-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-lg);
+        padding-block: var(--space-2xl);
+        text-align: center;
+      }
+      .gift-card__brand {
+        width: min(13.75rem, 60vw);
+        color: var(--color-ink);
+        font-size: var(--text-2xl);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .gift-card__brand img {
+        width: 100%;
+        height: auto;
+      }
+      .gift-card__card {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        width: 100%;
+        max-width: 26rem;
+        padding: var(--space-lg);
+        border: 2px solid var(--color-ink);
+        border-radius: var(--radius-lg);
+        background: var(--color-badge-taxfree-bg);
+        color: var(--color-ink);
+      }
+      .gift-card__balance {
+        font-size: var(--text-4xl);
+        font-weight: 700;
+        line-height: var(--leading-tight);
+      }
+      .gift-card__label {
+        font-size: var(--text-sm);
+      }
+      .gift-card__code {
+        padding: var(--space-sm);
+        border: 1px dashed var(--color-ink);
+        border-radius: var(--radius-md);
+        background: var(--color-background);
+        font-size: var(--text-xl);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        user-select: all;
+      }
+      .gift-card__status {
+        color: var(--color-error);
+        font-weight: 700;
+      }
+      .gift-card__message {
+        max-width: 26rem;
+        font-style: italic;
+      }
+      .gift-card__actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-sm);
+      }
+    {% endstyle %}
+  </head>
+
+  <body class="template-gift-card">
+    <main id="MainContent" class="gift-card page-width page-width--narrow">
+      <a class="gift-card__brand" href="{{ routes.root_url }}">
+        {%- if gc_logo != blank -%}
+          {% render 'image', image: gc_logo, widths: '220,440,660', sizes: 'min(220px, 60vw)', loading: 'eager', alt: brand_name %}
+        {%- else -%}
+          {%- comment -%} The JOY Mobile lockup for light backgrounds (owner's brand sheet), on the white page. {%- endcomment -%}
+          {%- assign gc_logo_url = 'logo-joy-light.png' | asset_url -%}
+          <img
+            src="{{ gc_logo_url }}&amp;width=440"
+            srcset="{{ gc_logo_url }}&amp;width=220 220w, {{ gc_logo_url }}&amp;width=440 440w, {{ gc_logo_url }}&amp;width=660 660w, {{ gc_logo_url }} 871w"
+            sizes="min(220px, 60vw)"
+            width="871"
+            height="249"
+            alt="{{ brand_name | escape }}"
+          >
+        {%- endif -%}
+      </a>
+
+      <h1>{{ 'general.gift_card.heading' | t: value: gc_value }}</h1>
+
+      <div class="gift-card__card">
+        {%- if gift_card.enabled == false -%}
+          <p class="gift-card__status">{{ 'general.gift_card.disabled' | t }}</p>
+        {%- elsif gift_card.expired -%}
+          <p class="gift-card__status">{{ 'general.gift_card.expired' | t }}</p>
+        {%- endif -%}
+
+        <p class="gift-card__label">{{ 'general.gift_card.balance_label' | t }}</p>
+        <p class="gift-card__balance">{{ gc_balance }}</p>
+        {%- if gift_card.balance != gift_card.initial_value -%}
+          <p class="gift-card__label">{{ 'general.gift_card.initial_label' | t }}: {{ gc_value }}</p>
+        {%- endif -%}
+
+        <p class="gift-card__label">{{ 'general.gift_card.code_label' | t }}</p>
+        <p class="gift-card__code" dir="ltr">{{ gift_card.code | format_code }}</p>
+
+        {%- if gift_card.expires_on and gift_card.expired == false -%}
+          {%- assign gc_expiry = gift_card.expires_on | date: '%d/%m/%Y' -%}
+          <p class="gift-card__label">{{ 'general.gift_card.expires_on' | t: date: gc_expiry }}</p>
+        {%- endif -%}
+      </div>
+
+      {%- if gift_card.message != blank -%}
+        <figure class="gift-card__message">
+          <figcaption class="visually-hidden">{{ 'general.gift_card.message_label' | t }}</figcaption>
+          <blockquote>{{ gift_card.message | escape | newline_to_br }}</blockquote>
+        </figure>
+      {%- endif -%}
+
+      <p>{{ 'general.gift_card.how_to_use' | t }}</p>
+
+      <div class="gift-card__actions">
+        <a class="button button--accent" href="{{ routes.root_url }}">{{ 'general.gift_card.shop_link' | t }}</a>
+        {%- if gift_card.pass_url != blank -%}
+          <a class="button button--outline" href="{{ gift_card.pass_url }}">{{ 'general.gift_card.apple_wallet' | t }}</a>
+        {%- endif -%}
+      </div>
+    </main>
+  </body>
+</html>

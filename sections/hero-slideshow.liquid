@@ -1,0 +1,457 @@
+{%- comment -%}
+  Hero slideshow (homepage top). Each slide: desktop image + optional mobile image (art direction via <picture>),
+  alt text, link, optional heading / text / button overlay. Desktop (>= 768px): the slide is centred with a flat
+  "peek" of its neighbours in the side gutters (measured: 30px gutters, slide = viewport - 60). Mobile: full bleed.
+  <carousel-slider> (assets/carousel.js) drives arrows, dots, autoplay (paused on hover / focus / hidden tab /
+  reduced motion) and the pause toggle. The first slide is the LCP image: eager + fetchpriority=high; the rest lazy.
+  The slide box takes the first slide's image ratio (desktop and mobile), so nothing shifts when images load.
+{%- endcomment -%}
+{%- liquid
+  assign slide_count = section.blocks.size
+  assign first_slide = section.blocks.first
+
+  assign ratio_desktop = 4.79
+  assign ratio_mobile = 1.28
+  if first_slide.settings.image != blank
+    assign ratio_desktop = first_slide.settings.image.aspect_ratio
+    assign ratio_mobile = first_slide.settings.image.aspect_ratio
+  elsif first_slide.settings.image_mobile != blank
+    assign ratio_desktop = first_slide.settings.image_mobile.aspect_ratio
+  endif
+  if first_slide.settings.image_mobile != blank
+    assign ratio_mobile = first_slide.settings.image_mobile.aspect_ratio
+  endif
+
+  assign peek = 0
+  if section.settings.peek
+    assign peek = 30
+  endif
+
+  assign autoplay_ms = 0
+  if section.settings.autoplay and slide_count > 1
+    assign autoplay_ms = section.settings.autoplay_speed | times: 1000
+  endif
+
+  # Top of the page (or theme editor / Section Rendering, where section.index is nil): slide 1 is the LCP.
+  assign above_fold = true
+  if section.index != blank and section.index > 2
+    assign above_fold = false
+  endif
+
+  if peek > 0
+    assign sizes_desktop = '(min-width: 768px) calc(100vw - 60px), 100vw'
+  else
+    assign sizes_desktop = '100vw'
+  endif
+  assign desktop_widths = '750,1100,1500,1920,2400' | split: ','
+
+  assign has_links = false
+  for block in section.blocks
+    if block.settings.link != blank
+      assign has_links = true
+    endif
+  endfor
+
+  assign carousel_label = section.settings.label
+  if carousel_label == blank
+    assign carousel_label = 'home.hero.label' | t
+  endif
+-%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --hero-ratio: {{ ratio_desktop }};
+    --hero-ratio-mobile: {{ ratio_mobile }};
+    --hero-peek: {{ peek }}px;
+    --hero-gap: {% if peek > 0 %}8px{% else %}0px{% endif %};
+    --hero-pad-top: {{ section.settings.padding_top }}px;
+    --hero-pad-top-mobile: {{ section.settings.padding_top_mobile }}px;
+    --hero-pad-bottom: {{ section.settings.padding_bottom }}px;
+  }
+{%- endstyle -%}
+
+{{ 'component-carousel.css' | asset_url | stylesheet_tag }}
+{{ 'section-hero-slideshow.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+
+<div class="hero-slideshow{% if peek > 0 %} hero-slideshow--peek{% endif %}">
+  {%- if section.settings.page_heading != blank -%}
+    <h1 class="visually-hidden">{{ section.settings.page_heading | escape }}</h1>
+  {%- endif -%}
+
+  {%- if slide_count > 0 -%}
+    <carousel-slider
+      role="group"
+      class="hero-slideshow__carousel carousel--dots-light"
+      data-autoplay="{{ autoplay_ms }}"
+      data-loop="true"
+      aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
+      aria-label="{{ carousel_label | escape }}"
+    >
+      <div class="carousel__track hero-slideshow__track" role="list" tabindex="{% if has_links %}-1{% else %}0{% endif %}">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign image_desktop = block.settings.image
+            assign image_mobile = block.settings.image_mobile
+            assign art_direction = false
+            if image_desktop != blank and image_mobile != blank
+              assign art_direction = true
+            endif
+            if image_desktop == blank
+              assign image_desktop = image_mobile
+            endif
+
+            assign heading = block.settings.heading
+            assign slide_text = block.settings.text
+            assign link = block.settings.link
+            assign button_label = block.settings.button_label
+            assign show_button = false
+            if button_label != blank and link != blank
+              assign show_button = true
+            endif
+
+            assign alt = block.settings.alt | default: image_desktop.alt | strip
+            assign loading = 'lazy'
+            assign priority = 'auto'
+            assign preload = false
+            if forloop.first and above_fold
+              assign loading = 'eager'
+              assign priority = 'high'
+              unless art_direction
+                assign preload = true
+              endunless
+            endif
+          -%}
+          {%- capture slide_media -%}
+            <div class="hero-slideshow__media">
+              {%- if image_desktop == blank -%}
+                <svg class="hero-slideshow__placeholder" viewBox="0 0 1380 288" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                  <rect width="1380" height="288" fill="currentColor" opacity=".07"/>
+                  <circle cx="260" cy="150" r="210" fill="currentColor" opacity=".1"/>
+                  <circle cx="345" cy="96" r="92" fill="currentColor" opacity=".16"/>
+                  <rect x="170" y="66" width="92" height="164" rx="16" fill="currentColor" opacity=".38"/>
+                  <rect x="290" y="126" width="70" height="104" rx="12" fill="currentColor" opacity=".28"/>
+                  <rect x="850" y="92" width="370" height="36" rx="18" fill="currentColor" opacity=".32"/>
+                  <rect x="970" y="146" width="250" height="18" rx="9" fill="currentColor" opacity=".2"/>
+                  <rect x="1070" y="186" width="150" height="42" rx="4" fill="currentColor" opacity=".5"/>
+                </svg>
+              {%- elsif art_direction -%}
+                {%- liquid
+                  assign srcset = ''
+                  for width in desktop_widths
+                    assign w = width | plus: 0
+                    if w < image_desktop.width
+                      assign candidate = image_desktop | image_url: width: w
+                      assign srcset = srcset | append: candidate | append: ' ' | append: w | append: 'w, '
+                    endif
+                  endfor
+                  assign candidate = image_desktop | image_url: width: image_desktop.width
+                  assign srcset = srcset | append: candidate | append: ' ' | append: image_desktop.width | append: 'w'
+                -%}
+                <picture>
+                  <source
+                    media="(min-width: 768px)"
+                    srcset="{{ srcset }}"
+                    sizes="{{ sizes_desktop }}"
+                    width="{{ image_desktop.width }}"
+                    height="{{ image_desktop.height }}"
+                  >
+                  {%- render 'image',
+                    image: image_mobile,
+                    widths: '390,540,750,1080,1500',
+                    sizes: '100vw',
+                    loading: loading,
+                    fetchpriority: priority,
+                    class: 'hero-slideshow__img',
+                    alt: alt
+                  -%}
+                </picture>
+              {%- else -%}
+                {%- render 'image',
+                  image: image_desktop,
+                  widths: '390,750,1100,1500,1920,2400',
+                  sizes: sizes_desktop,
+                  loading: loading,
+                  fetchpriority: priority,
+                  preload: preload,
+                  class: 'hero-slideshow__img',
+                  alt: alt
+                -%}
+              {%- endif -%}
+            </div>
+            {%- if heading != blank or slide_text != blank or show_button -%}
+              <div class="hero-slideshow__content hero-slideshow__content--{{ block.settings.text_position }} hero-slideshow__content--mobile-{{ block.settings.text_position_mobile }}{% if block.settings.text_color == 'light' %} hero-slideshow__content--light{% endif %}">
+                <div class="hero-slideshow__box">
+                  {%- if heading != blank -%}
+                    <h2 class="hero-slideshow__heading">{{ heading | escape }}</h2>
+                  {%- endif -%}
+                  {%- if slide_text != blank -%}
+                    <p class="hero-slideshow__text">{{ slide_text | escape }}</p>
+                  {%- endif -%}
+                  {%- if show_button -%}
+                    <a class="button hero-slideshow__button hero-slideshow__stretched" href="{{ link }}">
+                      {{- button_label | escape -}}
+                    </a>
+                  {%- endif -%}
+                </div>
+              </div>
+            {%- endif -%}
+          {%- endcapture -%}
+
+          <div
+            class="carousel__slide hero-slideshow__slide"
+            role="listitem"
+            {{ block.shopify_attributes }}
+          >
+            {%- if link != blank and show_button == false -%}
+              <a
+                class="hero-slideshow__cover"
+                href="{{ link }}"
+                {% if alt == blank and heading == blank %}
+                  aria-label="{{ 'home.hero.slide_link' | t: number: forloop.index, count: slide_count }}"
+                {% endif %}
+              >
+                {{- slide_media -}}
+              </a>
+            {%- else -%}
+              <div class="hero-slideshow__cover">
+                {{- slide_media -}}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if slide_count > 1 -%}
+        {%- if section.settings.show_arrows -%}
+          <button class="carousel__btn carousel__btn--prev hero-slideshow__arrow" type="button" aria-label="{{ 'accessibility.carousel.previous' | t }}">
+            {%- render 'icon', name: 'chevron-right', size: 24 -%}
+          </button>
+          <button class="carousel__btn carousel__btn--next hero-slideshow__arrow" type="button" aria-label="{{ 'accessibility.carousel.next' | t }}">
+            {%- render 'icon', name: 'chevron-left', size: 24 -%}
+          </button>
+        {%- endif -%}
+        <div class="hero-slideshow__controls">
+          {%- if section.settings.show_dots -%}
+            <div class="carousel__dots hero-slideshow__dots"></div>
+          {%- endif -%}
+          {%- if autoplay_ms > 0 -%}
+            <button
+              class="carousel__pause hero-slideshow__pause js-only"
+              type="button"
+              aria-pressed="false"
+              aria-label="{{ 'accessibility.carousel.pause' | t }}"
+            >
+              {%- render 'icon', name: 'pause', size: 14 -%}
+              {%- render 'icon', name: 'play', size: 14 -%}
+            </button>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </carousel-slider>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "מצגת באנרים",
+  "tag": "section",
+  "class": "section-hero-slideshow",
+  "max_blocks": 8,
+  "disabled_on": {
+    "groups": ["*"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "label",
+      "label": "תיאור המצגת לקוראי מסך",
+      "default": "באנרים ראשיים"
+    },
+    {
+      "type": "text",
+      "id": "page_heading",
+      "label": "כותרת H1 נסתרת לעמוד",
+      "info": "טקסט לקוראי מסך ולמנועי חיפוש. השאירו ריק אם הכותרת הראשית של העמוד מגיעה מאזור אחר."
+    },
+    {
+      "type": "header",
+      "content": "תנועה וניווט"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "החלפה אוטומטית",
+      "info": "נעצרת במעבר עכבר, בפוקוס מקלדת ובהעדפת \"הפחתת תנועה\". מוצג כפתור עצירה.",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "זמן בין שקופיות",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "שנ׳",
+      "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "חיצים (טאבלט ומחשב)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "נקודות ניווט",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "peek",
+      "label": "שוליים עם הצצה לשקופיות הסמוכות",
+      "info": "במחשב ובטאבלט: שוליים של 30 פיקסלים בצדדים שבהם מציצות השקופיות הסמוכות. במובייל הבאנר תמיד ברוחב מלא.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "ריווח"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון (מחשב)",
+      "info": "ממסך 1200 פיקסלים.",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "ריווח עליון (מובייל וטאבלט)",
+      "info": "עד 1199 פיקסלים.",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "שקופית",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "תמונה למחשב",
+          "info": "רחבה, למשל 2752×574 או 1600×368. גובה המצגת נקבע לפי התמונה של השקופית הראשונה."
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "תמונה למובייל",
+          "info": "מומלץ יחס 1.28:1, למשל 1280×1000. בלי תמונת מובייל תוצג תמונת המחשב."
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "טקסט חלופי לתמונה",
+          "info": "חובה כשיש טקסט מוטבע בתמונה: כתבו כאן את מה שכתוב בה."
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור"
+        },
+        {
+          "type": "header",
+          "content": "טקסט על הבאנר (לא חובה)"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "כותרת"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "טקסט"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "תווית כפתור",
+          "info": "הכפתור מוצג רק כשיש קישור. כל הבאנר לחיץ."
+        },
+        {
+          "type": "select",
+          "id": "text_position",
+          "label": "מיקום הטקסט (מחשב)",
+          "options": [
+            { "value": "start", "label": "ימין" },
+            { "value": "center", "label": "מרכז" },
+            { "value": "end", "label": "שמאל" }
+          ],
+          "default": "start"
+        },
+        {
+          "type": "select",
+          "id": "text_position_mobile",
+          "label": "מיקום הטקסט (מובייל)",
+          "options": [
+            { "value": "top", "label": "למעלה" },
+            { "value": "center", "label": "באמצע" },
+            { "value": "bottom", "label": "למטה" }
+          ],
+          "default": "bottom"
+        },
+        {
+          "type": "select",
+          "id": "text_color",
+          "label": "צבע הטקסט",
+          "options": [
+            { "value": "dark", "label": "כהה" },
+            { "value": "light", "label": "בהיר" }
+          ],
+          "default": "dark"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "מצגת באנרים",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "heading": "כותרת הבאנר",
+            "text": "מחיר אילת, בלי מע״מ · שריון באתר ואיסוף מהסניף",
+            "button_label": "לקנייה",
+            "link": "shopify://collections/all"
+          }
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

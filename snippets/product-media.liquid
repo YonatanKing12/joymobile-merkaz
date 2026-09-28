@@ -1,0 +1,285 @@
+{% doc %}
+  Product page gallery: main image carousel with arrows, a thumbnail row and a zoom
+  lightbox. Driven by `<media-gallery>` (@theme/product) and `<carousel-slider>` (@theme/carousel).
+
+  Order: the selected variant's featured media first (the LCP image: eager, fetchpriority
+  high, preloaded), then the product's other media in admin order. Thumbnails and lightbox
+  slides follow the same order, because the scripts map them by index.
+  - Main slides carry `data-media-id`; @theme/product scrolls to the variant's media on
+    `variant:changed`.
+  - Image slides are wrapped in `<button data-zoom>`, which opens the `<dialog>` lightbox: a
+    second carousel with the same slides (RTL arrows, keys, swipe). Escape, the close button
+    and a click on the backdrop close it; focus returns to the zoom button. Videos play in
+    place; 3D models show their preview image.
+  - `[data-thumb]` buttons get `aria-current` for the visible slide.
+  - `[data-swap="badges"]`: status and TAX FREE badges over the image. The section re-renders
+    it on variant change; it is always printed (even empty) so a swap can fill it.
+  The frame keeps a fixed 5:4 box (no layout shift); images are contained inside it. A product
+  without media gets the same frame on a light surface with a neutral bag icon.
+  Styles: assets/component-product-media.css.
+
+  @param {product} product - The product.
+  @param {variant} [variant] - The selected variant. Default: selected or first available.
+  @param {string} section_id - The section id (unique ids; links the gallery to its variant picker).
+  @param {boolean} [zoom] - Image click and magnifier open the lightbox. Default true.
+  @param {boolean} [thumbnails] - Thumbnail row under the main image. Default true.
+  @param {boolean} [loop] - Arrows wrap around at the ends. Default true.
+  @param {boolean} [badges] - Badges over the image. Default true.
+
+  @example
+  {% render 'product-media', product: product, variant: current_variant, section_id: section.id %}
+{% enddoc %}
+{%- liquid
+  assign pm_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
+
+  assign pm_zoom = true
+  if zoom == false
+    assign pm_zoom = false
+  endif
+  assign pm_thumbs = true
+  if thumbnails == false
+    assign pm_thumbs = false
+  endif
+  assign pm_loop = 'true'
+  if loop == false
+    assign pm_loop = 'false'
+  endif
+  assign pm_badges = true
+  if badges == false
+    assign pm_badges = false
+  endif
+
+  assign pm_count = product.media.size
+  assign pm_first = pm_variant.featured_media | default: product.featured_media
+
+  # Display order as 1-based media positions: the variant's media first, then the rest.
+  assign pm_order = ''
+  if pm_first != blank
+    assign pm_order = ',' | append: pm_first.position
+  endif
+  for pm_media in product.media
+    if pm_first != blank and pm_media.id == pm_first.id
+      continue
+    endif
+    assign pm_order = pm_order | append: ',' | append: pm_media.position
+  endfor
+  assign pm_positions = pm_order | remove_first: ',' | split: ','
+
+  assign pm_has_image = false
+  for pm_media in product.media
+    if pm_media.media_type == 'image'
+      assign pm_has_image = true
+      break
+    endif
+  endfor
+  if pm_zoom and pm_has_image == false
+    assign pm_zoom = false
+  endif
+
+  # Frame widths: the gallery column is 5/12 of the page from 768px (see component-product-media.css).
+  assign pm_wide = settings.page_width | default: 1170 | times: 5 | divided_by: 12
+  assign pm_sizes = '(min-width: 1200px) ' | append: pm_wide | append: 'px, (min-width: 768px) calc(42vw - 22px), calc(100vw - 32px)'
+
+  assign pm_uid = 'ProductMedia-' | append: section_id
+-%}
+<media-gallery class="product-media{% if pm_count > 1 %} product-media--multiple{% endif %}" data-section-id="{{ section_id }}">
+  <div class="product-media__viewer">
+    <carousel-slider
+      role="group"
+      class="product-media__slider"
+      data-autoplay="0"
+      data-loop="{{ pm_loop }}"
+      aria-roledescription="{{ 'products.product.media.carousel' | t }}"
+      aria-label="{{ 'products.product.media.label' | t: title: product.title }}"
+    >
+      <div class="carousel__track product-media__track" role="list" tabindex="-1">
+        {%- if pm_count == 0 -%}
+          <div class="carousel__slide product-media__slide" role="listitem">
+            <div class="product-media__frame product-media__frame--empty">
+              {%- render 'icon', name: 'bag', size: 64, class: 'product-media__empty-icon' -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- for pm_position in pm_positions -%}
+          {%- liquid
+            assign pm_index = pm_position | minus: 1
+            assign pm_media = product.media[pm_index]
+            assign pm_alt = pm_media.alt | default: product.title
+
+            assign pm_loading = 'lazy'
+            assign pm_priority = 'auto'
+            assign pm_preload = false
+            if forloop.first
+              assign pm_loading = 'eager'
+              assign pm_priority = 'high'
+              assign pm_preload = true
+            endif
+          -%}
+          <div
+            class="carousel__slide product-media__slide product-media__slide--{{ pm_media.media_type }}"
+            role="listitem"
+            data-media-id="{{ pm_media.id }}"
+          >
+            {%- case pm_media.media_type -%}
+              {%- when 'image' -%}
+                {%- if pm_zoom -%}
+                  <button
+                    type="button"
+                    class="product-media__frame product-media__zoom"
+                    id="{{ pm_uid }}-zoom-{{ forloop.index }}"
+                    data-zoom
+                    aria-haspopup="dialog"
+                    aria-label="{{ 'products.product.media.zoom' | t: index: forloop.index, count: pm_count }}"
+                  >
+                    {%- render 'image',
+                      image: pm_media.preview_image,
+                      widths: '360,480,600,720,960,1200,1500',
+                      sizes: pm_sizes,
+                      loading: pm_loading,
+                      fetchpriority: pm_priority,
+                      preload: pm_preload,
+                      alt: pm_alt,
+                      class: 'product-media__img'
+                    -%}
+                    <span class="product-media__zoom-icon">
+                      {%- render 'icon', name: 'zoom', size: 26 -%}
+                    </span>
+                  </button>
+                {%- else -%}
+                  <div class="product-media__frame">
+                    {%- render 'image',
+                      image: pm_media.preview_image,
+                      widths: '360,480,600,720,960,1200,1500',
+                      sizes: pm_sizes,
+                      loading: pm_loading,
+                      fetchpriority: pm_priority,
+                      preload: pm_preload,
+                      alt: pm_alt,
+                      class: 'product-media__img'
+                    -%}
+                  </div>
+                {%- endif -%}
+              {%- when 'video' -%}
+                <div class="product-media__frame product-media__frame--video">
+                  {{- pm_media | video_tag: controls: true, preload: 'none', playsinline: true, image_size: '1080x', class: 'product-media__video' -}}
+                </div>
+              {%- when 'external_video' -%}
+                <div class="product-media__frame product-media__frame--video">
+                  {{- pm_media | external_video_url: rel: 0 | external_video_tag: class: 'product-media__video', loading: 'lazy' -}}
+                </div>
+              {%- else -%}
+                <div class="product-media__frame">
+                  {%- render 'image',
+                    image: pm_media.preview_image,
+                    widths: '360,480,600,720,960,1200',
+                    sizes: pm_sizes,
+                    loading: pm_loading,
+                    fetchpriority: pm_priority,
+                    alt: pm_alt,
+                    class: 'product-media__img'
+                  -%}
+                </div>
+            {%- endcase -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if pm_count > 1 -%}
+        <button class="carousel__btn carousel__btn--prev product-media__arrow" type="button" aria-label="{{ 'products.product.media.previous' | t }}">
+          {%- render 'icon', name: 'chevron-right', size: 24 -%}
+        </button>
+        <button class="carousel__btn carousel__btn--next product-media__arrow" type="button" aria-label="{{ 'products.product.media.next' | t }}">
+          {%- render 'icon', name: 'chevron-left', size: 24 -%}
+        </button>
+      {%- endif -%}
+    </carousel-slider>
+
+    {%- if pm_badges -%}
+      <div class="product-media__badges" data-swap="badges">
+        {%- render 'badges', product: product, variant: pm_variant, context: 'product' -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- if pm_thumbs and pm_count > 1 -%}
+    <div class="product-media__thumbs" data-thumbs>
+      <ul class="product-media__thumb-list" role="list">
+        {%- for pm_position in pm_positions -%}
+          {%- liquid
+            assign pm_index = pm_position | minus: 1
+            assign pm_media = product.media[pm_index]
+          -%}
+          <li class="product-media__thumb-item">
+            <button
+              type="button"
+              class="product-media__thumb"
+              id="{{ pm_uid }}-thumb-{{ forloop.index }}"
+              data-thumb
+              aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+              aria-label="{{ 'products.product.media.thumb' | t: index: forloop.index, count: pm_count }}"
+            >
+              {%- render 'image',
+                image: pm_media.preview_image,
+                widths: '100,200',
+                sizes: '100px',
+                decorative: true,
+                class: 'product-media__thumb-img'
+              -%}
+              {%- if pm_media.media_type == 'video' or pm_media.media_type == 'external_video' -%}
+                <span class="product-media__thumb-play">{% render 'icon', name: 'play', size: 18 %}</span>
+              {%- endif -%}
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+
+  {%- if pm_zoom -%}
+    <dialog class="product-lightbox" id="{{ pm_uid }}-lightbox" aria-label="{{ 'products.product.media.lightbox' | t: title: product.title }}">
+      <button type="button" class="product-lightbox__close" data-close aria-label="{{ 'products.product.media.close' | t }}">
+        {%- render 'icon', name: 'close', size: 24 -%}
+      </button>
+      <carousel-slider
+        role="group"
+        class="product-lightbox__slider"
+        data-autoplay="0"
+        data-loop="true"
+        aria-roledescription="{{ 'products.product.media.carousel' | t }}"
+        aria-label="{{ 'products.product.media.lightbox' | t: title: product.title }}"
+      >
+        <div class="carousel__track product-lightbox__track" role="list" tabindex="-1">
+          {%- for pm_position in pm_positions -%}
+            {%- liquid
+              assign pm_index = pm_position | minus: 1
+              assign pm_media = product.media[pm_index]
+              assign pm_alt = pm_media.alt | default: product.title
+              # _html key: t leaves the alt text raw, image_tag escapes it once.
+              assign pm_alt = 'products.product.media.lightbox_alt_html' | t: alt: pm_alt, index: forloop.index, count: pm_count
+            -%}
+            <div class="carousel__slide product-lightbox__slide" role="listitem">
+              {%- render 'image',
+                image: pm_media.preview_image,
+                widths: '720,1080,1500,2000',
+                sizes: '(min-width: 768px) 90vh, 100vw',
+                loading: 'lazy',
+                alt: pm_alt,
+                class: 'product-lightbox__img'
+              -%}
+            </div>
+          {%- endfor -%}
+        </div>
+        {%- if pm_count > 1 -%}
+          <button class="carousel__btn carousel__btn--prev product-lightbox__arrow" type="button" aria-label="{{ 'products.product.media.previous' | t }}">
+            {%- render 'icon', name: 'chevron-right', size: 28 -%}
+          </button>
+          <button class="carousel__btn carousel__btn--next product-lightbox__arrow" type="button" aria-label="{{ 'products.product.media.next' | t }}">
+            {%- render 'icon', name: 'chevron-left', size: 28 -%}
+          </button>
+          <div class="carousel__dots product-lightbox__dots"></div>
+        {%- endif -%}
+      </carousel-slider>
+    </dialog>
+  {%- endif -%}
+</media-gallery>

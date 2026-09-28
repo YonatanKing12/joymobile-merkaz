@@ -1,0 +1,1033 @@
+/* Product page — sections/main-product + snippets buy-buttons, product-trust, product-specs.
+   Old classic page measured in konimbo-catalog.md §4: gallery 5/12 at the inline-start, info 7/12;
+   H1 22px/700 (20px centred above the gallery on phones); description 16/22 clamped; מק"ט 15px/700
+   on 33px; rules 1px #ccc; buy column 2/3 + trust box 1/3 from 992px; price 25px/700; buttons 52px
+   16px/700; tabs 42px, padding 0 30, active = green fill; specs band 17px/900 on 40px, rows 14px.
+   Phones: fixed buy bar revealed once the in-page buttons scroll away (scroll-driven animation); it steps
+   aside during keyboard navigation and focused controls are scrolled clear of it (WCAG 2.4.11). */
+
+.main-product {
+  padding-block: calc(var(--pdp-pad-top, 28px) / 2) var(--pdp-pad-bottom, 40px);
+  timeline-scope: --pdp-actions;
+}
+
+/* Keyboard focus moves scroll the page at once here: with base.css's smooth scroll a Tabbed-to control
+   travelled for a few hundred ms (under the phone buy bar / sticky header, or still off-screen) before
+   settling. Pointer-driven anchor scrolls stay smooth. */
+html:has(main :focus-visible) {
+  scroll-behavior: auto;
+}
+
+.main-product__breadcrumbs {
+  margin-block-end: var(--space-sm);
+}
+
+/* Phones: one line (the current title is ellipsed) and 44px hit areas without a taller row. */
+@media (max-width: 767px) {
+  .main-product__breadcrumbs .breadcrumbs__list {
+    flex-wrap: nowrap;
+  }
+
+  .main-product__breadcrumbs .breadcrumbs__item {
+    flex: none;
+  }
+
+  .main-product__breadcrumbs .breadcrumbs__item:last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .main-product__breadcrumbs .breadcrumbs__current {
+    display: block;
+    max-width: 100%;
+  }
+
+  .main-product__breadcrumbs .breadcrumbs__link {
+    display: inline-block;
+    margin-block: -0.875rem;
+    padding-block: 0.875rem;
+  }
+
+}
+
+/* ---------- Grid: head (H1) · media · info · details ---------- */
+.product {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.product__head {
+  margin-block-end: var(--space-sm);
+}
+
+.product__title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.product__media {
+  min-width: 0;
+  margin-block-end: var(--space-md);
+}
+
+.product__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.product__details {
+  min-width: 0;
+  margin-block-start: var(--space-xl);
+}
+
+@media (min-width: 768px) {
+  .main-product {
+    padding-block-start: var(--pdp-pad-top, 28px);
+  }
+
+  .main-product__breadcrumbs {
+    margin-block-end: var(--space-xs);
+  }
+
+  .product {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "media head"
+      "media info"
+      "details details";
+    column-gap: 1.25rem;
+  }
+
+  .product__head {
+    grid-area: head;
+    margin-block-end: 0.375rem;
+  }
+
+  .product__media {
+    grid-area: media;
+    margin-block-end: 0;
+  }
+
+  .product__info {
+    grid-area: info;
+  }
+
+  .product__details {
+    grid-area: details;
+    margin-block-start: 3rem;
+  }
+
+  .product__title {
+    font-size: 1.375rem;
+    line-height: 1.15;
+    text-align: start;
+  }
+
+  /* Room for the brand logo box (140×50) at the top inline-end corner. */
+  .main-product--brand .product__title,
+  .main-product--brand .product-block--excerpt {
+    padding-inline-end: 9.5rem;
+  }
+}
+
+/* ---------- Brand logo ---------- */
+.product__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: var(--tap-target);
+  margin: 0 auto var(--space-sm);
+}
+
+.product__brand-img {
+  width: auto;
+  max-width: 8.75rem;
+  height: auto;
+  max-height: 3.125rem;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .product__brand {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    justify-content: flex-end;
+    width: 8.75rem;
+    min-height: 3.125rem;
+    margin: 0;
+  }
+}
+
+/* ---------- Summary: short description + מק"ט, closed by the grey rule ---------- */
+.product__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin-block-end: 0.625rem;
+  padding-block-end: 0.625rem;
+  border-block-end: 1px solid var(--color-border-strong);
+}
+
+.product-block--excerpt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.product__excerpt {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: 1.375;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--excerpt-lines, 2);
+}
+
+.product__read-more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding-inline-start: 0.5rem;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-ink) 40%, transparent);
+}
+
+.product__read-more:hover {
+  color: var(--color-brand-text);
+  text-decoration-color: currentColor;
+}
+
+.product__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 var(--space-md);
+}
+
+.product__sku {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: 2.0625rem;
+}
+
+.product__sku-label {
+  margin-inline-end: 0.25em;
+}
+
+.product__specs-link {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: 0.875rem;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  line-height: 2.0625rem;
+  text-decoration: underline;
+}
+
+.product__specs-link:hover {
+  color: var(--color-brand-text);
+}
+
+@media (max-width: 767px) {
+  .product__read-more,
+  .product__specs-link {
+    min-height: var(--tap-target);
+  }
+}
+
+/* ---------- Buy column + trust box ---------- */
+.product__panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+}
+
+@media (min-width: 992px) {
+  .product__panels--aside {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    column-gap: 1.25rem;
+  }
+}
+
+.product__buy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.product__aside {
+  min-width: 0;
+}
+
+.product-block--text {
+  font-size: var(--text-md);
+}
+
+/* ---------- Price box ---------- */
+.product__price .price--product {
+  gap: 0.125rem;
+}
+
+.product__price .price--product .price__label {
+  color: var(--color-text);
+  font-size: var(--text-body);
+  font-weight: 400;
+}
+
+.product__price .price--product .price__amount {
+  --price-amount-size: 1.5625rem;
+  line-height: 1.25;
+}
+
+.product__price .price--product .price__note {
+  color: var(--color-ink);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+/* Sold out is already said by the button, the stock line and the photo badge. */
+.product__price .price--product .price__sold-out {
+  display: none;
+}
+
+/* ---------- Buttons row (snippets/buy-buttons) ---------- */
+.product-buy {
+  padding-block-end: 0.625rem;
+  border-block-end: 1px solid var(--color-border-strong);
+}
+
+.product-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  view-timeline-name: --pdp-actions;
+}
+
+.product-form .product-form__quantity {
+  flex: 0 0 auto;
+  min-height: 3rem;
+}
+
+.product-form .product-form__button {
+  flex: 1 1 8rem;
+  min-width: 0;
+  min-height: 3rem;
+  padding-inline: var(--space-sm);
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+
+/* Phones: stepper + "שריון באילת" on the first row, "הוסף לעגלה" across the second. */
+.product-form .product-form__button--cart {
+  flex-basis: 100%;
+}
+
+.product-form .product-form__button--sold-out {
+  --button-bg: var(--color-surface-alt);
+  --button-text: var(--color-text);
+  --button-border: var(--color-border-strong);
+  flex-basis: 100%;
+  opacity: 1;
+}
+
+.product-form__actions--sold-out {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.product-form__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: var(--tap-target);
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--color-whatsapp);
+  border-radius: var(--radius-button);
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.product-form__whatsapp .icon {
+  color: var(--color-whatsapp);
+}
+
+.product-form__whatsapp:hover {
+  background-color: color-mix(in srgb, var(--color-whatsapp) 8%, var(--color-background));
+}
+
+.product-form__error {
+  margin-block-start: var(--space-xs);
+}
+
+.product-form__noscript {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin-block-end: var(--space-sm);
+}
+
+@media (min-width: 768px) {
+  .product-form .product-form__quantity {
+    min-height: 3.25rem;
+  }
+
+  .product-form .product-form__quantity .quantity__button {
+    width: 2.25rem;
+  }
+
+  .product-form .product-form__quantity .quantity__input {
+    width: 2.5rem;
+  }
+
+  .product-form .product-form__button {
+    min-height: 3.25rem;
+  }
+
+  .product-form .product-form__button--cart {
+    flex-basis: 8rem;
+  }
+}
+
+/* 1200+: the old one-row purchase box — price, then quantity and both buttons, 52px tall, closed by one
+   1px rule (the old row: price · "קנה עכשיו" · "הוסף לעגלה" · qty). The price keeps its label and puts
+   the TAX FREE chip on the label line; the stepper becomes a compact value + stacked −/+ (28×26 targets). */
+@media (min-width: 1200px) {
+  .product__buy {
+    flex-flow: row wrap;
+    column-gap: 0;
+  }
+
+  .product__buy > * {
+    flex: 1 1 100%;
+  }
+
+  .product__buy > .product-block--price:has(+ .product-block--buy) {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    max-width: 10rem;
+    padding-inline-end: 0.625rem;
+  }
+
+  .product__buy > .product-block--price + .product-block--buy {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .product__buy > .product-block--price:has(+ .product-block--buy),
+  .product__buy > .product-block--price + .product-block--buy {
+    padding-block-end: 0.625rem;
+    border-block-end: 1px solid var(--color-border-strong);
+  }
+
+  .product-block--price + .product-block--buy .product-buy {
+    padding-block-end: 0;
+    border-block-end: 0;
+  }
+
+  .product-block--price:has(+ .product-block--buy) .price__main {
+    align-items: center;
+  }
+
+  .product-block--price:has(+ .product-block--buy) .price__label {
+    flex-basis: auto;
+    order: 1;
+  }
+
+  .product-block--price:has(+ .product-block--buy) .price__tax-free {
+    order: 2;
+  }
+
+  .product-block--price:has(+ .product-block--buy) .price__amount {
+    flex-basis: 100%;
+    order: 3;
+  }
+
+  .product-block--price + .product-block--buy .product-form__actions:not(.product-form__actions--sold-out) {
+    flex-wrap: nowrap;
+    gap: 0.375rem;
+  }
+
+  .product-block--price + .product-block--buy .product-form__button {
+    flex: 1 1 0;
+    padding-inline: 0.25rem;
+    font-size: var(--text-lg);
+  }
+
+  .product-block--price + .product-block--buy .product-form__quantity {
+    display: grid;
+    grid-template-columns: 2.25rem 1.75rem;
+    grid-template-rows: 1fr 1fr;
+    flex: none;
+  }
+
+  .product-block--price + .product-block--buy .product-form__quantity .quantity__input {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: auto;
+  }
+
+  .product-block--price + .product-block--buy .product-form__quantity .quantity__button {
+    grid-column: 2;
+    width: auto;
+    min-height: 1.5rem;
+    border-inline-start: 1px solid var(--color-border-strong);
+  }
+
+  .product-block--price + .product-block--buy .product-form__quantity .quantity__button[name="plus"] {
+    grid-row: 1;
+  }
+
+  .product-block--price + .product-block--buy .product-form__quantity .quantity__button[name="minus"] {
+    grid-row: 2;
+    border-block-start: 1px solid var(--color-border-strong);
+  }
+}
+
+/* ---------- Wishlist ---------- */
+.product-wishlist {
+  display: inline-flex;
+}
+
+html.no-js .product-wishlist {
+  display: none;
+}
+
+.product-wishlist__button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--tap-target);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  cursor: pointer;
+}
+
+.product-wishlist__button:hover .product-wishlist__label {
+  text-decoration: underline;
+}
+
+.product-wishlist__icons {
+  display: inline-grid;
+  color: var(--color-ink);
+}
+
+.product-wishlist__icon {
+  grid-area: 1 / 1;
+}
+
+.product-wishlist__icon--on,
+.product-wishlist__button[aria-pressed="true"] .product-wishlist__icon--off {
+  visibility: hidden;
+}
+
+.product-wishlist__button[aria-pressed="true"] .product-wishlist__icon--on {
+  visibility: visible;
+  color: var(--color-brand);
+}
+
+/* ---------- Info lines (snippets/product-trust, part 'lines') ---------- */
+.product-lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  color: var(--color-text);
+  font-size: var(--text-body);
+  line-height: 1.25;
+}
+
+.product-lines__stock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.product-lines__dot {
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background-color: var(--color-brand);
+}
+
+.product-lines__stock--low .product-lines__dot {
+  background-color: var(--color-badge-low-bg);
+}
+
+.product-lines__stock--preorder .product-lines__dot {
+  background-color: var(--color-muted);
+}
+
+.product-lines__stock--out {
+  color: var(--color-error);
+}
+
+.product-lines__stock--out .product-lines__dot {
+  background-color: var(--color-error);
+}
+
+.product-lines__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.product-lines__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.product-lines__icon {
+  flex: none;
+  color: var(--color-brand-text);
+}
+
+.product-lines__text {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.3em;
+  min-width: 0;
+}
+
+.product-lines__label {
+  font-weight: 700;
+}
+
+.product-lines__note {
+  flex-basis: 100%;
+  margin-block-start: 0.125rem;
+  color: var(--color-muted);
+  font-size: var(--text-md);
+}
+
+/* ---------- "למה לקוחות קונים אצלנו" (part 'box') ---------- */
+.product-trust {
+  padding-block-end: 0.625rem;
+}
+
+.product-trust__heading {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.product-trust__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.product-trust__item {
+  position: relative;
+  padding-inline-start: 1rem;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  line-height: 1.3;
+}
+
+/* The measured solid ◂ caret, pointing toward the text, in brand green. */
+.product-trust__item::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.125rem;
+  top: 0.3em;
+  border-block: 0.3125rem solid transparent;
+  border-inline-start: 0.375rem solid var(--color-brand);
+}
+
+.product-trust__media {
+  margin-block-start: 0.9375rem;
+}
+
+.product-trust__img {
+  width: 100%;
+  max-width: 21.875rem;
+  height: auto;
+  margin-inline: auto;
+}
+
+.product-trust__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--tap-target);
+  margin-block-start: var(--space-2xs);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.product-trust__whatsapp:hover {
+  color: var(--color-brand-text);
+}
+
+.product-trust__whatsapp-icon {
+  color: var(--color-whatsapp);
+}
+
+/* ---------- "מידע נוסף": accordion by default ---------- */
+.product-details {
+  border-block-start: 1px solid var(--color-border-strong);
+}
+
+.product-details__item {
+  border-block-end: 1px solid var(--color-border-strong);
+}
+
+.product-details__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 3rem;
+  padding-block: var(--space-xs);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  list-style: none;
+  cursor: pointer;
+}
+
+.product-details__summary::-webkit-details-marker {
+  display: none;
+}
+
+.product-details__summary:hover .product-details__title {
+  text-decoration: underline;
+}
+
+.product-details__summary:focus-visible {
+  outline-color: var(--color-ink);
+  outline-offset: -2px;
+}
+
+.product-details__icon {
+  display: inline-grid;
+  flex: none;
+}
+
+.product-details__icon .icon {
+  grid-area: 1 / 1;
+}
+
+.product-details__icon-minus,
+.product-details__item[open] > .product-details__summary .product-details__icon-plus {
+  visibility: hidden;
+}
+
+.product-details__item[open] > .product-details__summary .product-details__icon-minus {
+  visibility: visible;
+}
+
+.product-details__panel {
+  padding-block: var(--space-xs) var(--space-lg);
+  color: var(--color-text);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+}
+
+.product-details__panel.rte :is(h1, h2) {
+  font-size: var(--text-3xl);
+  font-weight: 500;
+}
+
+.product-details__panel.rte h3 {
+  font-size: var(--text-xl);
+}
+
+@media (min-width: 992px) {
+  .product-details__panel.rte :is(h1, h2) {
+    font-size: 2rem;
+  }
+}
+
+/* Tabs from 768px where <details> can be laid out (::details-content): summaries become the
+   tab bar, the open panel spans the row below; a click on the open tab does not close it. */
+@media (min-width: 768px) {
+  @supports selector(::details-content) {
+    .product-details {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: 0.625rem;
+      border: 0;
+    }
+
+    .product-details__item {
+      display: contents;
+    }
+
+    /* Tabs on the palette's light; the open one brand green with navy text (5.8:1). */
+    .product-details__summary {
+      order: 0;
+      justify-content: center;
+      min-height: 2.625rem;
+      margin-block-start: 0.3125rem;
+      padding: 0 1.875rem;
+      border-radius: 0;
+      background-color: var(--color-surface);
+    }
+
+    .product-details__summary:hover {
+      background-color: var(--color-hover-bg);
+    }
+
+    .product-details__item[open] > .product-details__summary {
+      background-color: var(--color-button-accent-bg);
+      color: var(--color-button-accent-text);
+      pointer-events: none;
+    }
+
+    .product-details__icon {
+      display: none;
+    }
+
+    .product-details__item::details-content {
+      order: 1;
+      flex-basis: 100%;
+    }
+
+    .product-details__panel {
+      padding-block: var(--space-md) var(--space-lg);
+    }
+  }
+}
+
+/* ---------- Specs table (snippets/product-specs) ---------- */
+.product-specs {
+  color: var(--color-text);
+  font-size: var(--text-md);
+}
+
+.product-specs__group {
+  margin-block-end: var(--space-md);
+  break-inside: avoid;
+}
+
+.product-specs__title {
+  margin: 0;
+  padding-inline: var(--space-sm);
+  background-color: var(--color-surface-alt);
+  color: var(--color-ink);
+  font-size: 1.0625rem;
+  font-weight: 900;
+  line-height: 2.5rem;
+}
+
+.product-specs__list {
+  margin: 0;
+}
+
+.product-specs__row {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+  gap: var(--space-sm);
+  min-height: 2.5rem;
+  padding: 0.5625rem var(--space-sm);
+  border-block-start: 1px solid var(--color-border-strong);
+  line-height: var(--leading-snug);
+}
+
+.product-specs__row:first-child {
+  border-block-start: 0;
+}
+
+.product-specs__label {
+  font-weight: 700;
+}
+
+.product-specs__value {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 992px) {
+  .product-specs {
+    column-count: 2;
+    column-gap: 2.5rem;
+    column-rule: 1px solid var(--color-border-strong);
+  }
+}
+
+/* ---------- Phones: fixed buy bar (snippets/buy-buttons, part 'sticky') ---------- */
+.product-sticky,
+.product-sticky__error {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .product-sticky:not([hidden]) {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: var(--z-sticky);
+    display: block;
+    padding: var(--space-xs) var(--page-gutter) calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
+    border-block-start: 1px solid var(--color-border-strong);
+    background-color: var(--color-surface);
+  }
+
+  .product-sticky__inner {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .product-sticky .product-sticky__button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: var(--tap-target);
+    padding-inline: var(--space-xs);
+    font-size: var(--text-lg);
+    font-weight: 700;
+  }
+
+  /* After a failed add from the bar: point to the message beside the in-page buttons. */
+  .main-product:has(.product-form__error:not([hidden])) .product-sticky__error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    min-height: 1.5rem;
+    margin-block-start: var(--space-2xs);
+    color: var(--color-error);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  /* Keep the page end and the floating buttons clear of the bar. */
+  body:has(.product-sticky:not([hidden])) {
+    --floating-offset-bottom: 4.25rem;
+    padding-block-end: 4.25rem;
+  }
+
+  @supports (animation-timeline: view()) and (timeline-scope: --pdp-actions) {
+    .product-sticky:not([hidden]) {
+      animation: product-sticky-reveal linear both;
+      animation-timeline: --pdp-actions;
+      animation-range: entry 0% exit 100%;
+    }
+
+    /* Reduced motion: the bar appears and disappears without sliding. */
+    html.a11y-no-motion .product-sticky:not([hidden]) {
+      animation-name: product-sticky-toggle;
+    }
+  }
+
+  /* Focus never lands under the bar (WCAG 2.2 2.4.11, technique C43): the page's optimal viewing region
+     ends 8px above it, so focus moves scroll a control clear of it. The bar's view timeline uses this inset
+     too (view-timeline-inset: auto), so it slides away once the in-page buttons rise above it, not while
+     they are still behind it. */
+  html:has(.product-sticky:not([hidden])) {
+    scroll-padding-block-end: calc(var(--tap-target) + 3 * var(--space-xs) + 1px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* After a failed add the bar also shows its error line. */
+  html:has(.product-sticky:not([hidden])):has(.product-form__error:not([hidden])) {
+    scroll-padding-block-end: calc(var(--tap-target) + 3 * var(--space-xs) + 1.5rem + var(--space-2xs) + 1px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* While keyboard focus is in the page content the bar steps aside: the in-page buttons are the keyboard
+     path, and nothing focused can sit under it. Fixed + the body padding stays → no layout shift. */
+  body:has(main :focus-visible:not(.product-sticky *)) .product-sticky:not([hidden]) {
+    animation: none;
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  @supports (animation-timeline: view()) and (timeline-scope: --pdp-actions) {
+    .product-sticky:not([hidden]) {
+      animation-name: product-sticky-toggle;
+    }
+  }
+}
+
+@keyframes product-sticky-toggle {
+  entry 0% {
+    visibility: visible;
+  }
+
+  entry 100% {
+    visibility: hidden;
+  }
+
+  exit 0% {
+    visibility: hidden;
+  }
+
+  exit 100% {
+    visibility: visible;
+  }
+}
+
+@keyframes product-sticky-reveal {
+  entry 0% {
+    visibility: visible;
+    transform: none;
+  }
+
+  entry 100% {
+    visibility: hidden;
+    transform: translateY(110%);
+  }
+
+  exit 0% {
+    visibility: hidden;
+    transform: translateY(110%);
+  }
+
+  exit 100% {
+    visibility: visible;
+    transform: none;
+  }
+}
+
+@media print {
+  .product-sticky,
+  .product-media__thumbs,
+  .product-form,
+  .product-wishlist {
+    display: none;
+  }
+}

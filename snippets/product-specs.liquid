@@ -1,0 +1,125 @@
+{% doc %}
+  Technical details table of the product page ("פרטים טכניים"), built only from data:
+  - Key facts group: `custom.spec_summary`, warranty (`custom.warranty_months` +
+    `custom.warranty_channel`, or "יבואן רשמי" from `custom.warranty_official`),
+    `custom.sim_connectivity`, `custom.energy_rating`.
+  - `custom.specs` (JSON): grouped `[{"group": "מסך", "items": [{"label": …, "value": …}]}]`
+    and/or flat `[{"label": …, "value": …}]` (flat rows form one untitled group). Rows without
+    a label or a value are skipped; line breaks inside values are kept.
+  Prints nothing when there is no data, so the caller can capture the output and drop the tab.
+  Groups flow into two columns from 992px (styles in assets/section-main-product.css).
+
+  @param {product} product - The product.
+
+  @example
+  {% render 'product-specs', product: product %}
+{% enddoc %}
+{%- liquid
+  assign ps_mf = product.metafields.custom
+  assign ps_specs = ps_mf.specs.value
+  assign ps_summary = ps_mf.spec_summary.value | strip
+  assign ps_months = ps_mf.warranty_months.value
+  assign ps_channel = ps_mf.warranty_channel.value | strip
+  assign ps_official = ps_mf.warranty_official.value
+  assign ps_sim = ps_mf.sim_connectivity.value | strip
+  assign ps_energy = ps_mf.energy_rating.value | strip
+
+  assign ps_warranty = ''
+  if ps_months != blank
+    assign ps_warranty = 'products.product.warranty_months' | t: count: ps_months
+  endif
+  if ps_channel != blank
+    if ps_warranty != blank
+      assign ps_warranty = ps_warranty | append: ' · '
+    endif
+    assign ps_warranty = ps_warranty | append: ps_channel
+  elsif ps_official == true
+    if ps_warranty != blank
+      assign ps_warranty = ps_warranty | append: ' · '
+    endif
+    assign ps_official_text = 'products.product.warranty_official' | t
+    assign ps_warranty = ps_warranty | append: ps_official_text
+  endif
+-%}
+
+{%- capture ps_key_rows -%}
+  {%- if ps_summary != blank -%}
+    <div class="product-specs__row">
+      <dt class="product-specs__label">{{ 'products.product.specs.summary' | t }}</dt>
+      <dd class="product-specs__value">{{ ps_summary | escape }}</dd>
+    </div>
+  {%- endif -%}
+  {%- if ps_warranty != blank -%}
+    <div class="product-specs__row">
+      <dt class="product-specs__label">{{ 'products.product.specs.warranty' | t }}</dt>
+      <dd class="product-specs__value">{{ ps_warranty | escape }}</dd>
+    </div>
+  {%- endif -%}
+  {%- if ps_sim != blank -%}
+    <div class="product-specs__row">
+      <dt class="product-specs__label">{{ 'products.product.specs.sim' | t }}</dt>
+      <dd class="product-specs__value">{{ ps_sim | escape }}</dd>
+    </div>
+  {%- endif -%}
+  {%- if ps_energy != blank -%}
+    <div class="product-specs__row">
+      <dt class="product-specs__label">{{ 'products.product.specs.energy' | t }}</dt>
+      <dd class="product-specs__value">{{ ps_energy | escape }}</dd>
+    </div>
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- capture ps_groups -%}
+  {%- if ps_specs != blank and ps_specs.size > 0 -%}
+    {%- capture ps_flat_rows -%}
+      {%- for ps_entry in ps_specs -%}
+        {%- if ps_entry.items == blank and ps_entry.label != blank and ps_entry.value != blank -%}
+          <div class="product-specs__row">
+            <dt class="product-specs__label">{{ ps_entry.label | escape }}</dt>
+            <dd class="product-specs__value">{{ ps_entry.value | escape | newline_to_br }}</dd>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- if ps_flat_rows != blank -%}
+      <div class="product-specs__group">
+        <dl class="product-specs__list">{{ ps_flat_rows }}</dl>
+      </div>
+    {%- endif -%}
+
+    {%- for ps_entry in ps_specs -%}
+      {%- if ps_entry.items != blank -%}
+        {%- capture ps_group_rows -%}
+          {%- for ps_row in ps_entry.items -%}
+            {%- if ps_row.label != blank and ps_row.value != blank -%}
+              <div class="product-specs__row">
+                <dt class="product-specs__label">{{ ps_row.label | escape }}</dt>
+                <dd class="product-specs__value">{{ ps_row.value | escape | newline_to_br }}</dd>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endcapture -%}
+        {%- if ps_group_rows != blank -%}
+          <div class="product-specs__group">
+            {%- if ps_entry.group != blank -%}
+              <h3 class="product-specs__title">{{ ps_entry.group | escape }}</h3>
+            {%- endif -%}
+            <dl class="product-specs__list">{{ ps_group_rows }}</dl>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- if ps_key_rows != blank or ps_groups != blank -%}
+  <div class="product-specs">
+    {%- if ps_key_rows != blank -%}
+      <div class="product-specs__group product-specs__group--key">
+        <h3 class="product-specs__title">{{ 'products.product.specs.key_facts' | t }}</h3>
+        <dl class="product-specs__list">{{ ps_key_rows }}</dl>
+      </div>
+    {%- endif -%}
+    {{- ps_groups -}}
+  </div>
+{%- endif -%}

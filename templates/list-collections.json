@@ -1,0 +1,21 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-list-collections",
+      "settings": {
+        "title": "כל המחלקות",
+        "show_breadcrumbs": true,
+        "source": "all",
+        "sort": "products_high",
+        "exclude": "frontpage",
+        "hide_empty": true,
+        "show_count": true,
+        "columns_desktop": "5",
+        "columns_mobile": "2",
+        "padding_top": 30,
+        "padding_bottom": 40
+      }
+    }
+  },
+  "order": ["main"]
+}

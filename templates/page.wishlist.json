@@ -1,0 +1,25 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "show_breadcrumbs": true,
+        "show_title": true,
+        "content_width": "wide"
+      }
+    },
+    "wishlist": {
+      "type": "wishlist-page",
+      "settings": {
+        "heading": "",
+        "columns_desktop": 4,
+        "columns_mobile": "2",
+        "empty_label": "לכל המוצרים"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "wishlist"
+  ]
+}

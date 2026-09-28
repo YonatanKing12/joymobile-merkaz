@@ -1,0 +1,123 @@
+/* ==========================================================================
+   section-faq.css — FAQ accordion (sections/faq.liquid).
+   Uses the site's own accordion look (the Konimbo mobile menu rows): 1px grey
+   rules, navy 16px text, green chevrons, the mint wash on the open row (as the menu drawer).
+   Rows are at least 56px tall (touch), the answer is rich text.
+   ========================================================================== */
+
+.faq {
+  padding-block: var(--space-lg) var(--section-space);
+}
+
+/* Long unbroken words wrap instead of widening boxes past the screen. */
+.faq :is(h2, p, a, span, li) {
+  overflow-wrap: anywhere;
+}
+
+.faq__inner {
+  max-width: 50rem;
+}
+
+.faq__heading {
+  margin-block-end: var(--space-md);
+  font-size: var(--text-3xl);
+}
+
+.faq__intro {
+  margin-block-end: var(--space-md);
+  color: var(--color-text);
+  line-height: var(--leading-normal);
+}
+
+@media (min-width: 768px) {
+  .faq__heading {
+    font-size: var(--text-4xl);
+  }
+}
+
+.faq__list {
+  border-block-start: 1px solid var(--color-border-strong);
+}
+
+.faq-item {
+  border-block-end: 1px solid var(--color-border-strong);
+}
+
+.faq-item__question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: 3.5rem;
+  padding: var(--space-sm) var(--space-xs);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  list-style: none;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.faq-item__question::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item__question:hover,
+.faq-item[open] > .faq-item__question {
+  background-color: var(--color-hover-bg);
+}
+
+.faq-item__question:focus-visible {
+  outline-offset: -2px;
+}
+
+.faq-item__icon {
+  color: var(--color-brand);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.faq-item[open] .faq-item__icon {
+  transform: rotate(180deg);
+}
+
+.faq-item__answer {
+  padding: var(--space-sm) var(--space-xs) var(--space-md);
+  color: var(--color-text);
+  line-height: var(--leading-loose);
+}
+
+@media (min-width: 768px) {
+  .faq-item__question {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ---------- Contact call-to-action ---------- */
+.faq__cta {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-xs);
+  margin-block-start: var(--space-xl);
+  padding: var(--space-lg);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+}
+
+.faq__cta-heading {
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.faq__cta-text {
+  color: var(--color-text);
+}
+
+.faq__cta-text a {
+  color: var(--color-ink);
+}
+
+.faq__cta-button {
+  margin-block-start: var(--space-xs);
+}

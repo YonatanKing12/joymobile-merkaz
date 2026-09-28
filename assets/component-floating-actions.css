@@ -1,0 +1,133 @@
+/* Finishing styles for snippets/floating-actions (positioning lives in the snippet). Linked by the
+   accessibility-panel section, which renders on every page. Measured: konimbo-home-chrome.md §2.11.
+   The vertical position is left to the snippet, whose stack honours --floating-offset-bottom (the
+   product page's phone buy bar sets it); the a11y trigger honours it too (component-a11y-panel.css).
+   Exception: the stack moves up above Shopify's hCaptcha badge (end of this file). */
+
+/* JOY Mobile colours: the wishlist tab is white with a mint count bubble (navy digits, as the header cart);
+   back-to-top is navy; both turn mint with navy under the pointer. Their focus ring is two-tone (mint inside,
+   navy outside), since they float over white pages and over the navy footer alike. */
+
+/* Back-to-top flush with the right edge, rounded toward the page, as the old #upBtn. */
+.floating-actions__stack {
+  inset-inline-start: 0;
+}
+
+.floating-actions .floating-actions__top {
+  background: var(--color-ink);
+  color: var(--color-background);
+}
+
+.floating-actions .floating-actions__top:hover {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.floating-actions .floating-actions__wishlist {
+  border-color: var(--color-border-control);
+}
+
+.floating-actions .floating-actions__wishlist:hover {
+  background: var(--color-hover-bg);
+  color: var(--color-brand-text);
+}
+
+.floating-actions .floating-actions__count {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 700;
+}
+
+.floating-actions__top {
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border-radius: 0;
+  border-start-end-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+}
+
+@media (min-width: 768px) {
+  .floating-actions__top {
+    width: 3.125rem;
+    height: 3.375rem;
+  }
+}
+
+.floating-actions__top:focus-visible,
+.floating-actions__wishlist:focus-visible,
+.floating-actions__whatsapp:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+.floating-actions__count {
+  min-width: 0.875rem;
+  padding-inline: 0.125rem;
+}
+
+/* No wishlist shortcut on the wishlist page itself. */
+.template-page--wishlist .floating-actions__wishlist {
+  display: none;
+}
+
+html.scroll-locked .floating-actions__whatsapp {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-actions__whatsapp:hover {
+    transform: none;
+  }
+}
+
+.floating-actions__whatsapp {
+  margin-inline-start: var(--space-sm);
+}
+
+/* Shopify's hCaptcha badge. Shopify appends #shop-hcaptcha-badge-container to <body> when a visitor starts
+   using a protected form: the contact form, or the VIP signup that sits above the footer on every page. The
+   badge is fixed 20px above the bottom at the right edge (our inline-start corner, where the back-to-top is).
+   It is 55px tall and only its 56px logo end is on screen until hovered. hCaptcha needs it visible, so the
+   theme makes room for it instead of hiding it:
+   - Direction: the badge is built left-to-right. In our RTL page its flex row flipped, so the visible end
+     showed a slice of the text panel instead of the logo.
+   - Keyboard: focusing its Privacy/Terms links slides it in, the same way hover does, with a visible ring
+     (Shopify's `all: unset` removes the ring).
+   - Offsets: it moves up with bottom-sticky UI (--floating-offset-bottom), and the back-to-top stack moves
+     up above it.
+   - Focus: a focused control is scrolled clear of the badge and the stack. This needs scroll-padding on the
+     root: Chromium does not scroll an on-screen control that sits under the badge when only the control has
+     a scroll-margin.
+   Shopify's own rules have the same specificity and come later (adopted stylesheet), so we only add
+   properties they don't set, or use a more specific selector. */
+#shop-hcaptcha-badge-container {
+  direction: ltr;
+}
+
+body > #shop-hcaptcha-badge-container {
+  bottom: calc(20px + var(--floating-offset-bottom, 0px));
+}
+
+#shop-hcaptcha-badge-container:focus-within {
+  transform: translateX(calc(-100% + 56px));
+}
+
+#shop-hcaptcha-badge-container a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+body:has(> #shop-hcaptcha-badge-container) .floating-actions__stack {
+  bottom: calc(20px + 55px + var(--space-xs) + var(--floating-offset-bottom, 0px) + env(safe-area-inset-bottom, 0px));
+}
+
+:root:has(> body > #shop-hcaptcha-badge-container) {
+  scroll-padding-block-end: calc(20px + 55px + 2 * var(--space-xs) + var(--tap-target));
+}
+
+@media (min-width: 768px) {
+  :root:has(> body > #shop-hcaptcha-badge-container) {
+    scroll-padding-block-end: calc(20px + 55px + 2 * var(--space-xs) + 3.375rem);
+  }
+}

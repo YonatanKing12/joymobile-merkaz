@@ -1,0 +1,16 @@
+# Keep the primary branch limited to the deployable Shopify theme.
+node_modules/
+.DS_Store
+*.log
+*.zip
+
+# Local tooling and generated data
+.claude/
+data/
+demo-assets/
+docs/
+legacy-theme/
+scripts/
+theme-package/
+__pycache__/
+*.pyc

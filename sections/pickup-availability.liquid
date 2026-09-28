@@ -1,0 +1,23 @@
+{%- comment -%}
+  Pickup availability for one variant, requested by <pickup-availability> (@theme/product) as
+  /variants/<id>/?section_id=pickup-availability after every variant change (platform-notes §11).
+  In that request the variant is `product_variant`; the `product` object is not available.
+  Prints each location with local pickup (name, status, Shopify's pickup-time text) and prints
+  nothing when the variant can't be picked up anywhere — the element then hides itself.
+  The markup is snippets/product-trust (part 'pickup'), which main-product also prints into the
+  element on page load, so the first fetch changes nothing on screen. Styles: component-pickup.css,
+  linked by main-product. Not addable in the theme editor (no presets).
+{%- endcomment -%}
+{%- # theme-check-disable UndefinedObject -%}
+{%- if product_variant != blank -%}
+  {%- render 'product-trust', part: 'pickup', variant: product_variant -%}
+{%- endif -%}
+{%- # theme-check-enable UndefinedObject -%}
+
+{% schema %}
+{
+  "name": "זמינות לאיסוף",
+  "tag": "div",
+  "class": "pickup-availability-section"
+}
+{% endschema %}

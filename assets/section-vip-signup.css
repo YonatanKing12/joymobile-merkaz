@@ -1,0 +1,243 @@
+/* ==========================================================================
+   VIP signup — sections/vip-signup.liquid
+   Measured @1440: band padding 80px 20px (25px 15px below 1200), background image
+   cover; form max-width 1200; title 60px/72px 700 (+20px above), subtitle
+   21px/25.2px (+10px below); one row of four 284×50 cells, 16px apart (name ·
+   phone · email · button; without phone the email cell spans two columns),
+   fill #fff@50%, no border, 15px/500 black text and placeholder; button black,
+   19px/700 white, hover green; consent 16px/24px, red "*", 10px gap, 15px above.
+   Phones: title 28px/33.6px, subtitle 18px, text colour from the mobile setting,
+   fields stacked 100% × 50px with 15px between them.
+   JOY Mobile colours: band and text from the section settings (default the mint wash #e0fff2 with navy);
+   white fields with a ≥ 3:1 outline (they must read on any band colour or photo); navy button that turns
+   mint with navy text under the pointer.
+   ========================================================================== */
+
+.vip-signup-wrap {
+  padding-block: var(--vip-pad-top, 20px) var(--vip-pad-bottom, 0px);
+}
+
+.vip-signup {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 25px 15px;
+  background-color: var(--vip-bg, var(--color-surface));
+  color: var(--vip-text-mobile, var(--color-ink));
+}
+
+.vip-signup__media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.vip-signup__media picture {
+  display: contents;
+}
+
+.vip-signup__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vip-signup__inner {
+  max-width: 75rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.vip-signup__title {
+  color: inherit;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.vip-signup__subtitle {
+  margin-block-end: 10px;
+  font-size: var(--text-xl);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.vip-signup__form {
+  margin: 0;
+}
+
+.vip-signup__fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.vip-signup__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 15px;
+}
+
+.vip-signup__input {
+  display: block;
+  width: 100%;
+  height: 50px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border-control);
+  border-radius: 0;
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-body-family);
+  font-size: max(16px, var(--text-lg)); /* >= 16px: no zoom on focus in iOS */
+  font-weight: 500;
+  text-align: start;
+}
+
+.vip-signup__input::placeholder {
+  color: var(--color-muted);
+  font-weight: 500;
+  opacity: 1;
+}
+
+/* Emails and phone numbers are typed left-to-right, still aligned with the RTL form. */
+.vip-signup__input:is([type="email"], [type="tel"]):not(:placeholder-shown) {
+  direction: ltr;
+  text-align: end;
+}
+
+.vip-signup__input:hover {
+  border-color: var(--color-ink);
+}
+
+.vip-signup__input:focus-visible {
+  border-color: var(--color-ink);
+  outline: 2px solid var(--color-ink);
+  outline-offset: 0;
+}
+
+.vip-signup__input[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 2px var(--color-error);
+}
+
+.vip-signup__submit {
+  height: 50px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--color-button-bg);
+  border-radius: 0;
+  background-color: var(--color-button-bg);
+  color: var(--color-button-text);
+  font-family: var(--font-body-family);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.vip-signup__submit:hover {
+  border-color: var(--color-ink);
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.vip-signup__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 10px 0 3px;
+  padding-block-start: 15px;
+  font-size: var(--text-body);
+  line-height: 24px;
+  text-align: start;
+}
+
+.vip-signup__checkbox {
+  flex-shrink: 0;
+  margin-block-start: 3px;
+}
+
+.vip-signup__consent-label {
+  cursor: pointer;
+}
+
+.vip-signup__consent-label a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.vip-signup__required {
+  color: var(--color-error);
+  font-weight: 700;
+}
+
+.vip-signup__message {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--color-background) 92%, transparent);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 500;
+  text-align: start;
+}
+
+.vip-signup__message--success .icon {
+  color: var(--color-success);
+}
+
+.vip-signup__message--error {
+  color: var(--color-error);
+}
+
+.vip-signup__message ul {
+  margin: var(--space-2xs) 0 0;
+  padding-inline-start: 1.25em;
+}
+
+@media (min-width: 768px) {
+  .vip-signup {
+    color: var(--vip-text, var(--color-ink));
+  }
+
+  .vip-signup__title {
+    margin-block-start: 20px;
+    font-size: 3.75rem;
+    line-height: 1.2;
+  }
+
+  .vip-signup__subtitle {
+    font-size: 1.3125rem;
+  }
+
+  /* 4 × 284 + 3 × 16 = 1184: the old row (4 × 25% of 1200, 8px cell padding). */
+  .vip-signup__fields {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    max-width: 74rem;
+    margin-inline: auto;
+  }
+
+  .vip-signup__fields--no-phone .vip-signup__field--email {
+    grid-column: span 2;
+  }
+
+  .vip-signup__consent {
+    max-width: 74rem;
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 1200px) {
+  .vip-signup {
+    padding: 80px 20px;
+  }
+}

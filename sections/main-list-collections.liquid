@@ -1,0 +1,223 @@
+{%- comment -%}
+  All collections (/collections, "כל המחלקות"): a clean grid of cards — the collection
+  image (the store's square category pictures) or, when a collection has no image, a
+  brand-green panel with its initial — plus the title and the number of products.
+  Source: every collection (sorted by a setting, utility handles excluded) or a
+  hand-picked list. The store has ~100 collections; `collections` returns up to 1,000
+  without pagination, so no paginate tag is needed here.
+  Styles: assets/section-list-collections.css.
+{%- endcomment -%}
+{{ 'section-list-collections.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign lc_title = section.settings.title
+  if lc_title == blank
+    assign lc_title = 'collections.list.title' | t
+  endif
+
+  if section.settings.source == 'selected' and section.settings.collections != blank
+    assign lc_list = section.settings.collections
+  else
+    case section.settings.sort
+      when 'alphabetical'
+        assign lc_list = collections | sort: 'title'
+      when 'products_low'
+        assign lc_list = collections | sort: 'all_products_count'
+      when 'date_reversed'
+        assign lc_list = collections | sort: 'published_at' | reverse
+      else
+        assign lc_list = collections | sort: 'all_products_count' | reverse
+    endcase
+  endif
+
+  assign lc_exclude = section.settings.exclude | remove: ' ' | downcase
+  assign lc_exclude = ',' | append: lc_exclude | append: ','
+  assign lc_count = 0
+-%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --lc-pad-top: {{ section.settings.padding_top }}px;
+    --lc-pad-bottom: {{ section.settings.padding_bottom }}px;
+    --lc-cols-mobile: {{ section.settings.columns_mobile }};
+    --lc-cols-desktop: {{ section.settings.columns_desktop }};
+  }
+{%- endstyle -%}
+
+<div class="list-collections page-width">
+  {%- if section.settings.show_breadcrumbs -%}
+    {%- render 'breadcrumbs', class: 'list-collections__breadcrumbs' -%}
+  {%- endif -%}
+
+  <h1 class="list-collections__title">{{ lc_title | escape }}</h1>
+
+  {%- capture lc_items -%}
+    {%- for lc_collection in lc_list -%}
+      {%- liquid
+        assign lc_token = ',' | append: lc_collection.handle | append: ','
+        if lc_exclude contains lc_token
+          continue
+        endif
+        if section.settings.hide_empty and lc_collection.all_products_count == 0
+          continue
+        endif
+        assign lc_count = lc_count | plus: 1
+        assign lc_loading = 'lazy'
+        if lc_count <= 5
+          assign lc_loading = 'eager'
+        endif
+      -%}
+      <li class="list-collections__item">
+        <a class="collection-card" href="{{ lc_collection.url }}">
+          <span class="collection-card__media">
+            {%- if lc_collection.image != blank -%}
+              {%- render 'image',
+                image: lc_collection.image,
+                widths: '165,250,330,500,660',
+                sizes: '(min-width: 1200px) 220px, (min-width: 768px) 30vw, 46vw',
+                loading: lc_loading,
+                decorative: true,
+                class: 'collection-card__img'
+              -%}
+            {%- else -%}
+              <span class="collection-card__panel" aria-hidden="true">
+                <span class="collection-card__initial">{{ lc_collection.title | strip | slice: 0 }}</span>
+              </span>
+            {%- endif -%}
+          </span>
+          <span class="collection-card__body">
+            <h2 class="collection-card__title">{{ lc_collection.title | escape }}</h2>
+            {%- if section.settings.show_count -%}
+              <span class="collection-card__count">
+                {{- 'collections.list.count' | t: count: lc_collection.all_products_count -}}
+              </span>
+            {%- endif -%}
+          </span>
+        </a>
+      </li>
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  {%- if lc_count > 0 -%}
+    <ul class="list-collections__grid" role="list">
+      {{- lc_items -}}
+    </ul>
+  {%- else -%}
+    <p class="list-collections__empty">{{ 'collections.list.empty' | t }}</p>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "רשימת קטגוריות",
+  "tag": "section",
+  "class": "section-list-collections",
+  "enabled_on": {
+    "templates": ["list-collections"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "כותרת",
+      "default": "כל המחלקות"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "פירורי לחם",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "source",
+      "label": "אילו קטגוריות",
+      "options": [
+        { "value": "all", "label": "כל הקטגוריות" },
+        { "value": "selected", "label": "רשימה נבחרת" }
+      ],
+      "default": "all"
+    },
+    {
+      "type": "collection_list",
+      "id": "collections",
+      "label": "רשימה נבחרת",
+      "info": "בסדר שנבחר. בשימוש כש״אילו קטגוריות״ = רשימה נבחרת.",
+      "limit": 50
+    },
+    {
+      "type": "select",
+      "id": "sort",
+      "label": "סדר (כל הקטגוריות)",
+      "options": [
+        { "value": "products_high", "label": "הכי הרבה מוצרים קודם" },
+        { "value": "products_low", "label": "הכי מעט מוצרים קודם" },
+        { "value": "alphabetical", "label": "לפי שם" },
+        { "value": "date_reversed", "label": "החדשות קודם" }
+      ],
+      "default": "products_high"
+    },
+    {
+      "type": "text",
+      "id": "exclude",
+      "label": "קטגוריות להסתרה",
+      "default": "frontpage",
+      "info": "כתובות (handle) מופרדות בפסיקים, למשל frontpage, promoted."
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_empty",
+      "label": "הסתרת קטגוריות ריקות",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_count",
+      "label": "מספר המוצרים",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "עמודות במחשב",
+      "options": [
+        { "value": "4", "label": "4" },
+        { "value": "5", "label": "5" },
+        { "value": "6", "label": "6" }
+      ],
+      "default": "5"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "עמודות במובייל",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

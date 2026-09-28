@@ -1,0 +1,62 @@
+{% doc %}
+  Responsive image: `image_url` + `image_tag` with srcset, sizes and intrinsic
+  width/height (so the browser reserves space and there is no layout shift).
+
+  Lazy by default. For the LCP image of a page pass `loading: 'eager'`,
+  `fetchpriority: 'high'` and `preload: true` (adds a preload Link header).
+  Widths larger than the original are dropped by Shopify automatically.
+  When `image` is blank a Shopify placeholder illustration is rendered instead,
+  with the same class so the surrounding layout keeps its size.
+
+  Pass an image object: `product.featured_image`, `media.preview_image`,
+  `collection.image`, `article.image`, `block.settings.image`, …
+
+  @param {image} image - The image to render. Blank renders the placeholder.
+  @param {string} [widths] - Comma-separated srcset widths. Default '165,330,535,750,1070,1500'.
+  @param {string} [sizes] - The sizes attribute. Default '100vw'.
+  @param {string} [loading] - 'lazy' (default) or 'eager'.
+  @param {string} [fetchpriority] - 'auto' (default), 'high' or 'low'.
+  @param {boolean} [preload] - Also send a preload Link header (LCP image only).
+  @param {string} [class] - Classes for the <img> (and for the placeholder svg).
+  @param {string} [alt] - Alt text. Default: the image's own alt text.
+  @param {boolean} [decorative] - true renders alt="" (image adds nothing for screen readers).
+  @param {string} [placeholder] - placeholder_svg_tag name when image is blank. Default 'image'.
+
+  @example
+  {% render 'image', image: product.featured_media.preview_image, widths: '165,330,535,750', sizes: '(min-width: 992px) 25vw, 50vw', class: 'card-product__img' %}
+  {% render 'image', image: section.settings.image, loading: 'eager', fetchpriority: 'high', preload: true, sizes: '100vw' %}
+{% enddoc %}
+{%- if image != blank -%}
+  {%- liquid
+    assign img_widths = widths | default: '165,330,535,750,1070,1500'
+    assign img_sizes = sizes | default: '100vw'
+    assign img_loading = loading | default: 'lazy'
+    assign img_priority = fetchpriority | default: 'auto'
+    assign img_alt = alt | default: image.alt | default: ''
+    if decorative
+      assign img_alt = ''
+    endif
+
+    assign img_max = img_widths | split: ',' | last | strip | plus: 0
+    if img_max < 1
+      assign img_max = 1500
+    endif
+    if image.width and image.width < img_max
+      assign img_max = image.width
+    endif
+  -%}
+  {%- if preload -%}
+    {{- image | image_url: width: img_max | image_tag: widths: img_widths, sizes: img_sizes, loading: img_loading, fetchpriority: img_priority, alt: img_alt, class: class, preload: true -}}
+  {%- else -%}
+    {{- image | image_url: width: img_max | image_tag: widths: img_widths, sizes: img_sizes, loading: img_loading, fetchpriority: img_priority, alt: img_alt, class: class -}}
+  {%- endif -%}
+{%- else -%}
+  {%- liquid
+    assign placeholder_name = placeholder | default: 'image'
+    assign placeholder_class = 'placeholder-svg'
+    if class != blank
+      assign placeholder_class = placeholder_class | append: ' ' | append: class
+    endif
+  -%}
+  {{- placeholder_name | placeholder_svg_tag: placeholder_class -}}
+{%- endif -%}

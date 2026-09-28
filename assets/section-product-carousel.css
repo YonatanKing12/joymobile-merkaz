@@ -1,0 +1,161 @@
+/* Product carousel — sections/product-carousel.liquid (5× on the homepage). Track & slides:
+   component-carousel.css (default 1 · 2 · 3 · 4 per view at 768 / 992 / 1200, as measured).
+   Measured: title bar = content width, 20px/24px 500 black centred on #f8f8f8, margin 50px 0 27px
+   (phones 14px/16.8px); cards 275 / 300 / 335 / 320 (1440 / 1024 / 768 / 390), 10px apart (phones:
+   20px side insets). Arrows: 44px buttons in 44px lanes beside the track (old chevrons 22px outside
+   the content edge), ≈12×24 chevrons (2.4px stroke) centred 299px below the card top (old: 15×30 at
+   top 284; the icon never exceeds its 44px button, or it pokes past the viewport edge);
+   phones: over the card insets. Shown only where the cards overflow: --pc-scroll-sm/md/lg/xl
+   (grid | none) from the section. No content-visibility: skipped strips paint blank in full-page
+   captures (QA screenshots) and can flash empty on a fast scroll. */
+
+.product-carousel {
+  --pc-lane: var(--page-gutter, 15px);
+  padding-block: var(--pc-pad-top, 50px) var(--pc-pad-bottom, 0px);
+}
+
+.product-carousel__inner {
+  position: relative;
+  width: 100%;
+  max-width: calc(71.25rem + 2 * var(--pc-lane)); /* 1140px content at >= 1200 */
+  margin-inline: auto;
+  padding-inline: var(--pc-lane);
+}
+
+.product-carousel__title {
+  margin: 0 0 27px;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.product-carousel__notice {
+  margin-block-end: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  background-color: var(--color-surface-alt);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.product-carousel__carousel {
+  --carousel-gap-mobile: 40px;
+  --carousel-gap-desktop: 10px;
+  --carousel-peek-mobile: 20px;
+  --carousel-peek-desktop: 5px;
+}
+
+.product-carousel__slide {
+  position: relative;
+}
+
+.product-carousel__placeholder {
+  display: block;
+  aspect-ratio: 275 / 568;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+}
+
+.product-carousel__placeholder-svg {
+  width: 100%;
+  height: 60%;
+}
+
+/* ---------- Arrows: thin dark chevrons (≈12×24, 2.4px stroke) ---------- */
+.product-carousel__arrow {
+  display: var(--pc-scroll-sm, none);
+  translate: 0 calc(-50% + 15px);
+}
+
+html.no-js .product-carousel__carousel .product-carousel__arrow {
+  display: none;
+}
+
+.product-carousel__arrow .icon {
+  width: var(--tap-target);
+  height: var(--tap-target);
+  stroke-width: 1.3;
+}
+
+/* Phones: chevron centre 7.5px inside the track edge. */
+.product-carousel__arrow.carousel__btn--prev {
+  inset-inline-start: -14.5px;
+}
+
+.product-carousel__arrow.carousel__btn--next {
+  inset-inline-end: -14.5px;
+}
+
+/* ---------- "View all": in the title bar from 992 (hidden below: the old strips had none) ---------- */
+.product-carousel__view-all {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  width: fit-content;
+  min-height: var(--tap-target);
+  margin: var(--space-2xs) auto 0;
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.product-carousel__view-all:hover {
+  color: var(--color-brand-text);
+}
+
+@media (min-width: 768px) {
+  .product-carousel {
+    --pc-lane: var(--tap-target);
+  }
+
+  .product-carousel__title {
+    font-size: var(--text-2xl);
+  }
+
+  .product-carousel__arrow {
+    display: var(--pc-scroll-md, none);
+  }
+
+  .product-carousel__arrow.carousel__btn--prev {
+    inset-inline-start: calc(-1 * var(--pc-lane));
+  }
+
+  .product-carousel__arrow.carousel__btn--next {
+    inset-inline-end: calc(-1 * var(--pc-lane));
+  }
+}
+
+@media (min-width: 992px) {
+  .product-carousel__arrow {
+    display: var(--pc-scroll-lg, none);
+  }
+
+  /* The title stays centred; the link sits at the bar's end (left) side. */
+  .product-carousel__view-all {
+    display: flex;
+    position: absolute;
+    top: 0;
+    inset-inline-end: calc(var(--pc-lane) + var(--space-sm));
+    min-height: 0;
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: 24px;
+  }
+
+  .product-carousel__view-all::before {
+    content: "";
+    position: absolute;
+    inset: -10px -4px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .product-carousel__arrow {
+    display: var(--pc-scroll-xl, none);
+  }
+}

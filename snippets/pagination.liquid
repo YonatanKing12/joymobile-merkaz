@@ -1,0 +1,86 @@
+{% doc %}
+  Page navigation for a `{% paginate %}` block. Plain links, so it works without
+  JavaScript; @theme/facets intercepts them on collection/search pages.
+  In RTL the "previous" link sits on the right (arrow pointing right) and "next"
+  on the left. Renders nothing when there is only one page.
+
+  @param {paginate} paginate - The paginate object from the enclosing {% paginate %} tag.
+  @param {string} [anchor] - Fragment appended to every link, e.g. '#ProductGrid'.
+  @param {string} [class] - Extra classes on the <nav>.
+
+  @example
+  {% paginate collection.products by 24 %}
+    …
+    {% render 'pagination', paginate: paginate, anchor: '#ProductGrid' %}
+  {% endpaginate %}
+{% enddoc %}
+{%- if paginate.pages > 1 -%}
+  {%- assign page_anchor = anchor | default: '' -%}
+  <nav class="pagination{% if class != blank %} {{ class }}{% endif %}" aria-label="{{ 'general.pagination.label' | t }}">
+    <ul class="pagination__list" role="list">
+      {%- if paginate.previous -%}
+        <li class="pagination__item pagination__item--prev">
+          <a class="pagination__link pagination__link--arrow" href="{{ paginate.previous.url }}{{ page_anchor }}" aria-label="{{ 'general.pagination.previous' | t }}">
+            {%- render 'icon', name: 'chevron-right', size: 18 -%}
+          </a>
+        </li>
+      {%- endif -%}
+      {%- for part in paginate.parts -%}
+        <li class="pagination__item">
+          {%- if part.is_link -%}
+            <a class="pagination__link" href="{{ part.url }}{{ page_anchor }}" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">{{ part.title }}</a>
+          {%- elsif part.title == paginate.current_page -%}
+            <span class="pagination__link pagination__link--current" aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">{{ part.title }}</span>
+          {%- else -%}
+            <span class="pagination__gap" aria-hidden="true">{{ part.title }}</span>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+      {%- if paginate.next -%}
+        <li class="pagination__item pagination__item--next">
+          <a class="pagination__link pagination__link--arrow" href="{{ paginate.next.url }}{{ page_anchor }}" aria-label="{{ 'general.pagination.next' | t }}">
+            {%- render 'icon', name: 'chevron-left', size: 18 -%}
+          </a>
+        </li>
+      {%- endif -%}
+    </ul>
+  </nav>
+{%- endif -%}
+
+{% stylesheet %}
+  .pagination__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .pagination__link {
+    display: inline-grid;
+    place-items: center;
+    min-width: var(--tap-target);
+    min-height: var(--tap-target);
+    padding: 0 var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-button);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+  a.pagination__link:hover {
+    border-color: var(--color-ink);
+  }
+  .pagination__link--current {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: var(--color-background);
+    font-weight: 700;
+  }
+  .pagination__gap {
+    padding: 0 var(--space-2xs);
+    color: var(--color-muted);
+  }
+{% endstylesheet %}

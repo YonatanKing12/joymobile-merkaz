@@ -1,0 +1,130 @@
+/* ==========================================================================
+   About the store — sections/brand-about.liquid
+   Measured @1440: panel inset 5% each side, #f8f8f8 @ 90%, padding 20px 0, inner
+   column 48px from the panel edges (+15px padding), gap 20px; logo 220px with 30px
+   above it; text 24px/normal; button 248×48, 18px/700, margin-bottom 30px, hover
+   green (.3s). Phones: panel padding 35px 0, inner 20px 15px, gap 12px, text 16px.
+   ========================================================================== */
+
+.brand-about {
+  padding-block: calc(var(--about-pad-top, 0px) + 15px) var(--about-pad-bottom, 20px);
+}
+
+.brand-about__panel {
+  margin-inline: 5%;
+  padding-block: 35px;
+  background-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
+}
+
+.brand-about__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 15px;
+  text-align: center;
+}
+
+.brand-about__logo {
+  width: min(68%, var(--about-logo-width, 220px));
+}
+
+.brand-about__logo--text {
+  width: auto;
+  max-width: 100%;
+}
+
+.brand-about__logo-img {
+  width: 100%;
+  height: auto;
+  margin-inline: auto;
+}
+
+/* No logo image: the header's lockup (symbol + name) on a dark plate ≈ the old 220×63 logo block. */
+.brand-about__plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 63px;
+  padding: 8px 20px;
+  background-color: var(--color-header-bg);
+  color: var(--color-header-text);
+}
+
+.brand-about__plate-symbol {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.brand-about__plate-name {
+  max-width: 6em;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: start;
+}
+
+.brand-about__heading {
+  font-size: var(--text-2xl);
+}
+
+.brand-about__text {
+  max-width: 58.5rem;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.brand-about__text a {
+  color: inherit;
+}
+
+.brand-about__button {
+  min-width: 151px;
+  font-size: var(--text-body);
+  font-weight: 700;
+  transition:
+    background-color 0.3s ease-in-out,
+    border-color 0.3s ease-in-out,
+    color 0.3s ease-in-out;
+}
+
+@media (min-width: 768px) {
+  .brand-about {
+    padding-block-start: var(--about-pad-top, 0px);
+  }
+
+  .brand-about__panel {
+    padding-block: 20px;
+  }
+
+  .brand-about__inner {
+    gap: 20px;
+    margin-inline: 48px;
+    padding: 0 15px;
+  }
+
+  .brand-about__logo {
+    width: var(--about-logo-width, 220px);
+    max-width: 100%;
+    padding-block-start: 30px;
+  }
+
+  .brand-about__logo--text {
+    width: auto;
+  }
+
+  .brand-about__text {
+    font-size: var(--text-3xl);
+  }
+
+  .brand-about__button {
+    min-width: 248px;
+    min-height: 48px;
+    margin-block-end: 30px;
+    font-size: var(--text-xl);
+  }
+}

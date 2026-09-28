@@ -1,0 +1,58 @@
+{% doc %}
+  Responsive grid of product cards (snippets/card-product) for collection and search
+  listings. Columns come from custom properties that the section sets per instance:
+  `--pg-cols-mobile` (1 or 2, below 768px), 3 from 768px, `--pg-cols-desktop` from
+  1200px (styles: assets/section-main-collection.css). Rows are equal height; cards keep
+  their image boxes, so nothing shifts while images load.
+
+  The first `eager` cards load their images eagerly (the first row is above the fold);
+  the rest are lazy. Items are direct children of the `[data-grid]` list, so a "load
+  more" script can append the next page's `[data-grid] > li` into it.
+
+  Pass only products (`search.results | where: 'object_type', 'product'` on search).
+
+  Classes: .product-grid, .product-grid__item.
+
+  @param {object} products - Array of products for the current page.
+  @param {string} section_id - The calling section's id (unique ids inside cards).
+  @param {number} [eager] - How many cards load eagerly. Default 4.
+  @param {string} [heading] - Tag of the card titles: 'h2', 'h3' (default) or 'h4'.
+  @param {string} [id] - id of the list.
+  @param {string} [label] - Accessible name of the list.
+
+  @example
+  {% render 'product-grid', products: collection.products, section_id: section.id, eager: 4, heading: 'h3' %}
+{% enddoc %}
+{%- liquid
+  assign pg_eager = eager | default: 4
+  assign pg_heading = heading | default: 'h3'
+-%}
+<ul
+  class="product-grid"
+  role="list"
+  data-grid
+  {% if id != blank %}
+    id="{{ id }}"
+  {% endif %}
+  {% if label != blank %}
+    aria-label="{{ label | escape }}"
+  {% endif %}
+>
+  {%- for product in products -%}
+    {%- liquid
+      assign pg_lazy = true
+      if forloop.index <= pg_eager
+        assign pg_lazy = false
+      endif
+    -%}
+    <li class="product-grid__item">
+      {%- render 'card-product',
+        product: product,
+        lazy: pg_lazy,
+        heading: pg_heading,
+        section_id: section_id,
+        show_swatches: settings.card_show_swatches
+      -%}
+    </li>
+  {%- endfor -%}
+</ul>

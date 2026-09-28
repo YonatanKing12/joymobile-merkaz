@@ -1,0 +1,105 @@
+{%- comment -%}
+  404 page. Konimbo showed one sentence ("הדף שניסית להגיע אליו כבר לא קיים" + a
+  link home). Kept as the heading, and made useful: a product search, the popular
+  departments (collection tiles, chosen in the editor) and ways back.
+{%- endcomment -%}
+{{ 'section-404.css' | asset_url | stylesheet_tag }}
+
+<div class="not-found page-width">
+  {%- if section.settings.show_breadcrumbs -%}
+    {%- render 'breadcrumbs', schema: false, class: 'not-found__breadcrumbs' -%}
+  {%- endif -%}
+
+  <div class="not-found__intro">
+    <p class="not-found__code" aria-hidden="true">404</p>
+    <h1 class="not-found__title">{{ 'not_found.title' | t }}</h1>
+    <p class="not-found__text">{{ 'not_found.text' | t }}</p>
+
+    <form class="not-found__search" action="{{ routes.search_url }}" method="get" role="search">
+      <input type="hidden" name="type" value="product">
+      <input type="hidden" name="options[prefix]" value="last">
+      <label class="visually-hidden" for="NotFoundSearch-{{ section.id }}">{{ 'not_found.search_label' | t }}</label>
+      <input
+        class="input not-found__search-input"
+        type="search"
+        id="NotFoundSearch-{{ section.id }}"
+        name="q"
+        placeholder="{{ 'not_found.search_placeholder' | t }}"
+        autocomplete="off"
+        enterkeyhint="search"
+      >
+      <button class="button not-found__search-button" type="submit">
+        {%- render 'icon', name: 'search', size: 18 -%}
+        <span>{{ 'not_found.search_submit' | t }}</span>
+      </button>
+    </form>
+
+    <div class="not-found__actions">
+      <a class="button button--accent" href="{{ routes.root_url }}">{{ 'not_found.home' | t }}</a>
+      <a class="button button--outline" href="{{ routes.all_products_collection_url }}">{{ 'not_found.all_products' | t }}</a>
+    </div>
+  </div>
+
+  {%- if section.settings.collections.size > 0 -%}
+    {%- liquid
+      assign collections_heading = section.settings.collections_heading | strip
+      if collections_heading == blank
+        assign collections_heading = 'not_found.collections_heading' | t
+      endif
+    -%}
+    <section class="not-found__collections" aria-labelledby="NotFoundCollections-{{ section.id }}">
+      <h2 class="not-found__collections-title" id="NotFoundCollections-{{ section.id }}">
+        {{- collections_heading | escape -}}
+      </h2>
+      <ul class="not-found__grid" role="list">
+        {%- for tile_collection in section.settings.collections -%}
+          <li>
+            <a class="collection-tile" href="{{ tile_collection.url }}">
+              <span class="collection-tile__media">
+                {%- render 'image',
+                  image: tile_collection.image,
+                  widths: '120,180,240',
+                  sizes: '(min-width: 992px) 120px, 96px',
+                  class: 'collection-tile__image',
+                  decorative: true,
+                  placeholder: 'collection-1'
+                -%}
+              </span>
+              <span class="collection-tile__title">{{ tile_collection.title | escape }}</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </section>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "עמוד לא נמצא",
+  "class": "section-main-404",
+  "enabled_on": {
+    "templates": ["404"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "מסלול ניווט (פירורי לחם)",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "collections_heading",
+      "label": "כותרת המחלקות",
+      "default": "מחלקות פופולריות"
+    },
+    {
+      "type": "collection_list",
+      "id": "collections",
+      "label": "מחלקות",
+      "limit": 12
+    }
+  ]
+}
+{% endschema %}

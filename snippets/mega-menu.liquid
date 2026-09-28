@@ -1,0 +1,88 @@
+{% doc %}
+  Desktop navigation bar (≥992px): the store menu (up to 3 levels) as one centred row.
+  An item with children opens a white mega panel — 522px, two columns of 250×35px links
+  (konimbo-home-chrome.md §2.7) — sized to its content: a single column when it holds five
+  rows or fewer, no fixed minimum height. Second-level items that have children become
+  green group titles over their links (the old site hid them; here they give the brand and
+  price groups their context). Every panel ends with a link to the item's own page, which
+  is how keyboard and touch users reach it (the item itself is a disclosure button).
+
+  Markup contract with <header-menu> (@theme/header): one `<details>` per top-level item
+  with children, summary first. Works without JS; JS adds 150ms hover intent (mouse), one
+  open panel at a time, Escape (focus back on the item), outside click, focus-out, and keeps
+  `aria-expanded` on the summary in sync. Panels in the first half of the row open from the
+  item's inline-start edge, the rest from its inline-end edge, so they stay on screen.
+
+  @param {linklist} menu - The menu to render (e.g. section.settings.menu).
+  @param {string} [id_prefix] - Prefix for element ids. Default 'HeaderMenu'.
+
+  @example
+  {% render 'mega-menu', menu: section.settings.menu, id_prefix: 'HeaderMenu' %}
+{% enddoc %}
+{%- assign menu_prefix = id_prefix | default: 'HeaderMenu' -%}
+{%- if menu.links.size > 0 -%}
+  <header-menu class="mega-menu">
+    <ul class="mega-menu__list" role="list">
+      {%- for link in menu.links -%}
+        {%- liquid
+          assign top_active = false
+          if link.active or link.child_active
+            assign top_active = true
+          endif
+          assign half = forloop.length | divided_by: 2
+          assign panel_side = 'start'
+          if forloop.index > half
+            assign panel_side = 'end'
+          endif
+        -%}
+        <li class="mega-menu__item">
+          {%- if link.links.size > 0 -%}
+            {%- liquid
+              assign row_count = 0
+              for child in link.links
+                assign row_count = row_count | plus: 1 | plus: child.links.size
+              endfor
+              assign panel_cols = 2
+              if row_count <= 5
+                assign panel_cols = 1
+              endif
+            -%}
+            <details class="mega-menu__details" id="{{ menu_prefix }}-{{ forloop.index }}">
+              <summary class="mega-menu__top{% if top_active %} is-active{% endif %}" aria-expanded="false">
+                <span class="mega-menu__label" data-text="{{ link.title | escape }}">{{ link.title | escape }}</span>
+              </summary>
+              <div class="mega-menu__panel mega-menu__panel--{{ panel_side }} mega-menu__panel--cols-{{ panel_cols }}">
+                <ul class="mega-menu__grid" role="list">
+                  {%- for child in link.links -%}
+                    <li class="mega-menu__group">
+                      {%- if child.links.size > 0 -%}
+                        <a class="mega-menu__group-title" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a>
+                        <ul class="mega-menu__sublist" role="list">
+                          {%- for grandchild in child.links -%}
+                            <li><a class="mega-menu__link" href="{{ grandchild.url }}"{% if grandchild.current %} aria-current="page"{% endif %}>{{ grandchild.title | escape }}</a></li>
+                          {%- endfor -%}
+                        </ul>
+                      {%- else -%}
+                        <a class="mega-menu__link" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a>
+                      {%- endif -%}
+                    </li>
+                  {%- endfor -%}
+                </ul>
+                {%- if link.url != blank and link.url != '#' -%}
+                  <a class="mega-menu__all" href="{{ link.url }}">
+                    {{- 'header.menu.view_all' | t -}}
+                    <span class="visually-hidden">: {{ link.title | escape }}</span>
+                  </a>
+                {%- endif -%}
+              </div>
+            </details>
+          {%- else -%}
+            <a class="mega-menu__top{% if top_active %} is-active{% endif %}" href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>
+              <span class="mega-menu__label" data-text="{{ link.title | escape }}">{{ link.title | escape }}</span>
+            </a>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </header-menu>
+{%- endif -%}

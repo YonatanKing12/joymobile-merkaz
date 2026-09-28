@@ -1,0 +1,125 @@
+/* ==========================================================================
+   section-wishlist.css — wishlist page (sections/wishlist-page.liquid).
+   The grid itself is base.css `.grid` (columns from section settings) and the
+   cards are the shared product card. While a card loads, its slot is a light
+   placeholder as tall as the card (568px, or its content height on phones), so
+   the page does not jump when the cards arrive.
+   ========================================================================== */
+
+.wishlist-page {
+  padding-block: var(--space-md) var(--section-space);
+}
+
+/* Long unbroken words wrap instead of widening boxes past the screen (the
+   product cards keep their own rules). */
+:is(.wishlist-page__heading, .wishlist-page__bar, .wishlist-page__empty, .wishlist-page__nojs),
+:is(.wishlist-page__bar, .wishlist-page__empty) :is(p, span, a) {
+  overflow-wrap: anywhere;
+}
+
+.wishlist-page__heading {
+  margin-block-end: var(--space-md);
+  font-size: var(--text-3xl);
+}
+
+.wishlist-page__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-md);
+  margin-block-end: var(--space-lg);
+  padding-block-end: var(--space-sm);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.wishlist-page__count {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.wishlist-page__count-number {
+  font-weight: 700;
+}
+
+.wishlist-page__note {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+/* Loading: before the element is defined, and while cards are fetched. */
+.wishlist-page__loading {
+  display: none;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-block-end: var(--space-md);
+  color: var(--color-muted);
+}
+
+wishlist-grid:not(:defined) .wishlist-page__loading,
+wishlist-grid[aria-busy="true"] .wishlist-page__loading {
+  display: flex;
+}
+
+/* As tall as the card that replaces it (component-card.css): 568px from 768px; on phones the
+   card follows its content, and a narrow one is its square image (≈96.5% of the width) plus
+   ≈273px of rows, never taller than 568px. */
+.wishlist-page__items > li:empty {
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+  animation: wishlist-slot 1.2s ease-in-out infinite alternate;
+}
+
+.wishlist-page__items > li:empty::before {
+  content: "";
+  display: block;
+  padding-block-start: min(calc(96.5% + 17.0625rem), 35.5rem);
+}
+
+@media (min-width: 768px) {
+  .wishlist-page__items > li:empty::before {
+    padding-block-start: 35.5rem;
+  }
+}
+
+@keyframes wishlist-slot {
+  to {
+    opacity: 0.55;
+  }
+}
+
+/* ---------- Empty ---------- */
+.wishlist-page__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: 32rem;
+  margin-inline: auto;
+  padding-block: var(--space-xl);
+  text-align: center;
+}
+
+.wishlist-page__empty-icon {
+  color: var(--color-brand);
+}
+
+.wishlist-page__empty-title {
+  color: var(--color-ink);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+.wishlist-page__empty-text {
+  margin-block-end: var(--space-xs);
+  color: var(--color-muted);
+  line-height: var(--leading-normal);
+}
+
+.wishlist-page__nojs {
+  padding: var(--space-lg);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+  color: var(--color-text);
+  text-align: center;
+}

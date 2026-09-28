@@ -1,0 +1,22 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-404",
+      "settings": {
+        "show_breadcrumbs": true,
+        "collections_heading": "מחלקות פופולריות",
+        "collections": [
+          "smartphones",
+          "tablets",
+          "smartwatches",
+          "vacuums",
+          "computers-gaming",
+          "appliances"
+        ]
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

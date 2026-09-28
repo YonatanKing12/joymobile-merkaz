@@ -1,0 +1,468 @@
+/* ==========================================================================
+   section-main-collection.css — collection page frame (sections/main-collection)
+   and the results layout shared with the search page (<facet-filters>, toolbar,
+   product grid, "טען עוד", empty states).
+   Measured on the old site (1440): 30px below the header, H1 22px/700, toolbar row
+   (count · "מיין לפי:" · links) 17px/700 on the inline-end side, 185px filter column,
+   4 columns with 30px gaps. Mobile: centred H1 21px, one bar "סינון | מיון", 2 columns
+   (setting). Tokens only, logical properties only (RTL).
+   ========================================================================== */
+
+.collection,
+.search-page {
+  --listing-title-size: 1.3125rem; /* 21px, measured on mobile */
+  --listing-toolbar-size: 1.0625rem; /* 17px, measured sort row */
+  --facets-width: 185px; /* measured sidebar content width at 1440 */
+  padding-block: calc(var(--collection-pad-top, 30px) / 2) var(--collection-pad-bottom, 40px);
+}
+
+@media (min-width: 992px) {
+  .collection,
+  .search-page {
+    --listing-title-size: 1.375rem; /* 22px */
+    padding-block-start: var(--collection-pad-top, 30px);
+  }
+}
+
+/* ---------- Head ---------- */
+.collection__breadcrumbs {
+  margin-block-end: var(--space-2xs);
+}
+
+.collection__banner {
+  margin-block: var(--space-xs) var(--space-sm);
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.collection__banner-img {
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.collection__header {
+  margin-block: 0.9375rem;
+}
+
+.collection__title {
+  color: var(--color-ink);
+  font-size: var(--listing-title-size);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.collection__description {
+  max-inline-size: 72ch;
+  margin-block-start: var(--space-xs);
+  color: var(--color-muted);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
+
+.collection__description--bottom {
+  margin-block-start: var(--space-2xl);
+  padding-block-start: var(--space-lg);
+  border-block-start: 1px solid var(--color-border);
+}
+
+@media (max-width: 767px) {
+  .collection__header {
+    text-align: center;
+  }
+
+  .collection__header .collection__description {
+    margin-inline: auto;
+  }
+}
+
+/* Sub-categories from the menu: a scrollable row on phones, wrapped chips from 992px. */
+.collection__subnav {
+  margin-block: 0 var(--space-md);
+}
+
+.collection__subnav-list {
+  display: flex;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0 0 var(--space-2xs);
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.collection__subnav-item {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+.collection__subnav-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-target);
+  padding-inline: var(--space-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  line-height: var(--leading-tight);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.collection__subnav-link:hover {
+  border-color: var(--color-brand);
+  background-color: var(--color-hover-bg);
+  color: var(--color-brand-text);
+}
+
+@media (min-width: 992px) {
+  .collection__subnav-list {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .collection__subnav-link {
+    min-block-size: 2.25rem;
+    font-size: var(--text-sm);
+  }
+}
+
+/* ---------- Results layout (<facet-filters>) ---------- */
+facet-filters {
+  display: block;
+}
+
+.facets-layout__toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+}
+
+.facets-layout__toolbar > .facets-toggle {
+  grid-column: 1;
+  grid-row: 1;
+  justify-content: flex-start;
+  border-block-end: 1px solid var(--color-border-strong);
+}
+
+.facets-layout__sort {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  min-block-size: var(--tap-target);
+  border-block-end: 1px solid var(--color-border-strong);
+}
+
+/* The measured 1 × 22px divider between "סינון" and "מיון". */
+.facets-layout__sort::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 0.6875rem;
+  inline-size: 1px;
+  background-color: var(--color-ink);
+}
+
+.no-js .facets-layout__sort,
+.facets-layout--no-filters .facets-layout__sort {
+  grid-column: 1 / -1;
+}
+
+.no-js .facets-layout__sort::before,
+.facets-layout--no-filters .facets-layout__sort::before,
+.facets-layout__sort:empty::before {
+  content: none;
+}
+
+.facets-layout__sort:empty {
+  display: none;
+}
+
+.facets-layout__count {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0;
+  padding-block: var(--space-sm) 0;
+  color: var(--color-muted);
+  font-size: var(--text-md);
+  scroll-margin-block-start: var(--space-md);
+}
+
+.facets-layout__count strong {
+  color: var(--color-ink);
+}
+
+.facets-layout__results {
+  min-inline-size: 0;
+  margin-block-start: var(--space-md);
+}
+
+.facets-layout__grid {
+  scroll-margin-block-start: var(--space-md);
+}
+
+.facets-layout__error {
+  margin-block-end: var(--space-md);
+}
+
+/* Busy while a filter/sort/page request runs (aria-busy set by facets.js). */
+.facets-layout__grid,
+.facets-layout__pagination {
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+facet-filters[aria-busy="true"] .facets-layout__grid,
+facet-filters[aria-busy="true"] .facets-layout__pagination {
+  opacity: 0.45;
+  transition-delay: 120ms;
+}
+
+facet-filters[aria-busy="true"] .facets-layout__count::after {
+  content: "";
+  display: inline-block;
+  inline-size: 0.875em;
+  block-size: 0.875em;
+  margin-inline-start: var(--space-xs);
+  border: 2px solid var(--color-brand);
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  vertical-align: -0.1em;
+  animation: spin 0.7s linear infinite;
+}
+
+@media (min-width: 992px) {
+  .facets-layout {
+    display: grid;
+    grid-template-columns: var(--facets-width) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "sidebar toolbar"
+      "sidebar results";
+    column-gap: 1.875rem;
+    align-items: start;
+  }
+
+  .facets-layout--no-filters {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "toolbar"
+      "results";
+  }
+
+  .facets-layout > .facets {
+    grid-area: sidebar;
+  }
+
+  /* Old desktop row: "תוצאות: 37 · מיין לפי: … | …" on the inline-end side, 17px bold. */
+  .facets-layout__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    grid-area: toolbar;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2xs) 1.875rem;
+    min-block-size: 1.5625rem;
+    color: var(--color-ink);
+    font-size: var(--listing-toolbar-size);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+  }
+
+  .facets-layout__sort {
+    min-block-size: 0;
+    border: 0;
+  }
+
+  .facets-layout__sort::before {
+    content: none;
+  }
+
+  .facets-layout__count {
+    order: -1;
+    padding: 0;
+    color: var(--color-ink);
+    font-size: inherit;
+  }
+
+  .facets-layout__active {
+    display: none;
+  }
+
+  .facets-layout__results {
+    grid-area: results;
+    margin-block-start: 0.9375rem;
+  }
+}
+
+/* ---------- Product grid (snippets/product-grid) ---------- */
+.product-grid {
+  --pg-cols: var(--pg-cols-mobile, 2);
+  display: grid;
+  grid-template-columns: repeat(var(--pg-cols), minmax(0, 1fr));
+  gap: var(--space-lg) var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.product-grid__item {
+  display: flex;
+  min-inline-size: 0;
+}
+
+.product-grid__item > * {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+@media (min-width: 768px) {
+  .product-grid {
+    --pg-cols: 3;
+    gap: 1.875rem 1.25rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .product-grid {
+    --pg-cols: var(--pg-cols-desktop, 4);
+    column-gap: 1.875rem;
+  }
+}
+
+/* ---------- Pagination: "load previous", progress + "טען עוד", no-JS page links ---------- */
+.load-previous {
+  display: flex;
+  justify-content: center;
+  margin-block-end: var(--space-lg);
+}
+
+.load-previous__link,
+.load-more__button {
+  min-inline-size: 13.75rem;
+}
+
+.load-previous__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-block-size: var(--tap-target);
+  padding-inline: var(--space-lg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-button);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.load-previous__link:hover {
+  border-color: var(--color-ink);
+}
+
+.facets-layout__pagination {
+  margin-block-start: var(--space-xl);
+}
+
+.load-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+}
+
+.load-more__status {
+  color: var(--color-muted);
+  font-size: var(--text-md);
+}
+
+.load-more__bar {
+  display: block;
+  inline-size: min(100%, 15rem);
+  block-size: 4px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-alt);
+}
+
+.load-more__fill {
+  display: block;
+  block-size: 100%;
+  background-color: var(--color-brand);
+}
+
+.load-more__pages {
+  margin-block-start: var(--space-lg);
+}
+
+/* ---------- Empty states ---------- */
+.collection-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-block: var(--space-md) var(--space-lg);
+  padding: var(--space-2xl) var(--space-md);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  text-align: center;
+}
+
+.collection-empty__icon {
+  color: var(--color-brand);
+}
+
+.collection-empty__title {
+  font-size: var(--text-2xl);
+}
+
+.collection-empty__text {
+  max-inline-size: 36rem;
+  color: var(--color-muted);
+}
+
+.collection-empty__button {
+  margin-block-start: var(--space-xs);
+}
+
+.collection-empty__subtitle {
+  margin-block-start: var(--space-lg);
+  font-size: var(--text-body);
+}
+
+.collection-empty__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collection-empty__link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-target);
+  padding-inline: var(--space-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  text-decoration: none;
+}
+
+.collection-empty__link:hover {
+  border-color: var(--color-brand);
+  background-color: var(--color-hover-bg);
+  color: var(--color-brand-text);
+}

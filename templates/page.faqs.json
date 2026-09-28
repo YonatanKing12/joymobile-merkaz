@@ -1,0 +1,89 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "show_breadcrumbs": true,
+        "show_title": true,
+        "content_width": "wide"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "question-1": {
+          "type": "question",
+          "settings": {
+            "question": "איך מזמינים?",
+            "answer": "<p>בוחרים מוצר, מוסיפים לסל ומשלימים את ההזמנה באתר. ההזמנה ממתינה לכם בסניף באילת, ואתם אוספים אותה בעצמכם.</p>"
+          }
+        },
+        "question-2": {
+          "type": "question",
+          "settings": {
+            "question": "למה המחירים כאן נמוכים יותר?",
+            "answer": "<p>אילת היא אזור סחר חופשי. מכירה בתחומי אילת לצריכה או לשימוש באזור פטורה ממע״מ, מכוח <a href=\"https://www.nevo.co.il/law_html/law01/009_001.htm\">חוק אזור סחר חפשי באילת (פטורים והנחות ממסים), תשמ״ה-1985</a>.</p><p>שיעור המע״מ בישראל הוא 18%, ולכן המחיר כאן נמוך ב-18% מאותו מוצר בדיוק במקום אחר בארץ. זה לא מבצע ולא הנחה — זה הפטור.</p>"
+          }
+        },
+        "question-3": {
+          "type": "question",
+          "settings": {
+            "question": "איפה אוספים את ההזמנה, ומה צריך להביא?",
+            "answer": "<p>האיסוף הוא מהחנות באילת, המלאכה 7.</p><p>יש להציג תעודה מזהה. האיסוף מתבצע על ידי הרוכש/ת ובהצגת תעודת זהות בלבד — זה תנאי של הפטור ממע״מ, ולא נוהל של החנות.</p>"
+          }
+        },
+        "question-4": {
+          "type": "question",
+          "settings": {
+            "question": "כמה זמן ההזמנה נשמרת לי בסניף?",
+            "answer": "<p>המוצר ממתין בנקודת האיסוף עד 21 ימי עסקים.</p>"
+          }
+        },
+        "question-5": {
+          "type": "question",
+          "settings": {
+            "question": "יש הגבלה על מה שאפשר לקנות?",
+            "answer": "<p>כן, והיא נובעת מהפטור: בעת השריון אתם מאשרים שלא רכשתם באילת מוצר אחר מאותה קטגוריה ב-90 הימים שקדמו להזמנה.</p>"
+          }
+        },
+        "question-6": {
+          "type": "question",
+          "settings": {
+            "question": "יש משלוח עד הבית?",
+            "answer": "<p>לא. כל ההזמנות באתר הזה הן לאיסוף עצמי מהחנות באילת — זה מה שמקנה את הפטור ממע״מ. גם בתוך אילת אין משלוחים.</p>"
+          }
+        },
+        "question-7": {
+          "type": "question",
+          "settings": {
+            "question": "יש שאלה שלא מופיעה כאן?",
+            "answer": "<p>כתבו לנו ל-<a href=\"mailto:joymobileltd@gmail.com\">joymobileltd@gmail.com</a> ונחזור אליכם.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "question-1",
+        "question-2",
+        "question-3",
+        "question-4",
+        "question-5",
+        "question-6",
+        "question-7"
+      ],
+      "settings": {
+        "heading": "",
+        "one_open": false,
+        "open_first": false,
+        "cta_heading": "לא מצאתם את התשובה?",
+        "cta_text": "אנחנו כאן כדי לעזור.",
+        "cta_label": "צרו קשר",
+        "cta_link": "shopify://pages/contact",
+        "structured_data": true
+      }
+    }
+  },
+  "order": [
+    "main",
+    "faq"
+  ]
+}

@@ -1,0 +1,64 @@
+/* Wishlist heart (snippets/wishlist-button; structure in the snippet). Card: 35×35 circle, white @70%,
+   top/end 5px, invisible 45px hit area; saved = filled brand green. */
+
+.wishlist-button {
+  display: inline-flex;
+}
+
+.wishlist-button__control {
+  position: relative;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-background) 70%, transparent);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.wishlist-button__control:hover {
+  color: var(--color-brand-text);
+}
+
+.wishlist-button__control:active {
+  transform: scale(0.92);
+}
+
+.wishlist-button__control[aria-pressed="true"] {
+  color: var(--color-brand);
+}
+
+.wishlist-button__icon {
+  transition: transform 0.3s var(--ease-out);
+}
+
+.wishlist-button__control[aria-pressed="true"] .wishlist-button__icon--on {
+  transform: scale(1.04);
+}
+
+.card-product__wishlist .wishlist-button__control {
+  width: 2.1875rem;
+  height: 2.1875rem;
+}
+
+.card-product__wishlist .wishlist-button__control::after {
+  content: "";
+  position: absolute;
+  inset: -0.3125rem;
+  border-radius: 50%;
+}
+
+.card-product__wishlist .wishlist-button__icon {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+.card-product__wishlist .wishlist-button__icon--off {
+  stroke-width: 1.5;
+}
+
+/* Over the product photo: the two-tone ring from base.css (mint inside, navy outside). */

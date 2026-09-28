@@ -1,0 +1,22 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-blog",
+      "settings": {
+        "show_breadcrumbs": true,
+        "show_search": true,
+        "show_tags": false,
+        "show_featured": true,
+        "featured_heading": "מאמרים אחרונים בבלוג",
+        "grid_heading": "כל המאמרים בבלוג",
+        "articles_per_page": 12,
+        "show_excerpt": true,
+        "show_date": true,
+        "show_reading_time": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

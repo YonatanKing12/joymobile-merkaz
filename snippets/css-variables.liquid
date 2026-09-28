@@ -1,0 +1,74 @@
+{% doc %}
+  Design tokens that come from theme settings, printed as CSS custom properties on
+  :root in the <head> (before base.css, which holds the static tokens: spacing and
+  type scales, line heights, z-index layers, motion). Components use only tokens.
+
+  Colour defaults are the measured JOY Mobile values (brief): brand green #2f9d7a for
+  surfaces/icons/large text and accessible green #288568 (4.52:1 on white) for small
+  green text and for green buttons with white text.
+
+  @example
+  {% render 'css-variables' %}
+{% enddoc %}
+{% style %}
+  :root {
+    --color-brand: {{ settings.color_brand }};
+    --color-brand-text: {{ settings.color_brand_text }};
+    --color-ink: {{ settings.color_ink }};
+    --color-text: {{ settings.color_text }};
+    --color-muted: {{ settings.color_muted }};
+    --color-background: {{ settings.color_background }};
+    --color-surface: {{ settings.color_surface }};
+    --color-surface-alt: {{ settings.color_surface_alt }};
+    --color-surface-soft: {{ settings.color_surface_soft }};
+    --color-border: {{ settings.color_border }};
+    --color-header-bg: {{ settings.color_header_bg }};
+    --color-header-text: {{ settings.color_header_text }};
+    --color-nav-bg: {{ settings.color_nav_bg }};
+    --color-nav-text: {{ settings.color_nav_text }};
+    --color-footer-bg: {{ settings.color_footer_bg }};
+    --color-footer-text: {{ settings.color_footer_text }};
+    --color-button-bg: {{ settings.color_button_bg }};
+    --color-button-text: {{ settings.color_button_text }};
+    --color-button-accent-bg: {{ settings.color_button_accent_bg }};
+    --color-button-accent-text: {{ settings.color_button_accent_text }};
+    --color-sale: {{ settings.color_sale }};
+    --color-error: {{ settings.color_error }};
+    --color-success: {{ settings.color_brand_text }};
+    --color-badge-taxfree-bg: {{ settings.color_badge_taxfree_bg }};
+    --color-badge-taxfree-text: {{ settings.color_badge_taxfree_text }};
+    --color-badge-new-bg: {{ settings.color_badge_new_bg }};
+    --color-badge-new-text: {{ settings.color_badge_new_text }};
+    --color-badge-low-bg: {{ settings.color_badge_low_bg }};
+    --color-badge-low-text: {{ settings.color_badge_low_text }};
+    --color-badge-soldout-bg: {{ settings.color_badge_soldout_bg }};
+    --color-badge-soldout-text: {{ settings.color_badge_soldout_text }};
+
+    {%- # Theme setting "גופן": Assistant (brand, default) or Rubik; both self-hosted in assets/fonts.css. %}
+    --font-body-family: {% if settings.font_family == 'rubik' %}"Rubik"{% else %}"Assistant"{% endif %}, "Arial Hebrew", Arial, system-ui, sans-serif;
+    --font-heading-family: var(--font-body-family);
+    --font-body-weight: {{ settings.type_body_weight | default: 400 }};
+    --font-heading-weight: {{ settings.type_heading_weight | default: 700 }};
+
+    --page-width: {{ settings.page_width | default: 1170 }}px;
+    --page-gutter: {{ settings.page_gutter_mobile | default: 15 }}px;
+
+    --radius-button: {{ settings.radius_button }}px;
+    --radius-input: {{ settings.radius_input }}px;
+    --radius-card: {{ settings.radius_card }}px;
+    --radius-badge: {{ settings.radius_badge }}px;
+
+    --logo-width: {{ settings.logo_width_mobile | default: 130 }}px;
+
+    --card-image-ratio: {{ settings.card_image_ratio | default: '1 / 1' }};
+    --card-image-fit: {{ settings.card_image_fit | default: 'contain' }};
+    --card-title-lines: {{ settings.card_title_lines | default: 3 }};
+  }
+
+  @media (min-width: 992px) {
+    :root {
+      --page-gutter: {{ settings.page_gutter_desktop | default: 15 }}px;
+      --logo-width: {{ settings.logo_width | default: 190 }}px;
+    }
+  }
+{% endstyle %}

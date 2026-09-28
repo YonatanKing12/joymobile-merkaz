@@ -1,0 +1,497 @@
+{%- comment -%}
+  Blog article. Konimbo order: breadcrumbs, title, reading time, share, lead
+  (excerpt), body, "חשבנו שיכול לעניין אותך" products, more articles. Fixed here:
+  the title is never clipped, the share buttons sit inline under the title (no fixed
+  rail over the floating buttons), the body uses the shared long-form typography
+  (.prose — Rubik, visible headings and bullets, AA green links) instead of the
+  product-description CSS. As on Konimbo, the 900px text column sits at the
+  inline-start under a full-width article search.
+
+  An article tag that is a collection handle (the store tags articles with handles
+  such as `vacuums`) links the article to that collection: topic link above the
+  title, a call-to-action after the body and the product strip. Raw tags are never
+  printed. Comments are not rendered (the store's blog has comments closed).
+{%- endcomment -%}
+{{ 'section-page.css' | asset_url | stylesheet_tag }}
+{{ 'section-article.css' | asset_url | stylesheet_tag }}
+{%- if section.settings.show_related or section.settings.show_search -%}
+  {{ 'section-blog.css' | asset_url | stylesheet_tag }}
+{%- endif -%}
+
+{%- liquid
+  assign topic_title = ''
+  assign topic_url = ''
+  assign topic_handle = ''
+  for tag in article.tags
+    assign tag_collection = collections[tag]
+    if tag_collection.title != blank
+      assign topic_title = tag_collection.title
+      assign topic_url = tag_collection.url
+      assign topic_handle = tag_collection.handle
+      break
+    endif
+  endfor
+
+  assign article_words = article.content | replace: '<', ' <' | strip_html | split: ' ' | size
+  assign article_minutes = article_words | plus: 199 | divided_by: 200 | at_least: 1
+
+  # url_encode writes spaces as "+", which mail and WhatsApp show literally: use %20.
+  assign article_url = request.origin | append: article.url
+  assign share_url = article_url | url_encode
+  assign share_title = article.title | url_encode | replace: '+', '%20'
+  assign share_text = article.title | append: ' ' | append: article_url | url_encode | replace: '+', '%20'
+  assign new_window = 'accessibility.new_window' | t
+
+  assign image_alt = article.image.alt | default: article.title
+-%}
+
+{%- if section.settings.show_breadcrumbs or section.settings.show_search -%}
+  <div class="article-top page-width">
+    {%- if section.settings.show_breadcrumbs -%}
+      {%- render 'breadcrumbs', class: 'article__breadcrumbs' -%}
+    {%- endif -%}
+
+    {%- if section.settings.show_search -%}
+      <form class="blog-search article__search" action="{{ routes.search_url }}" method="get" role="search">
+        <input type="hidden" name="type" value="article">
+        <input type="hidden" name="options[prefix]" value="last">
+        <label class="visually-hidden" for="ArticleSearch-{{ section.id }}">{{ 'blogs.blog.search_label' | t }}</label>
+        <input
+          class="blog-search__input"
+          type="search"
+          id="ArticleSearch-{{ section.id }}"
+          name="q"
+          placeholder="{{ 'blogs.blog.search_placeholder' | t }}"
+          autocomplete="off"
+          enterkeyhint="search"
+        >
+        <button class="blog-search__button" type="submit">
+          <span class="visually-hidden">{{ 'blogs.blog.search_submit' | t }}</span>
+          {%- render 'icon', name: 'search', size: 22 -%}
+        </button>
+      </form>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+<article class="article" aria-labelledby="ArticleTitle-{{ section.id }}">
+  <div class="page-width">
+    <div class="article__column">
+      <header class="article__header">
+        {%- if section.settings.show_topic and topic_title != blank -%}
+          <p class="article__topic">
+            <span class="visually-hidden">{{ 'blogs.article.topic' | t }}</span>
+            <a href="{{ topic_url }}">{{ topic_title | escape }}</a>
+          </p>
+        {%- endif -%}
+
+        <h1 class="article__title" id="ArticleTitle-{{ section.id }}">{{ article.title | escape }}</h1>
+
+        {%- if section.settings.show_date or section.settings.show_reading_time or section.settings.show_author -%}
+          <p class="article__meta">
+            {%- if section.settings.show_date -%}
+              {{- article.published_at | time_tag: format: 'date' -}}
+            {%- endif -%}
+            {%- if section.settings.show_reading_time -%}
+              <span>{{ 'blogs.article.reading_time' | t: count: article_minutes }}</span>
+            {%- endif -%}
+            {%- if section.settings.show_author and article.author != blank -%}
+              <span>{{ 'blogs.article.author' | t: author: article.author }}</span>
+            {%- endif -%}
+          </p>
+        {%- endif -%}
+
+        {%- if section.settings.show_share -%}
+          <ul class="article-share" role="list" aria-label="{{ 'blogs.article.share_label' | t }}">
+            <li>
+              <a
+                class="article-share__link"
+                href="mailto:?subject={{ share_title }}&amp;body={{ share_url }}"
+                aria-label="{{ 'blogs.article.share_email' | t }}"
+              >
+                {%- render 'icon', name: 'mail', size: 20 -%}
+              </a>
+            </li>
+            <li>
+              <a
+                class="article-share__link"
+                href="https://wa.me/?text={{ share_text }}"
+                target="_blank"
+                rel="noopener"
+                aria-label="{{ 'blogs.article.share_whatsapp' | t }} ({{ new_window }})"
+              >
+                {%- render 'icon', name: 'whatsapp', size: 20 -%}
+              </a>
+            </li>
+            <li>
+              <a
+                class="article-share__link"
+                href="https://www.facebook.com/sharer/sharer.php?u={{ share_url }}"
+                target="_blank"
+                rel="noopener"
+                aria-label="{{ 'blogs.article.share_facebook' | t }} ({{ new_window }})"
+              >
+                {%- render 'icon', name: 'facebook', size: 20 -%}
+              </a>
+            </li>
+          </ul>
+        {%- endif -%}
+      </header>
+
+      {%- if section.settings.show_image and article.image -%}
+        <figure class="article__figure">
+          {%- render 'image',
+            image: article.image,
+            widths: '375,560,760,1100,1520',
+            sizes: '(min-width: 848px) 760px, calc(100vw - 30px)',
+            loading: 'eager',
+            fetchpriority: 'high',
+            class: 'article__image',
+            alt: image_alt
+          -%}
+        </figure>
+      {%- endif -%}
+
+      {%- if section.settings.show_excerpt and article.excerpt != blank -%}
+        <div class="article__lead">{{ article.excerpt }}</div>
+      {%- endif -%}
+
+      <div class="article__content rte prose">
+        {{ article.content }}
+      </div>
+
+      {%- for block in section.blocks -%}
+        {%- if block.type == '@app' -%}
+          <div class="article__app">{% render block %}</div>
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- if section.settings.show_collection_cta and topic_title != blank -%}
+        <aside class="article-cta" aria-label="{{ topic_title | escape }}">
+          {%- if section.settings.cta_text != blank -%}
+            <p class="article-cta__text">{{ section.settings.cta_text }}</p>
+          {%- endif -%}
+          <a class="button button--accent article-cta__button" href="{{ topic_url }}">
+            <span>{{ 'blogs.article.collection_cta' | t: title: topic_title }}</span>
+            {%- render 'icon', name: 'chevron-left', size: 16 -%}
+          </a>
+        </aside>
+      {%- endif -%}
+
+      <footer class="article__footer">
+        <a class="article__back" href="{{ blog.url }}">
+          {%- render 'icon', name: 'arrow-right', size: 18 -%}
+          <span>{{ 'blogs.article.back' | t: blog: blog.title }}</span>
+        </a>
+      </footer>
+    </div>
+  </div>
+</article>
+
+{%- if section.settings.show_products -%}
+  {%- liquid
+    assign products_source = collections[topic_handle]
+    if products_source == blank or products_source.title == blank
+      assign products_source = section.settings.products_collection
+    endif
+    assign shown_products = 0
+  -%}
+  {%- if products_source != blank -%}
+    {%- capture product_cards -%}
+      {%- for product in products_source.products limit: 30 -%}
+        {%- if product.available -%}
+          <li class="grid__item">
+            {%- render 'card-product', product: product, lazy: true, heading: 'h3', section_id: section.id, show_swatches: settings.card_show_swatches -%}
+          </li>
+          {%- assign shown_products = shown_products | plus: 1 -%}
+          {%- if shown_products >= section.settings.products_limit -%}
+            {%- break -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+
+    {%- if shown_products > 0 -%}
+      {%- comment -%} Product card dependencies (snippets/card-product). {%- endcomment -%}
+      {{ 'component-card.css' | asset_url | stylesheet_tag }}
+      {{ 'component-price.css' | asset_url | stylesheet_tag }}
+      {{ 'component-badges.css' | asset_url | stylesheet_tag }}
+      {{ 'component-swatches.css' | asset_url | stylesheet_tag }}
+      {{ 'component-wishlist-button.css' | asset_url | stylesheet_tag }}
+      <script type="module" src="{{ 'product.js' | asset_url }}"></script>
+      <section class="article-products page-width" aria-labelledby="ArticleProducts-{{ section.id }}">
+        <div class="article-section-head">
+          <h2 class="article-section-head__title" id="ArticleProducts-{{ section.id }}">{{ section.settings.products_heading | escape }}</h2>
+          <a class="article-section-head__link" href="{{ products_source.url }}">
+            <span>{{ 'blogs.article.products_link' | t }}</span>
+            {%- render 'icon', name: 'chevron-left', size: 16 -%}
+          </a>
+        </div>
+        <ul class="grid article-products__grid" role="list">
+          {{- product_cards -}}
+        </ul>
+      </section>
+    {%- endif -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- if section.settings.show_related -%}
+  {%- assign related_shown = 0 -%}
+  {%- assign related_ids = '|' -%}
+  {%- capture related_cards -%}
+    {%- for pass in (1..2) -%}
+      {%- for other in blog.articles -%}
+        {%- if related_shown >= section.settings.related_limit -%}
+          {%- break -%}
+        {%- endif -%}
+        {%- if other.id == article.id -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- assign other_key = '|' | append: other.id | append: '|' -%}
+        {%- if related_ids contains other_key -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- if pass == 1 -%}
+          {%- assign shares_topic = false -%}
+          {%- for tag in article.tags -%}
+            {%- if other.tags contains tag -%}
+              {%- assign shares_topic = true -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- unless shares_topic -%}
+            {%- continue -%}
+          {%- endunless -%}
+        {%- endif -%}
+        {%- liquid
+          assign related_shown = related_shown | plus: 1
+          assign related_ids = related_ids | append: other.id | append: '|'
+
+          assign card_topic = ''
+          for tag in other.tags
+            assign topic_collection = collections[tag]
+            if topic_collection.title != blank
+              assign card_topic = topic_collection.title
+              break
+            endif
+          endfor
+          if card_topic == blank
+            assign card_topic = blog.title
+          endif
+          # Plain text (see main-blog): space before tags, condensed whitespace, escape_once on output.
+          assign card_excerpt = other.excerpt | replace: '<', ' <' | strip_html | split: ' ' | join: ' '
+          if card_excerpt == blank
+            assign card_excerpt = other.content | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncatewords: 30
+          endif
+          assign card_words = other.content | replace: '<', ' <' | strip_html | split: ' ' | size
+          assign card_minutes = card_words | plus: 199 | divided_by: 200 | at_least: 1
+        -%}
+        <li class="blog-grid__item">
+          <article class="article-card">
+            <div class="article-card__media">
+              {%- if other.image -%}
+                {%- render 'image',
+                  image: other.image,
+                  widths: '360,540,720,900',
+                  sizes: '(min-width: 1200px) 380px, (min-width: 768px) 33vw, 100vw',
+                  class: 'article-card__image',
+                  decorative: true
+                -%}
+              {%- else -%}
+                <div class="article-panel">
+                  <span class="article-panel__label">{{ card_topic | escape }}</span>
+                </div>
+              {%- endif -%}
+            </div>
+            <div class="article-card__body">
+              {%- if other.image -%}
+                <p class="article-card__topic">{{ card_topic | escape }}</p>
+              {%- endif -%}
+              <h3 class="article-card__title">
+                <a class="article-card__link" href="{{ other.url }}">
+                  {{- other.title | escape -}}
+                  {%- render 'icon', name: 'chevron-left', size: 12, class: 'article-card__chevron' -%}
+                </a>
+              </h3>
+              {%- if card_excerpt != blank -%}
+                <p class="article-card__excerpt">{{ card_excerpt | escape_once }}</p>
+              {%- endif -%}
+              {%- if section.settings.show_date or section.settings.show_reading_time -%}
+                <p class="article-card__meta">
+                  {%- if section.settings.show_date -%}
+                    {{- other.published_at | time_tag: format: 'date' -}}
+                  {%- endif -%}
+                  {%- if section.settings.show_reading_time -%}
+                    <span>{{ 'blogs.article.reading_time' | t: count: card_minutes }}</span>
+                  {%- endif -%}
+                </p>
+              {%- endif -%}
+            </div>
+          </article>
+        </li>
+      {%- endfor -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  {%- if related_shown > 0 -%}
+    <section class="article-related page-width" aria-labelledby="ArticleRelated-{{ section.id }}">
+      <div class="article-section-head">
+        <h2 class="article-section-head__title" id="ArticleRelated-{{ section.id }}">{{ section.settings.related_heading | escape }}</h2>
+        <a class="article-section-head__link" href="{{ blog.url }}">
+          <span>{{ 'blogs.blog.to_all' | t }}</span>
+          {%- render 'icon', name: 'chevron-left', size: 16 -%}
+        </a>
+      </div>
+      <ul class="blog-grid" role="list">
+        {{- related_cards -}}
+      </ul>
+    </section>
+  {%- endif -%}
+{%- endif -%}
+
+{%- render 'structured-data', type: 'article', article: article -%}
+
+{% schema %}
+{
+  "name": "מאמר",
+  "class": "section-main-article",
+  "enabled_on": {
+    "templates": ["article"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "מסלול ניווט (פירורי לחם)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "חיפוש במאמרים מעל הכותרת",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_topic",
+      "label": "נושא המאמר מעל הכותרת",
+      "info": "מוצג כשלמאמר יש תגית שהיא מזהה של קטגוריה (למשל vacuums), עם קישור לקטגוריה.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "תאריך פרסום",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_reading_time",
+      "label": "זמן קריאה",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "שם הכותב",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_share",
+      "label": "כפתורי שיתוף",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image",
+      "label": "תמונת המאמר",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "תקציר כפסקת פתיחה",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "קישור לקטגוריה"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_cta",
+      "label": "כפתור לקטגוריה בסוף המאמר",
+      "default": true
+    },
+    {
+      "type": "inline_richtext",
+      "id": "cta_text",
+      "label": "טקסט מעל הכפתור",
+      "default": "כל המוצרים באתר זמינים לשריון ולאיסוף עצמי מהסניף באילת, במחירי אילת ללא מע״מ."
+    },
+    {
+      "type": "header",
+      "content": "מוצרים מתחת למאמר"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_products",
+      "label": "הצגת מוצרים",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "products_heading",
+      "label": "כותרת",
+      "default": "חשבנו שיכול לעניין אותך"
+    },
+    {
+      "type": "collection",
+      "id": "products_collection",
+      "label": "קטגוריה חלופית",
+      "info": "המוצרים נלקחים מהקטגוריה שבתגית המאמר; קטגוריה זו משמשת כשאין תגית כזו. מוצגים רק מוצרים שבמלאי."
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "מספר מוצרים",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "מאמרים נוספים"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_related",
+      "label": "הצגת מאמרים נוספים",
+      "info": "קודם מאמרים באותו נושא, אחר כך האחרונים בבלוג.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "related_heading",
+      "label": "כותרת",
+      "default": "מאמרים נוספים"
+    },
+    {
+      "type": "range",
+      "id": "related_limit",
+      "label": "מספר מאמרים",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    }
+  ]
+}
+{% endschema %}

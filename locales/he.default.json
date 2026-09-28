@@ -1,0 +1,620 @@
+{
+  "general": {
+    "home": "דף הבית",
+    "new_window": "(נפתח בלשונית חדשה)",
+    "breadcrumbs": {
+      "label": "מיקומך באתר",
+      "home": "דף הבית",
+      "search": "חיפוש",
+      "cart": "עגלת קניות",
+      "all_collections": "כל המחלקות",
+      "not_found": "העמוד לא נמצא"
+    },
+    "pagination": {
+      "label": "דפדוף בין עמודים",
+      "previous": "לעמוד הקודם",
+      "next": "לעמוד הבא",
+      "page": "עמוד {{ number }}"
+    },
+    "quantity": {
+      "label": "כמות",
+      "label_for": "כמות: {{ title }}",
+      "decrease": "הפחתת הכמות",
+      "increase": "הגדלת הכמות"
+    },
+    "swatches": {
+      "label": "צבעים זמינים: {{ count }}",
+      "more": "צבעים נוספים: {{ count }}"
+    },
+    "social": {
+      "label": "הרשתות החברתיות שלנו",
+      "link_label": "{{ network }} (נפתח בלשונית חדשה)",
+      "facebook": "פייסבוק",
+      "instagram": "אינסטגרם",
+      "telegram": "טלגרם",
+      "tiktok": "טיקטוק",
+      "youtube": "יוטיוב",
+      "whatsapp": "וואטסאפ"
+    },
+    "payment": {
+      "label": "אמצעי תשלום"
+    },
+    "whatsapp": {
+      "label": "שיחת וואטסאפ עם החנות (נפתח בלשונית חדשה)"
+    },
+    "meta": {
+      "default_description": "{{ brand }} באילת: סמארטפונים, מחשבים וגיימינג, מוצרי חשמל, שמע ושעונים חכמים במחירי אילת ללא מע״מ. משריינים באתר ואוספים מהחנות באילת.",
+      "collection_description": "{{ title }} ב-{{ brand }} — מחירי אילת ללא מע״מ, שריון באתר ואיסוף מהחנות באילת.",
+      "tags": "מתויג: {{ tags }}",
+      "page": "עמוד {{ page }}"
+    },
+    "js": {
+      "cart_added": "המוצר נוסף לעגלה",
+      "cart_updated": "העגלה עודכנה",
+      "max_quantity": "הכמות עודכנה לכמות המרבית הזמינה",
+      "results": "נמצאו {count} תוצאות",
+      "no_results": "לא נמצאו תוצאות",
+      "filtered": "רשימת המוצרים עודכנה"
+    },
+    "password": {
+      "opening_soon": "החנות תיפתח בקרוב",
+      "password_heading": "כניסה לחנות באמצעות סיסמה",
+      "password_toggle": "כניסה עם סיסמה",
+      "password_label": "סיסמה",
+      "password_submit": "כניסה",
+      "admin_html": "בעלי החנות? <a href=\"/admin\" class=\"link\">התחברות לניהול</a>",
+      "newsletter_heading": "רוצים לדעת כשנפתחים?",
+      "newsletter_label": "אימייל",
+      "newsletter_placeholder": "כתובת האימייל שלכם",
+      "newsletter_submit": "עדכנו אותי",
+      "newsletter_success": "תודה! נעדכן אתכם כשהחנות תיפתח."
+    },
+    "gift_card": {
+      "title": "כרטיס המתנה שלכם",
+      "heading": "כרטיס מתנה על סך {{ value }}",
+      "balance_label": "יתרה",
+      "initial_label": "ערך מקורי",
+      "code_label": "קוד כרטיס המתנה",
+      "expires_on": "בתוקף עד {{ date }}",
+      "expired": "תוקף הכרטיס פג",
+      "disabled": "הכרטיס מושבת",
+      "how_to_use": "הזינו את הקוד בעמוד התשלום כדי לממש את הכרטיס.",
+      "message_label": "הודעה מצורפת",
+      "shop_link": "להתחלת קנייה",
+      "apple_wallet": "הוספה ל-Apple Wallet"
+    }
+  },
+  "accessibility": {
+    "skip_to_content": "דילוג לתוכן הראשי",
+    "new_window": "נפתח בלשונית חדשה",
+    "close": "סגירה",
+    "loading": "טוען…",
+    "required": "שדה חובה",
+    "home_link": "{{ shop }} — לדף הבית",
+    "star_rating": "דירוג {{ rating }} מתוך {{ max }}",
+    "reset_done": "הגדרות הנגישות אופסו",
+    "carousel": {
+      "label": "קרוסלה",
+      "previous": "הקודם",
+      "next": "הבא",
+      "pause": "עצירת ההחלפה האוטומטית",
+      "play": "הפעלת ההחלפה האוטומטית",
+      "go_to": "מעבר לשקופית {{ index }}",
+      "slide": "שקופית {n} מתוך {total}"
+    },
+    "back_to_top": "חזרה לראש העמוד"
+  },
+  "errors": {
+    "generic": "אירעה שגיאה. נסו שוב.",
+    "network": "אין חיבור לרשת. בדקו את החיבור ונסו שוב.",
+    "required": "זהו שדה חובה",
+    "email": "כתובת האימייל אינה תקינה",
+    "phone": "מספר הטלפון אינו תקין",
+    "sold_out": "המוצר אזל מהמלאי",
+    "max_quantity": "אפשר להזמין עד {{ max }} יחידות",
+    "form_heading": "יש לתקן את השדות המסומנים",
+    "page_not_found": "העמוד לא נמצא"
+  },
+  "products": {
+    "price": {
+      "eilat_label": "מחיר אילת",
+      "tax_free": "TAX FREE",
+      "tax_free_note": "(מחיר אילת ללא מע״מ)",
+      "with_vat": "מחיר כולל מע״מ",
+      "regular": "מחיר רגיל",
+      "sale": "מחיר מבצע",
+      "from": "החל מ־{{ price }}",
+      "sold_out": "אזל מהמלאי"
+    },
+    "badges": {
+      "group_label": "תגיות המוצר",
+      "tax_free_title": "TAX FREE",
+      "tax_free_subtitle": "מחיר אילת",
+      "new": "חדש בחנות",
+      "low_stock": "אחרונים במלאי",
+      "sold_out": "אזל מהמלאי"
+    },
+    "card": {
+      "reserve": "שריון באילת",
+      "sold_out": "אזל מהמלאי"
+    },
+    "product": {
+      "sku": "מק״ט",
+      "read_more": "קרא עוד...",
+      "specs_link": "פרטים טכניים נוספים",
+      "brand_link": "כל המוצרים של {{ vendor }}",
+      "reserve": "שריון באילת",
+      "add_to_cart": "הוסף לעגלה",
+      "sold_out": "אזל מהמלאי",
+      "variant_unavailable": "אזל מהמלאי",
+      "choose_variant": "בחירת דגם",
+      "wishlist": "שמירה במועדפים",
+      "whatsapp_availability": "לבירור זמינות בוואטסאפ",
+      "whatsapp_ask": "שאלו אותנו בוואטסאפ",
+      "sticky_label": "רכישה מהירה",
+      "sticky_error": "המוצר לא נוסף — הפרטים ליד כפתורי הקנייה",
+      "warranty_label": "אחריות:",
+      "warranty_official": "יבואן רשמי",
+      "warranty_months": {
+        "one": "חודש אחד",
+        "two": "חודשיים",
+        "many": "{{ count }} חודשים",
+        "other": "{{ count }} חודשים"
+      },
+      "stock": {
+        "in": "במלאי · מוכן לאיסוף",
+        "out": "אזל מהמלאי",
+        "preorder": "זמין בהזמנה מוקדמת",
+        "low": {
+          "one": "נותרה יחידה אחת במלאי",
+          "two": "נותרו שתי יחידות במלאי",
+          "many": "נותרו {{ count }} יחידות במלאי",
+          "other": "נותרו {{ count }} יחידות במלאי"
+        }
+      },
+      "trust_label": "למה לקנות אצלנו",
+      "details_heading": "מידע נוסף על המוצר",
+      "tabs": {
+        "description": "מידע נוסף",
+        "specs": "פרטים טכניים"
+      },
+      "specs": {
+        "key_facts": "נתונים עיקריים",
+        "summary": "בקצרה",
+        "warranty": "אחריות",
+        "sim": "כרטיס SIM",
+        "energy": "דירוג אנרגטי"
+      },
+      "media": {
+        "carousel": "גלריה",
+        "label": "תמונות המוצר: {{ title }}",
+        "zoom": "הגדלת תמונה {{ index }} מתוך {{ count }}",
+        "thumb": "הצגת תמונה {{ index }} מתוך {{ count }}",
+        "previous": "התמונה הקודמת",
+        "next": "התמונה הבאה",
+        "lightbox": "תמונות המוצר בהגדלה: {{ title }}",
+        "close": "סגירת התצוגה המוגדלת",
+        "lightbox_alt_html": "{{ alt }} — תמונה {{ index }} מתוך {{ count }}"
+      },
+      "whatsapp_availability_message_html": "היי, אשמח לבדוק מתי יחזור למלאי: {{ title }} {{ url }}"
+    },
+    "related": {
+      "heading": "מוצרים נוספים שיעניינו אותך",
+      "editor_empty": "לא נמצאו מוצרים קשורים למוצר הזה. בחרו \"קטגוריית גיבוי\" בהגדרות הסקשן, או הגדירו מוצרים קשורים באפליקציית Search & Discovery. בחנות הסקשן לא מוצג במקרה כזה."
+    }
+  },
+  "wishlist": {
+    "button": {
+      "label": "הוספה/הסרה מהמועדפים",
+      "label_product": "הוספה/הסרה מהמועדפים: {{ title }}",
+      "added": "המוצר נוסף למועדפים",
+      "removed": "המוצר הוסר מהמועדפים"
+    },
+    "floating": {
+      "label": "המועדפים שלי"
+    },
+    "page": {
+      "count": "מוצרים שמורים:",
+      "storage_note": "המועדפים נשמרים בדפדפן הזה, במכשיר הזה.",
+      "loading": "טוען את המועדפים…",
+      "empty_title": "רשימת המועדפים ריקה",
+      "empty_text": "לחצו על הלב שבכרטיס המוצר כדי לשמור אותו כאן ולחזור אליו מאוחר יותר.",
+      "empty_cta": "לכל המוצרים",
+      "no_js": "כדי לראות את המועדפים יש להפעיל JavaScript בדפדפן.",
+      "disabled": "רשימת המועדפים כבויה בהגדרות התבנית."
+    }
+  },
+  "home": {
+    "hero": {
+      "label": "באנרים ראשיים",
+      "slide_link": "באנר {{ number }} מתוך {{ count }}"
+    },
+    "categories": {
+      "label": "קטגוריות מובילות",
+      "placeholder": "קטגוריה"
+    },
+    "products": {
+      "view_all": "לכל המוצרים",
+      "editor_empty": "בחרו קטגוריה בהגדרות הסקשן כדי להציג את המוצרים שלה.",
+      "editor_too_few": "בקטגוריה שנבחרה יש פחות משני מוצרים זמינים, ולכן הקרוסלה לא מוצגת באתר."
+    },
+    "guides": {
+      "read_more": "קראו עוד",
+      "view_all": "לכל הכתבות",
+      "badge": "מדריך",
+      "editor_empty": "בחרו בלוג בהגדרות הסקשן כדי להציג את הכתבות האחרונות שלו.",
+      "placeholder_title": "כותרת הכתבה",
+      "placeholder_text": "תקציר הכתבה יופיע כאן."
+    },
+    "testimonials": {
+      "editor_empty": "כאן תופיע ביקורת אמיתית של לקוח. מלאו שם, כותרת, דירוג וטקסט — ביקורת ריקה לא מוצגת באתר."
+    },
+    "banner": {
+      "link_label": "לפרטים נוספים"
+    }
+  },
+  "newsletter": {
+    "form_label": "הרשמה לעדכונים ולהטבות",
+    "name_label": "שם",
+    "name_placeholder": "שם:",
+    "phone_label": "טלפון",
+    "phone_placeholder": "טלפון:",
+    "email_label": "אימייל",
+    "email_placeholder": "מייל:",
+    "submit": "הרשמה",
+    "success": "תודה שנרשמתם! מעכשיו תקבלו מאיתנו עדכונים, הטבות ומבצעים.",
+    "error": "לא הצלחנו להשלים את ההרשמה. בדקו את הפרטים ונסו שוב."
+  },
+  "header": {
+    "announcement": {
+      "label": "הודעות האתר",
+      "previous": "ההודעה הקודמת",
+      "next": "ההודעה הבאה",
+      "pause": "עצירת תנועת ההודעות"
+    },
+    "menu": {
+      "label": "תפריט ראשי",
+      "open": "תפריט ניווט",
+      "back": "חזרה",
+      "view_all": "לכל המוצרים בקטגוריה",
+      "service": "שירות ומידע",
+      "more": "קישורים נוספים"
+    },
+    "search": {
+      "label": "חיפוש באתר",
+      "placeholder": "מה תרצו לרכוש?",
+      "submit": "חיפוש",
+      "open": "פתיחת החיפוש",
+      "close": "סגירת החיפוש",
+      "trending": "חיפושים פופולריים"
+    },
+    "branches": "סניפים באילת",
+    "account": {
+      "guest": "שלום אורח",
+      "login": "הרשמה - התחברות",
+      "greeting": "שלום, {{ name }}",
+      "greeting_no_name": "שלום!",
+      "my_account": "החשבון שלי"
+    },
+    "cart": {
+      "label": "עגלת הקניות",
+      "count": {
+        "one": "מוצר אחד בעגלה",
+        "two": "{{ count }} מוצרים בעגלה",
+        "other": "{{ count }} מוצרים בעגלה"
+      }
+    },
+    "whatsapp": "שירות לקוחות בוואטסאפ",
+    "phone": "טלפון: {{ phone }}",
+    "wishlist": "המועדפים שלי"
+  },
+  "footer": {
+    "branches": {
+      "heading": "הסניף שלנו באילת",
+      "address": "כתובת",
+      "hours": "שעות פתיחה",
+      "map": "ניווט לסניף",
+      "phone": "טלפון",
+      "whatsapp": "וואטסאפ",
+      "email": "אימייל",
+      "all": "לכל הסניפים"
+    },
+    "social_heading": "מוזמנים לבקר אותנו גם ב",
+    "copyright": "© {{ year }} {{ shop }}. כל הזכויות שמורות.",
+    "accessibility": "הצהרת נגישות",
+    "privacy": "מדיניות הפרטיות",
+    "terms": "תקנון האתר",
+    "refund": "ביטול עסקה והחזרות",
+    "legal_label": "מידע משפטי ונגישות"
+  },
+  "cart": {
+    "drawer": {
+      "title": "עגלת הקניות",
+      "count": {
+        "one": "מוצר אחד",
+        "two": "{{ count }} מוצרים",
+        "other": "{{ count }} מוצרים"
+      },
+      "close": "סגירת העגלה",
+      "empty": "העגלה שלכם ריקה",
+      "empty_text": "עוד לא הוספתם מוצרים. בוחרים באתר, משריינים ואוספים מהסניף באילת.",
+      "continue": "המשך בקניות",
+      "all_products": "לכל המוצרים",
+      "view_cart": "לעמוד העגלה",
+      "subtotal": "סה״כ",
+      "discounts": "הנחות",
+      "checkout": "המשך לשריון",
+      "checkout_note": "בשלב הבא: פרטים ותשלום בעמוד המאובטח של Shopify",
+      "note_label": "הערה להזמנה",
+      "lines_label": "המוצרים בעגלה",
+      "pickup_label": "איסוף ותשלום",
+      "line": {
+        "remove": "הסרת {{ title }} מהעגלה",
+        "unit_price": "{{ price }} ליחידה",
+        "original_price": "מחיר לפני הנחה",
+        "final_price": "מחיר"
+      }
+    },
+    "page": {
+      "title": "עגלת הקניות",
+      "empty_title": "עגלת הקניות ריקה",
+      "item_count": {
+        "one": "מוצר אחד",
+        "two": "2 מוצרים",
+        "many": "{{ count }} מוצרים",
+        "other": "{{ count }} מוצרים"
+      },
+      "lines_label": "המוצרים בעגלה",
+      "column_product": "המוצר",
+      "column_quantity": "כמות",
+      "column_total": "סה״כ",
+      "unit_price": "{{ price }} ליחידה",
+      "line_total": "סה״כ:",
+      "regular_price": "מחיר לפני הנחה:",
+      "remove": "הסרת {{ title }} מהעגלה",
+      "low_stock": "נותרו {{ count }} במלאי",
+      "update": "עדכון העגלה",
+      "continue": "המשך קניות בחנות",
+      "note_label": "הערה להזמנה",
+      "note_placeholder": "למשל: שעת האיסוף המשוערת",
+      "summary_title": "סיכום ההזמנה",
+      "subtotal": "סה״כ מוצרים",
+      "total": "סה״כ לתשלום",
+      "tax_free": "המחירים הם מחירי אילת, ללא מע״מ",
+      "pickup_from": "איסוף מהסניף: {{ address }}",
+      "consent_error": "יש לסמן את התיבה כדי להמשיך לשריון",
+      "consent_attribute": "אישור תנאי השריון",
+      "vat_consent_attribute": "אישור תנאי הפטור ממע״מ",
+      "consent_value": "אושר",
+      "checkout": "המשך לשריון",
+      "empty_text": "עגלת הקניות ללא מוצרים, נא להוסיף פריט לקניה.",
+      "empty_note": "כל המחירים באתר הם מחירי אילת — ללא מע״מ, לאיסוף עצמי מהסניף.",
+      "empty_cta": "המשך בקניות",
+      "empty_links": "מחלקות באתר"
+    }
+  },
+  "search": {
+    "predictive": {
+      "label": "הצעות חיפוש",
+      "products": "מוצרים",
+      "content": "מאמרים ועמודים",
+      "article": "מאמר",
+      "page": "עמוד",
+      "view_all": "כל התוצאות ({{ count }})",
+      "no_results": "לא נמצאו תוצאות עבור „{{ terms }}”",
+      "no_results_hint": "נסו מילה אחרת או שם דגם, או בחרו חיפוש פופולרי:",
+      "trending": "חיפושים פופולריים",
+      "sold_out": "אזל מהמלאי"
+    },
+    "page": {
+      "title": "תוצאות חיפוש",
+      "title_terms": "עבור ״{{ terms }}״",
+      "title_empty": "חיפוש באתר",
+      "label": "חיפוש באתר",
+      "placeholder": "מה תרצו לרכוש?",
+      "submit": "חיפוש",
+      "count_label": "תוצאות:",
+      "products_heading": "מוצרים",
+      "content_heading": "מאמרים ועמודים",
+      "article": "מאמר",
+      "page": "עמוד",
+      "progress": "צפיתם ב־{{ shown }} מתוך {{ total }} תוצאות",
+      "previous": "הצגת התוצאות הקודמות",
+      "no_results": {
+        "title": "לא מצאנו תוצאות עבור ״{{ terms }}״",
+        "text": "בדקו את האיות או נסו מילה כללית יותר. אפשר לחפש גם בשם המותג או הדגם, למשל: אייפון, סמסונג, שואב אבק."
+      },
+      "empty_query": "הקלידו שם של מוצר, דגם או מותג ולחצו על חיפוש.",
+      "popular_searches": "חיפושים פופולריים",
+      "popular_collections": "קטגוריות פופולריות",
+      "all_products": "לכל המוצרים"
+    }
+  },
+  "a11y_panel": {
+    "open": "הגדרות נגישות",
+    "title": "הגדרות נגישות",
+    "intro": "ההגדרות נשמרות בדפדפן הזה וחלות בכל עמודי האתר.",
+    "close": "סגירת הגדרות הנגישות",
+    "text_size": "גודל טקסט",
+    "text_lg": "הגדלת טקסט",
+    "text_xl": "הגדלה נוספת",
+    "display": "תצוגה וקריאות",
+    "contrast": "ניגודיות גבוהה",
+    "links": "הדגשת קישורים",
+    "readable": "גופן קריא",
+    "no_motion": "עצירת אנימציות",
+    "reset": "איפוס הגדרות",
+    "statement": "הצהרת נגישות",
+    "report": "דיווח על בעיית נגישות"
+  },
+  "blogs": {
+    "blog": {
+      "search_label": "חיפוש מאמר בבלוג",
+      "search_placeholder": "חפשו מאמר בבלוג",
+      "search_submit": "חיפוש",
+      "to_all": "לכל המאמרים בבלוג",
+      "tagged_heading": "מאמרים בנושא {{ tag }}",
+      "tags_label": "סינון לפי נושא",
+      "all_tags": "כל הנושאים",
+      "empty": "עדיין אין מאמרים בבלוג.",
+      "featured_label": "המאמר האחרון"
+    },
+    "article": {
+      "read_more": "לקריאת המאמר",
+      "reading_time": {
+        "one": "זמן קריאה: דקה",
+        "two": "זמן קריאה: 2 דקות",
+        "many": "זמן קריאה: {{ count }} דקות",
+        "other": "זמן קריאה: {{ count }} דקות"
+      },
+      "author": "מאת {{ author }}",
+      "topic": "נושא:",
+      "back": "חזרה ל{{ blog }}",
+      "share_label": "שיתוף המאמר",
+      "share_email": "שיתוף במייל",
+      "share_whatsapp": "שיתוף בוואטסאפ",
+      "share_facebook": "שיתוף בפייסבוק",
+      "collection_cta": "מעבר לקטגוריה: {{ title }}",
+      "products_link": "לכל המוצרים בקטגוריה"
+    }
+  },
+  "contact": {
+    "form": {
+      "required_note": "שדות המסומנים ב־* הם שדות חובה",
+      "name": "שם",
+      "phone": "טלפון",
+      "phone_hint": "לדוגמה: 050-1234567",
+      "phone_invalid": "מספר טלפון עם 9 עד 15 ספרות",
+      "email": "אימייל",
+      "body": "תוכן הפנייה",
+      "marketing": "אשמח לקבל עדכונים על מוצרים חדשים ומבצעים במייל",
+      "marketing_field": "מעוניין/ת בעדכונים",
+      "marketing_value": "כן",
+      "privacy_prefix": "קראתי ואני מסכים/ה ל",
+      "privacy_link": "מדיניות הפרטיות",
+      "privacy_field": "אישור מדיניות הפרטיות",
+      "privacy_value": "אושר",
+      "submit": "שליחת הפנייה",
+      "success": "תודה! הפנייה נשלחה ונחזור אליכם בהקדם."
+    },
+    "info": {
+      "phone": "טלפון",
+      "whatsapp": "וואטסאפ",
+      "whatsapp_link": "שליחת הודעה בוואטסאפ: {{ number }}",
+      "email": "אימייל",
+      "address": "כתובת",
+      "hours": "שעות פתיחה",
+      "map": "פתיחת הכתובת במפות Google"
+    }
+  },
+  "branches": {
+    "address": "כתובת",
+    "hours": "שעות פתיחה",
+    "hours_fallback": "לשעות הפתיחה העדכניות, התקשרו לסניף",
+    "phone": "טלפון",
+    "open_maps": "פתיחה במפות Google",
+    "open_waze": "ניווט עם Waze",
+    "show_map": "הצגת המפה",
+    "map_title": "מפה: {{ name }}",
+    "hide_map": "הסתרת המפה"
+  },
+  "not_found": {
+    "title": "הדף שניסית להגיע אליו כבר לא קיים",
+    "text": "ייתכן שהקישור שגוי או שהדף הוסר. אפשר לחפש מוצר, לבחור מחלקה או לחזור לדף הבית.",
+    "search_label": "חיפוש באתר",
+    "search_placeholder": "מה תרצו לרכוש?",
+    "search_submit": "חיפוש",
+    "collections_heading": "מחלקות פופולריות",
+    "home": "חזרה לדף הבית",
+    "all_products": "לכל המוצרים"
+  },
+  "collections": {
+    "count_label": "תוצאות:",
+    "products_heading": "רשימת המוצרים",
+    "subcollections_label": "קטגוריות משנה",
+    "load_more": "טען עוד",
+    "progress": "צפיתם ב־{{ shown }} מתוך {{ total }} מוצרים",
+    "previous": "הצגת המוצרים הקודמים",
+    "empty": {
+      "title": "אין עדיין מוצרים בקטגוריה הזו",
+      "text": "המלאי מתעדכן כל הזמן. בינתיים אפשר לעיין בשאר הקטגוריות שלנו.",
+      "all_products": "לכל המוצרים",
+      "suggestions": "קטגוריות מומלצות"
+    },
+    "no_matches": {
+      "title": "לא נמצאו מוצרים שמתאימים לסינון",
+      "text": "נסו להסיר חלק מהסינונים או לנקות את כולם.",
+      "clear": "ניקוי כל הסינונים"
+    },
+    "list": {
+      "title": "כל המחלקות",
+      "count": {
+        "one": "מוצר אחד",
+        "two": "{{ count }} מוצרים",
+        "many": "{{ count }} מוצרים",
+        "other": "{{ count }} מוצרים"
+      },
+      "empty": "אין עדיין קטגוריות להצגה."
+    }
+  },
+  "facets": {
+    "heading": "סינון",
+    "open": "סינון",
+    "close": "סגירת הסינון",
+    "active_count": {
+      "one": "סינון פעיל אחד",
+      "two": "{{ count }} סינונים פעילים",
+      "many": "{{ count }} סינונים פעילים",
+      "other": "{{ count }} סינונים פעילים"
+    },
+    "active_heading": "בחרת לסנן לפי:",
+    "remove": "הסרת הסינון {{ label }}",
+    "clear_all": "נקה הכל",
+    "apply": {
+      "one": "הצגת תוצאה אחת",
+      "two": "הצגת {{ count }} תוצאות",
+      "many": "הצגת {{ count }} תוצאות",
+      "other": "הצגת {{ count }} תוצאות"
+    },
+    "value_count": {
+      "one": "מוצר אחד",
+      "two": "{{ count }} מוצרים",
+      "many": "{{ count }} מוצרים",
+      "other": "{{ count }} מוצרים"
+    },
+    "price": {
+      "from": "מ־",
+      "to": "עד",
+      "from_label": "מחיר מינימלי",
+      "to_label": "מחיר מקסימלי",
+      "max_hint": "המחיר הגבוה ביותר: {{ price }}",
+      "chip_range": "{{ min }} – {{ max }}",
+      "chip_from": "מ־{{ min }}",
+      "chip_to": "עד {{ max }}"
+    },
+    "sort": {
+      "label": "מיין לפי:",
+      "mobile_label": "מיון לפי:",
+      "featured": "מומלצים",
+      "relevance": "רלוונטיות",
+      "manual": "מומלצים",
+      "best_selling": "הנמכרים ביותר",
+      "title_ascending": "שם",
+      "title_descending": "שם (ת׳–א׳)",
+      "price_ascending": "מהזול ליקר",
+      "price_descending": "מהיקר לזול",
+      "created_descending": "חדשים",
+      "created_ascending": "ישנים"
+    }
+  },
+  "pickup": {
+    "available_at": "זמין לאיסוף: {{ location }}",
+    "unavailable_at": "לא זמין כרגע לאיסוף: {{ location }}"
+  },
+  "cookie_banner": {
+    "label": "הודעה על שימוש בעוגיות",
+    "accept": "אישור",
+    "close": "סגירת ההודעה",
+    "saved": "העדפת העוגיות נשמרה"
+  }
+}

@@ -1,0 +1,183 @@
+{% doc %}
+  Breadcrumb trail for the current page, as an accessible <nav> and/or as a
+  schema.org BreadcrumbList (JSON-LD). Renders nothing on the home page.
+
+  Trail: דף הבית › [collection | blog] › current page. On a product page reached
+  without a collection in the URL, the collection shown is the product's broadest
+  real department: the collection with the most products, ignoring `all`,
+  `frontpage` and catch-all collections that hold 90% or more of the catalogue
+  (e.g. "זמין לשריון באילת").
+
+  `structured-data` with type 'breadcrumbs' calls this snippet with format 'json',
+  so the visual trail and the JSON-LD always agree. The HTML format already
+  includes the JSON-LD unless `schema: false` is passed.
+
+  @param {string} [format] - 'html' (default) or 'json' (JSON-LD only).
+  @param {boolean} [schema] - In 'html' format, also print the JSON-LD. Default true.
+  @param {string} [class] - Extra classes on the <nav>.
+
+  @example
+  {% render 'breadcrumbs' %}
+  {% render 'breadcrumbs', format: 'json' %}
+{% enddoc %}
+{%- liquid
+  assign crumb_format = format | default: 'html'
+  assign crumb_sep = '␞'
+  assign crumb_names = 'general.breadcrumbs.home' | t
+  assign crumb_urls = routes.root_url
+  assign current_title = ''
+
+  case request.page_type
+    when 'product'
+      assign crumb_collection = collection
+      if crumb_collection == blank
+        assign catalogue_count = collections.all.products_count | default: 0
+        assign catch_all_count = catalogue_count | times: 9 | divided_by: 10
+        assign best_count = 0
+        for product_collection in product.collections
+          if product_collection.handle == 'all' or product_collection.handle == 'frontpage'
+            continue
+          endif
+          if catch_all_count > 0 and product_collection.products_count >= catch_all_count
+            continue
+          endif
+          if product_collection.products_count > best_count
+            assign crumb_collection = product_collection
+            assign best_count = product_collection.products_count
+          endif
+        endfor
+      endif
+      if crumb_collection != blank
+        assign crumb_names = crumb_names | append: crumb_sep | append: crumb_collection.title
+        assign crumb_urls = crumb_urls | append: crumb_sep | append: crumb_collection.url
+      endif
+      assign current_title = product.title
+
+    when 'collection'
+      if current_tags
+        assign crumb_names = crumb_names | append: crumb_sep | append: collection.title
+        assign crumb_urls = crumb_urls | append: crumb_sep | append: collection.url
+        assign current_title = current_tags | join: ', '
+      else
+        assign current_title = collection.title
+      endif
+
+    when 'blog'
+      if current_tags
+        assign crumb_names = crumb_names | append: crumb_sep | append: blog.title
+        assign crumb_urls = crumb_urls | append: crumb_sep | append: blog.url
+        # The store tags articles with collection handles ("televisions"): print that
+        # collection's title, else the tag itself (same rule as sections/main-blog).
+        for tag in current_tags
+          assign crumb_tag = collections[tag].title | default: tag
+          unless forloop.first
+            assign current_title = current_title | append: ', '
+          endunless
+          assign current_title = current_title | append: crumb_tag
+        endfor
+      else
+        assign current_title = blog.title
+      endif
+
+    when 'article'
+      assign crumb_names = crumb_names | append: crumb_sep | append: blog.title
+      assign crumb_urls = crumb_urls | append: crumb_sep | append: blog.url
+      assign current_title = article.title
+
+    when 'page'
+      assign current_title = page.title
+
+    when 'search'
+      assign current_title = 'general.breadcrumbs.search' | t
+
+    when 'cart'
+      assign current_title = 'general.breadcrumbs.cart' | t
+
+    when 'list-collections'
+      assign current_title = 'general.breadcrumbs.all_collections' | t
+
+    when '404'
+      assign current_title = 'general.breadcrumbs.not_found' | t
+
+    when 'index'
+      assign current_title = ''
+
+    else
+      assign current_title = page_title
+  endcase
+
+  assign crumb_name_list = crumb_names | split: crumb_sep
+  assign crumb_url_list = crumb_urls | split: crumb_sep
+  assign show_schema = true
+  if schema == false
+    assign show_schema = false
+  endif
+  if crumb_format == 'json'
+    assign show_schema = true
+  endif
+-%}
+{%- if current_title != blank -%}
+  {%- if crumb_format == 'html' -%}
+    <nav class="breadcrumbs{% if class != blank %} {{ class }}{% endif %}" aria-label="{{ 'general.breadcrumbs.label' | t }}">
+      <ol class="breadcrumbs__list" role="list">
+        {%- for crumb_name in crumb_name_list -%}
+          <li class="breadcrumbs__item">
+            <a class="breadcrumbs__link" href="{{ crumb_url_list[forloop.index0] }}">{{ crumb_name | escape }}</a>
+          </li>
+        {%- endfor -%}
+        <li class="breadcrumbs__item">
+          <span class="breadcrumbs__current" aria-current="page">{{ current_title | escape }}</span>
+        </li>
+      </ol>
+    </nav>
+  {%- endif -%}
+  {%- if show_schema -%}
+    {%- capture breadcrumb_json -%}
+      {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+      {%- for crumb_name in crumb_name_list -%}
+        {"@type":"ListItem","position":{{ forloop.index }},"name":{{ crumb_name | json }},"item":{{ request.origin | append: crumb_url_list[forloop.index0] | json }}},
+      {%- endfor -%}
+      {"@type":"ListItem","position":{{ crumb_name_list.size | plus: 1 }},"name":{{ current_title | json }},"item":{{ canonical_url | json }}}]}
+    {%- endcapture -%}
+    <script type="application/ld+json">{{ breadcrumb_json | strip_newlines | replace: '</', '<\/' }}</script>
+  {%- endif -%}
+{%- endif -%}
+
+{% stylesheet %}
+  .breadcrumbs__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2xs) var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-xs);
+    line-height: var(--leading-tight);
+  }
+  .breadcrumbs__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-width: 0;
+  }
+  .breadcrumbs__item + .breadcrumbs__item::before {
+    content: "/";
+    content: "/" / "";
+    color: var(--color-muted);
+  }
+  .breadcrumbs__link {
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+  .breadcrumbs__link:hover {
+    text-decoration: underline;
+  }
+  .breadcrumbs__current {
+    color: var(--color-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 40ch;
+  }
+{% endstylesheet %}

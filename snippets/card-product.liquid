@@ -1,0 +1,178 @@
+{% doc %}
+  Product card — the JOY Mobile card measured on the old site (275×568 at 1440px,
+  docs/rebuild/konimbo-home-chrome.md §4): wishlist heart (top, inline-end), TAX FREE /
+  "מחיר אילת" badge (HTML/CSS, only for VAT-exempt variants — snippets/badges), a 220px image
+  box, the brand-logo row, colour dots, a clamped title, the Eilat price and ONE full-width
+  black "שריון באילת" button. Hover: button turns green and the image zooms slowly (off for
+  reduced motion).
+
+  The title link stretches over the whole card, so each card is one tab stop plus the heart
+  and the button, which sit above the stretched link.
+  - Single-variant product: a tiny /cart/add form inside <product-form data-mode="cart">
+    (@theme/product) — with JS it reserves through AJAX and opens the cart drawer; without JS
+    (or before product.js loads) the form posts and lands on /cart.
+  - Multi-variant product: the button is a link to the product page (label unchanged).
+  - Sold out: a disabled "אזל מהמלאי" button.
+
+  Brand logo: the image file `brand-<vendor handle>.png` from the store's Files
+  (Content › Files — e.g. brand-apple.png, brand-samsung.png); nothing when the vendor has no
+  such file or is the store itself. With the theme setting "הצגת המותג" the vendor name is
+  printed instead when there is no logo.
+
+  The caller wraps the card (list item / carousel slide) and links, once per section:
+  component-card.css, component-price.css, component-badges.css, component-swatches.css,
+  component-wishlist-button.css, plus `<script type="module" src="{{ 'product.js' | asset_url }}">`
+  for the AJAX reserve button.
+
+  @param {product} product - The product.
+  @param {boolean} [lazy] - Lazy-load the images. Default true; pass false for the first cards above the fold.
+  @param {string} [heading] - Tag of the title: 'h2', 'h3' (default) or 'h4'.
+  @param {string} [section_id] - The calling section's id; keeps element ids unique when a product appears in several sections.
+  @param {boolean} [show_swatches] - Colour dots. Default: the theme setting "עיגולי צבע".
+
+  @example
+  {% render 'card-product', product: product, lazy: true, heading: 'h3', section_id: section.id, show_swatches: true %}
+{% enddoc %}
+{%- liquid
+  assign card_heading = 'h3'
+  if heading == 'h2' or heading == 'h4'
+    assign card_heading = heading
+  endif
+
+  assign card_loading = 'lazy'
+  if lazy == false
+    assign card_loading = 'eager'
+  endif
+
+  assign card_swatches = settings.card_show_swatches
+  if show_swatches == false
+    assign card_swatches = false
+  elsif show_swatches == true
+    assign card_swatches = true
+  endif
+
+  assign card_uid = section_id | default: 'card' | append: '-' | append: product.id
+  assign card_variant = product.selected_or_first_available_variant | default: product.variants.first
+  assign card_url = product.url | within: collection
+
+  assign card_image = product.featured_media.preview_image
+  assign card_image_2 = nil
+  if settings.card_show_secondary_image and product.media.size > 1
+    assign card_image_2 = product.media[1].preview_image
+  endif
+
+  assign card_square = true
+  if settings.card_image_ratio != '1 / 1'
+    assign card_square = false
+  endif
+  assign card_sizes = '220px'
+  unless card_square
+    assign card_sizes = '(min-width: 1200px) 275px, (min-width: 768px) 33vw, 90vw'
+  endunless
+
+  assign card_vendor = product.vendor | strip
+  assign card_brand_logo = nil
+  if card_vendor != blank and card_vendor != shop.name
+    assign card_brand_file = card_vendor | handleize | prepend: 'brand-' | append: '.png'
+    assign card_brand_logo = images[card_brand_file]
+  else
+    assign card_vendor = ''
+  endif
+
+  assign card_single = false
+  if product.has_only_default_variant or product.variants.size == 1
+    assign card_single = true
+  endif
+
+  assign card_classes = 'card-product'
+  unless card_square
+    assign card_classes = card_classes | append: ' card-product--ratio'
+  endunless
+  if card_image_2 != nil
+    assign card_classes = card_classes | append: ' card-product--has-second'
+  endif
+  unless product.available
+    assign card_classes = card_classes | append: ' card-product--sold-out'
+  endunless
+-%}
+<div class="{{ card_classes }}">
+  <div class="card-product__media">
+    {%- render 'image',
+      image: card_image,
+      widths: '220,330,440,660',
+      sizes: card_sizes,
+      loading: card_loading,
+      decorative: true,
+      placeholder: 'product-1',
+      class: 'card-product__img'
+    -%}
+    {%- if card_image_2 != nil -%}
+      {%- render 'image',
+        image: card_image_2,
+        widths: '220,330,440,660',
+        sizes: card_sizes,
+        loading: 'lazy',
+        decorative: true,
+        class: 'card-product__img card-product__img--second'
+      -%}
+    {%- endif -%}
+  </div>
+
+  {%- render 'badges', product: product, context: 'card', class: 'card-product__badges' -%}
+  {%- render 'wishlist-button', product: product, class: 'card-product__wishlist', size: 32 -%}
+
+  <div class="card-product__brand">
+    {%- if card_brand_logo != blank -%}
+      {%- render 'image',
+        image: card_brand_logo,
+        widths: '135,270,405',
+        sizes: '135px',
+        loading: card_loading,
+        alt: card_vendor,
+        class: 'card-product__brand-logo'
+      -%}
+    {%- elsif settings.card_show_vendor and card_vendor != blank -%}
+      <span class="card-product__vendor">{{ card_vendor | escape }}</span>
+    {%- endif -%}
+  </div>
+
+  <div class="card-product__swatches">
+    {%- if card_swatches -%}
+      {%- render 'swatches', product: product, limit: settings.card_swatch_limit -%}
+    {%- endif -%}
+  </div>
+
+  <{{ card_heading }} class="card-product__title">
+    <a class="card-product__link" href="{{ card_url }}">{{ product.title | escape }}</a>
+  </{{ card_heading }}>
+
+  {%- render 'price', product: product, context: 'card', class: 'card-product__price' -%}
+
+  <div class="card-product__actions">
+    {%- if product.available == false -%}
+      <button class="button card-product__button" type="button" disabled>
+        {{- 'products.card.sold_out' | t -}}
+        <span class="visually-hidden">: {{ product.title | escape }}</span>
+      </button>
+    {%- elsif card_single -%}
+      <product-form class="card-product__form" data-mode="cart">
+        <form method="post" action="{{ routes.cart_add_url }}" accept-charset="UTF-8">
+          <input type="hidden" name="id" value="{{ card_variant.id }}">
+          <input type="hidden" name="quantity" value="1">
+          <button class="button card-product__button" type="submit" aria-describedby="CardError-{{ card_uid }}">
+            <span>
+              {{- 'products.card.reserve' | t -}}
+              <span class="visually-hidden">: {{ product.title | escape }}</span>
+            </span>
+          </button>
+          <p class="card-product__error" id="CardError-{{ card_uid }}" data-form-error hidden></p>
+        </form>
+      </product-form>
+    {%- else -%}
+      <a class="button card-product__button" href="{{ card_url }}">
+        {{- 'products.card.reserve' | t -}}
+        <span class="visually-hidden">: {{ product.title | escape }}</span>
+      </a>
+    {%- endif -%}
+  </div>
+</div>

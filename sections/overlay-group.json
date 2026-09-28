@@ -1,0 +1,21 @@
+{
+  "type": "aside",
+  "name": "שכבות צפות",
+  "sections": {
+    "cart-drawer": {
+      "type": "cart-drawer",
+      "settings": {
+        "show_view_cart": true,
+        "show_payment_icons": true
+      }
+    },
+    "accessibility-panel": {
+      "type": "accessibility-panel",
+      "settings": {}
+    }
+  },
+  "order": [
+    "cart-drawer",
+    "accessibility-panel"
+  ]
+}

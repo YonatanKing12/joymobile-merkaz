@@ -1,0 +1,388 @@
+{%- comment -%}
+  Contact form (Shopify `contact` form → an email to the store) with the store's
+  contact details beside it. Konimbo layout: the form column at the inline-start
+  (400px at 1440) and the details column next to it; stacked on mobile, form first.
+
+  Fields as measured: name, phone, email, message — all required, labels above the
+  inputs, "*" marker, the submit button at the inline-start. Fixed: real <label for>,
+  visible focus (base.css), autocomplete, a server-side error summary (role="alert",
+  links to the fields) and a success message (role="status"), a client-side mark
+  on a bad field (red border + message under it, CSS :user-invalid, as Konimbo did
+  on submit), a real submit <button>, and no pre-checked marketing box (the
+  optional one is unchecked and only adds a line to the email; Shopify's contact
+  form does not subscribe anyone).
+  Theme builders never submit this form (it emails the store).
+
+  Contact details come from the theme settings (יצירת קשר ורשתות חברתיות), so the
+  footer, the structured data and this page always agree.
+{%- endcomment -%}
+{{ 'section-contact.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign form_id = 'ContactForm-' | append: section.id
+  assign required_mark = '<span class="contact-form__req" aria-hidden="true">*</span>'
+
+  assign phone_display = settings.contact_phone | strip
+  assign phone_digits = phone_display | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
+  assign phone_first = phone_digits | slice: 0
+  if phone_first == '0'
+    assign phone_tel = phone_digits | remove_first: '0' | prepend: '+972'
+  else
+    assign phone_tel = phone_digits
+  endif
+
+  capture whatsapp_url
+    render 'whatsapp-url', text: settings.contact_whatsapp_message
+  endcapture
+  capture whatsapp_display
+    render 'whatsapp-url', format: 'display'
+  endcapture
+
+  assign address = settings.store_street | strip
+  assign city = settings.store_city | strip
+  if city != blank
+    if address != blank
+      assign address = address | append: ', '
+    endif
+    assign address = address | append: city
+  endif
+
+  assign new_window = 'accessibility.new_window' | t
+
+  assign submit_label = section.settings.submit_label | strip
+  if submit_label == blank
+    assign submit_label = 'contact.form.submit' | t
+  endif
+-%}
+
+<div class="contact page-width">
+  <div class="contact__grid{% unless section.settings.show_info %} contact__grid--single{% endunless %}">
+    <div class="contact__form-col">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="contact__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.intro != blank -%}
+        <div class="contact__intro rte">{{ section.settings.intro }}</div>
+      {%- endif -%}
+
+      {%- form 'contact', id: form_id, class: 'contact-form' -%}
+        {%- liquid
+          assign email_invalid = false
+          assign body_invalid = false
+          if form.errors
+            if form.errors contains 'email'
+              assign email_invalid = true
+            endif
+            if form.errors contains 'body'
+              assign body_invalid = true
+            endif
+          endif
+        -%}
+
+        {%- if form.posted_successfully? -%}
+          <div class="contact-form__status form-message form-message--success" role="status" tabindex="-1" autofocus>
+            {%- render 'icon', name: 'check', size: 20 -%}
+            <p>{{ 'contact.form.success' | t }}</p>
+          </div>
+        {%- elsif form.errors -%}
+          <div class="contact-form__errors" role="alert" tabindex="-1" autofocus>
+            <p class="form-message form-message--error">
+              {%- render 'icon', name: 'alert', size: 20 -%}
+              <span>{{ 'errors.form_heading' | t }}</span>
+            </p>
+            <ul class="contact-form__error-list">
+              {%- for field in form.errors -%}
+                <li>
+                  {%- if field == 'form' -%}
+                    {{ form.errors.messages[field] }}
+                  {%- else -%}
+                    <a href="#{{ form_id }}-{{ field }}">{{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}</a>
+                  {%- endif -%}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+        <p class="contact-form__required-note">{{ 'contact.form.required_note' | t }}</p>
+
+        <div class="field">
+          <label class="field__label" for="{{ form_id }}-name">{{ 'contact.form.name' | t }} {{ required_mark }}</label>
+          <input
+            class="input"
+            type="text"
+            id="{{ form_id }}-name"
+            name="contact[{{ 'contact.form.name' | t }}]"
+            autocomplete="name"
+            required
+            value="{% if customer %}{{ customer.name | escape }}{% endif %}"
+          >
+          <p class="form-message form-message--error contact-form__error">
+            {%- render 'icon', name: 'alert', size: 16 -%}
+            <span>{{ 'errors.required' | t }}</span>
+          </p>
+        </div>
+
+        {%- if section.settings.show_phone -%}
+          <div class="field">
+            <label class="field__label" for="{{ form_id }}-phone">
+              {{- 'contact.form.phone' | t -}}
+              {%- if section.settings.phone_required %} {{ required_mark }}{% endif -%}
+            </label>
+            <input
+              class="input"
+              type="tel"
+              id="{{ form_id }}-phone"
+              name="contact[{{ 'contact.form.phone' | t }}]"
+              autocomplete="tel"
+              inputmode="tel"
+              pattern="\+?[0-9\s\-\(\)]{9,20}"
+              title="{{ 'contact.form.phone_invalid' | t }}"
+              aria-describedby="{{ form_id }}-phone-hint"
+              {% if section.settings.phone_required %}required{% endif %}
+              value="{% if customer.phone %}{{ customer.phone | escape }}{% endif %}"
+            >
+            <p class="field__hint" id="{{ form_id }}-phone-hint">{{ 'contact.form.phone_hint' | t }}</p>
+            <p class="form-message form-message--error contact-form__error">
+              {%- render 'icon', name: 'alert', size: 16 -%}
+              <span>{{ 'errors.phone' | t }}</span>
+            </p>
+          </div>
+        {%- endif -%}
+
+        <div class="field">
+          <label class="field__label" for="{{ form_id }}-email">{{ 'contact.form.email' | t }} {{ required_mark }}</label>
+          <input
+            class="input"
+            type="email"
+            id="{{ form_id }}-email"
+            name="contact[email]"
+            autocomplete="email"
+            autocapitalize="off"
+            spellcheck="false"
+            required
+            {% if email_invalid %}aria-invalid="true"{% endif %}
+            value="{% if form.email %}{{ form.email | escape }}{% elsif customer %}{{ customer.email | escape }}{% endif %}"
+          >
+          <p class="form-message form-message--error contact-form__error">
+            {%- render 'icon', name: 'alert', size: 16 -%}
+            <span>{{ 'errors.email' | t }}</span>
+          </p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="{{ form_id }}-body">{{ 'contact.form.body' | t }} {{ required_mark }}</label>
+          <textarea
+            class="textarea"
+            id="{{ form_id }}-body"
+            name="contact[body]"
+            rows="5"
+            required
+            {% if body_invalid %}aria-invalid="true"{% endif %}
+          >{{ form.body | escape }}</textarea>
+          <p class="form-message form-message--error contact-form__error">
+            {%- render 'icon', name: 'alert', size: 16 -%}
+            <span>{{ 'errors.required' | t }}</span>
+          </p>
+        </div>
+
+        {%- if section.settings.show_marketing -%}
+          <div class="checkbox contact-form__check">
+            <input
+              type="checkbox"
+              id="{{ form_id }}-marketing"
+              name="contact[{{ 'contact.form.marketing_field' | t }}]"
+              value="{{ 'contact.form.marketing_value' | t }}"
+            >
+            <label for="{{ form_id }}-marketing">{{ 'contact.form.marketing' | t }}</label>
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.show_privacy and shop.privacy_policy -%}
+          <div class="contact-form__consent">
+            <div class="checkbox contact-form__check">
+              <input
+                type="checkbox"
+                id="{{ form_id }}-privacy"
+                name="contact[{{ 'contact.form.privacy_field' | t }}]"
+                value="{{ 'contact.form.privacy_value' | t }}"
+                required
+              >
+              <label for="{{ form_id }}-privacy">
+                {{- 'contact.form.privacy_prefix' | t -}}
+                <a href="{{ shop.privacy_policy.url }}" target="_blank" rel="noopener">
+                  {{- 'contact.form.privacy_link' | t -}}
+                  <span class="visually-hidden"> ({{ new_window }})</span>
+                </a>
+                {{ required_mark }}
+              </label>
+            </div>
+            <p class="form-message form-message--error contact-form__error">
+              {%- render 'icon', name: 'alert', size: 16 -%}
+              <span>{{ 'errors.required' | t }}</span>
+            </p>
+          </div>
+        {%- endif -%}
+
+        <button type="submit" class="button button--accent button--large contact-form__submit">
+          {{- submit_label | escape -}}
+        </button>
+      {%- endform -%}
+    </div>
+
+    {%- if section.settings.show_info -%}
+      <div class="contact__info-col">
+        {%- if section.settings.info_heading != blank -%}
+          <h2 class="contact__info-heading">{{ section.settings.info_heading | escape }}</h2>
+        {%- endif -%}
+
+        <ul class="contact-info" role="list">
+          {%- if phone_display != blank -%}
+            <li class="contact-info__item">
+              {%- render 'icon', name: 'phone', size: 22, class: 'contact-info__icon' -%}
+              <div>
+                <p class="contact-info__label">{{ 'contact.info.phone' | t }}</p>
+                <a class="contact-info__value" href="tel:{{ phone_tel }}" dir="ltr">{{ phone_display | escape }}</a>
+              </div>
+            </li>
+          {%- endif -%}
+          {%- if whatsapp_url != blank -%}
+            <li class="contact-info__item">
+              {%- render 'icon', name: 'whatsapp', size: 22, class: 'contact-info__icon' -%}
+              <div>
+                <p class="contact-info__label">{{ 'contact.info.whatsapp' | t }}</p>
+                <a
+                  class="contact-info__value"
+                  href="{{ whatsapp_url }}"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="{{ 'contact.info.whatsapp_link' | t: number: whatsapp_display }} ({{ new_window }})"
+                ><bdi dir="ltr">{{ whatsapp_display | escape }}</bdi></a>
+              </div>
+            </li>
+          {%- endif -%}
+          {%- if settings.contact_email != blank -%}
+            <li class="contact-info__item">
+              {%- render 'icon', name: 'mail', size: 22, class: 'contact-info__icon' -%}
+              <div>
+                <p class="contact-info__label">{{ 'contact.info.email' | t }}</p>
+                <a class="contact-info__value" href="mailto:{{ settings.contact_email | strip }}" dir="ltr">{{ settings.contact_email | strip | escape }}</a>
+              </div>
+            </li>
+          {%- endif -%}
+          {%- if address != blank -%}
+            <li class="contact-info__item">
+              {%- render 'icon', name: 'location', size: 22, class: 'contact-info__icon' -%}
+              <div>
+                <p class="contact-info__label">{{ 'contact.info.address' | t }}</p>
+                <a
+                  class="contact-info__value"
+                  href="https://www.google.com/maps/search/?api=1&amp;query={{ address | url_encode | replace: '+', '%20' }}"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="{{ address | escape }} — {{ 'contact.info.map' | t }} ({{ new_window }})"
+                >{{ address | escape }}</a>
+              </div>
+            </li>
+          {%- endif -%}
+          {%- if settings.store_hours != blank -%}
+            <li class="contact-info__item">
+              {%- render 'icon', name: 'clock', size: 22, class: 'contact-info__icon' -%}
+              <div>
+                <p class="contact-info__label">{{ 'contact.info.hours' | t }}</p>
+                <p class="contact-info__text">{{ settings.store_hours | escape | newline_to_br }}</p>
+              </div>
+            </li>
+          {%- endif -%}
+        </ul>
+
+        {%- if section.settings.info_text != blank -%}
+          <div class="contact__info-text rte">{{ section.settings.info_text }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "טופס יצירת קשר",
+  "class": "section-contact-form",
+  "disabled_on": {
+    "groups": ["header", "footer", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "שירות לקוחות"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "טקסט פתיחה",
+      "default": "<p>כתבו לנו ונחזור אליכם בהקדם. לשאלות על שריון מוצר לאיסוף באילת, ציינו את שם המוצר בהודעה.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_phone",
+      "label": "שדה טלפון",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "phone_required",
+      "label": "טלפון הוא שדה חובה",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_privacy",
+      "label": "אישור מדיניות הפרטיות (חובה)",
+      "info": "מוצג כשקיימת מדיניות פרטיות בהגדרות החנות › מדיניות.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_marketing",
+      "label": "תיבת 'אשמח לקבל עדכונים'",
+      "info": "לא מסומנת מראש. התשובה נוספת למייל הפנייה בלבד — טופס יצירת קשר לא רושם לדיוור.",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "טקסט הכפתור",
+      "default": "שליחת הפנייה"
+    },
+    {
+      "type": "header",
+      "content": "פרטי התקשרות"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_info",
+      "label": "הצגת פרטי התקשרות",
+      "info": "טלפון, וואטסאפ, אימייל, כתובת ושעות פתיחה נלקחים מהגדרות התבנית › יצירת קשר ורשתות חברתיות.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "info_heading",
+      "label": "כותרת",
+      "default": "פרטי התקשרות"
+    },
+    {
+      "type": "richtext",
+      "id": "info_text",
+      "label": "טקסט נוסף"
+    }
+  ],
+  "presets": [
+    {
+      "name": "טופס יצירת קשר"
+    }
+  ]
+}
+{% endschema %}

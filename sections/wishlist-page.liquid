@@ -1,0 +1,130 @@
+{%- comment -%}
+  Wishlist page. The list lives in this browser's localStorage (@theme/wishlist),
+  so the page is built by <wishlist-grid>: it creates one slot per saved handle in
+  [data-grid] and fills it with the product card from /products/<handle>?view=card
+  (templates/product.card.liquid), four requests at a time; [data-empty] shows when
+  nothing is saved. Slots reserve the card's height while they load (no layout
+  jump). product.js is loaded for the cards' "שריון באילת" buttons.
+  Without JavaScript the page explains why nothing can be shown.
+{%- endcomment -%}
+{{ 'section-wishlist.css' | asset_url | stylesheet_tag }}
+{%- if settings.wishlist_enabled -%}
+  {%- comment -%} Product card dependencies (snippets/card-product, via templates/product.card.liquid). {%- endcomment -%}
+  {{ 'component-card.css' | asset_url | stylesheet_tag }}
+  {{ 'component-price.css' | asset_url | stylesheet_tag }}
+  {{ 'component-badges.css' | asset_url | stylesheet_tag }}
+  {{ 'component-swatches.css' | asset_url | stylesheet_tag }}
+  {{ 'component-wishlist-button.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'product.js' | asset_url }}"></script>
+{%- endif -%}
+
+{%- liquid
+  assign empty_link = section.settings.empty_link | default: routes.all_products_collection_url
+  assign empty_label = section.settings.empty_label | strip
+  if empty_label == blank
+    assign empty_label = 'wishlist.page.empty_cta' | t
+  endif
+-%}
+
+<div class="wishlist-page page-width">
+  {%- if section.settings.heading != blank -%}
+    <h2 class="wishlist-page__heading">{{ section.settings.heading | escape }}</h2>
+  {%- endif -%}
+
+  {%- if settings.wishlist_enabled -%}
+    <div class="wishlist-page__bar js-only">
+      <p class="wishlist-page__count">
+        {{ 'wishlist.page.count' | t }}
+        <wishlist-count class="wishlist-page__count-number" data-count="0"><span data-count-text>0</span></wishlist-count>
+      </p>
+      <p class="wishlist-page__note">{{ 'wishlist.page.storage_note' | t }}</p>
+    </div>
+
+    <wishlist-grid class="wishlist-page__grid js-only">
+      <p class="wishlist-page__loading">
+        {%- render 'icon', name: 'spinner', size: 20, class: 'icon--spinner' -%}
+        <span>{{ 'wishlist.page.loading' | t }}</span>
+      </p>
+      <ul
+        class="grid wishlist-page__items"
+        data-grid
+        role="list"
+        style="--grid-cols-mobile: {{ section.settings.columns_mobile }}; --grid-cols-tablet: 3; --grid-cols-desktop: {{ section.settings.columns_desktop }};"
+      ></ul>
+      <div class="wishlist-page__empty" data-empty hidden>
+        {%- render 'icon', name: 'heart', size: 48, class: 'wishlist-page__empty-icon' -%}
+        <p class="wishlist-page__empty-title">{{ 'wishlist.page.empty_title' | t }}</p>
+        <p class="wishlist-page__empty-text">{{ 'wishlist.page.empty_text' | t }}</p>
+        <a class="button button--large" href="{{ empty_link }}">
+          {{- empty_label | escape -}}
+        </a>
+      </div>
+    </wishlist-grid>
+
+    <p class="wishlist-page__nojs no-js-only">{{ 'wishlist.page.no_js' | t }}</p>
+  {%- elsif request.design_mode -%}
+    <p class="wishlist-page__nojs">{{ 'wishlist.page.disabled' | t }}</p>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "רשימת מועדפים",
+  "class": "section-wishlist-page",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "המועדפים נשמרים בדפדפן של המבקר. אפשר לכבות את הפיצ'ר בהגדרות התבנית › מועדפים וכפתורים צפים."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "info": "בעמוד המועדפים כותרת העמוד כבר מוצגת מעל הרשימה, ולכן ריק כברירת מחדל."
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "מוצרים בשורה — מחשב",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "מוצרים בשורה — מובייל",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "header",
+      "content": "רשימה ריקה"
+    },
+    {
+      "type": "text",
+      "id": "empty_label",
+      "label": "טקסט הכפתור",
+      "default": "לכל המוצרים"
+    },
+    {
+      "type": "url",
+      "id": "empty_link",
+      "label": "קישור הכפתור",
+      "info": "כשריק: כל המוצרים."
+    }
+  ],
+  "presets": [
+    {
+      "name": "רשימת מועדפים"
+    }
+  ]
+}
+{% endschema %}

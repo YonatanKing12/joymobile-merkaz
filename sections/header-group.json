@@ -1,0 +1,51 @@
+{
+  "type": "header",
+  "name": "כותרת עליונה",
+  "sections": {
+    "cookie-banner": {
+      "type": "cookie-banner",
+      "settings": {
+        "enabled": true,
+        "audience": "all",
+        "renew_days": "365"
+      }
+    },
+    "announcement-bar": {
+      "type": "announcement-bar",
+      "blocks": {
+        "message-galaxy": {
+          "type": "message",
+          "settings": {
+            "text": "סדרת Samsung Galaxy S26 זמינה לשריון באילת!",
+            "link": "shopify://collections/phones-samsung"
+          }
+        }
+      },
+      "block_order": [
+        "message-galaxy"
+      ],
+      "settings": {
+        "mode": "slide",
+        "autoplay_seconds": 5,
+        "marquee_seconds": 14
+      }
+    },
+    "header": {
+      "type": "header",
+      "settings": {
+        "menu": "main-menu",
+        "menu_secondary": "footer-1",
+        "show_account": true,
+        "show_whatsapp": true,
+        "show_branches": true,
+        "branches_label": "סניפים באילת",
+        "sticky": true
+      }
+    }
+  },
+  "order": [
+    "cookie-banner",
+    "announcement-bar",
+    "header"
+  ]
+}

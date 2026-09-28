@@ -1,0 +1,138 @@
+{% doc %}
+  The price of a product or variant on this store.
+
+  The store sells in Eilat only (a VAT-free zone), for pickup at the branch, so
+  `variant.price` IS the Eilat VAT-exempt price and it is the amount charged at
+  checkout. It is printed with `money_without_trailing_zeros` (no agorot).
+
+  The VAT-exempt labelling ("מחיר אילת" + a TAX FREE chip) is shown ONLY when the
+  priced variant is not taxable in Shopify (`variant.taxable == false`) and the
+  theme setting `tax_free_labels` is on. Taxable variants (the 391 POS imports)
+  get the plain price with no exempt claim.
+
+  A VAT-inclusive line is printed ONLY when the metafield named in the theme
+  setting `vat_price_metafield` (e.g. `custom.price_with_vat`) holds a value, read
+  from the variant first and then from the product. Money, number and numeric text
+  metafields are supported. Nothing here multiplies or divides by a tax rate.
+
+  Markup classes (styled by Track F's assets/component-price.css; baseline in
+  docs/rebuild/reports/liquid-core-component-css.css): .price, .price--card | .price--product,
+  .price--on-sale, .price--sold-out, .price__main, .price__label, .price__amount,
+  .price__compare, .price__tax-free, .price__note, .price__vat, .price__vat-label,
+  .price__vat-amount, .price__sold-out. The amount is not wrapped in <bdi>: in the RTL
+  flow "4,299 ₪" shows the shekel sign to the left of the number, as on the live site.
+
+  @param {product} [product] - The product. Required when no variant is passed.
+  @param {variant} [variant] - The exact variant to price. Wins over product.
+  @param {string} [context] - 'card' (default) or 'product' (product page: larger, with the tax-free note).
+  @param {boolean} [tax_free_chip] - Show the TAX FREE chip next to the amount. Default: true on 'product', false on 'card' (cards carry the TAX FREE badge on the image).
+  @param {string} [class] - Extra classes on the wrapper.
+
+  @example
+  {% render 'price', product: product, context: 'card' %}
+  {% render 'price', product: product, variant: product.selected_or_first_available_variant, context: 'product' %}
+{% enddoc %}
+{%- liquid
+  assign price_context = context | default: 'card'
+
+  assign target = variant
+  if target == blank
+    assign target = product.selected_or_first_available_variant | default: product.variants.first
+  endif
+
+  assign price_product = product
+  if price_product == blank
+    assign price_product = target.product
+  endif
+
+  assign amount = target.price
+  assign compare_amount = target.compare_at_price
+
+  assign is_available = target.available
+  if variant == blank and price_product != blank
+    assign is_available = price_product.available
+  endif
+
+  assign show_from = false
+  if settings.price_show_from and variant == blank and price_product.price_varies
+    assign show_from = true
+    assign amount = price_product.price_min
+  endif
+
+  assign on_sale = false
+  if settings.price_show_compare and show_from == false and compare_amount > amount
+    assign on_sale = true
+  endif
+
+  assign is_tax_free = false
+  if settings.tax_free_labels and target.taxable == false
+    assign is_tax_free = true
+  endif
+
+  assign show_chip = false
+  if is_tax_free
+    if tax_free_chip == true
+      assign show_chip = true
+    elsif tax_free_chip == nil and price_context == 'product'
+      assign show_chip = true
+    endif
+  endif
+
+  assign vat_display = ''
+  assign vat_key = settings.vat_price_metafield | strip
+  if vat_key contains '.'
+    assign vat_namespace = vat_key | split: '.' | first | strip
+    assign vat_name = vat_key | split: '.' | last | strip
+    assign vat_field = target.metafields[vat_namespace][vat_name]
+    if vat_field == blank and price_product != blank
+      assign vat_field = price_product.metafields[vat_namespace][vat_name]
+    endif
+    if vat_field != blank
+      if vat_field.type == 'money'
+        assign vat_display = vat_field.value | money_without_trailing_zeros
+      else
+        assign vat_cents = vat_field.value | append: '' | remove: ',' | remove: '₪' | strip | times: 100 | round
+        if vat_cents > 0
+          assign vat_display = vat_cents | money_without_trailing_zeros
+        endif
+      endif
+    endif
+  endif
+
+  assign formatted_amount = amount | money_without_trailing_zeros
+-%}
+<div class="price price--{{ price_context }}{% if on_sale %} price--on-sale{% endif %}{% unless is_available %} price--sold-out{% endunless %}{% if class != blank %} {{ class }}{% endif %}">
+  <div class="price__main">
+    {%- if is_tax_free and settings.price_show_label -%}
+      <span class="price__label">{{ 'products.price.eilat_label' | t }}</span>
+    {%- endif -%}
+    <span class="price__amount">
+      {%- if on_sale -%}
+        <span class="visually-hidden">{{ 'products.price.sale' | t }} </span>
+      {%- endif -%}
+      {%- if show_from -%}
+        {{- 'products.price.from' | t: price: formatted_amount -}}
+      {%- else -%}
+        {{- formatted_amount -}}
+      {%- endif -%}
+    </span>
+    {%- if on_sale -%}
+      <s class="price__compare"><span class="visually-hidden">{{ 'products.price.regular' | t }} </span>{{ compare_amount | money_without_trailing_zeros }}</s>
+    {%- endif -%}
+    {%- if show_chip -%}
+      <span class="price__tax-free" lang="en">{{ 'products.price.tax_free' | t }}</span>
+    {%- endif -%}
+  </div>
+  {%- if is_tax_free and price_context == 'product' -%}
+    <p class="price__note">{{ 'products.price.tax_free_note' | t }}</p>
+  {%- endif -%}
+  {%- if vat_display != blank -%}
+    <p class="price__vat">
+      <span class="price__vat-label">{{ 'products.price.with_vat' | t }}</span>
+      <span class="price__vat-amount">{{ vat_display }}</span>
+    </p>
+  {%- endif -%}
+  {%- unless is_available -%}
+    <p class="price__sold-out">{{ 'products.price.sold_out' | t }}</p>
+  {%- endunless -%}
+</div>

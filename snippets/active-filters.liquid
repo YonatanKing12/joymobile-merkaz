@@ -1,0 +1,138 @@
+{% doc %}
+  Active storefront filters of a collection or of the search results, as removable
+  chips ("בחרת לסנן לפי:") followed by "נקה הכל". Each chip is a plain link to the
+  filter's `url_to_remove`, so it works without JavaScript; inside <facet-filters>
+  (@theme/facets) the same links re-render the results in place.
+
+  The caller wraps the output in its `[data-swap]` region and always renders that
+  wrapper: this snippet prints nothing when no filter is active.
+
+  Two helper formats let the sections build their URLs from the same source of truth:
+  - 'query' prints the active filters as a URL query string (`name=value&…`). Prices
+    are printed in shekels, as the storefront URL expects (Liquid holds agorot).
+  - 'count' prints the number of active filters (a price range counts once).
+  Capture them: `{%- capture q -%}{% render 'active-filters', results: collection, format: 'query' %}{%- endcapture -%}`.
+
+  Classes: .active-filters, __heading, __list, __item, __chip, __text, __icon, __clear.
+
+  @param {object} results - The `collection` or `search` object.
+  @param {string} [format] - 'html' (default), 'query' or 'count'.
+  @param {string} [clear_url] - URL of the same page without any filter (keeps sort and search terms). Needed for 'html'.
+  @param {string} [id_prefix] - Unique prefix for element ids, e.g. the section id plus a context word.
+  @param {boolean} [show_heading] - Print the "בחרת לסנן לפי:" heading. Default true.
+  @param {string} [class] - Extra classes on the wrapper.
+
+  @example
+  {% render 'active-filters', results: collection, clear_url: clear_url, id_prefix: section.id %}
+{% enddoc %}
+{%- liquid
+  assign af_format = format | default: 'html'
+  assign af_count = 0
+  assign af_query = ''
+
+  for filter in results.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != blank or filter.max_value.value != blank
+        assign af_count = af_count | plus: 1
+      endif
+      if af_format == 'query'
+        for af_bound in (1..2)
+          if af_bound == 1
+            assign af_value = filter.min_value
+          else
+            assign af_value = filter.max_value
+          endif
+          if af_value.value != blank
+            assign af_whole = af_value.value | divided_by: 100 | floor
+            assign af_cents = af_value.value | modulo: 100 | round
+            assign af_amount = af_whole | append: ''
+            if af_cents > 0
+              if af_cents < 10
+                assign af_amount = af_amount | append: '.0' | append: af_cents
+              else
+                assign af_amount = af_amount | append: '.' | append: af_cents
+              endif
+            endif
+            assign af_name = af_value.param_name | url_encode
+            if af_query != blank
+              assign af_query = af_query | append: '&'
+            endif
+            assign af_query = af_query | append: af_name | append: '=' | append: af_amount
+          endif
+        endfor
+      endif
+    else
+      assign af_count = af_count | plus: filter.active_values.size
+      if af_format == 'query'
+        for af_value in filter.active_values
+          assign af_name = af_value.param_name | url_encode
+          assign af_encoded = af_value.value | url_encode
+          if af_query != blank
+            assign af_query = af_query | append: '&'
+          endif
+          assign af_query = af_query | append: af_name | append: '=' | append: af_encoded
+        endfor
+      endif
+    endif
+  endfor
+-%}
+{%- if af_format == 'query' -%}
+  {{- af_query -}}
+{%- elsif af_format == 'count' -%}
+  {{- af_count -}}
+{%- elsif af_count > 0 -%}
+  {%- assign af_id = id_prefix | default: 'Facets' | append: '-ActiveFilters' -%}
+  <div class="active-filters{% if class != blank %} {{ class }}{% endif %}">
+    {%- unless show_heading == false -%}
+      <p class="active-filters__heading" id="{{ af_id }}">{{ 'facets.active_heading' | t }}</p>
+    {%- endunless -%}
+    <ul
+      class="active-filters__list"
+      role="list"
+      {% if show_heading == false %}
+        aria-label="{{ 'facets.active_heading' | t }}"
+      {% else %}
+        aria-labelledby="{{ af_id }}"
+      {% endif %}
+    >
+      {%- for filter in results.filters -%}
+        {%- if filter.type == 'price_range' -%}
+          {%- if filter.min_value.value != blank or filter.max_value.value != blank -%}
+            {%- liquid
+              assign af_min = filter.min_value.value | money_without_trailing_zeros
+              assign af_max = filter.max_value.value | money_without_trailing_zeros
+              if filter.min_value.value != blank and filter.max_value.value != blank
+                assign af_text = 'facets.price.chip_range' | t: min: af_min, max: af_max
+              elsif filter.min_value.value != blank
+                assign af_text = 'facets.price.chip_from' | t: min: af_min
+              else
+                assign af_text = 'facets.price.chip_to' | t: max: af_max
+              endif
+              # Raw text: t escapes interpolated values itself.
+              assign af_label = filter.label | append: ': ' | append: af_text
+            -%}
+            <li class="active-filters__item">
+              <a class="active-filters__chip" href="{{ filter.url_to_remove }}" aria-label="{{ 'facets.remove' | t: label: af_label }}">
+                <span class="active-filters__text">{{ af_text }}</span>
+                {%- render 'icon', name: 'close', size: 14, class: 'active-filters__icon' -%}
+              </a>
+            </li>
+          {%- endif -%}
+        {%- else -%}
+          {%- for af_value in filter.active_values -%}
+            {%- assign af_label = filter.label | append: ': ' | append: af_value.label -%}
+            <li class="active-filters__item">
+              <a class="active-filters__chip" href="{{ af_value.url_to_remove }}" aria-label="{{ 'facets.remove' | t: label: af_label }}">
+                <span class="active-filters__text">{{ af_value.label | escape }}</span>
+                {%- render 'icon', name: 'close', size: 14, class: 'active-filters__icon' -%}
+              </a>
+            </li>
+          {%- endfor -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+    {%- if clear_url != blank -%}
+      <a class="active-filters__clear" href="{{ clear_url }}">{{ 'facets.clear_all' | t }}</a>
+    {%- endif -%}
+  </div>
+{%- endif -%}

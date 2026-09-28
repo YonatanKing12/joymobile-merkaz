@@ -1,0 +1,124 @@
+{% doc %}
+  <title>, meta description, canonical link, theme-color, Open Graph and Twitter
+  card tags for the current page. Rendered in the <head> of both layouts, after the
+  charset and viewport meta tags.
+
+  Brand: the theme setting "שם המותג באתר" (settings.brand_name, e.g. JOY Mobile) is the
+  site name — og:site_name, the title suffix, and the title wherever Shopify's page_title
+  is just the shop name (home page without its own title, password page). The store name
+  itself (checkout, emails) is not touched.
+
+  Fallbacks: the home page and collections without an SEO description get a short
+  Hebrew default from the locale file (general.meta.*); pages without a share image
+  use the theme setting "תמונת שיתוף" (share_image), else assets/social-share.jpg
+  (1200×630, the JOY Mobile lockup on navy). Search results are noindex.
+
+  @example
+  {% render 'meta-tags' %}
+{% enddoc %}
+{%- liquid
+  assign brand_name = settings.brand_name | strip | default: shop.name
+  assign base_title = page_title
+  if base_title == blank or base_title == shop.name
+    assign base_title = brand_name
+  endif
+
+  assign meta_title = base_title
+  if request.page_type == 'list-collections'
+    assign meta_title = 'general.breadcrumbs.all_collections' | t
+  endif
+  if current_tags
+    assign meta_tag_list = current_tags | join: ', '
+    if request.page_type == 'blog'
+      # Article tags are collection handles ("televisions"): use the collection's title,
+      # else the tag itself (same rule as sections/main-blog and the breadcrumbs).
+      assign meta_tag_list = ''
+      for tag in current_tags
+        assign meta_tag_name = collections[tag].title | default: tag
+        unless forloop.first
+          assign meta_tag_list = meta_tag_list | append: ', '
+        endunless
+        assign meta_tag_list = meta_tag_list | append: meta_tag_name
+      endfor
+    endif
+    assign meta_tags_text = 'general.meta.tags' | t: tags: meta_tag_list
+    assign meta_title = meta_title | append: ' – ' | append: meta_tags_text
+  endif
+  if current_page != 1
+    assign meta_page_text = 'general.meta.page' | t: page: current_page
+    assign meta_title = meta_title | append: ' – ' | append: meta_page_text
+  endif
+  unless meta_title contains brand_name
+    assign meta_title = meta_title | append: ' – ' | append: brand_name
+  endunless
+
+  # Descriptions keep the HTML entities of their source (page_description, strip_html): escape_once below.
+  assign meta_description = page_description | strip_html | strip
+  if meta_description == blank
+    case request.page_type
+      when 'index'
+        assign meta_description = 'general.meta.default_description' | t: brand: brand_name
+      when 'collection'
+        assign collection_text = collection.description | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncate: 300
+        if collection_text != blank
+          assign meta_description = collection_text
+        else
+          assign meta_description = 'general.meta.collection_description' | t: title: collection.title, brand: brand_name
+        endif
+    endcase
+  endif
+
+  assign og_type = 'website'
+  assign og_title = base_title
+  assign og_image = page_image | default: settings.share_image
+  case request.page_type
+    when 'product'
+      assign og_type = 'product'
+      assign og_title = product.title
+    when 'article'
+      assign og_type = 'article'
+      assign og_title = article.title
+    when 'password'
+      assign og_title = brand_name
+  endcase
+  assign og_description = meta_description | default: shop.description | default: brand_name
+-%}
+<title>{{ meta_title | escape }}</title>
+{%- if meta_description != blank %}
+<meta name="description" content="{{ meta_description | escape_once }}">
+{%- endif %}
+<link rel="canonical" href="{{ canonical_url }}">
+{%- if request.page_type == 'search' %}
+<meta name="robots" content="noindex, follow">
+{%- endif %}
+<meta name="theme-color" content="{{ settings.color_header_bg }}">
+<meta property="og:site_name" content="{{ brand_name | escape }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:title" content="{{ og_title | escape }}">
+<meta property="og:type" content="{{ og_type }}">
+<meta property="og:description" content="{{ og_description | escape_once }}">
+<meta property="og:locale" content="he_IL">
+{%- if og_image != blank %}
+  {%- assign og_image_url = og_image | image_url: width: 1200 -%}
+<meta property="og:image" content="https:{{ og_image_url | remove_first: 'https:' }}">
+<meta property="og:image:secure_url" content="https:{{ og_image_url | remove_first: 'https:' }}">
+<meta property="og:image:width" content="{{ og_image.width | at_most: 1200 }}">
+<meta property="og:image:height" content="{{ og_image.height | times: 1.0 | divided_by: og_image.width | times: 1200 | at_most: og_image.height | round }}">
+<meta property="og:image:alt" content="{{ og_image.alt | default: og_title | escape }}">
+{%- else %}
+  {%- assign share_image_url = 'social-share.jpg' | asset_url | remove_first: 'https:' | prepend: 'https:' -%}
+<meta property="og:image" content="{{ share_image_url }}">
+<meta property="og:image:secure_url" content="{{ share_image_url }}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ brand_name | escape }}">
+{%- endif %}
+{%- if request.page_type == 'product' %}
+<meta property="product:price:amount" content="{{ product.selected_or_first_available_variant.price | divided_by: 100.0 }}">
+<meta property="product:price:currency" content="{{ cart.currency.iso_code | default: shop.currency }}">
+<meta property="product:availability" content="{% if product.available %}in stock{% else %}out of stock{% endif %}">
+{%- endif %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ og_title | escape }}">
+<meta name="twitter:description" content="{{ og_description | escape_once }}">

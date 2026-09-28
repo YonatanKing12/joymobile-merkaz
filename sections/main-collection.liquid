@@ -1,0 +1,499 @@
+{%- comment -%}
+  Collection page (/collections/<handle>) — the JOY Mobile category page rebuilt on
+  Shopify data: breadcrumbs, H1 (+ description, optional banner), sub-category links
+  from the main menu, results count and the inline sort row ("מיין לפי: …"), the filter
+  sidebar on the inline-start side (drawer below 992px), the product grid
+  (4 / 3 / 3 / 2 columns) and "טען עוד" over real paginated links.
+
+  Everything works without JavaScript (GET form, plain links). <facet-filters>
+  (assets/facets.js) upgrades it: it swaps the `[data-swap]` regions of this section,
+  fetched through the Section Rendering API, and keeps the URL in sync. Every swap
+  region is always rendered, even when empty (the script only swaps regions it finds).
+
+  Empty states: an empty collection (message, "לכל המוצרים", suggested collections) and
+  a filter combination without products (message + "ניקוי כל הסינונים").
+  Styles: section-main-collection.css (page, grid, load more, empty states) and
+  component-facets.css (filters, chips, sort, drawer); cards: Track F's component CSS.
+{%- endcomment -%}
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'component-badges.css' | asset_url | stylesheet_tag }}
+{{ 'component-swatches.css' | asset_url | stylesheet_tag }}
+{{ 'component-wishlist-button.css' | asset_url | stylesheet_tag }}
+{{ 'component-facets.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-collection.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'facets.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product.js' | asset_url }}"></script>
+
+{%- liquid
+  assign sid = section.id
+  assign bar_prefix = 'Bar-' | append: sid
+  assign grid_id = 'ProductGrid-' | append: sid
+
+  assign results_url = collection.url | split: '?' | first
+  assign base_query = ''
+  if collection.url contains '?'
+    assign base_query = collection.url | split: '?' | last
+  endif
+  assign sort_value = collection.sort_by
+
+  assign show_filters = false
+  if section.settings.enable_filtering and collection.filters.size > 0
+    assign show_filters = true
+  endif
+
+  assign clear_query = base_query
+  if sort_value != blank
+    if clear_query != blank
+      assign clear_query = clear_query | append: '&'
+    endif
+    assign clear_query = clear_query | append: 'sort_by=' | append: sort_value
+  endif
+  assign clear_url = results_url
+  if clear_query != blank
+    assign clear_url = results_url | append: '?' | append: clear_query
+  endif
+
+  assign banner = nil
+  case section.settings.banner_source
+    when 'collection'
+      assign banner = collection.image
+    when 'files'
+      if section.settings.banner_pattern != blank
+        assign banner_file = section.settings.banner_pattern | replace: '[handle]', collection.handle
+        assign banner = images[banner_file]
+      endif
+      if banner == blank and section.settings.banner_fallback != blank
+        assign banner = images[section.settings.banner_fallback]
+      endif
+  endcase
+-%}
+{%- capture filter_query -%}
+  {%- render 'active-filters', results: collection, format: 'query' -%}
+{%- endcapture -%}
+{%- capture active_count -%}
+  {%- render 'active-filters', results: collection, format: 'count' -%}
+{%- endcapture -%}
+{%- liquid
+  assign filter_query = filter_query | strip
+  assign active_count = active_count | strip | plus: 0
+-%}
+
+{%- comment -%}
+  Sub-categories: the children of every menu link (levels 1 and 2) that points to this
+  collection, deduplicated, in menu order — groups' links first (e.g. brands and price
+  ranges of "סמארטפונים"), then sibling links of the top level. Nothing for leaf collections.
+{%- endcomment -%}
+{%- capture subnav_items -%}
+  {%- if section.settings.show_subcollections and section.settings.subcollections_menu != blank -%}
+    {%- assign sub_seen = '|' | append: results_url | append: '|' -%}
+    {%- for sub_top in section.settings.subcollections_menu.links -%}
+      {%- assign sub_parents = sub_top.links | where: 'url', results_url -%}
+      {%- if sub_top.url == results_url -%}
+        {%- assign sub_parents = sub_parents | concat: sub_top.links -%}
+      {%- endif -%}
+      {%- for sub_parent in sub_parents -%}
+        {%- if sub_parent.url == results_url -%}
+          {%- assign sub_links = sub_parent.links -%}
+        {%- else -%}
+          {%- assign sub_links = sub_top.links | where: 'url', sub_parent.url -%}
+        {%- endif -%}
+        {%- for sub_link in sub_links -%}
+          {%- assign sub_token = '|' | append: sub_link.url | append: '|' -%}
+          {%- unless sub_seen contains sub_token -%}
+            {%- assign sub_seen = sub_seen | append: sub_link.url | append: '|' -%}
+            <li class="collection__subnav-item">
+              <a class="collection__subnav-link" href="{{ sub_link.url }}">{{ sub_link.title | escape }}</a>
+            </li>
+          {%- endunless -%}
+        {%- endfor -%}
+      {%- endfor -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --collection-pad-top: {{ section.settings.padding_top }}px;
+    --collection-pad-bottom: {{ section.settings.padding_bottom }}px;
+    --pg-cols-mobile: {{ section.settings.columns_mobile }};
+    --pg-cols-desktop: {{ section.settings.columns_desktop }};
+  }
+{%- endstyle -%}
+
+<div class="collection page-width">
+  {%- if section.settings.show_breadcrumbs -%}
+    {%- render 'breadcrumbs', class: 'collection__breadcrumbs' -%}
+  {%- endif -%}
+
+  {%- if banner != blank -%}
+    <div class="collection__banner">
+      {%- render 'image',
+        image: banner,
+        widths: '390,750,1100,1500,2200',
+        sizes: '(min-width: 1200px) 1170px, calc(100vw - 30px)',
+        loading: 'eager',
+        fetchpriority: 'high',
+        decorative: true,
+        class: 'collection__banner-img'
+      -%}
+    </div>
+  {%- endif -%}
+
+  <header class="collection__header">
+    <h1 class="collection__title">{{ collection.title | escape }}</h1>
+    {%- if section.settings.description_position == 'top' and collection.description != blank -%}
+      <div class="collection__description rte">{{ collection.description }}</div>
+    {%- endif -%}
+  </header>
+
+  {%- if subnav_items != blank -%}
+    <nav class="collection__subnav" aria-label="{{ 'collections.subcollections_label' | t }}">
+      <ul class="collection__subnav-list" role="list">
+        {{- subnav_items -}}
+      </ul>
+    </nav>
+  {%- endif -%}
+
+  {%- if collection.all_products_count == 0 -%}
+    <div class="collection-empty">
+      {%- render 'icon', name: 'bag', size: 44, class: 'collection-empty__icon' -%}
+      <h2 class="collection-empty__title">{{ 'collections.empty.title' | t }}</h2>
+      <p class="collection-empty__text">{{ 'collections.empty.text' | t }}</p>
+      <a class="button collection-empty__button" href="{{ routes.all_products_collection_url }}">
+        {{- 'collections.empty.all_products' | t -}}
+      </a>
+      {%- if section.settings.empty_collections != blank -%}
+        <h3 class="collection-empty__subtitle" id="EmptySuggestions-{{ sid }}">{{ 'collections.empty.suggestions' | t }}</h3>
+        <ul class="collection-empty__links" role="list" aria-labelledby="EmptySuggestions-{{ sid }}">
+          {%- for suggestion in section.settings.empty_collections -%}
+            {%- if suggestion.handle == collection.handle -%}
+              {%- continue -%}
+            {%- endif -%}
+            <li><a class="collection-empty__link" href="{{ suggestion.url }}">{{ suggestion.title | escape }}</a></li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </div>
+  {%- else -%}
+    {%- paginate collection.products by section.settings.products_per_page -%}
+      {%- liquid
+        assign eager = 0
+        if paginate.current_page == 1 and banner == blank
+          assign eager = 4
+        endif
+        assign shown = paginate.current_offset | plus: paginate.page_size | at_most: paginate.items
+        assign progress = 100
+        if paginate.items > 0
+          assign progress = shown | times: 100 | divided_by: paginate.items
+        endif
+      -%}
+      <facet-filters
+        class="facets-layout{% unless show_filters %} facets-layout--no-filters{% endunless %}"
+        data-section-id="{{ sid }}"
+      >
+        <div class="facets-layout__toolbar">
+          {%- if show_filters -%}
+            <button
+              class="facets-toggle js-only"
+              type="button"
+              data-facets-open
+              aria-controls="FacetsDrawer-{{ sid }}"
+              aria-expanded="false"
+              aria-haspopup="dialog"
+            >
+              {%- render 'icon', name: 'filter', size: 18, class: 'facets-toggle__icon' -%}
+              <span class="facets-toggle__label">{{ 'facets.open' | t }}</span>
+              <span class="facets-toggle__count" data-swap="facet-count">
+                {%- if active_count > 0 -%}
+                  <span class="facets-toggle__badge" aria-hidden="true">{{ active_count }}</span>
+                  <span class="visually-hidden">, {{ 'facets.active_count' | t: count: active_count }}</span>
+                {%- endif -%}
+              </span>
+            </button>
+          {%- endif -%}
+
+          <p
+            class="facets-layout__count{% unless section.settings.show_count %} visually-hidden{% endunless %}"
+            id="ResultsCount-{{ sid }}"
+            data-swap="count"
+          >
+            {{ 'collections.count_label' | t }} <strong>{{ collection.products_count }}</strong>
+          </p>
+
+          <div class="facets-layout__sort" data-swap="sort">
+            {%- if section.settings.enable_sorting -%}
+              {%- render 'sort-by',
+                results: collection,
+                results_url: results_url,
+                base_query: base_query,
+                filter_query: filter_query,
+                id_prefix: sid
+              -%}
+            {%- endif -%}
+          </div>
+        </div>
+
+        <div class="facets-layout__active" data-swap="active">
+          {%- if show_filters -%}
+            {%- render 'active-filters',
+              results: collection,
+              clear_url: clear_url,
+              id_prefix: bar_prefix,
+              show_heading: false,
+              class: 'active-filters--bar'
+            -%}
+          {%- endif -%}
+        </div>
+
+        {%- render 'facets',
+          results: collection,
+          section_id: sid,
+          results_url: results_url,
+          base_query: base_query,
+          sort_value: sort_value,
+          clear_url: clear_url,
+          results_count: collection.products_count,
+          open_groups: section.settings.open_groups,
+          show_filters: show_filters
+        -%}
+        {%- if show_filters -%}
+          <div class="facets-layout__overlay" data-close></div>
+        {%- endif -%}
+
+        <div class="facets-layout__results">
+          <p class="facets-layout__error form-message form-message--error" data-facets-error hidden></p>
+          <h2 class="visually-hidden">{{ 'collections.products_heading' | t }}</h2>
+
+          <div class="facets-layout__grid" id="ProductGridContainer-{{ sid }}" data-swap="grid">
+            {%- if paginate.previous -%}
+              <p class="load-previous">
+                <a class="load-previous__link" href="{{ paginate.previous.url }}">
+                  {%- render 'icon', name: 'arrow-up', size: 16 -%}
+                  {{- 'collections.previous' | t -}}
+                </a>
+              </p>
+            {%- endif -%}
+            {%- if collection.products_count > 0 -%}
+              {%- render 'product-grid',
+                products: collection.products,
+                section_id: sid,
+                eager: eager,
+                heading: 'h3',
+                id: grid_id
+              -%}
+            {%- else -%}
+              <div class="collection-empty collection-empty--filtered">
+                {%- render 'icon', name: 'filter', size: 44, class: 'collection-empty__icon' -%}
+                <h3 class="collection-empty__title">{{ 'collections.no_matches.title' | t }}</h3>
+                <p class="collection-empty__text">{{ 'collections.no_matches.text' | t }}</p>
+                <a class="button collection-empty__button" href="{{ clear_url }}">
+                  {{- 'collections.no_matches.clear' | t -}}
+                </a>
+              </div>
+            {%- endif -%}
+          </div>
+
+          <div class="facets-layout__pagination" data-swap="pagination">
+            {%- if paginate.pages > 1 -%}
+              <div class="load-more">
+                <p class="load-more__status">{{ 'collections.progress' | t: shown: shown, total: paginate.items }}</p>
+                <span class="load-more__bar" aria-hidden="true">
+                  <span class="load-more__fill" style="inline-size: {{ progress }}%"></span>
+                </span>
+                {%- if paginate.next -%}
+                  <a class="button load-more__button" href="{{ paginate.next.url }}" rel="next" data-load-more>
+                    {{- 'collections.load_more' | t -}}
+                  </a>
+                {%- endif -%}
+              </div>
+              <div class="no-js-only">
+                {%- render 'pagination', paginate: paginate, class: 'load-more__pages' -%}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </facet-filters>
+    {%- endpaginate -%}
+  {%- endif -%}
+
+  {%- if section.settings.description_position == 'bottom' and collection.description != blank -%}
+    <div class="collection__description collection__description--bottom rte">{{ collection.description }}</div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "עמוד קטגוריה",
+  "tag": "section",
+  "class": "section-main-collection",
+  "enabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "כותרת"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "פירורי לחם",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "description_position",
+      "label": "תיאור הקטגוריה",
+      "options": [
+        { "value": "top", "label": "מתחת לכותרת" },
+        { "value": "bottom", "label": "מתחת למוצרים" },
+        { "value": "none", "label": "לא להציג" }
+      ],
+      "default": "top"
+    },
+    {
+      "type": "select",
+      "id": "banner_source",
+      "label": "באנר",
+      "options": [
+        { "value": "none", "label": "ללא באנר" },
+        { "value": "files", "label": "תמונה מ״קבצים״ לפי הקטגוריה" },
+        { "value": "collection", "label": "תמונת הקטגוריה" }
+      ],
+      "default": "none",
+      "info": "תמונות הקטגוריות בחנות ריבועיות ומשמשות לכרטיסים; לבאנר רחב עדיף קובץ ייעודי."
+    },
+    {
+      "type": "text",
+      "id": "banner_pattern",
+      "label": "שם קובץ הבאנר",
+      "default": "joy-mobile-category-[handle].png",
+      "info": "[handle] מוחלף בכתובת הקטגוריה, למשל joy-mobile-category-smartphones.png (תוכן › קבצים)."
+    },
+    {
+      "type": "text",
+      "id": "banner_fallback",
+      "label": "קובץ באנר חלופי",
+      "info": "כשאין קובץ לקטגוריה. ריק = ללא באנר."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subcollections",
+      "label": "קישורים לקטגוריות משנה",
+      "default": true,
+      "info": "מהתפריט: הקישורים שמתחת לקטגוריה הנוכחית."
+    },
+    {
+      "type": "link_list",
+      "id": "subcollections_menu",
+      "label": "תפריט לקטגוריות משנה",
+      "default": "main-menu"
+    },
+    {
+      "type": "header",
+      "content": "מוצרים"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "מוצרים בכל טעינה",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "עמודות במחשב",
+      "options": [
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" },
+        { "value": "5", "label": "5" }
+      ],
+      "default": "4",
+      "info": "מ־1200 פיקסלים. בטאבלט: 3 עמודות."
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "עמודות במובייל",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "header",
+      "content": "סינון ומיון"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "label": "סינון",
+      "default": true,
+      "info": "המסננים עצמם מוגדרים באפליקציית Search & Discovery."
+    },
+    {
+      "type": "select",
+      "id": "open_groups",
+      "label": "קבוצות סינון פתוחות",
+      "options": [
+        { "value": "first", "label": "הראשונה בלבד" },
+        { "value": "all", "label": "כולן" },
+        { "value": "none", "label": "אף אחת" }
+      ],
+      "default": "first",
+      "info": "קבוצה עם סינון פעיל תמיד פתוחה."
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "מיון",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_count",
+      "label": "מספר התוצאות",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "קטגוריה ריקה"
+    },
+    {
+      "type": "collection_list",
+      "id": "empty_collections",
+      "label": "קטגוריות מומלצות",
+      "limit": 8
+    },
+    {
+      "type": "header",
+      "content": "ריווח"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

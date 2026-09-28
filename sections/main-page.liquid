@@ -1,0 +1,76 @@
+{%- comment -%}
+  Generic page: breadcrumbs, the page title as the single <h1> and the page body as
+  long-form rich text (.prose, assets/section-page.css). The Konimbo pages had no
+  real h1 (the title lived in the breadcrumbs); here page.title is always the h1.
+
+  Also the first section of the page templates with a suffix (contact, faqs,
+  wishlist, branches): there the body is usually empty, so only the title renders
+  and the sections below carry the content. "Page width" keeps the title aligned
+  with those full-width sections.
+{%- endcomment -%}
+{{ 'section-page.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign has_content = false
+  if page.content != blank
+    assign has_content = true
+  endif
+-%}
+
+<div class="main-page page-width main-page--{{ section.settings.content_width }}{% unless has_content %} main-page--title-only{% endunless %}">
+  <div class="main-page__inner">
+    {%- if section.settings.show_breadcrumbs -%}
+      {%- render 'breadcrumbs', class: 'main-page__breadcrumbs' -%}
+    {%- endif -%}
+
+    {%- if section.settings.show_title -%}
+      <h1 class="main-page__title">{{ page.title | escape }}</h1>
+    {%- endif -%}
+
+    {%- if has_content -%}
+      <div class="main-page__content rte prose">
+        {{ page.content }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "תוכן העמוד",
+  "class": "section-main-page",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "מסלול ניווט (פירורי לחם)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "כותרת העמוד",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "content_width",
+      "label": "רוחב",
+      "options": [
+        { "value": "narrow", "label": "צר, לקריאה נוחה" },
+        { "value": "wide", "label": "כרוחב האתר" }
+      ],
+      "default": "narrow",
+      "info": "'כרוחב האתר' מיישר את הכותרת עם הסקשנים שמתחתיה (טופס יצירת קשר, סניפים, שאלות נפוצות)."
+    }
+  ],
+  "presets": [
+    {
+      "name": "תוכן העמוד"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,566 @@
+{%- comment -%}
+  Cart page (/cart). Works without JavaScript: one plain form posts to /cart
+  (quantities as updates[], the note, optional consent attributes; "update" or
+  "checkout"). With JavaScript, <cart-items> (@theme/cart) saves quantity changes,
+  removals and the note through the Ajax API and re-renders this section by id
+  (bundled section rendering), so every price and label below always comes from Liquid.
+
+  Contract with @theme/cart: each line is an element with data-key (the line item key)
+  holding the quantity <input> (the first input of the line), a [data-cart-remove]
+  link (no-JS fallback: item.url_to_remove) and a hidden [data-line-error] for 422
+  messages. Controls carry stable ids so focus survives the re-render.
+  The drawer's lines (snippets/cart-line) print the same data with the same rules — keep them in step.
+
+  Look: the Konimbo order page (#fcfcfc boxes with 1px #ccc borders, the centred
+  pickup notice) rebuilt as a cart: lines, quantity stepper, remove, totals, the
+  pickup-in-Eilat / pay-online-or-at-the-branch message, reservation conditions
+  (plain text by default; an optional required checkbox that stays on this page,
+  because Shopify checkout on the Basic plan cannot enforce it), note, checkout
+  button "המשך לשריון" and @app blocks.
+{%- endcomment -%}
+{{ 'section-main-cart.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign cart_form_id = 'CartForm-' | append: section.id
+
+  assign has_items = false
+  if cart.item_count > 0
+    assign has_items = true
+  endif
+
+  assign all_tax_free = true
+  for item in cart.items
+    if item.variant.taxable
+      assign all_tax_free = false
+      break
+    endif
+  endfor
+
+  assign pickup_address = settings.store_street | strip
+  assign pickup_city = settings.store_city | strip
+  if pickup_city != blank
+    if pickup_address != blank
+      assign pickup_address = pickup_address | append: ', '
+    endif
+    assign pickup_address = pickup_address | append: pickup_city
+  endif
+
+  assign condition_count = 0
+  for block in section.blocks
+    if block.type == 'condition' and block.settings.text != blank
+      assign condition_count = condition_count | plus: 1
+    endif
+  endfor
+
+  assign checkout_label = section.settings.checkout_label | strip
+  if checkout_label == blank
+    assign checkout_label = 'cart.page.checkout' | t
+  endif
+
+  assign consent_key = 'cart.page.consent_attribute' | t
+  assign vat_consent_key = 'cart.page.vat_consent_attribute' | t
+  assign consent_value = 'cart.page.consent_value' | t
+-%}
+
+{%- capture app_blocks -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == '@app' -%}
+      <div class="main-cart__app">{% render block %}</div>
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+<cart-items class="main-cart{% unless has_items %} main-cart--empty{% endunless %}" data-section-id="{{ section.id }}">
+  <div class="page-width">
+    {%- if section.settings.show_breadcrumbs -%}
+      {%- render 'breadcrumbs', schema: false, class: 'main-cart__breadcrumbs' -%}
+    {%- endif -%}
+
+    <div class="main-cart__header">
+      <h1 class="main-cart__title" id="CartTitle-{{ section.id }}" tabindex="-1" data-cart-focus>
+        {%- if has_items -%}
+          {{- 'cart.page.title' | t -}}
+        {%- else -%}
+          {{- 'cart.page.empty_title' | t -}}
+        {%- endif -%}
+      </h1>
+      {%- if has_items -%}
+        <p class="main-cart__count">{{ 'cart.page.item_count' | t: count: cart.item_count }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- if has_items -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'notice' and block.settings.text != blank -%}
+          <div class="cart-notice rte" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+        {%- endif -%}
+      {%- endfor -%}
+
+      <div class="main-cart__layout">
+        <div class="main-cart__main">
+          <form action="{{ routes.cart_url }}" method="post" id="{{ cart_form_id }}" class="main-cart__form">
+            <div class="cart-table">
+              <div class="cart-table__head" aria-hidden="true">
+                <span class="cart-table__head-product">{{ 'cart.page.column_product' | t }}</span>
+                <span>{{ 'cart.page.column_quantity' | t }}</span>
+                <span>{{ 'cart.page.column_total' | t }}</span>
+                <span></span>
+              </div>
+
+              <ul class="cart-table__lines" role="list" aria-label="{{ 'cart.page.lines_label' | t }}">
+                {%- for item in cart.items -%}
+                  {%- liquid
+                    assign line_ref = item.key | handle
+                    assign line_id = section.id | append: '-' | append: line_ref
+                    assign line_title = item.product.title | default: item.title
+
+                    assign qty_max = ''
+                    assign show_low_stock = false
+                    if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'deny'
+                      assign qty_max = item.variant.inventory_quantity | at_least: item.quantity
+                      if item.variant.inventory_quantity > 0 and item.variant.inventory_quantity <= settings.badge_low_stock_threshold
+                        assign show_low_stock = true
+                      endif
+                    endif
+                  -%}
+                  <li class="cart-item" data-key="{{ item.key | escape }}">
+                    <div class="cart-item__media">
+                      <a class="cart-item__image-link" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+                        {%- render 'image',
+                          image: item.image,
+                          widths: '80,160,240',
+                          sizes: '(min-width: 768px) 80px, 72px',
+                          class: 'cart-item__image',
+                          decorative: true,
+                          placeholder: 'product-1'
+                        -%}
+                      </a>
+                    </div>
+
+                    <div class="cart-item__info">
+                      <a class="cart-item__title" href="{{ item.url }}">{{ line_title | escape }}</a>
+
+                      {%- unless item.product.has_only_default_variant or item.variant.title == blank -%}
+                        <ul class="cart-item__options" role="list">
+                          {%- for option in item.options_with_values -%}
+                            <li>{{ option.name | escape }}: {{ option.value | escape }}</li>
+                          {%- endfor -%}
+                        </ul>
+                      {%- endunless -%}
+
+                      {%- if item.selling_plan_allocation -%}
+                        <p class="cart-item__meta">{{ item.selling_plan_allocation.selling_plan.name | escape }}</p>
+                      {%- endif -%}
+
+                      {%- capture line_properties -%}
+                        {%- for property in item.properties -%}
+                          {%- assign property_first_char = property.first | slice: 0 -%}
+                          {%- if property.last != blank and property_first_char != '_' -%}
+                            <div>
+                              <dt>{{ property.first | escape }}:</dt>
+                              <dd>
+                                {%- if property.last contains '/uploads/' -%}
+                                  <a href="{{ property.last }}" target="_blank" rel="noopener">{{ property.last | split: '/' | last | escape }}</a>
+                                {%- else -%}
+                                  {{- property.last | escape -}}
+                                {%- endif -%}
+                              </dd>
+                            </div>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      {%- endcapture -%}
+                      {%- if line_properties != blank -%}
+                        <dl class="cart-item__properties">{{ line_properties }}</dl>
+                      {%- endif -%}
+
+                      {%- if item.quantity > 1 -%}
+                        {%- assign line_unit_price = item.final_price | money_without_trailing_zeros -%}
+                        <p class="cart-item__unit">
+                          {%- if item.original_price > item.final_price -%}
+                            <s class="cart-item__compare"><span class="visually-hidden">{{ 'cart.page.regular_price' | t }}</span> {{ item.original_price | money_without_trailing_zeros }}</s>
+                          {% endif -%}
+                          {{ 'cart.page.unit_price' | t: price: line_unit_price }}
+                        </p>
+                      {%- endif -%}
+
+                      {%- if item.line_level_discount_allocations.size > 0 -%}
+                        <ul class="cart-item__discounts" role="list">
+                          {%- for allocation in item.line_level_discount_allocations -%}
+                            <li>
+                              {%- render 'icon', name: 'tag', size: 14 -%}
+                              <span>{{ allocation.discount_application.title | escape }} <bdi dir="ltr">−{{ allocation.amount | money_without_trailing_zeros }}</bdi></span>
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                      {%- endif -%}
+
+                      <p class="cart-item__error form-message form-message--error" data-line-error hidden></p>
+                    </div>
+
+                    <div class="cart-item__qty">
+                      {%- liquid
+                        # Key-based id: the snippet derives the −/+ button ids from it, so focus
+                        # survives the re-render after every change (keyboard users stay on "+").
+                        assign qty_input_id = 'CartQty-' | append: line_id
+                      -%}
+                      {%- render 'quantity-input',
+                        id: qty_input_id,
+                        name: 'updates[]',
+                        value: item.quantity,
+                        min: 0,
+                        max: qty_max,
+                        form: cart_form_id,
+                        label: line_title,
+                        class: 'cart-item__quantity'
+                      -%}
+                      {%- if show_low_stock -%}
+                        <p class="cart-item__stock">{{ 'cart.page.low_stock' | t: count: item.variant.inventory_quantity }}</p>
+                      {%- endif -%}
+                    </div>
+
+                    <div class="cart-item__total">
+                      <span class="visually-hidden">{{ 'cart.page.line_total' | t }}</span>
+                      {%- if item.original_line_price > item.final_line_price -%}
+                        <s class="cart-item__compare"><span class="visually-hidden">{{ 'cart.page.regular_price' | t }}</span> {{ item.original_line_price | money_without_trailing_zeros }}</s>
+                      {%- endif -%}
+                      <span class="cart-item__amount">{{ item.final_line_price | money_without_trailing_zeros }}</span>
+                    </div>
+
+                    <div class="cart-item__remove-cell">
+                      <a
+                        class="cart-item__remove"
+                        href="{{ item.url_to_remove }}"
+                        id="CartRemove-{{ line_id }}"
+                        data-cart-remove
+                        aria-label="{{ 'cart.page.remove' | t: title: line_title }}"
+                      >
+                        {%- render 'icon', name: 'trash', size: 20 -%}
+                      </a>
+                    </div>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+
+            <div class="main-cart__actions">
+              <a class="main-cart__continue" href="{{ routes.all_products_collection_url }}">
+                {%- render 'icon', name: 'arrow-right', size: 18 -%}
+                <span>{{ 'cart.page.continue' | t }}</span>
+              </a>
+              <button type="submit" name="update" class="button button--outline button--small no-js-only" formnovalidate>
+                {{- 'cart.page.update' | t -}}
+              </button>
+            </div>
+
+            {%- if settings.cart_note_enabled -%}
+              <div class="field main-cart__note">
+                <label class="field__label" for="CartNote-{{ section.id }}">{{ 'cart.page.note_label' | t }}</label>
+                <textarea
+                  class="textarea"
+                  name="note"
+                  id="CartNote-{{ section.id }}"
+                  rows="3"
+                  placeholder="{{ 'cart.page.note_placeholder' | t }}"
+                >{{ cart.note | escape }}</textarea>
+              </div>
+            {%- endif -%}
+          </form>
+
+          {{- app_blocks -}}
+        </div>
+
+        <section class="main-cart__summary cart-summary" aria-labelledby="CartSummary-{{ section.id }}">
+          <h2 class="cart-summary__title" id="CartSummary-{{ section.id }}">{{ 'cart.page.summary_title' | t }}</h2>
+
+          <dl class="cart-summary__rows">
+            {%- if cart.cart_level_discount_applications.size > 0 -%}
+              <div class="cart-summary__row">
+                <dt>{{ 'cart.page.subtotal' | t }}</dt>
+                <dd>{{ cart.items_subtotal_price | money_without_trailing_zeros }}</dd>
+              </div>
+              {%- for discount in cart.cart_level_discount_applications -%}
+                <div class="cart-summary__row">
+                  <dt>
+                    {%- render 'icon', name: 'tag', size: 16 -%}
+                    <span>{{ discount.title | escape }}</span>
+                  </dt>
+                  <dd><bdi dir="ltr">−{{ discount.total_allocated_amount | money_without_trailing_zeros }}</bdi></dd>
+                </div>
+              {%- endfor -%}
+            {%- endif -%}
+            <div class="cart-summary__row cart-summary__row--total">
+              <dt>{{ 'cart.page.total' | t }}</dt>
+              <dd>{{ cart.total_price | money_without_trailing_zeros }}</dd>
+            </div>
+          </dl>
+
+          {%- if all_tax_free and settings.tax_free_labels -%}
+            <p class="cart-summary__tax">
+              <span>{{ 'cart.page.tax_free' | t }}</span>
+              <span class="cart-summary__chip" lang="en">{{ 'products.price.tax_free' | t }}</span>
+            </p>
+          {%- endif -%}
+
+          {%- if settings.cart_pickup_message != blank or pickup_address != blank -%}
+            <div class="cart-summary__pickup">
+              {%- render 'icon', name: 'store', size: 24, class: 'cart-summary__pickup-icon' -%}
+              <div class="cart-summary__pickup-text">
+                {%- if settings.cart_pickup_message != blank -%}
+                  <p class="cart-summary__pickup-title">{{ settings.cart_pickup_message }}</p>
+                {%- endif -%}
+                {%- if pickup_address != blank -%}
+                  <p class="cart-summary__pickup-address">{{ 'cart.page.pickup_from' | t: address: pickup_address }}</p>
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endif -%}
+
+          {%- if condition_count > 0 -%}
+            <div class="cart-conditions">
+              {%- if section.settings.conditions_heading != blank -%}
+                <h3 class="cart-conditions__title">{{ section.settings.conditions_heading | escape }}</h3>
+              {%- endif -%}
+              <ul class="cart-conditions__list" role="list">
+                {%- for block in section.blocks -%}
+                  {%- if block.type == 'condition' and block.settings.text != blank -%}
+                    <li class="cart-conditions__item" {{ block.shopify_attributes }}>
+                      {%- render 'icon', name: block.settings.icon, size: 20, class: 'cart-conditions__icon' -%}
+                      <span>{{ block.settings.text }}</span>
+                    </li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+
+          {%- if section.settings.require_consent or settings.cart_vat_consent_enabled -%}
+            <div class="cart-consents">
+              {%- if section.settings.require_consent and section.settings.consent_label != blank -%}
+                {%- assign consent_id = 'CartConsent-' | append: section.id -%}
+                <div class="cart-consent">
+                  <div class="checkbox">
+                    <input
+                      type="checkbox"
+                      id="{{ consent_id }}"
+                      name="attributes[{{ consent_key }}]"
+                      value="{{ consent_value }}"
+                      form="{{ cart_form_id }}"
+                      required
+                      aria-describedby="{{ consent_id }}-error"
+                      {% if cart.attributes[consent_key] != blank %}checked{% endif %}
+                    >
+                    <label for="{{ consent_id }}">{{ section.settings.consent_label }}</label>
+                  </div>
+                  <p class="cart-consent__error form-message form-message--error" id="{{ consent_id }}-error">
+                    {%- render 'icon', name: 'alert', size: 16 -%}
+                    <span>{{ 'cart.page.consent_error' | t }}</span>
+                  </p>
+                </div>
+              {%- endif -%}
+
+              {%- if settings.cart_vat_consent_enabled and settings.cart_vat_consent_text != blank -%}
+                {%- assign vat_consent_id = 'CartVatConsent-' | append: section.id -%}
+                <div class="cart-consent">
+                  <div class="checkbox">
+                    <input
+                      type="checkbox"
+                      id="{{ vat_consent_id }}"
+                      name="attributes[{{ vat_consent_key }}]"
+                      value="{{ consent_value }}"
+                      form="{{ cart_form_id }}"
+                      required
+                      aria-describedby="{{ vat_consent_id }}-error"
+                      {% if cart.attributes[vat_consent_key] != blank %}checked{% endif %}
+                    >
+                    <label for="{{ vat_consent_id }}">{{ settings.cart_vat_consent_text }}</label>
+                  </div>
+                  <p class="cart-consent__error form-message form-message--error" id="{{ vat_consent_id }}-error">
+                    {%- render 'icon', name: 'alert', size: 16 -%}
+                    <span>{{ 'cart.page.consent_error' | t }}</span>
+                  </p>
+                </div>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+
+          <button
+            type="submit"
+            name="checkout"
+            form="{{ cart_form_id }}"
+            class="button button--accent button--large button--full cart-summary__checkout"
+          >
+            {%- render 'icon', name: 'lock', size: 18 -%}
+            <span>{{ checkout_label | escape }}</span>
+          </button>
+
+          {%- if section.settings.checkout_note != blank -%}
+            <p class="cart-summary__next">{{ section.settings.checkout_note }}</p>
+          {%- endif -%}
+
+          {%- if section.settings.show_dynamic_checkout and additional_checkout_buttons -%}
+            <div class="cart-summary__dynamic">{{ content_for_additional_checkout_buttons }}</div>
+          {%- endif -%}
+
+          {%- if section.settings.show_payment_icons -%}
+            {%- render 'payment-icons', class: 'cart-summary__payments' -%}
+          {%- endif -%}
+        </section>
+      </div>
+    {%- else -%}
+      <div class="main-cart__empty">
+        {%- render 'icon', name: 'cart', size: 56, class: 'main-cart__empty-icon' -%}
+        <p class="main-cart__empty-text">{{ 'cart.page.empty_text' | t }}</p>
+        <p class="main-cart__empty-note">{{ 'cart.page.empty_note' | t }}</p>
+        <a class="button button--large main-cart__empty-cta" href="{{ routes.all_products_collection_url }}">
+          {{- 'cart.page.empty_cta' | t -}}
+        </a>
+
+        {%- assign empty_menu = section.settings.empty_menu -%}
+        {%- if empty_menu.links.size > 0 -%}
+          <nav class="main-cart__empty-nav" aria-labelledby="CartEmptyLinks-{{ section.id }}">
+            <h2 class="main-cart__empty-heading" id="CartEmptyLinks-{{ section.id }}">{{ 'cart.page.empty_links' | t }}</h2>
+            <ul class="main-cart__chips" role="list">
+              {%- for link in empty_menu.links -%}
+                <li><a class="main-cart__chip" href="{{ link.url }}">{{ link.title | escape }}</a></li>
+              {%- endfor -%}
+            </ul>
+          </nav>
+        {%- endif -%}
+      </div>
+
+      {{- app_blocks -}}
+    {%- endif -%}
+  </div>
+</cart-items>
+
+{% schema %}
+{
+  "name": "עגלת קניות",
+  "class": "section-main-cart",
+  "enabled_on": {
+    "templates": ["cart"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "מסלול ניווט (פירורי לחם)",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "סיכום ומעבר לתשלום"
+    },
+    {
+      "type": "text",
+      "id": "checkout_label",
+      "label": "טקסט הכפתור",
+      "default": "המשך לשריון"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "checkout_note",
+      "label": "הסבר מתחת לכפתור",
+      "default": "בשלב הבא ממלאים פרטים ובוחרים איך לשלם: באתר, בתשלום מאובטח, או בסניף בעת האיסוף."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "סמלי אמצעי התשלום",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dynamic_checkout",
+      "label": "כפתורי תשלום מהיר",
+      "info": "כפתורים כמו Shop Pay או Google Pay מתחת לכפתור הראשי. הוסרו מהאתר הקודם לבקשת בעלי החנות, ולכן כבויים.",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "תנאי השריון"
+    },
+    {
+      "type": "paragraph",
+      "content": "כל תנאי הוא בלוק מסוג 'תנאי שריון'. ההודעה בראש העגלה היא בלוק מסוג 'הודעה בראש העגלה'. טקסט האיסוף והתשלום, ההערה להזמנה ותיבת האישור לתנאי 90 הימים נקבעים בהגדרות התבנית › עגלה."
+    },
+    {
+      "type": "text",
+      "id": "conditions_heading",
+      "label": "כותרת התנאים",
+      "default": "תנאי השריון והאיסוף"
+    },
+    {
+      "type": "checkbox",
+      "id": "require_consent",
+      "label": "חובה לסמן אישור לתנאים",
+      "info": "תיבת סימון שחובה לסמן לפני המעבר לתשלום, והאישור נשמר בהזמנה. פועלת בעמוד העגלה בלבד: עמוד התשלום של Shopify (מסלול Basic) לא יכול לחייב אותה, ומעבר ישיר לתשלום מהעגלה הצדדית או מעמוד המוצר עוקף אותה.",
+      "default": false
+    },
+    {
+      "type": "inline_richtext",
+      "id": "consent_label",
+      "label": "נוסח תיבת האישור",
+      "default": "קראתי ואני מאשר/ת את תנאי השריון והאיסוף"
+    },
+    {
+      "type": "header",
+      "content": "עגלה ריקה"
+    },
+    {
+      "type": "link_list",
+      "id": "empty_menu",
+      "label": "קישורים למחלקות",
+      "info": "הקישורים הראשיים של התפריט מוצגים כשהעגלה ריקה.",
+      "default": "main-menu"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "notice",
+      "name": "הודעה בראש העגלה",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "טקסט",
+          "default": "<p><strong>חשוב לדעת:</strong> כל ההזמנות באתר הן לאיסוף עצמי מהסניף באילת — זה מה שמקנה את הפטור ממע״מ, ולכן אין משלוחים, גם לא בתוך אילת.</p>"
+        }
+      ]
+    },
+    {
+      "type": "condition",
+      "name": "תנאי שריון",
+      "limit": 10,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "סמל",
+          "default": "check",
+          "options": [
+            { "value": "check", "label": "וי" },
+            { "value": "clock", "label": "שעון" },
+            { "value": "account", "label": "אדם / תעודה מזהה" },
+            { "value": "store", "label": "חנות" },
+            { "value": "location", "label": "מיקום" },
+            { "value": "shield", "label": "מגן" },
+            { "value": "credit-card", "label": "כרטיס אשראי" },
+            { "value": "info", "label": "מידע" }
+          ]
+        },
+        {
+          "type": "inline_richtext",
+          "id": "text",
+          "label": "טקסט",
+          "default": "תנאי חדש"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,852 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "JOY Mobile",
+    "theme_version": "1.0.0",
+    "theme_author": "JOY Mobile",
+    "theme_documentation_url": "https://i6qzve-zj.myshopify.com/pages/contact",
+    "theme_support_url": "https://i6qzve-zj.myshopify.com/pages/contact"
+  },
+  {
+    "name": "לוגו ופאביקון",
+    "settings": [
+      {
+        "type": "text",
+        "id": "brand_name",
+        "label": "שם המותג באתר",
+        "default": "JOY Mobile",
+        "info": "מוצג באתר בלבד: טקסט חלופי ללוגו, זכויות יוצרים בפוטר, שם האתר בתוצאות חיפוש ובשיתוף. לא משנה את שם החנות בקופה ובמיילים (הגדרות ← כללי)."
+      },
+      {
+        "type": "header",
+        "content": "לוגו"
+      },
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "לוגו",
+        "info": "אם ריק: לוגו JOY Mobile המובנה בתבנית (הגרסה עם הריבוע הירוק, שמתאימה לכותרת הכהה)."
+      },
+      {
+        "type": "image_picker",
+        "id": "logo_inverse",
+        "label": "לוגו לרקע כהה",
+        "info": "לוגו לכותרת העליונה הכהה. אם ריק: הלוגו שלמעלה, ואם גם הוא ריק — לוגו JOY Mobile המובנה."
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "label": "רוחב הלוגו במחשב",
+        "min": 60,
+        "max": 300,
+        "step": 5,
+        "unit": "px",
+        "default": 190
+      },
+      {
+        "type": "range",
+        "id": "logo_width_mobile",
+        "label": "רוחב הלוגו במובייל",
+        "min": 60,
+        "max": 240,
+        "step": 5,
+        "unit": "px",
+        "default": 130
+      },
+      {
+        "type": "header",
+        "content": "פאביקון"
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "פאביקון",
+        "info": "תמונה ריבועית (PNG), לפחות 180×180 פיקסלים. אם ריק: הסמל המובנה בתבנית."
+      }
+    ]
+  },
+  {
+    "name": "צבעים",
+    "settings": [
+      {
+        "type": "header",
+        "content": "מותג"
+      },
+      {
+        "type": "color",
+        "id": "color_brand",
+        "label": "ירוק המותג",
+        "info": "משטחים, אייקונים, מסגרות וטקסט גדול.",
+        "default": "#309d7a"
+      },
+      {
+        "type": "color",
+        "id": "color_brand_text",
+        "label": "ירוק נגיש",
+        "info": "טקסט ירוק קטן ורקע של כפתורים ירוקים עם טקסט לבן — נדרשת ניגודיות של 4.5:1 לפחות מול לבן.",
+        "default": "#267d61"
+      },
+      {
+        "type": "color",
+        "id": "color_ink",
+        "label": "שחור",
+        "info": "כותרות, מחירים ואלמנטים שחורים.",
+        "default": "#060433"
+      },
+      {
+        "type": "header",
+        "content": "טקסט ורקעים"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "טקסט",
+        "default": "#060433"
+      },
+      {
+        "type": "color",
+        "id": "color_muted",
+        "label": "טקסט משני",
+        "default": "#55557a"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "רקע",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_surface",
+        "label": "משטח אפור — פסי כותרת",
+        "default": "#f0f3ff"
+      },
+      {
+        "type": "color",
+        "id": "color_surface_alt",
+        "label": "משטח אפור כהה",
+        "default": "#f0f3ff"
+      },
+      {
+        "type": "color",
+        "id": "color_surface_soft",
+        "label": "משטח אפור ביניים",
+        "default": "#f7f8fe"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "קווים ומסגרות",
+        "default": "#e1e1e7"
+      },
+      {
+        "type": "header",
+        "content": "כותרת עליונה ותחתונה"
+      },
+      {
+        "type": "color",
+        "id": "color_header_bg",
+        "label": "רקע הכותרת העליונה ופס ההודעות",
+        "default": "#060433"
+      },
+      {
+        "type": "color",
+        "id": "color_header_text",
+        "label": "טקסט בכותרת העליונה",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_nav_bg",
+        "label": "רקע שורת התפריט (מחשב)",
+        "default": "#1a1843"
+      },
+      {
+        "type": "color",
+        "id": "color_nav_text",
+        "label": "טקסט בשורת התפריט",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_footer_bg",
+        "label": "רקע הכותרת התחתונה",
+        "default": "#060433"
+      },
+      {
+        "type": "color",
+        "id": "color_footer_text",
+        "label": "טקסט בכותרת התחתונה",
+        "default": "#ffffff"
+      },
+      {
+        "type": "header",
+        "content": "כפתורים"
+      },
+      {
+        "type": "color",
+        "id": "color_button_bg",
+        "label": "כפתור שחור — רקע",
+        "default": "#060433"
+      },
+      {
+        "type": "color",
+        "id": "color_button_text",
+        "label": "כפתור שחור — טקסט",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_button_accent_bg",
+        "label": "כפתור ירוק — רקע",
+        "default": "#309d7a"
+      },
+      {
+        "type": "color",
+        "id": "color_button_accent_text",
+        "label": "כפתור ירוק — טקסט",
+        "default": "#060433"
+      },
+      {
+        "type": "header",
+        "content": "מצבים"
+      },
+      {
+        "type": "color",
+        "id": "color_sale",
+        "label": "מחיר מבצע",
+        "default": "#c8102e"
+      },
+      {
+        "type": "color",
+        "id": "color_error",
+        "label": "שגיאה והתראה",
+        "default": "#b3261e"
+      },
+      {
+        "type": "header",
+        "content": "תגיות על תמונת המוצר"
+      },
+      {
+        "type": "color",
+        "id": "color_badge_taxfree_bg",
+        "label": "TAX FREE — רקע",
+        "default": "#56d2aa"
+      },
+      {
+        "type": "color",
+        "id": "color_badge_taxfree_text",
+        "label": "TAX FREE — טקסט ומסגרת",
+        "default": "#060433"
+      },
+      {
+        "type": "color",
+        "id": "color_badge_new_bg",
+        "label": "חדש בחנות — רקע",
+        "default": "#060433"
+      },
+      {
+        "type": "color",
+        "id": "color_badge_new_text",
+        "label": "חדש בחנות — טקסט",
+        "default": "#56d2aa"
+      },
+      {
+        "type": "color",
+        "id": "color_badge_low_bg",
+        "label": "אחרונים במלאי — רקע",
+        "default": "#b3261e"
+      },
+      {
+        "type": "color",
+        "id": "color_badge_low_text",
+        "label": "אחרונים במלאי — טקסט",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_badge_soldout_bg",
+        "label": "אזל מהמלאי — רקע",
+        "default": "#55557a"
+      },
+      {
+        "type": "color",
+        "id": "color_badge_soldout_text",
+        "label": "אזל מהמלאי — טקסט",
+        "default": "#ffffff"
+      }
+    ]
+  },
+  {
+    "name": "טיפוגרפיה",
+    "settings": [
+      {
+        "type": "select",
+        "id": "font_family",
+        "label": "גופן",
+        "default": "assistant",
+        "options": [
+          {
+            "value": "assistant",
+            "label": "Assistant (גופן המותג)"
+          },
+          {
+            "value": "rubik",
+            "label": "Rubik (האתר הקודם)"
+          }
+        ],
+        "info": "שני הגופנים מתארחים ב-theme עצמו ותומכים בעברית."
+      },
+      {
+        "type": "paragraph",
+        "content": "הגופן נבחר בהגדרה \"גופן\" למעלה. שני הגופנים, Assistant של המותג ו-Rubik של האתר הקודם, מאוחסנים בתוך התבנית עם עברית ולטינית, וחלים על כל האתר כולל שדות הטפסים."
+      },
+      {
+        "type": "select",
+        "id": "type_body_weight",
+        "label": "משקל הטקסט הרגיל",
+        "options": [
+          {
+            "value": "300",
+            "label": "דק (300)"
+          },
+          {
+            "value": "400",
+            "label": "רגיל (400)"
+          }
+        ],
+        "default": "400"
+      },
+      {
+        "type": "select",
+        "id": "type_heading_weight",
+        "label": "משקל הכותרות",
+        "options": [
+          {
+            "value": "500",
+            "label": "בינוני (500)"
+          },
+          {
+            "value": "700",
+            "label": "מודגש (700)"
+          },
+          {
+            "value": "900",
+            "label": "שחור (900)"
+          }
+        ],
+        "default": "700"
+      },
+      {
+        "type": "checkbox",
+        "id": "type_mobile_boost",
+        "label": "הגדלת טקסט קטן במובייל",
+        "info": "מגדיל בפיקסל אחד טקסטים של 11–13 פיקסלים במסכים צרים מ-768 פיקסלים.",
+        "default": false
+      }
+    ]
+  },
+  {
+    "name": "פריסה",
+    "settings": [
+      {
+        "type": "range",
+        "id": "page_width",
+        "label": "רוחב התוכן המרבי",
+        "min": 960,
+        "max": 1600,
+        "step": 10,
+        "unit": "px",
+        "default": 1170
+      },
+      {
+        "type": "range",
+        "id": "page_gutter_mobile",
+        "label": "שוליים בצדדים — מובייל",
+        "min": 8,
+        "max": 32,
+        "step": 1,
+        "unit": "px",
+        "default": 15
+      },
+      {
+        "type": "range",
+        "id": "page_gutter_desktop",
+        "label": "שוליים בצדדים — מחשב",
+        "min": 8,
+        "max": 60,
+        "step": 1,
+        "unit": "px",
+        "default": 15
+      },
+      {
+        "type": "header",
+        "content": "פינות מעוגלות"
+      },
+      {
+        "type": "range",
+        "id": "radius_button",
+        "label": "כפתורים",
+        "min": 0,
+        "max": 24,
+        "step": 1,
+        "unit": "px",
+        "default": 3
+      },
+      {
+        "type": "range",
+        "id": "radius_input",
+        "label": "שדות טופס",
+        "min": 0,
+        "max": 24,
+        "step": 1,
+        "unit": "px",
+        "default": 3
+      },
+      {
+        "type": "range",
+        "id": "radius_card",
+        "label": "כרטיסי מוצר",
+        "min": 0,
+        "max": 24,
+        "step": 1,
+        "unit": "px",
+        "default": 0
+      },
+      {
+        "type": "range",
+        "id": "radius_badge",
+        "label": "תגיות",
+        "min": 0,
+        "max": 24,
+        "step": 1,
+        "unit": "px",
+        "default": 3
+      }
+    ]
+  },
+  {
+    "name": "כרטיסי מוצר",
+    "settings": [
+      {
+        "type": "select",
+        "id": "card_image_ratio",
+        "label": "יחס התמונה",
+        "options": [
+          {
+            "value": "1 / 1",
+            "label": "ריבוע"
+          },
+          {
+            "value": "4 / 5",
+            "label": "אנכי"
+          },
+          {
+            "value": "3 / 4",
+            "label": "אנכי גבוה"
+          },
+          {
+            "value": "auto",
+            "label": "לפי התמונה"
+          }
+        ],
+        "default": "1 / 1"
+      },
+      {
+        "type": "select",
+        "id": "card_image_fit",
+        "label": "התאמת התמונה למסגרת",
+        "options": [
+          {
+            "value": "contain",
+            "label": "הצגת התמונה במלואה"
+          },
+          {
+            "value": "cover",
+            "label": "מילוי המסגרת"
+          }
+        ],
+        "default": "contain"
+      },
+      {
+        "type": "range",
+        "id": "card_title_lines",
+        "label": "שורות לשם המוצר",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "default": 3
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_vendor",
+        "label": "הצגת המותג",
+        "info": "מוצרים שהמותג שלהם הוא שם החנות לעולם לא מציגים מותג.",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_secondary_image",
+        "label": "תמונה שנייה במעבר עכבר",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_swatches",
+        "label": "עיגולי צבע",
+        "default": true
+      },
+      {
+        "type": "range",
+        "id": "card_swatch_limit",
+        "label": "מספר עיגולי צבע מרבי",
+        "min": 2,
+        "max": 8,
+        "step": 1,
+        "default": 5
+      },
+      {
+        "type": "header",
+        "content": "תגיות על תמונת המוצר"
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_show_tax_free",
+        "label": "TAX FREE / מחיר אילת",
+        "info": "רק לדגמים שאינם חייבים במס (ראו 'מחירים ומע״מ').",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_show_new",
+        "label": "חדש בחנות",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "badge_new_tags",
+        "label": "תגיות שמסמנות מוצר חדש",
+        "info": "מופרדות בפסיקים. מוצר עם אחת התגיות מקבל את התגית 'חדש בחנות'.",
+        "default": "חדש,new"
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_show_low_stock",
+        "label": "אחרונים במלאי",
+        "default": true
+      },
+      {
+        "type": "range",
+        "id": "badge_low_stock_threshold",
+        "label": "סף 'אחרונים במלאי' (יחידות)",
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "default": 2
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_show_sold_out",
+        "label": "אזל מהמלאי",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "מחירים ומע״מ",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "המחיר בחנות הוא מחיר אילת הפטור ממע״מ, והוא המחיר שנגבה בקופה. התבנית לעולם לא מחשבת מע״מ."
+      },
+      {
+        "type": "checkbox",
+        "id": "tax_free_labels",
+        "label": "סימון 'מחיר אילת' ו-TAX FREE",
+        "info": "מוצג רק לדגמים שאינם חייבים במס ב-Shopify. דגמים שחייבים במס מוצגים עם המחיר בלבד, בלי הסימון.",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "price_show_label",
+        "label": "הכיתוב 'מחיר אילת' ליד המחיר",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "price_show_compare",
+        "label": "מחיר לפני הנחה (כשקיים)",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "price_show_from",
+        "label": "'החל מ־' כשמחירי הדגמים שונים",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "vat_price_metafield",
+        "label": "מטאפילד של מחיר כולל מע״מ",
+        "placeholder": "custom.price_with_vat",
+        "info": "בפורמט namespace.key, על הדגם או על המוצר (כסף, מספר או טקסט מספרי). ריק = השורה 'מחיר כולל מע״מ' לא מוצגת."
+      }
+    ]
+  },
+  {
+    "name": "עגלה",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "אחרי הוספה לעגלה",
+        "options": [
+          {
+            "value": "drawer",
+            "label": "פתיחת עגלה צדדית"
+          },
+          {
+            "value": "page",
+            "label": "מעבר לעמוד העגלה"
+          }
+        ],
+        "default": "drawer"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_note_enabled",
+        "label": "הערה להזמנה",
+        "default": true
+      },
+      {
+        "type": "inline_richtext",
+        "id": "cart_pickup_message",
+        "label": "הודעת האיסוף בעגלה",
+        "default": "איסוף עצמי מהסניף באילת · תשלום בסניף או באתר"
+      },
+      {
+        "type": "header",
+        "content": "תנאי הפטור ממע״מ"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_vat_consent_enabled",
+        "label": "תיבת אישור לתנאי 90 הימים",
+        "info": "הלקוח חייב לסמן לפני המעבר לתשלום.",
+        "default": false
+      },
+      {
+        "type": "inline_richtext",
+        "id": "cart_vat_consent_text",
+        "label": "נוסח האישור",
+        "default": "אני מאשר/ת שלא רכשתי באילת מוצר אחר מאותה קטגוריה ב-90 הימים שקדמו להזמנה — זהו תנאי של הפטור ממע״מ."
+      }
+    ]
+  },
+  {
+    "name": "יצירת קשר ורשתות חברתיות",
+    "settings": [
+      {
+        "type": "header",
+        "content": "פרטי החנות"
+      },
+      {
+        "type": "text",
+        "id": "store_street",
+        "label": "רחוב ומספר",
+        "default": "המלאכה 7"
+      },
+      {
+        "type": "text",
+        "id": "store_city",
+        "label": "עיר",
+        "default": "אילת"
+      },
+      {
+        "type": "text",
+        "id": "store_zip",
+        "label": "מיקוד"
+      },
+      {
+        "type": "textarea",
+        "id": "store_hours",
+        "label": "שעות פתיחה",
+        "info": "לא נשמרות בנתוני המיקום של Shopify, ולכן כאן."
+      },
+      {
+        "type": "select",
+        "id": "store_business_type",
+        "label": "סוג העסק (נתונים מובנים למנועי חיפוש)",
+        "options": [
+          {
+            "value": "ElectronicsStore",
+            "label": "חנות אלקטרוניקה"
+          },
+          {
+            "value": "Store",
+            "label": "חנות"
+          },
+          {
+            "value": "LocalBusiness",
+            "label": "עסק מקומי"
+          }
+        ],
+        "default": "ElectronicsStore"
+      },
+      {
+        "type": "text",
+        "id": "contact_phone",
+        "label": "טלפון",
+        "default": "08-6555200"
+      },
+      {
+        "type": "text",
+        "id": "contact_email",
+        "label": "אימייל",
+        "default": "joymobileltd@gmail.com"
+      },
+      {
+        "type": "text",
+        "id": "contact_whatsapp",
+        "label": "מספר וואטסאפ",
+        "info": "ספרות בלבד — בינלאומי (972…) או מקומי (05…).",
+        "default": "972533255020"
+      },
+      {
+        "type": "text",
+        "id": "contact_whatsapp_message",
+        "label": "הודעת הפתיחה בוואטסאפ",
+        "default": "היי, הגעתי מהאתר ורציתי לשאול על מוצר"
+      },
+      {
+        "type": "header",
+        "content": "רשתות חברתיות"
+      },
+      {
+        "type": "text",
+        "id": "social_facebook_link",
+        "label": "Facebook",
+        "placeholder": "https://www.facebook.com/…"
+      },
+      {
+        "type": "text",
+        "id": "social_instagram_link",
+        "label": "Instagram",
+        "placeholder": "https://www.instagram.com/…"
+      },
+      {
+        "type": "text",
+        "id": "social_telegram_link",
+        "label": "Telegram",
+        "placeholder": "https://t.me/…"
+      },
+      {
+        "type": "text",
+        "id": "social_tiktok_link",
+        "label": "TikTok",
+        "placeholder": "https://www.tiktok.com/@…"
+      },
+      {
+        "type": "text",
+        "id": "social_youtube_link",
+        "label": "YouTube",
+        "placeholder": "https://www.youtube.com/@…"
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image",
+        "label": "תמונת שיתוף ברשתות",
+        "info": "מוצגת כשמשתפים עמוד שאין לו תמונה משלו. מומלץ 1200×630 פיקסלים."
+      }
+    ]
+  },
+  {
+    "name": "סניפים",
+    "settings": [
+      {
+        "type": "page",
+        "id": "branches_page",
+        "label": "עמוד הסניפים",
+        "info": "יעד הקישור 'סניפים באילת' בכותרת העליונה ובכותרת התחתונה."
+      }
+    ]
+  },
+  {
+    "name": "נגישות",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "a11y_panel_enabled",
+        "label": "כפתור נגישות צף",
+        "info": "פאנל מובנה: גודל טקסט, ניגודיות, הדגשת קישורים, גופן קריא ועצירת אנימציות.",
+        "default": true
+      },
+      {
+        "type": "page",
+        "id": "a11y_statement_page",
+        "label": "עמוד הצהרת הנגישות"
+      }
+    ]
+  },
+  {
+    "name": "מועדפים וכפתורים צפים",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "wishlist_enabled",
+        "label": "רשימת מועדפים",
+        "info": "לב על כרטיסי המוצר ובעמוד המוצר; נשמר בדפדפן של הלקוח.",
+        "default": true
+      },
+      {
+        "type": "page",
+        "id": "wishlist_page",
+        "label": "עמוד המועדפים"
+      },
+      {
+        "type": "checkbox",
+        "id": "floating_wishlist_enabled",
+        "label": "לשונית מועדפים צפה",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "floating_whatsapp_enabled",
+        "label": "בועת וואטסאפ צפה",
+        "default": false,
+        "info": "באתר הישן וואטסאפ מופיע רק בכותרת העליונה, ולכן כבוי כברירת מחדל."
+      },
+      {
+        "type": "checkbox",
+        "id": "floating_back_to_top_enabled",
+        "label": "כפתור חזרה לראש העמוד",
+        "info": "מופיע אחרי גלילה (בדפדפנים שתומכים באנימציות גלילה).",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "חיפוש",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "predictive_search_enabled",
+        "label": "הצעות חיפוש בזמן ההקלדה",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "predictive_search_show_price",
+        "label": "מחיר בהצעות החיפוש",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "search_trending",
+        "label": "חיפושים פופולריים",
+        "info": "מופרדים בפסיקים; מוצגים כשתיבת החיפוש ריקה.",
+        "default": "אייפון, סמסונג, אוזניות, מחשב נייד, שעון חכם, טאבלט, מטען, רחפן"
+      }
+    ]
+  }
+]

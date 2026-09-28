@@ -1,0 +1,65 @@
+/* ==========================================================================
+   Pickup availability — snippets/product-trust.liquid part 'pickup', printed by
+   sections/pickup-availability.liquid and pre-filled into <pickup-availability> (@theme/product)
+   by main-product. One row per location with local pickup (today: only "המלאכה 7", 24 h):
+   status (✓ accessible green / × muted) + Shopify's pickup-time text. Hidden when empty.
+   ========================================================================== */
+
+pickup-availability {
+  display: block;
+}
+
+pickup-availability[hidden] {
+  display: none;
+}
+
+.pickup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pickup__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}
+
+.pickup__icon {
+  flex: none;
+  margin-block-start: 0.0625rem;
+}
+
+.pickup__item--available .pickup__icon {
+  color: var(--color-brand-text);
+}
+
+.pickup__item--unavailable,
+.pickup__item--unavailable .pickup__icon {
+  color: var(--color-muted);
+}
+
+.pickup__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pickup__status {
+  font-weight: 500;
+}
+
+.pickup__item--available .pickup__status {
+  color: var(--color-ink);
+}
+
+.pickup__time {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}

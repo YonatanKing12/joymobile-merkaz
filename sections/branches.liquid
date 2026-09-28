@@ -1,0 +1,371 @@
+{%- comment -%}
+  Branches + pickup facts (anchor id "branches", so any link can point to
+  <page>#branches). Konimbo's branches page stacked 5 branches, each with a name,
+  services line, address, hours and an eagerly loaded Google Maps iframe. The store
+  now has one pickup point (the Shopify location at המלאכה 7, Eilat —
+  local pickup ready within 24 hours, ID required, held up to 21 business days —
+  data-model.md), so the defaults show that branch and those facts; everything is
+  editable and more branches are more blocks.
+
+  Maps: the address builds a Google Maps link and a Waze link; the embedded map is
+  click-to-load (a closed <details> keeps its lazy iframe from loading), so no
+  third-party request happens until the visitor asks for it. Opening hours are not
+  stored in Shopify: the block's hours, else the theme setting, else a line
+  asking to call the branch, whose number follows (never invented hours).
+{%- endcomment -%}
+{{ 'section-branches.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign new_window = 'accessibility.new_window' | t
+  assign fact_count = 0
+  for block in section.blocks
+    if block.type == 'fact'
+      assign fact_count = fact_count | plus: 1
+    endif
+  endfor
+-%}
+
+<div class="branches page-width" id="branches">
+  {%- if section.settings.banner != blank -%}
+    <div class="branches__banner">
+      {%- render 'image',
+        image: section.settings.banner,
+        widths: '750,1100,1500,2200',
+        sizes: '(min-width: 1200px) 1170px, calc(100vw - 30px)',
+        class: 'branches__banner-image'
+      -%}
+    </div>
+  {%- endif -%}
+
+  {%- if section.settings.heading != blank or section.settings.intro != blank -%}
+    <div class="branches__head">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="branches__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.intro != blank -%}
+        <div class="branches__intro rte">{{ section.settings.intro }}</div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <div class="branches__list">
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'branch' -%}
+        {%- liquid
+          assign branch_name = block.settings.name | strip
+          assign branch_address = block.settings.address | strip
+          assign map_query = block.settings.map_query | strip | default: branch_address
+          assign map_query_encoded = map_query | url_encode | replace: '+', '%20'
+
+          assign branch_phone = block.settings.phone | strip | default: settings.contact_phone | strip
+          assign phone_digits = branch_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
+          assign phone_first = phone_digits | slice: 0
+          if phone_first == '0'
+            assign phone_tel = phone_digits | remove_first: '0' | prepend: '+972'
+          else
+            assign phone_tel = phone_digits
+          endif
+
+          assign branch_hours = block.settings.hours | strip
+          if branch_hours == blank
+            assign branch_hours = settings.store_hours | strip
+          endif
+        -%}
+        <article class="branch" {{ block.shopify_attributes }}{% if branch_name != blank %} aria-labelledby="Branch-{{ block.id }}"{% endif %}>
+          <div class="branch__body">
+            {%- if branch_name != blank -%}
+              <h3 class="branch__name" id="Branch-{{ block.id }}">{{ branch_name | escape }}</h3>
+            {%- endif -%}
+            {%- if block.settings.services != blank -%}
+              <p class="branch__services">{{ block.settings.services | escape }}</p>
+            {%- endif -%}
+
+            <dl class="branch__details">
+              {%- if branch_address != blank -%}
+                <div class="branch__row">
+                  <dt>
+                    {%- render 'icon', name: 'location', size: 20, class: 'branch__icon' -%}
+                    <span>{{ 'branches.address' | t }}</span>
+                  </dt>
+                  <dd class="branch__address">{{ branch_address | escape }}</dd>
+                </div>
+              {%- endif -%}
+              {%- if branch_hours != blank or branch_phone != blank -%}
+                <div class="branch__row">
+                  <dt>
+                    {%- render 'icon', name: 'clock', size: 20, class: 'branch__icon' -%}
+                    <span>{{ 'branches.hours' | t }}</span>
+                  </dt>
+                  {%- if branch_hours != blank -%}
+                    <dd>{{ branch_hours | escape | newline_to_br }}</dd>
+                  {%- else -%}
+                    <dd class="branch__hours-fallback">{{ 'branches.hours_fallback' | t }}</dd>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+              {%- if branch_phone != blank -%}
+                <div class="branch__row">
+                  <dt>
+                    {%- render 'icon', name: 'phone', size: 20, class: 'branch__icon' -%}
+                    <span>{{ 'branches.phone' | t }}</span>
+                  </dt>
+                  <dd><a class="branch__phone" href="tel:{{ phone_tel }}" dir="ltr">{{ branch_phone | escape }}</a></dd>
+                </div>
+              {%- endif -%}
+            </dl>
+
+            {%- if block.settings.text != blank -%}
+              <div class="branch__text rte">{{ block.settings.text }}</div>
+            {%- endif -%}
+
+            {%- if map_query != blank -%}
+              <p class="branch__actions">
+                <a
+                  class="button button--small"
+                  href="https://www.google.com/maps/search/?api=1&amp;query={{ map_query_encoded }}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {%- render 'icon', name: 'location', size: 16 -%}
+                  <span>{{ 'branches.open_maps' | t }}</span>
+                  <span class="visually-hidden">({{ new_window }})</span>
+                </a>
+                <a
+                  class="button button--small button--outline"
+                  href="https://waze.com/ul?q={{ map_query_encoded }}&amp;navigate=yes"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {%- render 'icon', name: 'external', size: 16 -%}
+                  <span>{{ 'branches.open_waze' | t }}</span>
+                  <span class="visually-hidden">({{ new_window }})</span>
+                </a>
+              </p>
+            {%- endif -%}
+          </div>
+
+          {%- if block.settings.image != blank -%}
+            <div class="branch__media">
+              {%- render 'image',
+                image: block.settings.image,
+                widths: '375,560,750,1100',
+                sizes: '(min-width: 992px) 50vw, calc(100vw - 30px)',
+                class: 'branch__image'
+              -%}
+            </div>
+          {%- elsif section.settings.show_map and map_query != blank -%}
+            <details class="branch__map">
+              <summary class="branch__map-toggle">
+                {%- render 'icon', name: 'location', size: 28, class: 'branch__map-icon' -%}
+                <span class="branch__map-label">
+                  <span class="branch__map-show">{{ 'branches.show_map' | t }}</span>
+                  <span class="branch__map-hide">{{ 'branches.hide_map' | t }}</span>
+                </span>
+                <span class="branch__map-address">{{ map_query | escape }}</span>
+              </summary>
+              <iframe
+                class="branch__map-frame"
+                src="https://www.google.com/maps?q={{ map_query_encoded }}&amp;output=embed"
+                title="{{ 'branches.map_title' | t: name: map_query }}"
+                width="600"
+                height="350"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </details>
+          {%- endif -%}
+        </article>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+
+  {%- if fact_count > 0 -%}
+    <div class="branches__facts">
+      {%- if section.settings.facts_heading != blank -%}
+        <h3 class="branches__facts-heading">{{ section.settings.facts_heading | escape }}</h3>
+      {%- endif -%}
+      <ul class="pickup-facts" role="list">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'fact' -%}
+            <li class="pickup-fact" {{ block.shopify_attributes }}>
+              {%- render 'icon', name: block.settings.icon, size: 28, class: 'pickup-fact__icon' -%}
+              <div class="pickup-fact__body">
+                {%- if block.settings.title != blank -%}
+                  <p class="pickup-fact__title">{{ block.settings.title | escape }}</p>
+                {%- endif -%}
+                {%- if block.settings.text != blank -%}
+                  <p class="pickup-fact__text">{{ block.settings.text }}</p>
+                {%- endif -%}
+              </div>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "סניפים ואיסוף",
+  "class": "section-branches",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "banner",
+      "label": "תמונת באנר (לא חובה)"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "הסניף שלנו באילת"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "טקסט פתיחה",
+      "default": "<p>משריינים באתר ואוספים מהסניף באילת, במחירי אילת ללא מע״מ.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_map",
+      "label": "מפה בלחיצה",
+      "info": "המפה של Google נטענת רק כשהמבקר לוחץ 'הצגת המפה'. כשלסניף יש תמונה, התמונה מוצגת במקומה.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "facts_heading",
+      "label": "כותרת עובדות האיסוף",
+      "default": "איך אוספים הזמנה"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "branch",
+      "name": "סניף",
+      "limit": 10,
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "שם הסניף",
+          "default": "JOY Mobile — המלאכה 7"
+        },
+        {
+          "type": "text",
+          "id": "services",
+          "label": "שירותים",
+          "default": "חנות · איסוף הזמנות מהאתר"
+        },
+        {
+          "type": "text",
+          "id": "address",
+          "label": "כתובת",
+          "default": "המלאכה 7, אילת"
+        },
+        {
+          "type": "textarea",
+          "id": "hours",
+          "label": "שעות פתיחה",
+          "info": "שורה לכל טווח ימים. כשריק: שעות הפתיחה מהגדרות התבנית, ואם גם הן ריקות — הפניה לטלפון."
+        },
+        {
+          "type": "text",
+          "id": "phone",
+          "label": "טלפון",
+          "info": "כשריק: הטלפון מהגדרות התבנית."
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "טקסט נוסף"
+        },
+        {
+          "type": "text",
+          "id": "map_query",
+          "label": "חיפוש במפה",
+          "info": "כשריק: הכתובת. אפשר לכתוב שם מקום או קואורדינטות, למשל 29.5634,34.9576."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "תמונת הסניף"
+        }
+      ]
+    },
+    {
+      "type": "fact",
+      "name": "עובדת איסוף",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "סמל",
+          "default": "check",
+          "options": [
+            { "value": "check", "label": "וי" },
+            { "value": "clock", "label": "שעון" },
+            { "value": "account", "label": "אדם / תעודה מזהה" },
+            { "value": "store", "label": "חנות" },
+            { "value": "shield", "label": "מגן" },
+            { "value": "credit-card", "label": "כרטיס אשראי" },
+            { "value": "location", "label": "מיקום" },
+            { "value": "info", "label": "מידע" }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "כותרת",
+          "default": "עובדה חשובה"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "text",
+          "label": "טקסט"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "סניפים ואיסוף",
+      "blocks": [
+        {
+          "type": "branch"
+        },
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "clock",
+            "title": "מוכן לאיסוף תוך 24 שעות",
+            "text": "בדרך כלל ההזמנה ממתינה לכם בסניף תוך 24 שעות מהשריון."
+          }
+        },
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "account",
+            "title": "חובה להציג תעודה מזהה",
+            "text": "האיסוף מתבצע על ידי הרוכש/ת, בהצגת תעודה מזהה."
+          }
+        },
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "store",
+            "title": "נשמר עד 21 ימי עסקים",
+            "text": "המוצר ממתין לכם בנקודת האיסוף עד 21 ימי עסקים."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

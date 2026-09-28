@@ -1,0 +1,177 @@
+{% doc %}
+  Floating controls rendered once by layout/theme.liquid (positions measured on the
+  live site, docs/rebuild/konimbo-home-chrome.md §2.11):
+  - Wishlist tab: fixed on the inline-end edge (left in RTL) at top 50%, 50×50, rounded
+    toward the page; the live count sits on the heart's start side in
+    `<wishlist-count>` (@theme/wishlist sets its text). Needs the theme setting
+    "עמוד המועדפים" (wishlist_page); hidden without JavaScript.
+  - Inline-start stack (bottom-right in RTL): an optional WhatsApp bubble (setting,
+    off by default — on the live site WhatsApp lives in the header) above a
+    back-to-top link. The back-to-top link appears after ~200px of scrolling in
+    browsers with scroll-driven animations and stays hidden elsewhere; it uses the
+    "#top" fragment, which browsers resolve to the top of the document.
+  The accessibility-panel trigger is NOT here: it belongs to the accessibility-panel
+  section, bottom inline-end corner (bottom-left), as on the live site.
+  UI that sticks to the bottom of the viewport (e.g. a sticky add-to-cart bar) can lift
+  the stack by setting `--floating-offset-bottom` on <body>.
+
+  @example
+  {% render 'floating-actions' %}
+{% enddoc %}
+{%- liquid
+  assign show_whatsapp = false
+  if settings.floating_whatsapp_enabled
+    assign wa_text = settings.contact_whatsapp_message | strip
+    if request.page_type == 'product' and product != blank
+      assign wa_text = wa_text | append: ' — ' | append: product.title | append: ' ' | append: canonical_url | strip
+    endif
+    capture wa_url
+      render 'whatsapp-url', text: wa_text
+    endcapture
+    if wa_url != blank
+      assign show_whatsapp = true
+    endif
+  endif
+
+  assign show_wishlist = false
+  if settings.wishlist_enabled and settings.floating_wishlist_enabled and settings.wishlist_page != blank
+    assign show_wishlist = true
+  endif
+
+  assign show_top = settings.floating_back_to_top_enabled
+-%}
+{%- if show_wishlist or show_whatsapp or show_top -%}
+  <div class="floating-actions">
+    {%- if show_wishlist -%}
+      <a class="floating-actions__wishlist" href="{{ settings.wishlist_page.url }}">
+        <span class="visually-hidden">{{ 'wishlist.floating.label' | t }}:</span>
+        <wishlist-count class="floating-actions__count">0</wishlist-count>
+        {%- render 'icon', name: 'heart', size: 22 -%}
+      </a>
+    {%- endif -%}
+    {%- if show_whatsapp or show_top -%}
+      <div class="floating-actions__stack">
+        {%- if show_whatsapp -%}
+          <a
+            class="floating-actions__whatsapp"
+            href="{{ wa_url }}"
+            target="_blank"
+            rel="noopener"
+            aria-label="{{ 'general.whatsapp.label' | t }}"
+          >
+            {%- render 'icon', name: 'whatsapp', size: 30 -%}
+          </a>
+        {%- endif -%}
+        {%- if show_top -%}
+          <a class="floating-actions__top" href="#top" aria-label="{{ 'accessibility.back_to_top' | t }}">
+            {%- render 'icon', name: 'arrow-up', size: 22 -%}
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .floating-actions__wishlist {
+    position: fixed;
+    z-index: var(--z-floating);
+    inset-inline-end: 0;
+    top: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.125rem;
+    min-width: 3.125rem;
+    height: 3.125rem;
+    padding-inline: var(--space-2xs);
+    border: 1px solid var(--color-border-strong);
+    border-inline-end: 0;
+    border-start-start-radius: 1.875rem;
+    border-end-start-radius: 1.875rem;
+    background: var(--color-background);
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+  .floating-actions__wishlist:hover {
+    color: var(--color-brand-text);
+  }
+  .floating-actions__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 0.875rem;
+    height: 0.875rem;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--color-background) 80%, transparent);
+    color: var(--color-ink);
+    font-size: 0.625rem;
+    line-height: 1;
+  }
+  .no-js .floating-actions__wishlist {
+    display: none;
+  }
+  .floating-actions__stack {
+    position: fixed;
+    z-index: var(--z-floating);
+    inset-inline-start: var(--space-sm);
+    bottom: calc(3.125rem + var(--floating-offset-bottom, 0px) + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    pointer-events: none;
+  }
+  .floating-actions__stack > * {
+    pointer-events: auto;
+  }
+  .floating-actions__whatsapp {
+    display: inline-grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--color-whatsapp);
+    color: var(--color-whatsapp-text);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  .floating-actions__whatsapp:hover {
+    transform: scale(1.06);
+  }
+  .floating-actions__top {
+    display: none;
+    place-items: center;
+    width: var(--tap-target);
+    height: var(--tap-target);
+    border-radius: var(--radius-sm);
+    background: var(--color-muted);
+    color: var(--color-background);
+    box-shadow: var(--shadow-sm);
+  }
+  .floating-actions__top:hover {
+    background: var(--color-ink);
+  }
+  @supports (animation-timeline: scroll()) {
+    .floating-actions__top {
+      display: inline-grid;
+      animation: floating-reveal linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 25rem;
+    }
+    @keyframes floating-reveal {
+      from {
+        opacity: 0;
+        visibility: hidden;
+      }
+      to {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+  @media print {
+    .floating-actions {
+      display: none;
+    }
+  }
+{% endstylesheet %}

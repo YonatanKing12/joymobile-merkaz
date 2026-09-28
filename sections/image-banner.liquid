@@ -1,0 +1,270 @@
+{%- comment -%}
+  Image banner: one promo image (desktop + optional mobile art direction), link, optional heading /
+  text / button overlay. The box takes the image's own ratio (no layout shift). Full width or page width.
+  With a button, the button is the link and it covers the whole banner; without one, the whole banner
+  is a single link (its name = the alt text or the heading).
+{%- endcomment -%}
+{%- liquid
+  assign b_image = section.settings.image | default: section.settings.image_mobile
+  assign b_image_mobile = section.settings.image_mobile | default: b_image
+  assign b_art = false
+  if section.settings.image != blank and section.settings.image_mobile != blank
+    assign b_art = true
+  endif
+
+  assign b_ratio = 3.2
+  assign b_ratio_mobile = 1.28
+  if b_image != blank
+    assign b_ratio = b_image.aspect_ratio
+    assign b_ratio_mobile = b_image_mobile.aspect_ratio
+  endif
+
+  assign b_link = section.settings.link
+  assign b_heading = section.settings.heading
+  assign b_text = section.settings.text
+  assign b_show_button = false
+  if section.settings.button_label != blank and b_link != blank
+    assign b_show_button = true
+  endif
+  assign b_alt = section.settings.alt | default: b_image.alt | strip
+
+  assign b_loading = 'lazy'
+  assign b_priority = 'auto'
+  if section.index != blank and section.index <= 2
+    assign b_loading = 'eager'
+  endif
+  if section.index == 1
+    assign b_priority = 'high'
+  endif
+
+  if section.settings.full_width
+    assign b_sizes = '100vw'
+  else
+    assign b_sizes = '(min-width: 1200px) 1170px, calc(100vw - 30px)'
+  endif
+-%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --banner-ratio: {{ b_ratio }};
+    --banner-ratio-mobile: {{ b_ratio_mobile }};
+    --banner-pad-top: {{ section.settings.padding_top }}px;
+    --banner-pad-bottom: {{ section.settings.padding_bottom }}px;
+  }
+{%- endstyle -%}
+
+{{ 'section-image-banner.css' | asset_url | stylesheet_tag }}
+
+{%- capture b_media -%}
+  <div class="image-banner__media">
+    {%- if b_image == blank -%}
+      <svg class="image-banner__placeholder" viewBox="0 0 1200 375" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+        <rect width="1200" height="375" fill="currentColor" opacity=".07"/>
+        <circle cx="230" cy="190" r="240" fill="currentColor" opacity=".1"/>
+        <circle cx="300" cy="120" r="90" fill="currentColor" opacity=".16"/>
+        <rect x="690" y="120" width="340" height="34" rx="17" fill="currentColor" opacity=".32"/>
+        <rect x="810" y="174" width="220" height="18" rx="9" fill="currentColor" opacity=".2"/>
+        <rect x="890" y="214" width="140" height="42" rx="4" fill="currentColor" opacity=".5"/>
+      </svg>
+    {%- elsif b_art -%}
+      {%- liquid
+        assign b_srcset = ''
+        assign b_widths = '750,1100,1500,1920,2400' | split: ','
+        for width in b_widths
+          assign w = width | plus: 0
+          if w < b_image.width
+            assign candidate = b_image | image_url: width: w
+            assign b_srcset = b_srcset | append: candidate | append: ' ' | append: w | append: 'w, '
+          endif
+        endfor
+        assign candidate = b_image | image_url: width: b_image.width
+        assign b_srcset = b_srcset | append: candidate | append: ' ' | append: b_image.width | append: 'w'
+      -%}
+      <picture>
+        <source
+          media="(min-width: 768px)"
+          srcset="{{ b_srcset }}"
+          sizes="{{ b_sizes }}"
+          width="{{ b_image.width }}"
+          height="{{ b_image.height }}"
+        >
+        {%- render 'image',
+          image: b_image_mobile,
+          widths: '390,540,750,1080,1500',
+          sizes: '100vw',
+          loading: b_loading,
+          fetchpriority: b_priority,
+          class: 'image-banner__img',
+          alt: b_alt
+        -%}
+      </picture>
+    {%- else -%}
+      {%- render 'image',
+        image: b_image,
+        widths: '390,750,1100,1500,1920,2400',
+        sizes: b_sizes,
+        loading: b_loading,
+        fetchpriority: b_priority,
+        class: 'image-banner__img',
+        alt: b_alt
+      -%}
+    {%- endif -%}
+  </div>
+  {%- if b_heading != blank or b_text != blank or b_show_button -%}
+    <div class="image-banner__content image-banner__content--{{ section.settings.text_position }} image-banner__content--mobile-{{ section.settings.text_position_mobile }}{% if section.settings.text_color == 'light' %} image-banner__content--light{% endif %}">
+      <div class="image-banner__box">
+        {%- if b_heading != blank -%}
+          <h2 class="image-banner__heading">{{ b_heading | escape }}</h2>
+        {%- endif -%}
+        {%- if b_text != blank -%}
+          <p class="image-banner__text">{{ b_text | escape }}</p>
+        {%- endif -%}
+        {%- if b_show_button -%}
+          <a class="button image-banner__button image-banner__stretched" href="{{ b_link }}">
+            {{- section.settings.button_label | escape -}}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+{%- endcapture -%}
+
+<div class="image-banner">
+  <div class="image-banner__frame{% unless section.settings.full_width %} page-width{% endunless %}">
+    {%- if b_link != blank and b_show_button == false -%}
+      <a
+        class="image-banner__cover"
+        href="{{ b_link }}"
+        {% if b_alt == blank and b_heading == blank %}
+          aria-label="{{ 'home.banner.link_label' | t }}"
+        {% endif %}
+      >
+        {{- b_media -}}
+      </a>
+    {%- else -%}
+      <div class="image-banner__cover">{{ b_media }}</div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "באנר תמונה",
+  "tag": "section",
+  "class": "section-image-banner",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "תמונה למחשב"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "תמונה למובייל",
+      "info": "לא חובה. בלי תמונת מובייל תוצג תמונת המחשב."
+    },
+    {
+      "type": "text",
+      "id": "alt",
+      "label": "טקסט חלופי לתמונה",
+      "info": "חובה כשיש טקסט מוטבע בתמונה: כתבו כאן את מה שכתוב בה."
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "קישור"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "רוחב מלא",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "טקסט על הבאנר (לא חובה)"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "טקסט"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "תווית כפתור",
+      "info": "הכפתור מוצג רק כשיש קישור. כל הבאנר לחיץ."
+    },
+    {
+      "type": "select",
+      "id": "text_position",
+      "label": "מיקום הטקסט (מחשב)",
+      "options": [
+        { "value": "start", "label": "ימין" },
+        { "value": "center", "label": "מרכז" },
+        { "value": "end", "label": "שמאל" }
+      ],
+      "default": "start"
+    },
+    {
+      "type": "select",
+      "id": "text_position_mobile",
+      "label": "מיקום הטקסט (מובייל)",
+      "options": [
+        { "value": "top", "label": "למעלה" },
+        { "value": "center", "label": "באמצע" },
+        { "value": "bottom", "label": "למטה" }
+      ],
+      "default": "bottom"
+    },
+    {
+      "type": "select",
+      "id": "text_color",
+      "label": "צבע הטקסט",
+      "options": [
+        { "value": "dark", "label": "כהה" },
+        { "value": "light", "label": "בהיר" }
+      ],
+      "default": "dark"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    }
+  ],
+  "presets": [
+    {
+      "name": "באנר תמונה",
+      "settings": {
+        "heading": "כותרת הבאנר",
+        "text": "שריון באתר ואיסוף מהחנות באילת"
+      }
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,201 @@
+/* ==========================================================================
+   Variant picker — snippets/variant-picker.liquid (<variant-picker>, @theme/product).
+   Replaces the old classic `<select>` ("בחר צבע", 13px/700 label, 214×25 grey select, empty
+   default, sold-out values selectable with "0 ₪ - חסר במלאי" — konimbo-catalog.md §4.5, P4) with
+   radio buttons in the JOY palette: colours as swatch buttons (swatch + name, or swatch only),
+   other options as pills. Label 13px/700 as measured; buttons ≥ 44px (tap targets).
+   States: :checked (accessible-green 2px ring, mint-wash fill), [data-unavailable] (sold out or
+   missing: struck through, dashed, still selectable; a screen-reader suffix is revealed),
+   :focus-visible on the radio → ring on its label, hover.
+   ========================================================================== */
+
+.variant-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.variant-picker__option {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.variant-picker__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2xs);
+  margin-block-end: var(--space-xs);
+  padding: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+}
+
+.variant-picker__selected {
+  color: var(--color-ink);
+  font-weight: 400;
+}
+
+.variant-picker__values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* The radio stays in the tab order (arrow keys move within the group); its label is the button. */
+.variant-picker__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.variant-picker__value {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-width: var(--tap-target);
+  min-height: var(--tap-target);
+  padding: var(--space-2xs) var(--space-sm);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-button);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.variant-picker__value:hover {
+  border-color: var(--color-ink);
+}
+
+.variant-picker__input:checked + .variant-picker__value {
+  border-color: var(--color-brand-text);
+  background-color: var(--color-hover-bg);
+  box-shadow: inset 0 0 0 1px var(--color-brand-text);
+}
+
+.variant-picker__input:focus-visible + .variant-picker__value {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Sold out or missing combination. */
+.variant-picker__input[data-unavailable] + .variant-picker__value {
+  border-style: dashed;
+  color: var(--color-muted);
+}
+
+.variant-picker__input[data-unavailable] + .variant-picker__value .variant-picker__text {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.variant-picker__input[data-unavailable]:checked + .variant-picker__value {
+  border-style: solid;
+}
+
+.variant-picker__status {
+  display: none;
+}
+
+.variant-picker__input[data-unavailable] + .variant-picker__value .variant-picker__status {
+  position: absolute;
+  display: block;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Colour swatches ---------- */
+.variant-picker__swatch {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid var(--color-swatch-border);
+  border-radius: 50%;
+  background-color: var(--swatch-color, transparent);
+  background-image: var(--swatch-image, none);
+  background-position: center;
+  background-size: cover;
+}
+
+.variant-picker__swatch--unknown {
+  background-image: linear-gradient(135deg, var(--color-surface) 50%, var(--color-muted) 50%);
+}
+
+.variant-picker__input[data-unavailable] + .variant-picker__value .variant-picker__swatch {
+  opacity: 0.45;
+}
+
+/* Swatch only: a round 44px button around a 32px swatch; the name stays for screen readers. */
+.variant-picker__option--swatch-only .variant-picker__value {
+  width: var(--tap-target);
+  padding: 0;
+  border-radius: 50%;
+}
+
+.variant-picker__option--swatch-only .variant-picker__swatch {
+  width: 2rem;
+  height: 2rem;
+}
+
+.variant-picker__option--swatch-only .variant-picker__text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.variant-picker__option--swatch-only .variant-picker__input[data-unavailable] + .variant-picker__value::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.25rem;
+  top: 50%;
+  height: 2px;
+  background-color: var(--color-muted);
+  rotate: -45deg;
+}
+
+/* Without JavaScript the buy form's <noscript> select replaces the radios. */
+html.no-js variant-picker {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .variant-picker__value {
+    min-height: 2.5rem;
+  }
+
+  .variant-picker__option--swatch-only .variant-picker__value {
+    width: 2.5rem;
+  }
+
+  .variant-picker__option--swatch-only .variant-picker__swatch {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}

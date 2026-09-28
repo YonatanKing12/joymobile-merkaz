@@ -1,0 +1,841 @@
+{%- comment -%}
+  Product page — the classic JOY Mobile product layout for every product (decisions.md), measured on
+  the old site (konimbo-catalog.md §4) and rebuilt with native Shopify variants:
+  - breadcrumbs, then a grid: gallery at the inline-start (5/12), the info column (7/12) with the H1
+    on top. On phones: H1 → gallery → details (the measured mobile order).
+  - Info column, in block order within each area:
+    summary (brand logo, short description + "קרא עוד", מק"ט + "פרטים טכניים נוספים"),
+    buy column (variant picker, price, buttons, wishlist, info lines, text, Liquid, apps) and, from
+    992px beside it, the "למה לקוחות קונים אצלנו" box (trust_point blocks + image + WhatsApp).
+  - "מידע נוסף": description / specs / free tabs as an exclusive <details> group — tabs from 768px
+    where the browser can lay out <details> (::details-content), an accordion elsewhere.
+  - Mobile: a fixed buy bar that slides in once the in-page buttons scroll away.
+  Variant changes: @theme/product re-renders this section (?variant=…&section_id=…) and swaps the
+  [data-swap] regions: price, sku, availability, pickup, badges, buttons, sticky, option-N.
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant | default: product.variants.first
+  assign form_id = 'ProductForm-' | append: section.id
+
+  assign buy_block = nil
+  assign has_specs_tab = false
+  assign has_description_tab = false
+  for block in section.blocks
+    case block.type
+      when 'buy_buttons'
+        assign buy_block = block
+      when 'tab_specs'
+        assign has_specs_tab = true
+      when 'tab_description'
+        if product.description != blank
+          assign has_description_tab = true
+        endif
+    endcase
+  endfor
+
+  assign brand_vendor = product.vendor | strip
+  assign brand_logo = nil
+  if section.settings.show_brand_logo and brand_vendor != blank and brand_vendor != shop.name
+    assign brand_file = brand_vendor | handleize | prepend: 'brand-' | append: '.png'
+    assign brand_logo = images[brand_file]
+    # No brand-<vendor>.png file: a blank drop, not nil (it rendered Shopify's placeholder image).
+    if brand_logo == blank
+      assign brand_logo = nil
+    endif
+  endif
+-%}
+
+{%- capture specs_html -%}
+  {%- if has_specs_tab -%}
+    {%- render 'product-specs', product: product -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- comment -%} Summary: under the H1 and across the whole info column. {%- endcomment -%}
+{%- capture summary_html -%}
+  {%- for block in section.blocks -%}
+    {%- case block.type -%}
+      {%- when 'short_description' -%}
+        {%- liquid
+          assign excerpt_source = product.description | replace: '<br />', ' ' | replace: '<br/>', ' ' | replace: '<br>', ' '
+          assign excerpt = excerpt_source | split: '</p>' | first | strip_html | strip
+          if excerpt == blank
+            assign excerpt = product.description | strip_html | strip | truncatewords: 40
+          endif
+          assign read_more_label = block.settings.read_more_label
+          if read_more_label == blank
+            assign read_more_label = 'products.product.read_more' | t
+          endif
+        -%}
+        {%- if excerpt != blank -%}
+          <div class="product-block product-block--excerpt" {{ block.shopify_attributes }}>
+            <p class="product__excerpt" style="--excerpt-lines: {{ block.settings.lines }};">{{ excerpt }}</p>
+            {%- if block.settings.show_read_more and has_description_tab -%}
+              <a class="product__read-more" href="#ProductDescription-{{ section.id }}">
+                {{- read_more_label | escape -}}
+                <span class="visually-hidden">: {{ product.title | escape }}</span>
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+      {%- when 'sku' -%}
+        {%- liquid
+          assign sku_code = current_variant.sku | strip
+          assign sku_barcode = current_variant.barcode | strip
+          if block.settings.source == 'barcode'
+            assign sku_code = sku_barcode | default: sku_code
+          else
+            assign sku_code = sku_code | default: sku_barcode
+          endif
+        -%}
+        <div class="product-block product-block--sku product__meta" {{ block.shopify_attributes }}>
+          <p
+            class="product__sku"
+            data-swap="sku"
+            {% if sku_code == blank %}
+              hidden
+            {% endif %}
+          >
+            <span class="product__sku-label">{{ 'products.product.sku' | t }}</span>
+            <bdi class="product__sku-value">{{ sku_code | escape }}</bdi>
+          </p>
+          {%- if block.settings.show_specs_link and specs_html != blank -%}
+            <a class="product__specs-link" href="#ProductSpecs-{{ section.id }}">{{ 'products.product.specs_link' | t }}</a>
+          {%- endif -%}
+        </div>
+    {%- endcase -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- comment -%} Buy column. {%- endcomment -%}
+{%- capture buy_html -%}
+  {%- for block in section.blocks -%}
+    {%- case block.type -%}
+      {%- when 'variant_picker' -%}
+        {%- unless product.has_only_default_variant -%}
+          <div class="product-block product-block--variants" {{ block.shopify_attributes }}>
+            {%- render 'variant-picker', product: product, section_id: section.id, color_style: block.settings.color_style -%}
+          </div>
+        {%- endunless -%}
+
+      {%- when 'price' -%}
+        <div class="product-block product-block--price product__price" {{ block.shopify_attributes }}>
+          <div class="product__price-live" aria-live="polite" aria-atomic="true">
+            <div data-swap="price">
+              {%- render 'price', product: product, variant: current_variant, context: 'product' -%}
+            </div>
+          </div>
+        </div>
+
+      {%- when 'buy_buttons' -%}
+        <div class="product-block product-block--buy" {{ block.shopify_attributes }}>
+          {%- render 'buy-buttons',
+            product: product,
+            variant: current_variant,
+            section_id: section.id,
+            form_id: form_id,
+            show_quantity: block.settings.show_quantity,
+            show_checkout: block.settings.show_checkout,
+            show_cart: block.settings.show_cart,
+            whatsapp: block.settings.soldout_whatsapp,
+            whatsapp_label: block.settings.soldout_whatsapp_label
+          -%}
+        </div>
+
+      {%- when 'wishlist' -%}
+        {%- if settings.wishlist_enabled -%}
+          {%- liquid
+            assign wishlist_label = block.settings.label
+            if wishlist_label == blank
+              assign wishlist_label = 'products.product.wishlist' | t
+            endif
+          -%}
+          <div class="product-block product-block--wishlist" {{ block.shopify_attributes }}>
+            <wishlist-button class="product-wishlist" data-handle="{{ product.handle | escape }}">
+              <button type="button" class="product-wishlist__button" aria-pressed="false" aria-label="{{ wishlist_label | escape }}">
+                <span class="product-wishlist__icons">
+                  {%- render 'icon', name: 'heart', size: 24, class: 'product-wishlist__icon product-wishlist__icon--off' -%}
+                  {%- render 'icon', name: 'heart-filled', size: 24, class: 'product-wishlist__icon product-wishlist__icon--on' -%}
+                </span>
+                <span class="product-wishlist__label">{{ wishlist_label | escape }}</span>
+              </button>
+            </wishlist-button>
+          </div>
+        {%- endif -%}
+
+      {%- when 'info_lines' -%}
+        <div class="product-block product-block--lines" {{ block.shopify_attributes }}>
+          {%- render 'product-trust',
+            part: 'lines',
+            product: product,
+            variant: current_variant,
+            section_id: section.id,
+            show_stock: block.settings.show_stock,
+            low_stock: block.settings.low_stock_threshold,
+            pickup_label: block.settings.pickup_label,
+            show_address: block.settings.show_address,
+            pickup_note: block.settings.pickup_note,
+            show_warranty: block.settings.show_warranty,
+            warranty_fallback: block.settings.warranty_fallback,
+            payment_text: block.settings.payment_text,
+            show_pickup: block.settings.show_pickup_availability
+          -%}
+        </div>
+
+      {%- when 'text' -%}
+        {%- if block.settings.text != blank -%}
+          <div class="product-block product-block--text rte" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+        {%- endif -%}
+
+      {%- when 'custom_liquid' -%}
+        {%- if block.settings.custom_liquid != blank -%}
+          <div class="product-block product-block--liquid" {{ block.shopify_attributes }}>{{ block.settings.custom_liquid }}</div>
+        {%- endif -%}
+
+      {%- when '@app' -%}
+        <div class="product-block product-block--app">{% render block %}</div>
+    {%- endcase -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- comment -%} "למה לקוחות קונים אצלנו" — beside the buy column from 992px. {%- endcomment -%}
+{%- capture aside_html -%}
+  {%- if section.settings.trust_enabled -%}
+    {%- render 'product-trust',
+      part: 'box',
+      product: product,
+      variant: current_variant,
+      section_id: section.id,
+      blocks: section.blocks,
+      heading: section.settings.trust_heading,
+      image: section.settings.trust_image,
+      whatsapp: section.settings.trust_whatsapp,
+      whatsapp_label: section.settings.trust_whatsapp_label
+    -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- comment -%} "מידע נוסף": one exclusive <details> group; the first panel starts open. {%- endcomment -%}
+{%- capture details_html -%}
+  {%- assign details_open = true -%}
+  {%- assign details_group = 'ProductInfo-' | append: section.id -%}
+  {%- for block in section.blocks -%}
+    {%- liquid
+      assign tab_id = ''
+      assign tab_heading = block.settings.heading
+      assign tab_body = ''
+      assign tab_rte = true
+      case block.type
+        when 'tab_description'
+          if product.description != blank
+            assign tab_id = 'ProductDescription-' | append: section.id
+            assign tab_body = product.description
+            if tab_heading == blank
+              assign tab_heading = 'products.product.tabs.description' | t
+            endif
+          endif
+        when 'tab_specs'
+          if specs_html != blank
+            assign tab_id = 'ProductSpecs-' | append: section.id
+            assign tab_body = specs_html
+            assign tab_rte = false
+            if tab_heading == blank
+              assign tab_heading = 'products.product.tabs.specs' | t
+            endif
+          endif
+        when 'tab_custom'
+          assign tab_body = block.settings.content
+          if block.settings.page != blank and block.settings.page.content != blank
+            assign tab_body = tab_body | append: block.settings.page.content
+          endif
+          if tab_body != blank and tab_heading != blank
+            assign tab_id = 'ProductTab-' | append: block.id
+          endif
+      endcase
+    -%}
+    {%- if tab_id != blank -%}
+      <details
+        class="product-details__item"
+        id="{{ tab_id }}"
+        name="{{ details_group }}"
+        {% if details_open %}
+          open
+        {% endif %}
+        {{ block.shopify_attributes }}
+      >
+        <summary class="product-details__summary">
+          <span class="product-details__title">{{ tab_heading | escape }}</span>
+          <span class="product-details__icon" aria-hidden="true">
+            {%- render 'icon', name: 'plus', size: 18, class: 'product-details__icon-plus' -%}
+            {%- render 'icon', name: 'minus', size: 18, class: 'product-details__icon-minus' -%}
+          </span>
+        </summary>
+        <div class="product-details__panel{% if tab_rte %} rte{% endif %}">
+          {{- tab_body -}}
+        </div>
+      </details>
+      {%- assign details_open = false -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture sticky_html -%}
+  {%- if section.settings.sticky_bar and buy_block != nil -%}
+    {%- render 'buy-buttons',
+      product: product,
+      variant: current_variant,
+      section_id: section.id,
+      form_id: form_id,
+      part: 'sticky',
+      show_checkout: buy_block.settings.show_checkout,
+      show_cart: buy_block.settings.show_cart
+    -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --pdp-pad-top: {{ section.settings.padding_top }}px;
+    --pdp-pad-bottom: {{ section.settings.padding_bottom }}px;
+  }
+{%- endstyle -%}
+
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'component-badges.css' | asset_url | stylesheet_tag }}
+{{ 'component-product-media.css' | asset_url | stylesheet_tag }}
+{%- unless product.has_only_default_variant %}
+  {{ 'component-variant-picker.css' | asset_url | stylesheet_tag }}
+{%- endunless %}
+{{ 'component-pickup.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product.js' | asset_url }}"></script>
+
+<div class="main-product page-width{% if brand_logo != nil %} main-product--brand{% endif %}" data-section-id="{{ section.id }}">
+  {%- if section.settings.show_breadcrumbs -%}
+    {%- render 'breadcrumbs', class: 'main-product__breadcrumbs' -%}
+  {%- else -%}
+    {%- render 'structured-data', type: 'breadcrumbs' -%}
+  {%- endif -%}
+
+  <div class="product">
+    <div class="product__head">
+      <h1 class="product__title">{{ product.title | escape }}</h1>
+    </div>
+
+    <div class="product__media">
+      {%- render 'product-media',
+        product: product,
+        variant: current_variant,
+        section_id: section.id,
+        zoom: section.settings.gallery_zoom,
+        thumbnails: section.settings.gallery_thumbnails,
+        loop: section.settings.gallery_loop,
+        badges: section.settings.gallery_badges
+      -%}
+    </div>
+
+    <div class="product__info">
+      {%- if brand_logo != nil -%}
+        <a
+          class="product__brand"
+          href="{{ product.vendor | url_for_vendor }}"
+          aria-label="{{ 'products.product.brand_link' | t: vendor: brand_vendor }}"
+        >
+          {%- render 'image',
+            image: brand_logo,
+            widths: '140,280,420',
+            sizes: '140px',
+            loading: 'eager',
+            decorative: true,
+            class: 'product__brand-img'
+          -%}
+        </a>
+      {%- endif -%}
+
+      {%- if summary_html != blank -%}
+        <div class="product__summary">{{ summary_html }}</div>
+      {%- endif -%}
+
+      {%- if buy_html != blank or aside_html != blank -%}
+        <div class="product__panels{% if aside_html != blank %} product__panels--aside{% endif %}">
+          {%- if buy_html != blank -%}
+            <div class="product__buy">{{ buy_html }}</div>
+          {%- endif -%}
+          {%- if aside_html != blank -%}
+            <aside
+              class="product__aside"
+              {% if section.settings.trust_heading != blank %}
+                aria-labelledby="ProductTrust-{{ section.id }}"
+              {% else %}
+                aria-label="{{ 'products.product.trust_label' | t }}"
+              {% endif %}
+            >
+              {{- aside_html -}}
+            </aside>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if details_html != blank -%}
+      <div class="product__details">
+        <h2 class="visually-hidden">{{ 'products.product.details_heading' | t }}</h2>
+        <div class="product-details">{{ details_html }}</div>
+      </div>
+    {%- endif -%}
+  </div>
+
+  {{- sticky_html -}}
+</div>
+
+{%- render 'structured-data', type: 'product', product: product -%}
+
+{% schema %}
+{
+  "name": "עמוד מוצר",
+  "tag": "section",
+  "class": "section-main-product",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "גלריית תמונות"
+    },
+    {
+      "type": "checkbox",
+      "id": "gallery_zoom",
+      "label": "הגדלת תמונה בלחיצה",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "gallery_thumbnails",
+      "label": "תמונות ממוזערות",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "gallery_loop",
+      "label": "חצים במעגל (מהאחרונה לראשונה)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "gallery_badges",
+      "label": "תגיות על התמונה",
+      "info": "אזל מהמלאי, אחרונים במלאי, חדש בחנות (לפי הגדרות התבנית). TAX FREE מוצג ליד המחיר.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "כותרת ומותג"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "פירורי לחם",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_brand_logo",
+      "label": "לוגו המותג",
+      "info": "מוצג כשקיים בתוכן › קבצים קובץ בשם brand-<שם המותג>.png, למשל brand-apple.png. מקשר לכל המוצרים של המותג.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "למה לקוחות קונים אצלנו"
+    },
+    {
+      "type": "paragraph",
+      "content": "השורות עצמן הן בלוקים מסוג \"סיבה לקנות אצלנו\"."
+    },
+    {
+      "type": "checkbox",
+      "id": "trust_enabled",
+      "label": "הצגת התיבה",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "trust_heading",
+      "label": "כותרת",
+      "default": "למה לקוחות קונים אצלנו:"
+    },
+    {
+      "type": "image_picker",
+      "id": "trust_image",
+      "label": "תמונה"
+    },
+    {
+      "type": "checkbox",
+      "id": "trust_whatsapp",
+      "label": "קישור לוואטסאפ",
+      "info": "למספר מהגדרות התבנית › יצירת קשר, עם שם המוצר והקישור אליו.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "trust_whatsapp_label",
+      "label": "טקסט הקישור",
+      "default": "שאלו אותנו בוואטסאפ"
+    },
+    {
+      "type": "header",
+      "content": "טלפון נייד"
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky_bar",
+      "label": "סרגל קנייה קבוע בתחתית המסך",
+      "info": "מופיע כשכפתורי הקנייה יוצאים מהמסך. לא מוצג כשהמוצר אזל מהמלאי.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "ריווח"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "short_description",
+      "name": "תיאור קצר",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "הפסקה הראשונה של תיאור המוצר. \"קרא עוד\" מוביל לתיאור המלא בלשונית \"מידע נוסף\"."
+        },
+        {
+          "type": "range",
+          "id": "lines",
+          "label": "שורות מוצגות",
+          "min": 1,
+          "max": 8,
+          "step": 1,
+          "default": 2
+        },
+        {
+          "type": "checkbox",
+          "id": "show_read_more",
+          "label": "קישור \"קרא עוד\"",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "read_more_label",
+          "label": "טקסט הקישור",
+          "default": "קרא עוד..."
+        }
+      ]
+    },
+    {
+      "type": "sku",
+      "name": "מק״ט",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "source",
+          "label": "מה להציג",
+          "options": [
+            {
+              "value": "sku",
+              "label": "מק״ט (SKU)"
+            },
+            {
+              "value": "barcode",
+              "label": "ברקוד"
+            }
+          ],
+          "default": "sku"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_specs_link",
+          "label": "קישור \"פרטים טכניים נוספים\"",
+          "info": "רק כשיש למוצר פרטים טכניים.",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "variant_picker",
+      "name": "בחירת דגם",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "color_style",
+          "label": "תצוגת צבעים",
+          "options": [
+            {
+              "value": "label",
+              "label": "עיגול צבע ושם"
+            },
+            {
+              "value": "swatch",
+              "label": "עיגול צבע בלבד"
+            }
+          ],
+          "default": "label"
+        }
+      ]
+    },
+    {
+      "type": "price",
+      "name": "מחיר",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "מחיר אילת מהמוצר. התוויות (מחיר אילת, TAX FREE, מחיר כולל מע״מ) נקבעות בהגדרות התבנית › מחירים ומע״מ."
+        }
+      ]
+    },
+    {
+      "type": "buy_buttons",
+      "name": "כפתורי קנייה",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_quantity",
+          "label": "בחירת כמות",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_checkout",
+          "label": "כפתור \"שריון באילת\" (לקופה)",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_cart",
+          "label": "כפתור \"הוסף לעגלה\"",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "soldout_whatsapp",
+          "label": "וואטסאפ \"לבירור זמינות\" כשהמוצר אזל",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "soldout_whatsapp_label",
+          "label": "טקסט הקישור",
+          "default": "לבירור זמינות בוואטסאפ"
+        }
+      ]
+    },
+    {
+      "type": "wishlist",
+      "name": "מועדפים",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "טקסט הכפתור",
+          "default": "הוסף למועדפים"
+        }
+      ]
+    },
+    {
+      "type": "info_lines",
+      "name": "שורות מידע",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_stock",
+          "label": "מצב מלאי",
+          "default": true
+        },
+        {
+          "type": "range",
+          "id": "low_stock_threshold",
+          "label": "הצגת מספר היחידות מתחת ל־",
+          "info": "0 = לא להציג את מספר היחידות.",
+          "min": 0,
+          "max": 10,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "type": "text",
+          "id": "pickup_label",
+          "label": "שורת האיסוף",
+          "default": "איסוף עצמי מהחנות:"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_address",
+          "label": "כתובת החנות",
+          "info": "מהגדרות התבנית › יצירת קשר.",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "pickup_note",
+          "label": "הערת איסוף",
+          "default": "באיסוף מציגים תעודה מזהה · המוצר ממתין עד 21 ימי עסקים"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_warranty",
+          "label": "אחריות",
+          "info": "מהשדות custom.warranty_months, custom.warranty_channel, custom.warranty_official.",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "warranty_fallback",
+          "label": "אחריות כשאין נתון במוצר"
+        },
+        {
+          "type": "text",
+          "id": "payment_text",
+          "label": "שורת תשלום",
+          "default": "תשלום מאובטח באתר או בסניף"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_pickup_availability",
+          "label": "זמינות לאיסוף לפי סניף",
+          "info": "מתוך מיקומי החנות שבהם מופעל איסוף עצמי.",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "טקסט",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "טקסט"
+        }
+      ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "Liquid מותאם",
+      "settings": [
+        {
+          "type": "liquid",
+          "id": "custom_liquid",
+          "label": "קוד Liquid"
+        }
+      ]
+    },
+    {
+      "type": "trust_point",
+      "name": "סיבה לקנות אצלנו",
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "id": "text",
+          "label": "טקסט"
+        },
+        {
+          "type": "checkbox",
+          "id": "use_warranty",
+          "label": "האחריות של המוצר במקום הטקסט",
+          "info": "מתוך שדות האחריות של המוצר. השורה לא מוצגת כשאין נתון.",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "tax_free_only",
+          "label": "רק במוצרים הפטורים ממע״מ",
+          "info": "לטקסט שמבטיח מחיר ללא מע״מ: השורה לא מוצגת כשהדגם חייב במס ב-Shopify (למשל מוצרי הקופה).",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "tab_description",
+      "name": "לשונית: תיאור",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "כותרת",
+          "default": "מידע נוסף"
+        }
+      ]
+    },
+    {
+      "type": "tab_specs",
+      "name": "לשונית: פרטים טכניים",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "כותרת",
+          "default": "פרטים טכניים"
+        },
+        {
+          "type": "paragraph",
+          "content": "מתוך custom.specs, custom.spec_summary, custom.sim_connectivity, custom.energy_rating והאחריות. מוצגת רק כשיש נתונים."
+        }
+      ]
+    },
+    {
+      "type": "tab_custom",
+      "name": "לשונית חופשית",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "כותרת"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "תוכן"
+        },
+        {
+          "type": "page",
+          "id": "page",
+          "label": "או תוכן מעמוד"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
