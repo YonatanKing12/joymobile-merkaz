@@ -33,7 +33,7 @@
                 {%- render 'image',
                   image: block.settings.logo,
                   widths: '120,240,360',
-                  sizes: '120px',
+                  sizes: '(min-width: 768px) 160px, 110px',
                   alt: brand_name,
                   class: 'brand-logos__img'
                 -%}
