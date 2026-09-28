@@ -15,7 +15,8 @@
   - `[data-swap="badges"]`: status and TAX FREE badges over the image. The section re-renders
     it on variant change; it is always printed (even empty) so a swap can fill it.
   The frame keeps a fixed 5:4 box (no layout shift); images are contained inside it. A product
-  without media gets the same frame on a light surface with a neutral bag icon.
+  without media gets the same frame with its brand's logo (`brand-<vendor handle>.png` from the
+  store's Files) or the JOY Mobile symbol, faint, as on the product cards.
   Styles: assets/component-product-media.css.
 
   @param {product} product - The product.
@@ -94,9 +95,34 @@
     >
       <div class="carousel__track product-media__track" role="list" tabindex="-1">
         {%- if pm_count == 0 -%}
+          {%- liquid
+            assign pm_brand_logo = nil
+            assign pm_vendor = product.vendor | strip
+            if pm_vendor != blank and pm_vendor != shop.name
+              assign pm_brand_file = pm_vendor | handleize | prepend: 'brand-' | append: '.png'
+              assign pm_brand_logo = images[pm_brand_file]
+            endif
+          -%}
           <div class="carousel__slide product-media__slide" role="listitem">
             <div class="product-media__frame product-media__frame--empty">
-              {%- render 'icon', name: 'bag', size: 64, class: 'product-media__empty-icon' -%}
+              {%- if pm_brand_logo != blank -%}
+                {%- render 'image',
+                  image: pm_brand_logo,
+                  widths: '240,360,480',
+                  sizes: '240px',
+                  loading: 'eager',
+                  decorative: true,
+                  class: 'product-media__empty-logo product-media__empty-logo--brand'
+                -%}
+              {%- else -%}
+                <img
+                  class="product-media__empty-logo"
+                  src="{{ 'logo-joy-symbol.png' | asset_url }}"
+                  alt=""
+                  width="361"
+                  height="472"
+                >
+              {%- endif -%}
             </div>
           </div>
         {%- endif -%}
