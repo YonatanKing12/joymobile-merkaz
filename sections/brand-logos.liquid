@@ -1,0 +1,128 @@
+{%- comment -%}
+  Brand logos: a row of soft rounded tiles, one logo per block, each linking to that brand's products
+  (a brand collection, or /collections/vendors?q=<brand>). Logos show in grey and take their own colours
+  under the pointer. Phones: a swipeable row; from 768px the tiles share one row (up to 8).
+{%- endcomment -%}
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --brands-pad-top: {{ section.settings.padding_top }}px;
+    --brands-pad-bottom: {{ section.settings.padding_bottom }}px;
+  }
+{%- endstyle -%}
+
+{{ 'section-brand-logos.css' | asset_url | stylesheet_tag }}
+
+{%- if section.blocks.size > 0 -%}
+  <div class="brand-logos">
+    <div class="page-width">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="brand-logos__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      <ul class="brand-logos__list" role="list">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign brand_name = block.settings.name | strip
+            assign brand_url = block.settings.link
+            if brand_url == blank and brand_name != blank
+              assign brand_url = brand_name | url_encode | prepend: '/collections/vendors?q='
+            endif
+          -%}
+          <li class="brand-logos__item" {{ block.shopify_attributes }}>
+            {%- capture brand_inner -%}
+              {%- if block.settings.logo != blank -%}
+                {%- render 'image',
+                  image: block.settings.logo,
+                  widths: '120,240,360',
+                  sizes: '120px',
+                  alt: brand_name,
+                  class: 'brand-logos__img'
+                -%}
+              {%- else -%}
+                <span class="brand-logos__name">{{ brand_name | escape }}</span>
+              {%- endif -%}
+            {%- endcapture -%}
+            {%- if brand_url != blank -%}
+              <a class="brand-logos__tile" href="{{ brand_url }}">
+                {{- brand_inner -}}
+                {%- if block.settings.logo != blank -%}
+                  <span class="visually-hidden">{{ 'home.brands.link' | t: brand: brand_name }}</span>
+                {%- endif -%}
+              </a>
+            {%- else -%}
+              <div class="brand-logos__tile">{{ brand_inner }}</div>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "לוגואים של מותגים",
+  "tag": "section",
+  "class": "section-brand-logos",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "המותגים המובילים"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 44
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 10
+    }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "מותג",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "שם המותג",
+          "info": "טקסט חלופי ללוגו, ובלי קישור: הדף של כל מוצרי המותג (/collections/vendors?q=…)."
+        },
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "לוגו"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "לוגואים של מותגים"
+    }
+  ]
+}
+{% endschema %}

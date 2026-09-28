@@ -1,0 +1,101 @@
+/* Brand logos (sections/brand-logos): soft rounded tiles, logos in grey that take their colours under the pointer.
+   Phones: a swipeable row of 110px tiles; from 768px one row sharing the width. */
+
+.brand-logos {
+  padding-block: var(--brands-pad-top, 44px) var(--brands-pad-bottom, 10px);
+}
+
+.brand-logos__heading {
+  margin-block-end: var(--space-md);
+  color: var(--color-ink);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.brand-logos__list {
+  display: grid;
+  grid-auto-columns: 7rem;
+  grid-auto-flow: column;
+  gap: 0.75rem;
+  margin: 0 calc(-1 * var(--page-gutter));
+  padding: 0.25rem var(--page-gutter) 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--page-gutter);
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.brand-logos__list::-webkit-scrollbar {
+  display: none;
+}
+
+.brand-logos__item {
+  display: flex;
+  scroll-snap-align: start;
+}
+
+.brand-logos__tile {
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  height: 4.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.brand-logos__img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 2.5rem;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.75;
+  mix-blend-mode: multiply;
+  transition:
+    filter var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+}
+
+.brand-logos__name {
+  font-size: var(--text-md);
+  font-weight: 800;
+}
+
+a.brand-logos__tile:hover {
+  background-color: var(--color-background);
+  box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--color-ink) 30%, transparent);
+}
+
+a.brand-logos__tile:hover .brand-logos__img,
+a.brand-logos__tile:focus-visible .brand-logos__img {
+  filter: none;
+  opacity: 1;
+}
+
+@media (min-width: 768px) {
+  .brand-logos__heading {
+    font-size: var(--text-3xl);
+  }
+
+  .brand-logos__list {
+    grid-auto-columns: minmax(0, 1fr);
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow: visible;
+  }
+
+  .brand-logos__tile {
+    height: 5.5rem;
+  }
+}

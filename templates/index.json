@@ -288,6 +288,90 @@
         "padding_top": 16,
         "padding_bottom": 6
       }
+    },
+    "brands": {
+      "type": "brand-logos",
+      "blocks": {
+        "brand-apple": {
+          "type": "brand",
+          "settings": {
+            "name": "Apple",
+            "logo": "shopify://shop_images/brand-apple.png",
+            "link": "/collections/vendors?q=Apple"
+          }
+        },
+        "brand-samsung": {
+          "type": "brand",
+          "settings": {
+            "name": "Samsung",
+            "logo": "shopify://shop_images/brand-samsung.png",
+            "link": "/collections/vendors?q=Samsung"
+          }
+        },
+        "brand-xiaomi": {
+          "type": "brand",
+          "settings": {
+            "name": "Xiaomi",
+            "logo": "shopify://shop_images/brand-xiaomi.png",
+            "link": "/collections/vendors?q=Xiaomi"
+          }
+        },
+        "brand-jbl": {
+          "type": "brand",
+          "settings": {
+            "name": "JBL",
+            "logo": "shopify://shop_images/brand-jbl.png",
+            "link": "/collections/audio-jbl"
+          }
+        },
+        "brand-razer": {
+          "type": "brand",
+          "settings": {
+            "name": "Razer",
+            "logo": "shopify://shop_images/brand-razer.png",
+            "link": "/collections/gaming-razer"
+          }
+        },
+        "brand-google": {
+          "type": "brand",
+          "settings": {
+            "name": "Google",
+            "logo": "shopify://shop_images/brand-google.png",
+            "link": "/collections/phones-google"
+          }
+        },
+        "brand-oneplus": {
+          "type": "brand",
+          "settings": {
+            "name": "OnePlus",
+            "logo": "shopify://shop_images/brand-oneplus.png",
+            "link": "/collections/phones-oneplus"
+          }
+        },
+        "brand-insta360": {
+          "type": "brand",
+          "settings": {
+            "name": "Insta360",
+            "logo": "shopify://shop_images/brand-insta360.png",
+            "link": "/collections/vendors?q=Insta360"
+          }
+        }
+      },
+      "block_order": [
+        "brand-apple",
+        "brand-samsung",
+        "brand-xiaomi",
+        "brand-jbl",
+        "brand-razer",
+        "brand-google",
+        "brand-oneplus",
+        "brand-insta360"
+      ],
+      "settings": {
+        "heading": "המותגים המובילים",
+        "padding_top": 44,
+        "padding_bottom": 0
+      }
     }
   },
   "order": [
@@ -299,6 +383,7 @@
     "products-vacuums",
     "products-audio",
     "products-computers",
+    "brands",
     "about",
     "guides",
     "testimonials"

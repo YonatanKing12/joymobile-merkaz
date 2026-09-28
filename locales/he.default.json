@@ -228,6 +228,9 @@
     }
   },
   "home": {
+    "brands": {
+      "link": "כל המוצרים של {{ brand }}"
+    },
     "hero": {
       "label": "באנרים ראשיים",
       "slide_link": "באנר {{ number }} מתוך {{ count }}"
