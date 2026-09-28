@@ -1,32 +1,77 @@
 {% doc %}
-  <title>, meta description, canonical link, theme-color, Open Graph and Twitter
+  <title>, meta description, canonical link, robots, theme-color, Open Graph and Twitter
   card tags for the current page. Rendered in the <head> of both layouts, after the
   charset and viewport meta tags.
 
   Brand: the theme setting "שם המותג באתר" (settings.brand_name, e.g. JOY Mobile) is the
-  site name — og:site_name, the title suffix, and the title wherever Shopify's page_title
-  is just the shop name (home page without its own title, password page). The store name
-  itself (checkout, emails) is not touched.
+  site name — og:site_name and the title suffix. The store name itself (checkout,
+  emails) is not touched.
 
-  Fallbacks: the home page and collections without an SEO description get a short
-  Hebrew default from the locale file (general.meta.*); pages without a share image
-  use the theme setting "תמונת שיתוף" (share_image), else assets/social-share.jpg
-  (1200×630, the JOY Mobile lockup on navy). Search results are noindex.
+  Title: "<page> | JOY Mobile אילת" — the page's own title (or the SEO title set in the
+  admin) first, then the brand and the city (theme setting store_city), the words people
+  search with. Tag filters and page numbers join the page part with " – ". A title that
+  already contains the brand gets no suffix. The home page, when the admin sets no home
+  page title, gets general.meta.home_title ("JOY Mobile אילת | סלולר, מחשבים
+  ואלקטרוניקה ללא מע״מ"). Shopify's English titles of the cart, search and 404 pages
+  give way to the Hebrew breadcrumb names.
+
+  Description: never empty. The SEO description from the admin, else
+  - product: its description as plain text, else general.meta.product_description
+    (…_tax_free, with "ללא מע״מ", only for a non-taxable variant — the theme's TAX FREE rule);
+  - collection: the opening paragraph of its description, else general.meta.collection_description;
+  - article: its excerpt or content; page: the opening paragraph of its body;
+  - anything else, the home page included: general.meta.default_description.
+  Generated descriptions are plain text cut at 160 characters (snippets/plain-text).
+  Title and description print with escape_once: the `t` filter has already escaped the
+  values it fills in (a title with "&"), and must not be escaped twice.
+
+  Canonical: Shopify's canonical_url, without filter, sort or variant parameters.
+  Paginated pages stay indexable with a self canonical: canonical_url keeps ?page=N, and
+  the parameter is added should it ever be missing.
+
+  Robots: "noindex, follow" on search results and on collection URLs with an active
+  storefront filter (filter.* parameters) or a sort_by parameter — near-copies of the
+  collection whose links are still worth following. Every other page allows large image
+  previews (max-image-preview:large). No hreflang: the store has one language and one
+  market, and hreflang only points to alternate languages or regions.
+
+  Share image: pages without their own image use the theme setting "תמונת שיתוף"
+  (share_image), else assets/social-share.jpg (1200×630, the JOY Mobile lockup on navy).
+  og:locale is he_IL.
 
   @example
   {% render 'meta-tags' %}
 {% enddoc %}
 {%- liquid
   assign brand_name = settings.brand_name | strip | default: shop.name
-  assign base_title = page_title
-  if base_title == blank or base_title == shop.name
-    assign base_title = brand_name
+  assign store_city = settings.store_city | strip
+  assign title_suffix = brand_name
+  if store_city != blank
+    assign title_suffix = brand_name | append: ' ' | append: store_city
   endif
 
-  assign meta_title = base_title
-  if request.page_type == 'list-collections'
-    assign meta_title = 'general.breadcrumbs.all_collections' | t
+  # The page part of the title. Shopify's page_title is the shop name where a page has no title of its own.
+  assign base_title = page_title | strip
+  if base_title == shop.name
+    assign base_title = ''
   endif
+  case request.page_type
+    when 'list-collections'
+      assign base_title = 'general.breadcrumbs.all_collections' | t
+    when 'cart'
+      assign base_title = 'general.breadcrumbs.cart' | t
+    when '404'
+      assign base_title = 'general.breadcrumbs.not_found' | t
+    when 'search'
+      assign base_title = 'general.breadcrumbs.search' | t
+      if search.terms != blank
+        assign base_title = base_title | append: ': ' | append: search.terms
+      endif
+    when 'password'
+      assign base_title = ''
+  endcase
+
+  assign meta_title = base_title
   if current_tags
     assign meta_tag_list = current_tags | join: ', '
     if request.page_type == 'blog'
@@ -48,30 +93,85 @@
     assign meta_page_text = 'general.meta.page' | t: page: current_page
     assign meta_title = meta_title | append: ' – ' | append: meta_page_text
   endif
-  unless meta_title contains brand_name
-    assign meta_title = meta_title | append: ' – ' | append: brand_name
-  endunless
 
-  # Descriptions keep the HTML entities of their source (page_description, strip_html): escape_once below.
-  assign meta_description = page_description | strip_html | strip
+  if request.page_type == 'index' and meta_title == blank
+    assign meta_title = 'general.meta.home_title' | t: site: title_suffix
+  elsif meta_title == blank
+    assign meta_title = title_suffix
+  else
+    unless meta_title contains brand_name
+      assign meta_title = meta_title | append: ' | ' | append: title_suffix
+    endunless
+  endif
+-%}
+{%- capture meta_description -%}
+  {%- if page_description != blank -%}
+    {%- render 'plain-text', html: page_description -%}
+  {%- else -%}
+    {%- case request.page_type -%}
+      {%- when 'product' -%}
+        {%- render 'plain-text', html: product.description, limit: 160 -%}
+      {%- when 'collection' -%}
+        {%- render 'plain-text', html: collection.description, first_paragraph: true, limit: 160 -%}
+      {%- when 'article' -%}
+        {%- render 'plain-text', html: article.excerpt_or_content, first_paragraph: true, limit: 160 -%}
+      {%- when 'page' -%}
+        {%- render 'plain-text', html: page.content, first_paragraph: true, limit: 160 -%}
+    {%- endcase -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- liquid
   if meta_description == blank
     case request.page_type
-      when 'index'
-        assign meta_description = 'general.meta.default_description' | t: brand: brand_name
-      when 'collection'
-        assign collection_text = collection.description | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncate: 300
-        if collection_text != blank
-          assign meta_description = collection_text
+      when 'product'
+        assign meta_variant = product.selected_or_first_available_variant
+        if meta_variant.taxable == false
+          assign meta_description = 'general.meta.product_description_tax_free' | t: title: product.title, site: title_suffix
         else
-          assign meta_description = 'general.meta.collection_description' | t: title: collection.title, brand: brand_name
+          assign meta_description = 'general.meta.product_description' | t: title: product.title, site: title_suffix
         endif
+      when 'collection'
+        assign meta_description = 'general.meta.collection_description' | t: title: collection.title, site: title_suffix
+      else
+        assign meta_description = 'general.meta.default_description' | t: brand: brand_name
     endcase
   endif
 
+  # Search results and filtered or sorted collection URLs: out of the index, links still followed.
+  assign robots_noindex = false
+  if request.page_type == 'search'
+    assign robots_noindex = true
+  elsif request.page_type == 'collection'
+    if collection.sort_by != blank
+      assign robots_noindex = true
+    endif
+    for filter in collection.filters
+      if filter.active_values.size > 0 or filter.min_value.value != blank or filter.max_value.value != blank
+        assign robots_noindex = true
+        break
+      endif
+    endfor
+  endif
+
+  # Paginated pages keep their own canonical (…?page=2).
+  assign canonical = canonical_url
+  if current_page > 1
+    assign canonical_page = 'page=' | append: current_page
+    unless canonical contains canonical_page
+      if canonical contains '?'
+        assign canonical = canonical | append: '&' | append: canonical_page
+      else
+        assign canonical = canonical | append: '?' | append: canonical_page
+      endif
+    endunless
+  endif
+
   assign og_type = 'website'
-  assign og_title = base_title
+  assign og_title = base_title | default: meta_title
   assign og_image = page_image | default: settings.share_image
   case request.page_type
+    when 'index'
+      assign og_title = meta_title
     when 'product'
       assign og_type = 'product'
       assign og_title = product.title
@@ -81,22 +181,21 @@
     when 'password'
       assign og_title = brand_name
   endcase
-  assign og_description = meta_description | default: shop.description | default: brand_name
 -%}
-<title>{{ meta_title | escape }}</title>
-{%- if meta_description != blank %}
+<title>{{ meta_title | escape_once }}</title>
 <meta name="description" content="{{ meta_description | escape_once }}">
-{%- endif %}
-<link rel="canonical" href="{{ canonical_url }}">
-{%- if request.page_type == 'search' %}
+<link rel="canonical" href="{{ canonical }}">
+{%- if robots_noindex %}
 <meta name="robots" content="noindex, follow">
+{%- else %}
+<meta name="robots" content="max-image-preview:large">
 {%- endif %}
 <meta name="theme-color" content="{{ settings.color_header_bg }}">
 <meta property="og:site_name" content="{{ brand_name | escape }}">
-<meta property="og:url" content="{{ canonical_url }}">
-<meta property="og:title" content="{{ og_title | escape }}">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:title" content="{{ og_title | escape_once }}">
 <meta property="og:type" content="{{ og_type }}">
-<meta property="og:description" content="{{ og_description | escape_once }}">
+<meta property="og:description" content="{{ meta_description | escape_once }}">
 <meta property="og:locale" content="he_IL">
 {%- if og_image != blank %}
   {%- assign og_image_url = og_image | image_url: width: 1200 -%}
@@ -104,7 +203,7 @@
 <meta property="og:image:secure_url" content="https:{{ og_image_url | remove_first: 'https:' }}">
 <meta property="og:image:width" content="{{ og_image.width | at_most: 1200 }}">
 <meta property="og:image:height" content="{{ og_image.height | times: 1.0 | divided_by: og_image.width | times: 1200 | at_most: og_image.height | round }}">
-<meta property="og:image:alt" content="{{ og_image.alt | default: og_title | escape }}">
+<meta property="og:image:alt" content="{{ og_image.alt | default: og_title | escape_once }}">
 {%- else %}
   {%- assign share_image_url = 'social-share.jpg' | asset_url | remove_first: 'https:' | prepend: 'https:' -%}
 <meta property="og:image" content="{{ share_image_url }}">
@@ -120,5 +219,5 @@
 <meta property="product:availability" content="{% if product.available %}in stock{% else %}out of stock{% endif %}">
 {%- endif %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ og_title | escape }}">
-<meta name="twitter:description" content="{{ og_description | escape_once }}">
+<meta name="twitter:title" content="{{ og_title | escape_once }}">
+<meta name="twitter:description" content="{{ meta_description | escape_once }}">
