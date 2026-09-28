@@ -64,10 +64,11 @@
   padding: 0;
   overflow: hidden;
   border: 0;
-  border-radius: 0;
-  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in srgb, var(--color-ink) 4%, var(--color-background));
   color: inherit;
   font: inherit;
+  isolation: isolate; /* the photos' multiply blend stops at the well */
 }
 
 button.product-media__frame {
@@ -91,10 +92,13 @@ button.product-media__frame:focus-visible::after {
   pointer-events: none;
 }
 
+/* Photos on white melt into the soft well (multiply: white takes the well's colour), as on the cards. */
 .product-media__img {
   width: 100%;
   height: 100%;
+  padding: 6%;
   object-fit: contain;
+  mix-blend-mode: multiply;
 }
 
 .product-media__frame--empty {
@@ -141,9 +145,10 @@ button.product-media__frame:hover .product-media__zoom-icon {
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
-  background-color: color-mix(in srgb, var(--color-ink) 70%, transparent);
-  color: var(--color-background);
+  border-radius: 50%;
+  background-color: var(--color-background);
+  box-shadow: var(--shadow-md);
+  color: var(--color-ink);
   cursor: pointer;
   translate: 0 -50%;
   transition:
@@ -152,21 +157,21 @@ button.product-media__frame:hover .product-media__zoom-icon {
 }
 
 .product-media .product-media__arrow:hover {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+  background-color: var(--color-ink);
+  color: var(--color-background);
 }
 
 .product-media .product-media__arrow[aria-disabled="true"] {
-  background-color: color-mix(in srgb, var(--color-ink) 25%, transparent);
+  color: color-mix(in srgb, var(--color-ink) 30%, transparent);
   cursor: default;
 }
 
 .product-media .carousel__btn--prev.product-media__arrow {
-  inset-inline-start: var(--space-xs);
+  inset-inline-start: var(--space-sm);
 }
 
 .product-media .carousel__btn--next.product-media__arrow {
-  inset-inline-end: var(--space-xs);
+  inset-inline-end: var(--space-sm);
 }
 
 /* ---------- Badges over the image ---------- */
@@ -187,12 +192,12 @@ button.product-media__frame:hover .product-media__zoom-icon {
 
 /* ---------- Thumbnails ---------- */
 .product-media__thumbs {
-  margin-block-start: 0.3125rem;
+  margin-block-start: 0.625rem;
 }
 
 .product-media__thumb-list {
   display: flex;
-  gap: 0.3125rem;
+  gap: 0.5rem;
   margin: 0;
   padding: 0 0 0.125rem;
   overflow-x: auto;
@@ -212,14 +217,15 @@ button.product-media__frame:hover .product-media__zoom-icon {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 92 / 97;
+  aspect-ratio: 1;
   margin: 0;
-  padding: 0.125rem;
+  padding: 0.25rem;
   overflow: hidden;
   border: 2px solid transparent;
-  border-radius: var(--radius-sm);
-  background-color: var(--color-background);
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--color-ink) 4%, var(--color-background));
   cursor: pointer;
+  isolation: isolate;
   transition: border-color var(--duration-fast) var(--ease-out);
 }
 
@@ -227,10 +233,9 @@ button.product-media__frame:hover .product-media__zoom-icon {
   border-color: var(--color-border-strong);
 }
 
-/* Current thumb: a brand-green 2px frame with 5px corners (3.4:1 on white). */
+/* Current thumb: a brand-green 2px frame (3.4:1 on white). */
 .product-media__thumb[aria-current="true"] {
   border-color: var(--color-brand);
-  border-radius: 5px;
 }
 
 .product-media__thumb:focus-visible {
@@ -241,6 +246,7 @@ button.product-media__frame:hover .product-media__zoom-icon {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  mix-blend-mode: multiply;
 }
 
 .product-media__thumb-play {
@@ -253,8 +259,8 @@ button.product-media__frame:hover .product-media__zoom-icon {
 
 @media (min-width: 768px) {
   .product-media .product-media__arrow {
-    width: 2.125rem;
-    height: 2.125rem;
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
   .product-media__thumb-item {

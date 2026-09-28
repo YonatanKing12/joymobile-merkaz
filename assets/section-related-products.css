@@ -1,34 +1,30 @@
 /* ==========================================================================
-   Related products — sections/related-products.liquid. The old classic product page had no such
-   row (konimbo-catalog.md P14); it takes the look of the old homepage product strips so the site
-   stays consistent (same values as section-product-carousel.css): title bar full content width,
-   20px/24px 500 black centred on #f8f8f8 (14px on phones), margin 0 0 27px; cards
-   (snippets/card-product, 275px at 1440) 1 · 2 (768) · 3 (992) · 4 (1200) per view, 10px apart
-   (phones: 40px apart with 20px insets); 44px arrow buttons in 44px lanes beside the track,
-   printed only where the cards overflow at that width (--rp-scroll-* from the section).
+   Related products — sections/related-products.liquid, in the look of the homepage strips
+   (section-product-carousel.css): a bold start-aligned heading; cards (snippets/card-product)
+   2.2 (<768, the next card peeks in) · 3.2 (768) · 4 (992) · 5 (1200) per view, 12/16px apart;
+   round white arrows, printed only where the cards overflow at that width (--rp-scroll-* from
+   the section).
    ========================================================================== */
 
 .related-products {
-  --rp-lane: var(--page-gutter, 15px);
   padding-block: var(--rp-pad-top, 50px) var(--rp-pad-bottom, 40px);
 }
 
 .related-products__inner {
   position: relative;
   width: 100%;
-  max-width: calc(71.25rem + 2 * var(--rp-lane));
+  max-width: calc(var(--page-width) + 2 * var(--page-gutter));
   margin-inline: auto;
-  padding-inline: var(--rp-lane);
+  padding-inline: var(--page-gutter);
 }
 
 .related-products__heading {
-  margin: 0 0 27px;
-  background-color: var(--color-surface);
+  margin: 0 0 var(--space-md);
   color: var(--color-ink);
-  font-size: var(--text-md);
-  font-weight: 500;
+  font-size: var(--text-2xl);
+  font-weight: 800;
   line-height: 1.2;
-  text-align: center;
+  letter-spacing: -0.01em;
 }
 
 .related-products__notice {
@@ -45,14 +41,14 @@
 
 /* ---------- Track & slides ---------- */
 .related-products .related-products__track {
-  --rp-per-view: 1;
-  --rp-gap: 40px;
-  --rp-inset: 20px;
+  --rp-per-view: 2.2;
+  --rp-gap: 0.75rem;
+  --rp-inset: var(--page-gutter);
   --per-view: var(--rp-per-view);
   display: flex;
   gap: var(--rp-gap);
-  margin: 0;
-  padding: 0 var(--rp-inset);
+  margin: -0.5rem calc(-1 * var(--page-gutter)) -1.5rem; /* room for the cards' hover lift and shadow */
+  padding: 0.5rem var(--rp-inset) 1.5rem;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -96,21 +92,25 @@
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: none;
+  background: var(--color-background);
+  box-shadow: var(--shadow-md);
   color: var(--color-ink);
   cursor: pointer;
   translate: 0 -50%;
-  transition: color var(--duration-fast) var(--ease-out);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .related-products .related-products__arrow .icon {
-  width: var(--tap-target);
-  height: var(--tap-target);
-  stroke-width: 1.1;
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 2;
 }
 
 .related-products .related-products__arrow:hover {
-  color: var(--color-brand-text);
+  background: var(--color-ink);
+  color: var(--color-background);
 }
 
 /* Fade the chevron, not the button: a keyboard ring on a disabled arrow stays at full strength. */
@@ -123,16 +123,22 @@
 }
 
 .related-products .related-products__arrow[aria-disabled="true"]:hover {
+  background: var(--color-background);
   color: var(--color-ink);
 }
 
-/* Phones: over the 20px card insets. */
+/* Phones swipe: no arrows below 768px. */
+.related-products .related-products__arrow {
+  display: none;
+  top: 40%;
+}
+
 .related-products .carousel__btn--prev.related-products__arrow {
-  inset-inline-start: -14.5px;
+  inset-inline-start: -0.75rem;
 }
 
 .related-products .carousel__btn--next.related-products__arrow {
-  inset-inline-end: -14.5px;
+  inset-inline-end: -0.75rem;
 }
 
 html.no-js .related-products .related-products__arrow {
@@ -140,36 +146,25 @@ html.no-js .related-products .related-products__arrow {
 }
 
 @media (min-width: 768px) {
-  .related-products {
-    --rp-lane: var(--tap-target);
-  }
-
   .related-products__heading {
-    font-size: var(--text-2xl);
+    font-size: var(--text-3xl);
   }
 
   .related-products .related-products__track {
-    --rp-per-view: 2;
-    --rp-gap: 10px;
-    --rp-inset: 5px;
+    --rp-per-view: 3.2;
+    --rp-gap: 1rem;
+    --rp-inset: 0px;
+    margin-inline: 0;
   }
 
   .related-products .related-products__arrow {
     display: var(--rp-scroll-md, none);
   }
-
-  .related-products .carousel__btn--prev.related-products__arrow {
-    inset-inline-start: calc(-1 * var(--rp-lane));
-  }
-
-  .related-products .carousel__btn--next.related-products__arrow {
-    inset-inline-end: calc(-1 * var(--rp-lane));
-  }
 }
 
 @media (min-width: 992px) {
   .related-products .related-products__track {
-    --rp-per-view: 3;
+    --rp-per-view: 4;
   }
 
   .related-products .related-products__arrow {
@@ -179,7 +174,7 @@ html.no-js .related-products .related-products__arrow {
 
 @media (min-width: 1200px) {
   .related-products .related-products__track {
-    --rp-per-view: 4;
+    --rp-per-view: 5;
   }
 
   .related-products .related-products__arrow {
@@ -190,5 +185,15 @@ html.no-js .related-products .related-products__arrow {
 @media (prefers-reduced-motion: reduce) {
   .related-products .related-products__track {
     scroll-behavior: auto;
+  }
+}
+
+@media (min-width: 1400px) {
+  .related-products .carousel__btn--prev.related-products__arrow {
+    inset-inline-start: -1.375rem;
+  }
+
+  .related-products .carousel__btn--next.related-products__arrow {
+    inset-inline-end: -1.375rem;
   }
 }

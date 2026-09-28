@@ -1,6 +1,6 @@
 {%- comment -%}
   Related products under the product page (decisions.md "Catalog & product"): a carousel of
-  product cards (snippets/card-product) in the look of the homepage strips.
+  product cards (snippets/card-product) in the look of the homepage strips (2.2 · 3.2 · 4 · 5 per view).
   Source "collection" (default), all server-side:
     1. the product's most specific collections — its collections sorted by size (smallest first),
        skipping the handles in "exclude" and catch-all collections that hold ≥ 90% of the catalogue;
@@ -132,10 +132,9 @@
     #shopify-section-{{ section.id }} {
       --rp-pad-top: {{ section.settings.padding_top }}px;
       --rp-pad-bottom: {{ section.settings.padding_bottom }}px;
-      --rp-scroll-sm: {% if rp_count > 1 %}grid{% else %}none{% endif %};
-      --rp-scroll-md: {% if rp_count > 2 %}grid{% else %}none{% endif %};
-      --rp-scroll-lg: {% if rp_count > 3 %}grid{% else %}none{% endif %};
-      --rp-scroll-xl: {% if rp_count > 4 %}grid{% else %}none{% endif %};
+      --rp-scroll-md: {% if rp_count > 3 %}grid{% else %}none{% endif %};
+      --rp-scroll-lg: {% if rp_count > 4 %}grid{% else %}none{% endif %};
+      --rp-scroll-xl: {% if rp_count > 5 %}grid{% else %}none{% endif %};
     }
   {%- endstyle -%}
 

@@ -65,9 +65,11 @@ html:has(main :focus-visible) {
 .product__title {
   margin: 0;
   color: var(--color-ink);
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
   text-align: center;
   overflow-wrap: anywhere;
 }
@@ -104,7 +106,7 @@ html:has(main :focus-visible) {
       "media head"
       "media info"
       "details details";
-    column-gap: 1.25rem;
+    column-gap: 2rem;
   }
 
   .product__head {
@@ -127,8 +129,8 @@ html:has(main :focus-visible) {
   }
 
   .product__title {
-    font-size: 1.375rem;
-    line-height: 1.15;
+    font-size: 1.75rem;
+    line-height: 1.2;
     text-align: start;
   }
 
@@ -151,9 +153,9 @@ html:has(main :focus-visible) {
 
 .product__brand-img {
   width: auto;
-  max-width: 8.75rem;
+  max-width: 7rem;
   height: auto;
-  max-height: 3.125rem;
+  max-height: 2.5rem;
   object-fit: contain;
 }
 
@@ -260,12 +262,7 @@ html:has(main :focus-visible) {
   gap: var(--space-lg);
 }
 
-@media (min-width: 992px) {
-  .product__panels--aside {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    column-gap: 1.25rem;
-  }
-}
+/* The trust box stacks under the buy column (the side-by-side 2:1 layout crowded the price row). */
 
 .product__buy {
   display: flex;
@@ -294,8 +291,10 @@ html:has(main :focus-visible) {
 }
 
 .product__price .price--product .price__amount {
-  --price-amount-size: 1.5625rem;
-  line-height: 1.25;
+  --price-amount-size: 2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }
 
 .product__price .price--product .price__note {
@@ -576,14 +575,21 @@ html.no-js .product-wishlist {
 
 .product-lines__dot {
   flex: none;
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
   background-color: var(--color-brand);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand) 20%, transparent);
+}
+
+/* Few units left: amber (as on the cards), not the alarm red of "sold out". */
+.product-lines__stock--low {
+  color: #b54708;
 }
 
 .product-lines__stock--low .product-lines__dot {
-  background-color: var(--color-badge-low-bg);
+  background-color: #b54708;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #b54708 18%, transparent);
 }
 
 .product-lines__stock--preorder .product-lines__dot {
@@ -638,7 +644,9 @@ html.no-js .product-wishlist {
 
 /* ---------- "למה לקוחות קונים אצלנו" (part 'box') ---------- */
 .product-trust {
-  padding-block-end: 0.625rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
 }
 
 .product-trust__heading {
@@ -799,15 +807,15 @@ html.no-js .product-wishlist {
       display: contents;
     }
 
-    /* Tabs on the palette's light; the open one brand green with navy text (5.8:1). */
+    /* Pill tabs on the palette's light; the open one navy with white text. */
     .product-details__summary {
       order: 0;
       justify-content: center;
-      min-height: 2.625rem;
+      min-height: 2.75rem;
       margin-block-start: 0.3125rem;
-      padding: 0 1.875rem;
-      border-radius: 0;
-      background-color: var(--color-surface);
+      padding: 0 1.5rem;
+      border-radius: var(--radius-pill);
+      background-color: var(--color-surface-soft);
     }
 
     .product-details__summary:hover {
@@ -815,8 +823,8 @@ html.no-js .product-wishlist {
     }
 
     .product-details__item[open] > .product-details__summary {
-      background-color: var(--color-button-accent-bg);
-      color: var(--color-button-accent-text);
+      background-color: var(--color-ink);
+      color: var(--color-background);
       pointer-events: none;
     }
 
@@ -849,6 +857,7 @@ html.no-js .product-wishlist {
 .product-specs__title {
   margin: 0;
   padding-inline: var(--space-sm);
+  border-radius: var(--radius-md);
   background-color: var(--color-surface-alt);
   color: var(--color-ink);
   font-size: 1.0625rem;
@@ -1029,5 +1038,13 @@ html.no-js .product-wishlist {
   .product-form,
   .product-wishlist {
     display: none;
+  }
+}
+
+/* From 992px: gallery and info side by side in equal columns, more air between them. */
+@media (min-width: 992px) {
+  .product {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 3rem;
   }
 }
