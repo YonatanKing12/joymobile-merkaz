@@ -45,7 +45,7 @@
         "autoplay_speed": 6,
         "show_arrows": true,
         "show_dots": true,
-        "peek": true,
+        "peek": false,
         "padding_top": 30,
         "padding_top_mobile": 14,
         "padding_bottom": 0
@@ -135,65 +135,65 @@
     "products-smartphones": {
       "type": "product-carousel",
       "settings": {
-        "title": "מוצרים פופולאריים מקטגוריית סמארטפונים",
+        "title": "סמארטפונים",
         "collection": "smartphones",
-        "products_limit": 8,
+        "products_limit": 10,
         "hide_sold_out": true,
         "show_view_all": true,
         "view_all_label": "לכל הסמארטפונים",
-        "padding_top": 50,
+        "padding_top": 44,
         "padding_bottom": 0
       }
     },
     "products-tablets": {
       "type": "product-carousel",
       "settings": {
-        "title": "מוצרים פופולאריים מקטגוריית טאבלטים",
+        "title": "טאבלטים",
         "collection": "tablets",
-        "products_limit": 8,
+        "products_limit": 10,
         "hide_sold_out": true,
         "show_view_all": true,
         "view_all_label": "לכל הטאבלטים",
-        "padding_top": 50,
+        "padding_top": 44,
         "padding_bottom": 0
       }
     },
     "products-vacuums": {
       "type": "product-carousel",
       "settings": {
-        "title": "מוצרים פופולאריים מקטגוריית שואבי אבק",
+        "title": "שואבי אבק",
         "collection": "vacuums",
-        "products_limit": 8,
+        "products_limit": 10,
         "hide_sold_out": true,
         "show_view_all": true,
         "view_all_label": "לכל שואבי האבק",
-        "padding_top": 50,
+        "padding_top": 44,
         "padding_bottom": 0
       }
     },
     "products-audio": {
       "type": "product-carousel",
       "settings": {
-        "title": "מוצרים פופולאריים מקטגוריית שמע ואוזניות",
+        "title": "שמע ואוזניות",
         "collection": "audio",
-        "products_limit": 8,
+        "products_limit": 10,
         "hide_sold_out": true,
         "show_view_all": true,
         "view_all_label": "לכל מוצרי השמע",
-        "padding_top": 50,
+        "padding_top": 44,
         "padding_bottom": 0
       }
     },
     "products-computers": {
       "type": "product-carousel",
       "settings": {
-        "title": "מוצרים פופולאריים מקטגוריית מחשבים וגיימינג",
+        "title": "מחשבים וגיימינג",
         "collection": "computers-gaming",
-        "products_limit": 8,
+        "products_limit": 10,
         "hide_sold_out": true,
         "show_view_all": true,
         "view_all_label": "לכל המחשבים והגיימינג",
-        "padding_top": 50,
+        "padding_top": 44,
         "padding_bottom": 50
       }
     },
@@ -203,7 +203,7 @@
         "show_logo": true,
         "logo_width": 220,
         "heading": "",
-        "text": "<p>JOY Mobile באילת: סמארטפונים, מחשבים וגיימינג, מוצרי חשמל, שמע ושעונים חכמים במחירי אילת ללא מע״מ. בוחרים באתר, משריינים ואוספים מהחנות ברחוב המלאכה 7.</p>",
+        "text": "<p>JOY Mobile היא רשת חנויות הסלולר, המחשבים והגיימינג של אילת: סמארטפונים, טאבלטים, שעונים חכמים, אוזניות ורמקולים, מחשבים ומוצרי חשמל במחירי אילת ללא מע״מ. בוחרים באתר, משריינים ואוספים באחד מסניפי JOY Mobile בעיר.</p>",
         "button_label": "עוד עלינו",
         "button_link": "shopify://pages/about",
         "padding_top": 0,
@@ -236,10 +236,63 @@
         "padding_top": 30,
         "padding_bottom": 20
       }
+    },
+    "usp": {
+      "type": "usp-bar",
+      "blocks": {
+        "usp-vat": {
+          "type": "usp",
+          "settings": {
+            "icon": "tag",
+            "title": "מחירי אילת ללא מע״מ",
+            "text": "חוסכים את המע״מ על כל מוצר",
+            "link": ""
+          }
+        },
+        "usp-pickup": {
+          "type": "usp",
+          "settings": {
+            "icon": "store",
+            "title": "איסוף מ-4 סניפים באילת",
+            "text": "משריינים באתר ואוספים מהסניף",
+            "link": "/pages/branches"
+          }
+        },
+        "usp-warranty": {
+          "type": "usp",
+          "settings": {
+            "icon": "shield",
+            "title": "אחריות מלאה",
+            "text": "יבואן רשמי או יבוא מקביל, כמצוין במוצר",
+            "link": ""
+          }
+        },
+        "usp-fix": {
+          "type": "usp",
+          "settings": {
+            "icon": "bolt",
+            "title": "מעבדת JOY FIX",
+            "text": "תיקון סמארטפונים וטאבלטים במקום",
+            "link": "/pages/joy-fix"
+          }
+        }
+      },
+      "block_order": [
+        "usp-vat",
+        "usp-pickup",
+        "usp-warranty",
+        "usp-fix"
+      ],
+      "settings": {
+        "heading": "למה לקנות ב-JOY Mobile",
+        "padding_top": 16,
+        "padding_bottom": 6
+      }
     }
   },
   "order": [
     "hero",
+    "usp",
     "categories",
     "products-smartphones",
     "products-tablets",

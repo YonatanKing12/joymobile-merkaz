@@ -357,7 +357,7 @@
         "max": 1600,
         "step": 10,
         "unit": "px",
-        "default": 1170
+        "default": 1320
       },
       {
         "type": "range",

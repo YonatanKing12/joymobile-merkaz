@@ -52,11 +52,11 @@
   inset-inline: 10.85%;
   top: 20.3%;
   bottom: 1.4%;
-  border: 8px solid var(--color-background);
   border-radius: 50%;
   background-color: var(--circle-disc, var(--color-surface));
-  box-shadow: 0 0 0 1px var(--color-border-strong);
-  transition: box-shadow var(--duration-fast) var(--ease-out);
+  transition:
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
 }
 
 /* Product photos on white: multiply turns their white margins into the disc/ring colour, so
@@ -105,22 +105,31 @@
 
 .category-circles__label {
   display: block;
-  margin-block-start: 5px;
+  margin-block-start: 8px;
   padding: 3px 4px;
   font-size: var(--text-body);
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.2;
   text-align: center;
   overflow-wrap: anywhere;
 }
 
 .category-circles__link:hover .category-circles__disc {
-  box-shadow: 0 0 0 2px var(--color-brand);
+  box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--color-ink) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .category-circles__link:hover .category-circles__disc {
+    transform: translateY(-3px);
+  }
+}
+
+html.a11y-no-motion .category-circles__link:hover .category-circles__disc {
+  transform: none;
 }
 
 .category-circles__link:is(:hover, :focus-visible) .category-circles__label {
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+  color: var(--color-brand-text);
 }
 
 .category-circles__link:focus-visible {

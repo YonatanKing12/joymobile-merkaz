@@ -11,6 +11,18 @@
   padding-block: var(--hero-pad-top-mobile, 14px) var(--hero-pad-bottom, 0px);
 }
 
+/* Without the peek: the banners sit inside the page width with rounded corners (phones too, 16px in). */
+.hero-slideshow:not(.hero-slideshow--peek) {
+  width: 100%;
+  max-width: calc(var(--page-width) + 2 * var(--page-gutter));
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__media {
+  border-radius: var(--radius-lg);
+}
+
 .hero-slideshow__carousel {
   --per-view-mobile: 1;
   --per-view-tablet: 1;
@@ -248,13 +260,32 @@ html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
     filter: drop-shadow(0 0 1px var(--color-background)) drop-shadow(0 0 1px var(--color-background));
   }
 
-  /* Without the peek: chevron centre ≈ 60px from the viewport edge (measured 52px + 7.5px), inside the slide. */
+  /* Without the peek: round white buttons half over the banner's edges. */
   .hero-slideshow__arrow.carousel__btn--prev {
-    inset-inline-start: calc(var(--hero-peek, 0px) + 8px);
+    inset-inline-start: calc(var(--hero-peek, 0px) - 0.75rem);
   }
 
   .hero-slideshow__arrow.carousel__btn--next {
-    inset-inline-end: calc(var(--hero-peek, 0px) + 8px);
+    inset-inline-end: calc(var(--hero-peek, 0px) - 0.75rem);
+  }
+
+  .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow {
+    width: 2.75rem;
+    height: 2.75rem;
+    background-color: var(--color-background);
+    box-shadow: var(--shadow-md);
+  }
+
+  .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow:hover {
+    background-color: var(--color-ink);
+    color: var(--color-background);
+  }
+
+  .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow .icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke-width: 2;
+    filter: none;
   }
 
   /* With the peek the arrows fill the side gutters, so they never cover a banner's baked-in text (the JOY banners
@@ -306,5 +337,16 @@ html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
 
   .hero-slideshow__heading {
     font-size: var(--text-5xl);
+  }
+}
+
+/* Wide screens have room outside the page width: the round arrows sit half outside the banner. */
+@media (min-width: 1400px) {
+  .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow.carousel__btn--prev {
+    inset-inline-start: -1.375rem;
+  }
+
+  .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow.carousel__btn--next {
+    inset-inline-end: -1.375rem;
   }
 }

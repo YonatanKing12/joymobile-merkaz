@@ -252,9 +252,10 @@ sticky-header {
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  height: 2.0625rem;
-  padding-inline: 0.75rem;
+  height: 2.5rem;
+  padding-inline: 1rem;
   border: 1px solid var(--color-accent);
+  border-radius: var(--radius-pill);
   background-color: transparent;
   color: var(--color-header-text);
   font-size: var(--text-lg);
@@ -359,12 +360,18 @@ sticky-header {
 }
 
 .search-form--desktop .search-form__form {
-  height: 2.125rem;
+  height: 2.75rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-pill);
   background-color: var(--header-field-bg);
 }
 
+.search-form--desktop .search-form__form:has(.search-form__input:focus-visible) {
+  outline-offset: 3px;
+}
+
 .search-form--desktop .search-form__input {
-  padding-inline: 0.625rem 0;
+  padding-inline: 1rem 0.5rem;
   font-size: var(--text-lg);
 }
 
@@ -373,7 +380,8 @@ sticky-header {
 }
 
 .search-form--desktop .search-form__submit {
-  width: 2.625rem;
+  width: 2.25rem;
+  border-radius: 50%;
   background-color: var(--color-accent);
   color: var(--color-on-accent);
   transition: background-color var(--duration-fast) var(--ease-out);
@@ -386,7 +394,7 @@ sticky-header {
 /* Inside the field, a ring drawn on the mint button would vanish: the whole field shows it (above). */
 .search-form--desktop .search-form__submit:focus-visible {
   outline: 2px solid var(--color-ink);
-  outline-offset: -4px;
+  outline-offset: -3px;
 }
 
 .search-form--desktop .search-form__submit .icon {
@@ -691,7 +699,7 @@ html.a11y-no-motion .menu-drawer__submenu {
     display: flex;
     align-items: center;
     width: 100%;
-    max-width: calc(75rem + 2 * 0.9375rem);
+    max-width: calc(var(--page-width) + 2 * 0.9375rem);
     margin-inline: auto;
     padding-block-start: 0.3125rem; /* icon centres sit at y≈40 of the 76px row, as measured */
     padding-inline: 0.9375rem;
@@ -795,7 +803,7 @@ html.a11y-no-motion .menu-drawer__submenu {
   display: flex;
   justify-content: center;
   width: 100%;
-  max-width: calc(75rem + 2 * 0.9375rem);
+  max-width: calc(var(--page-width) + 2 * 0.9375rem);
   height: 3.25rem;
   margin: 0 auto;
   padding: 0 0.9375rem;

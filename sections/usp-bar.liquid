@@ -1,0 +1,139 @@
+{%- comment -%}
+  Benefits strip: short reasons to buy (an icon, a bold line and a short note per block, optionally a
+  link), in a row of soft tiles under the hero. Phones: a two-column grid; the tiles wrap, nothing
+  scrolls. The whole tile is the link when a block has one.
+{%- endcomment -%}
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --usp-pad-top: {{ section.settings.padding_top }}px;
+    --usp-pad-bottom: {{ section.settings.padding_bottom }}px;
+  }
+{%- endstyle -%}
+
+{{ 'section-usp-bar.css' | asset_url | stylesheet_tag }}
+
+{%- if section.blocks.size > 0 -%}
+  <div class="usp-bar">
+    <div class="page-width">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="visually-hidden">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      <ul class="usp-bar__list" role="list">
+        {%- for block in section.blocks -%}
+          <li class="usp-bar__item" {{ block.shopify_attributes }}>
+            {%- capture usp_inner -%}
+              <span class="usp-bar__icon">
+                {%- render 'icon', name: block.settings.icon, size: 24 -%}
+              </span>
+              <span class="usp-bar__text">
+                <span class="usp-bar__title">{{ block.settings.title | escape }}</span>
+                {%- if block.settings.text != blank -%}
+                  <span class="usp-bar__note">{{ block.settings.text | escape }}</span>
+                {%- endif -%}
+              </span>
+            {%- endcapture -%}
+            {%- if block.settings.link != blank -%}
+              <a class="usp-bar__tile usp-bar__tile--link" href="{{ block.settings.link }}">{{ usp_inner }}</a>
+            {%- else -%}
+              <div class="usp-bar__tile">{{ usp_inner }}</div>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "יתרונות החנות",
+  "tag": "section",
+  "class": "section-usp-bar",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת (לקוראי מסך בלבד)",
+      "default": "למה לקנות ב-JOY Mobile"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 10
+    }
+  ],
+  "blocks": [
+    {
+      "type": "usp",
+      "name": "יתרון",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "סמל",
+          "default": "tag",
+          "options": [
+            { "value": "tag", "label": "תגית מחיר" },
+            { "value": "store", "label": "חנות" },
+            { "value": "location", "label": "מיקום" },
+            { "value": "shield", "label": "מגן / אחריות" },
+            { "value": "bolt", "label": "ברק / מהיר" },
+            { "value": "clock", "label": "שעון" },
+            { "value": "check", "label": "וי" },
+            { "value": "credit-card", "label": "כרטיס אשראי" },
+            { "value": "phone", "label": "טלפון" },
+            { "value": "whatsapp", "label": "WhatsApp" },
+            { "value": "star", "label": "כוכב" }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "כותרת",
+          "default": "מחירי אילת ללא מע״מ"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "טקסט קצר"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "יתרונות החנות",
+      "blocks": [
+        { "type": "usp", "settings": { "icon": "tag", "title": "מחירי אילת ללא מע״מ", "text": "חוסכים את המע״מ על כל מוצר" } },
+        { "type": "usp", "settings": { "icon": "store", "title": "איסוף מהסניפים באילת", "text": "משריינים באתר ואוספים מהסניף" } },
+        { "type": "usp", "settings": { "icon": "shield", "title": "אחריות מלאה", "text": "יבואן רשמי או יבוא מקביל, כמצוין במוצר" } },
+        { "type": "usp", "settings": { "icon": "bolt", "title": "מעבדת JOY FIX", "text": "תיקון סמארטפונים וטאבלטים במקום" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
