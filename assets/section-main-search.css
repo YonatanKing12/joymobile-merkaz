@@ -113,10 +113,10 @@
 
 .search-content__heading {
   margin-block-end: var(--space-md);
-  padding: var(--space-xs) var(--space-md);
-  background-color: var(--color-surface);
-  font-size: var(--text-xl);
-  font-weight: 500;
+  color: var(--color-ink);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .search-content__list {
