@@ -11,8 +11,11 @@
 }
 
 .brand-about__panel {
-  margin-inline: 5%;
+  width: calc(100% - 2 * var(--page-gutter));
+  max-width: var(--page-width);
+  margin-inline: auto;
   padding-block: 35px;
+  border-radius: var(--radius-xl);
   background-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 

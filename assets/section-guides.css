@@ -1,8 +1,6 @@
 /* Guides / blog cards — sections/guides.liquid. Track & slides: component-carousel.css.
-   Measured @1440 (content 1170): heading 25px/700 centred; 13px below it a 1px rule with a
-   centred 82×3 bar (was lime → brand green), 60px to the cards; cards gap 11px, #f2f2f2,
-   padding 20px 25px 15px, column gap 5px: title 20px/700, media 343:180, summary 15px/700 with
-   a 1px rule, text 15px, "קראו עוד" 15px/700; "לכל הכתבות" 18px underlined, start, +25px.
+   A bold start-aligned heading like the product strips; white rounded cards (as the product cards):
+   the picture (343:180) first, then title, summary, excerpt and "קראו עוד"; "לכל הכתבות" as a pill.
    Phones: heading 13px, 1 per view with 30px peeks (gap 7px), card padding 9px 15px 15px,
    title 13px, body 11px, link 16px centred. Per view 1 · 3 (768, a static row like the old one,
    with 16px titles / 13px text up to 991) · 3. Arrows / pause only where the cards overflow:
@@ -12,30 +10,20 @@
   padding-block: var(--guides-pad-top, 20px) var(--guides-pad-bottom, 20px);
 }
 
+/* Heading: bold and start-aligned, like the product strips. */
 .guides__header {
   position: relative;
-  margin: 0 0 38px;
-  padding-block-end: 13px;
-  border-block-end: 1px solid var(--color-border-strong);
-  text-align: center;
-}
-
-.guides__header::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  bottom: -2px;
-  width: 82px;
-  height: 3px;
-  margin-inline: auto;
-  background-color: var(--color-brand);
+  margin: 0 0 var(--space-md);
+  text-align: start;
 }
 
 .guides__heading {
   color: var(--color-ink);
-  font-size: var(--text-sm);
-  font-weight: 700;
+  font-size: var(--text-2xl);
+  font-weight: 800;
   line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 .guides__notice {
@@ -63,14 +51,34 @@
 }
 
 /* ---------- Card: the title link covers the whole card ---------- */
+/* Card: white and rounded like the product cards; the picture first, then title, summary and link. */
 .guides__card {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 9px 15px 15px;
-  background-color: var(--color-surface-alt);
+  gap: 6px;
+  height: 100%;
+  padding: 0.5rem 0.5rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 9%, var(--color-background));
+  border-radius: var(--radius-card);
+  background-color: var(--color-background);
   color: var(--color-ink);
+  transition:
+    box-shadow var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+
+.guides__card > :not(.guides__media) {
+  margin-inline: 0.5rem;
+}
+
+@media (hover: hover) {
+  .guides__card:hover {
+    border-color: transparent;
+    box-shadow:
+      0 14px 32px -12px color-mix(in srgb, var(--color-ink) 28%, transparent),
+      0 2px 6px color-mix(in srgb, var(--color-ink) 6%, transparent);
+  }
 }
 
 .guides__title {
@@ -106,8 +114,10 @@
 
 .guides__media {
   position: relative;
-  margin-block-end: 10px;
+  order: -1;
+  margin-block-end: 8px;
   overflow: hidden;
+  border-radius: max(calc(var(--radius-card) - 0.5rem), 4px);
   aspect-ratio: 343 / 180;
   background-color: var(--color-button-accent-bg);
 }
@@ -188,9 +198,11 @@
 }
 
 .guides__summary {
-  padding-block-end: 2px;
-  border-block-end: 1px solid var(--color-ink);
   font-weight: 700;
+}
+
+.guides__excerpt {
+  color: var(--color-muted);
 }
 
 .guides__more {
@@ -198,6 +210,7 @@
   align-items: center;
   gap: 2px;
   margin-block-start: auto;
+  color: var(--color-brand-text);
   font-size: var(--text-2xs);
   font-weight: 700;
 }
@@ -216,17 +229,24 @@
 }
 
 .guides__view-all {
-  display: block;
+  display: flex;
+  align-items: center;
   width: fit-content;
-  margin: 12px auto 0;
+  min-height: 2.25rem;
+  margin: var(--space-md) auto 0;
+  padding-inline: 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 14%, var(--color-background));
+  border-radius: var(--radius-pill);
   color: var(--color-ink);
-  font-size: var(--text-body);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .guides__view-all:hover {
-  color: var(--color-brand-text);
+  border-color: var(--color-ink);
+  background-color: var(--color-ink);
+  color: var(--color-background);
 }
 
 /* ---------- Arrows (>= 768) and pause ---------- */
@@ -252,11 +272,11 @@ html.no-js .guides__carousel .guides__arrow {
 
 @media (min-width: 768px) {
   .guides__header {
-    margin-block-end: 60px;
+    margin-block-end: 1.25rem;
   }
 
   .guides__heading {
-    font-size: 1.5625rem;
+    font-size: var(--text-3xl);
   }
 
   .guides__carousel {
@@ -264,7 +284,7 @@ html.no-js .guides__carousel .guides__arrow {
   }
 
   .guides__card {
-    padding: 20px 25px 15px;
+    padding: 0.5rem 0.5rem 1.125rem;
   }
 
   .guides__title {
@@ -282,8 +302,8 @@ html.no-js .guides__carousel .guides__arrow {
   }
 
   .guides__view-all {
-    margin: 25px 0 0;
-    font-size: var(--text-xl);
+    margin: 1.25rem 0 0;
+    font-size: var(--text-md);
   }
 
   .guides__arrow {
@@ -312,7 +332,7 @@ html.no-js .guides__carousel .guides__arrow {
   }
 
   .guides__card {
-    padding: 15px 15px 12px;
+    padding: 0.5rem 0.5rem 0.875rem;
   }
 
   .guides__title {
@@ -330,7 +350,7 @@ html.no-js .guides__carousel .guides__arrow {
   }
 
   .guides__view-all {
-    font-size: var(--text-body);
+    font-size: var(--text-sm);
   }
 }
 

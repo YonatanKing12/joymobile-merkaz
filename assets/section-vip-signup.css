@@ -17,11 +17,16 @@
   padding-block: var(--vip-pad-top, 20px) var(--vip-pad-bottom, 0px);
 }
 
+/* A rounded band inside the page width (full bleed before the refresh). */
 .vip-signup {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: 25px 15px;
+  width: calc(100% - 2 * var(--page-gutter));
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding: 28px 16px;
+  border-radius: var(--radius-xl);
   background-color: var(--vip-bg, var(--color-surface));
   color: var(--vip-text-mobile, var(--color-ink));
 }
@@ -82,9 +87,9 @@
   display: block;
   width: 100%;
   height: 50px;
-  padding: 0 8px;
+  padding: 0 14px;
   border: 1px solid var(--color-border-control);
-  border-radius: 0;
+  border-radius: var(--radius-input);
   background-color: var(--color-background);
   color: var(--color-ink);
   font-family: var(--font-body-family);
@@ -123,7 +128,7 @@
   height: 50px;
   padding: 0 var(--space-md);
   border: 1px solid var(--color-button-bg);
-  border-radius: 0;
+  border-radius: var(--radius-button);
   background-color: var(--color-button-bg);
   color: var(--color-button-text);
   font-family: var(--font-body-family);
@@ -209,8 +214,8 @@
   }
 
   .vip-signup__title {
-    margin-block-start: 20px;
-    font-size: 3.75rem;
+    margin-block-start: 8px;
+    font-size: 2.75rem;
     line-height: 1.2;
   }
 
@@ -238,6 +243,6 @@
 
 @media (min-width: 1200px) {
   .vip-signup {
-    padding: 80px 20px;
+    padding: 56px 48px;
   }
 }
