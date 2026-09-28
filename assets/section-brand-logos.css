@@ -53,11 +53,10 @@
     box-shadow var(--duration-base) var(--ease-out);
 }
 
+/* A fixed box the logo is contained in (a percentage max-width collapses inside the tile's auto grid track). */
 .brand-logos__img {
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: 2.5rem;
+  width: 100%;
+  height: 2.25rem;
   object-fit: contain;
   filter: grayscale(1);
   opacity: 0.75;
