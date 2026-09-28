@@ -324,6 +324,46 @@
         }
       {%- endcapture -%}
       <script type="application/ld+json">{{ product_json | strip_newlines | replace: '</', '<\/' }}</script>
+
+      {%- comment -%}
+        FAQPage from the description's questions and answers: an <h3> that ends with "?" is a question and the
+        text up to the next heading is its answer (the same rule as the category pages). Only with at least two.
+      {%- endcomment -%}
+      {%- if ld_product.description contains '<h3' -%}
+        {%- liquid
+          assign ld_faq_json = ''
+          assign ld_faq_count = 0
+          assign ld_faq_parts = ld_product.description | split: '<h3'
+          for ld_faq_part in ld_faq_parts offset: 1
+            assign ld_faq_q_html = ld_faq_part | split: '</h3>' | first | remove_first: '>'
+            capture ld_faq_q
+              render 'plain-text', html: ld_faq_q_html
+            endcapture
+            assign ld_faq_q = ld_faq_q | strip
+            assign ld_faq_mark = ld_faq_q | slice: -1
+            if ld_faq_mark != '?'
+              continue
+            endif
+            assign ld_faq_rest = ld_faq_part | split: '</h3>' | last | split: '<h2' | first
+            capture ld_faq_a
+              render 'plain-text', html: ld_faq_rest
+            endcapture
+            assign ld_faq_a = ld_faq_a | strip
+            if ld_faq_a != blank
+              assign ld_faq_count = ld_faq_count | plus: 1
+              assign ld_faq_q_json = ld_faq_q | json
+              assign ld_faq_a_json = ld_faq_a | json
+              if ld_faq_json != blank
+                assign ld_faq_json = ld_faq_json | append: ','
+              endif
+              assign ld_faq_json = ld_faq_json | append: '{"@type":"Question","name":' | append: ld_faq_q_json | append: ',"acceptedAnswer":{"@type":"Answer","text":' | append: ld_faq_a_json | append: '}}'
+            endif
+          endfor
+        -%}
+        {%- if ld_faq_count > 1 -%}
+          <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{{ ld_faq_json | replace: '</', '<\/' }}]}</script>
+        {%- endif -%}
+      {%- endif -%}
     {%- endif -%}
 
   {%- when 'article' -%}
