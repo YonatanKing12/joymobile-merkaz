@@ -777,18 +777,30 @@ html.no-js .product-wishlist {
   line-height: var(--leading-normal);
 }
 
+/* Readable measure for long descriptions; compact heavy headings like the rest of the site. */
+.product-details__panel.rte > * {
+  max-inline-size: 80ch;
+}
+
 .product-details__panel.rte :is(h1, h2) {
-  font-size: var(--text-3xl);
-  font-weight: 500;
+  margin-block: 1.5em 0.5em;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.product-details__panel.rte :is(h1, h2):first-child {
+  margin-block-start: 0;
 }
 
 .product-details__panel.rte h3 {
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
+  font-weight: 800;
 }
 
 @media (min-width: 992px) {
   .product-details__panel.rte :is(h1, h2) {
-    font-size: 2rem;
+    font-size: var(--text-3xl);
   }
 }
 
