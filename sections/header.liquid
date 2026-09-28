@@ -224,6 +224,14 @@
           </cart-count>
         </a>
 
+        {%- if settings.wishlist_enabled and settings.wishlist_page != blank -%}
+          <a class="header__icon header__wishlist below-desktop-hide" href="{{ settings.wishlist_page.url }}">
+            <span class="visually-hidden">{{ 'header.wishlist' | t }}</span>
+            {%- render 'icon', name: 'heart', size: 28, class: 'header__wishlist-icon' -%}
+            <wishlist-count class="header__wishlist-count" aria-hidden="true">0</wishlist-count>
+          </a>
+        {%- endif -%}
+
         {%- if whatsapp_url != blank -%}
           <a
             class="header__icon header__whatsapp"

@@ -340,13 +340,25 @@ html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
   }
 }
 
-/* Wide screens have room outside the page width: the round arrows sit half outside the banner. */
-@media (min-width: 1400px) {
+/* Contained banners carry their text up to the edges, so the round arrows never sit on them: outside the
+   banner where the page has room for them (≥1440), hidden below that (dots, swipe and autoplay remain). */
+@media (min-width: 768px) and (max-width: 1439px) {
+  .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow {
+    display: none;
+  }
+}
+
+@media (min-width: 1440px) {
+  .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
   .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow.carousel__btn--prev {
-    inset-inline-start: -1.375rem;
+    inset-inline-start: -2.75rem;
   }
 
   .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow.carousel__btn--next {
-    inset-inline-end: -1.375rem;
+    inset-inline-end: -2.75rem;
   }
 }

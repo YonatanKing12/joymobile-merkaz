@@ -788,6 +788,50 @@ html.a11y-no-motion .menu-drawer__submenu {
   }
 }
 
+/* Wishlist heart (desktop; phones reach the wishlist from the menu): white on navy, mint count bubble
+   hidden while the list is empty. */
+.header__wishlist {
+  position: relative;
+  color: var(--color-header-text);
+}
+
+@media (min-width: 992px) {
+  .header__wishlist {
+    margin-inline-end: 1.5rem;
+  }
+}
+
+.header__wishlist:hover {
+  color: var(--color-accent);
+}
+
+.header__wishlist-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  stroke-width: 1.6;
+}
+
+.header__wishlist-count {
+  position: absolute;
+  top: 0.125rem;
+  inset-inline-start: -0.125rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.0625rem;
+  height: 1.0625rem;
+  padding-inline: 0.25rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.65625rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.header__wishlist-count[data-count="0"] {
+  display: none;
+}
+
 .header__nav {
   --color-focus: var(--color-focus-on-dark);
   background-color: var(--color-nav-bg);
