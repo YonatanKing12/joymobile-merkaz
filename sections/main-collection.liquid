@@ -300,12 +300,21 @@
               </p>
             {%- endif -%}
             {%- if collection.products_count > 0 -%}
+              {%- liquid
+                # Photos first within the page, only in the category's own order (not a price or date order).
+                assign grid_sort = collection.sort_by | default: collection.default_sort_by
+                assign grid_photos_first = false
+                if grid_sort == 'manual' or grid_sort == 'best-selling'
+                  assign grid_photos_first = true
+                endif
+              -%}
               {%- render 'product-grid',
                 products: collection.products,
                 section_id: sid,
                 eager: eager,
                 heading: 'h3',
-                id: grid_id
+                id: grid_id,
+                photos_first: grid_photos_first
               -%}
             {%- else -%}
               <div class="collection-empty collection-empty--filtered">

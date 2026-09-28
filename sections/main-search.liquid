@@ -322,12 +322,20 @@
             {%- endcomment -%}
             <div class="search-products"{% if page_products.size == 0 %} hidden{% endif %}>
               <h2 class="visually-hidden">{{ 'search.page.products_heading' | t }}</h2>
+              {%- liquid
+                # Photos first within the page, only in relevance order (not a price or date order).
+                assign grid_photos_first = false
+                if search.sort_by == blank or search.sort_by == 'relevance'
+                  assign grid_photos_first = true
+                endif
+              -%}
               {%- render 'product-grid',
                 products: page_products,
                 section_id: sid,
                 eager: eager,
                 heading: 'h3',
-                id: grid_id
+                id: grid_id,
+                photos_first: grid_photos_first
               -%}
             </div>
 

@@ -11,6 +11,11 @@
 
   Pass only products (`search.results | where: 'object_type', 'product'` on search).
 
+  `photos_first`: within the page, the products that have a photo come first, each group in the
+  given order (most of the catalogue has no photo yet). Callers pass it only with an order that is
+  not a price or date order: the category's default (manual, best-selling) or search relevance.
+  The page holds the same products either way, so pagination and "load more" are unchanged.
+
   Classes: .product-grid, .product-grid__item.
 
   @param {object} products - Array of products for the current page.
@@ -19,6 +24,7 @@
   @param {string} [heading] - Tag of the card titles: 'h2', 'h3' (default) or 'h4'.
   @param {string} [id] - id of the list.
   @param {string} [label] - Accessible name of the list.
+  @param {boolean} [photos_first] - Products with a photo first within the page. Default false.
 
   @example
   {% render 'product-grid', products: collection.products, section_id: section.id, eager: 4, heading: 'h3' %}
@@ -26,6 +32,11 @@
 {%- liquid
   assign pg_eager = eager | default: 4
   assign pg_heading = heading | default: 'h3'
+  assign pg_passes = 1
+  if photos_first
+    assign pg_passes = 2
+  endif
+  assign pg_index = 0
 -%}
 <ul
   class="product-grid"
@@ -38,21 +49,32 @@
     aria-label="{{ label | escape }}"
   {% endif %}
 >
-  {%- for product in products -%}
-    {%- liquid
-      assign pg_lazy = true
-      if forloop.index <= pg_eager
-        assign pg_lazy = false
-      endif
-    -%}
-    <li class="product-grid__item">
-      {%- render 'card-product',
-        product: product,
-        lazy: pg_lazy,
-        heading: pg_heading,
-        section_id: section_id,
-        show_swatches: settings.card_show_swatches
+  {%- for pg_pass in (1..pg_passes) -%}
+    {%- for product in products -%}
+      {%- liquid
+        if pg_passes == 2
+          if pg_pass == 1 and product.featured_media == blank
+            continue
+          endif
+          if pg_pass == 2 and product.featured_media != blank
+            continue
+          endif
+        endif
+        assign pg_index = pg_index | plus: 1
+        assign pg_lazy = true
+        if pg_index <= pg_eager
+          assign pg_lazy = false
+        endif
       -%}
-    </li>
+      <li class="product-grid__item">
+        {%- render 'card-product',
+          product: product,
+          lazy: pg_lazy,
+          heading: pg_heading,
+          section_id: section_id,
+          show_swatches: settings.card_show_swatches
+        -%}
+      </li>
+    {%- endfor -%}
   {%- endfor -%}
 </ul>
