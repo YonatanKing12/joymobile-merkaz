@@ -1,9 +1,10 @@
 {%- comment -%}
   Collection page (/collections/<handle>) — the JOY Mobile category page rebuilt on
-  Shopify data: breadcrumbs, H1 (+ description, optional banner), sub-category links
+  Shopify data: breadcrumbs, H1 (+ the description's intro, optional banner), sub-category links
   from the main menu, results count and the inline sort row ("מיין לפי: …"), the filter
   sidebar on the inline-start side (drawer below 992px), the product grid
-  (4 / 3 / 3 / 2 columns) and "טען עוד" over real paginated links.
+  (4 / 3 / 3 / 2 columns) and "טען עוד" over real paginated links. Under the grid: the rest of
+  the description (its headed SEO text and FAQs).
 
   Everything works without JavaScript (GET form, plain links). <facet-filters>
   (assets/facets.js) upgrades it: it swaps the `[data-swap]` regions of this section,
@@ -26,6 +27,30 @@
 <script type="module" src="{{ 'product.js' | asset_url }}"></script>
 
 {%- liquid
+  # Description: "split" shows the intro (everything before the first <h2>) under the title and the
+  # rest (the headed SEO text and FAQs) under the products; "top" / "bottom" show it whole there.
+  assign desc_top = ''
+  assign desc_bottom = ''
+  if collection.description != blank
+    case section.settings.description_position
+      when 'top'
+        assign desc_top = collection.description
+      when 'bottom'
+        assign desc_bottom = collection.description
+      when 'split'
+        if collection.description contains '<h2'
+          assign desc_top = collection.description | split: '<h2' | first
+          assign desc_bottom = collection.description | remove_first: desc_top
+        else
+          assign desc_top = collection.description
+        endif
+    endcase
+    assign desc_probe = desc_top | strip_html | strip
+    if desc_probe == blank
+      assign desc_top = ''
+    endif
+  endif
+
   assign sid = section.id
   assign bar_prefix = 'Bar-' | append: sid
   assign grid_id = 'ProductGrid-' | append: sid
@@ -142,8 +167,8 @@
 
   <header class="collection__header">
     <h1 class="collection__title">{{ collection.title | escape }}</h1>
-    {%- if section.settings.description_position == 'top' and collection.description != blank -%}
-      <div class="collection__description rte">{{ collection.description }}</div>
+    {%- if desc_top != blank -%}
+      <div class="collection__description rte">{{ desc_top }}</div>
     {%- endif -%}
   </header>
 
@@ -317,8 +342,8 @@
     {%- endpaginate -%}
   {%- endif -%}
 
-  {%- if section.settings.description_position == 'bottom' and collection.description != blank -%}
-    <div class="collection__description collection__description--bottom rte">{{ collection.description }}</div>
+  {%- if desc_bottom != blank -%}
+    <div class="collection__description collection__description--bottom rte">{{ desc_bottom }}</div>
   {%- endif -%}
 </div>
 
@@ -346,11 +371,13 @@
       "id": "description_position",
       "label": "תיאור הקטגוריה",
       "options": [
+        { "value": "split", "label": "פתיח למעלה, שאר הטקסט מתחת למוצרים" },
         { "value": "top", "label": "מתחת לכותרת" },
         { "value": "bottom", "label": "מתחת למוצרים" },
         { "value": "none", "label": "לא להציג" }
       ],
-      "default": "top"
+      "info": "בחלוקה: מה שלפני הכותרת הראשונה (H2) בתיאור מוצג מתחת לשם הקטגוריה, והשאר מתחת למוצרים.",
+      "default": "split"
     },
     {
       "type": "select",

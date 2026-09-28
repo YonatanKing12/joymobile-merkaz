@@ -335,8 +335,8 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   opacity: 0.55;
 }
 
-/* Narrow cards (the 2-column phone grid, ≈170px wide): tighter insets and smaller type. */
-@container card-product (max-width: 15rem) {
+/* Narrow cards (phones: the 2-column grid and the strips, ≈155–175px wide): tighter insets and smaller type. */
+@container card-product (max-width: 12.5rem) {
   .card-product__img {
     padding: 7%;
   }

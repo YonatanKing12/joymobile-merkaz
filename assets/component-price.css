@@ -127,7 +127,7 @@
   line-height: 1.3;
 }
 
-@container card-product (max-width: 15rem) {
+@container card-product (max-width: 12.5rem) {
   .price--card .price__amount {
     --price-amount-size: 1.0625rem;
   }

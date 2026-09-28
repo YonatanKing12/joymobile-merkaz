@@ -60,10 +60,48 @@
   line-height: var(--leading-normal);
 }
 
+/* Under the products: the category's SEO text and FAQs, as a readable article on a soft panel. */
 .collection__description--bottom {
+  max-inline-size: none;
   margin-block-start: var(--space-2xl);
-  padding-block-start: var(--space-lg);
-  border-block-start: 1px solid var(--color-border);
+  padding: var(--space-lg) var(--space-md);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+  color: var(--color-text);
+}
+
+.collection__description--bottom > * {
+  max-inline-size: 78ch;
+}
+
+.collection__description--bottom h2 {
+  margin-block: var(--space-lg) var(--space-xs);
+  color: var(--color-ink);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.collection__description--bottom h2:first-child {
+  margin-block-start: 0;
+}
+
+.collection__description--bottom h3 {
+  margin-block: var(--space-md) var(--space-2xs);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.collection__description--bottom p {
+  margin-block: 0 var(--space-xs);
+}
+
+@media (min-width: 768px) {
+  .collection__description--bottom {
+    padding: var(--space-xl) var(--space-2xl);
+  }
 }
 
 @media (max-width: 767px) {
