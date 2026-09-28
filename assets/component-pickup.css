@@ -1,7 +1,7 @@
 /* ==========================================================================
    Pickup availability — snippets/product-trust.liquid part 'pickup', printed by
    sections/pickup-availability.liquid and pre-filled into <pickup-availability> (@theme/product)
-   by main-product. One row per location with local pickup (today: only "המלאכה 7", 24 h):
+   by main-product. One row per location with local pickup (the Shopify locations that offer local pickup):
    status (✓ accessible green / × muted) + Shopify's pickup-time text. Hidden when empty.
    ========================================================================== */
 
