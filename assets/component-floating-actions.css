@@ -8,14 +8,16 @@
    back-to-top is navy; both turn mint with navy under the pointer. Their focus ring is two-tone (mint inside,
    navy outside), since they float over white pages and over the navy footer alike. */
 
-/* Back-to-top flush with the right edge, rounded toward the page, as the old #upBtn. */
 .floating-actions__stack {
-  inset-inline-start: 0;
+  inset-inline-start: 0.75rem;
 }
 
+/* A round navy button with a soft shadow, a little off the screen edge. */
 .floating-actions .floating-actions__top {
+  border-radius: 50%;
   background: var(--color-ink);
   color: var(--color-background);
+  box-shadow: var(--shadow-md);
 }
 
 .floating-actions .floating-actions__top:hover {
