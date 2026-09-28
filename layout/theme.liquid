@@ -101,10 +101,21 @@
 
     {{ content_for_header }}
 
-    {%- if request.page_type == 'index' %}
-      {% render 'structured-data', type: 'organization' %}
-      {% render 'structured-data', type: 'website' %}
-    {%- endif %}
+    {%- comment -%}
+      Structured data that belongs to the page as a whole (snippets/structured-data): the
+      Organization, with every branch, and the WebSite on the home page; the Product, with
+      one offer per variant, on product pages — here rather than in the product section,
+      so it never depends on that section's markup. Content carries its own: breadcrumbs
+      and articles in their sections, the branches page's stores (sections/branches) and
+      the FAQ page's questions (sections/faq).
+    {%- endcomment -%}
+    {%- case request.page_type -%}
+      {%- when 'index' %}
+        {% render 'structured-data', type: 'organization' %}
+        {% render 'structured-data', type: 'website' %}
+      {%- when 'product' %}
+        {% render 'structured-data', type: 'product', product: product, placement: 'head' %}
+    {%- endcase %}
   </head>
 
   <body class="template-{{ template.name | handle }}{% if template.suffix != blank %} template-{{ template.name | handle }}--{{ template.suffix | handle }}{% endif %}">

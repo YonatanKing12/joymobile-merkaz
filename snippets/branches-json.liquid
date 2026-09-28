@@ -1,0 +1,74 @@
+{% doc %}
+  Every JOY Mobile location in Eilat as a schema.org store (snippets/branch-json.liquid),
+  printed as comma-separated JSON objects for the `department` list of the Organization on
+  the home page (snippets/structured-data, type 'organization'). A search engine or an AI
+  assistant that reads only the home page still learns every branch, its address, phone
+  and opening hours.
+
+  The home page can't read the blocks of another template, so the facts are written here
+  once more: they are the branch blocks of templates/page.branches.json (the visible
+  branches page, which prints the same nodes from sections/branches.liquid), with the same
+  ids. When a branch, its address or its hours change, change both files. Source of the
+  facts: the live site's branches page (the contact page shows the same five). Only the
+  lab's coordinates are known.
+
+  @example
+  "department": [{% render 'branches-json' %}]
+{% enddoc %}
+{%- liquid
+  assign bl_page_url = ''
+  if settings.branches_page != blank
+    assign bl_page_url = request.origin | append: settings.branches_page.url
+  endif
+-%}
+{%- render 'branch-json',
+  id: 'branch-flagship',
+  name: 'סניף הדגל – טיילת אילת',
+  services: 'מכירה · תצוגת ענק · איסוף הזמנות · מעבדה',
+  address: 'דרבן 150, פנינת אילת (מול מול הים), אילת',
+  phone: '03-511-7171',
+  hours_spec: 'Su-Th 10:00-23:00; Fr 10:00-14:00',
+  map_query: 'JOY Mobile, דרבן 150, אילת',
+  page_url: bl_page_url
+-%},
+{%- render 'branch-json',
+  id: 'branch-icemall',
+  name: 'JOY Mobile – קניון ICE MALL',
+  services: 'מכירה · תצוגת ענק · איסוף הזמנות · מעבדה',
+  address: 'אייס מול, קאמפן 8, קומה עליונה (מול ויקטוריה סיקרט ו-H&M), אילת',
+  phone: '03-511-7171',
+  hours_spec: 'Su-Th 10:00-23:00',
+  map_query: 'Ice Mall, קאמפן 8, אילת',
+  page_url: bl_page_url
+-%},
+{%- render 'branch-json',
+  id: 'branch-shalom',
+  name: 'סניף מרכז השלום',
+  services: 'מכירה · איסוף הזמנות · מעבדה',
+  address: 'שדרות התמרים 2 (צמוד לבנק דיסקונט), אילת',
+  phone: '03-511-7171',
+  hours_spec: 'Su-Th 09:30-23:00; Fr 09:00-14:00',
+  map_query: 'שדרות התמרים 2, אילת',
+  page_url: bl_page_url
+-%},
+{%- render 'branch-json',
+  id: 'branch-tachana',
+  name: 'JOY התחנה – מרכז הפצה',
+  services: 'קנייה ישירה מהמחסן · איסוף הזמנות · תיקון וייעוץ טכני',
+  address: 'שדרות התמרים 12 (התחנה המרכזית), אילת',
+  phone: '03-511-7171',
+  hours_spec: 'Su-Th 10:00-20:00',
+  map_query: 'התחנה המרכזית, שדרות התמרים 12, אילת',
+  page_url: bl_page_url
+-%},
+{%- render 'branch-json',
+  id: 'branch-fix',
+  name: 'מעבדת JOY FIX – ICE MALL',
+  services: 'תיקון סמארטפונים וטאבלטים · איסוף הזמנות',
+  address: 'אייס מול, קומה עליונה, בין אדידס לבובי בראון, אילת',
+  phone: '053-325-2060',
+  hours_spec: 'Su-Th 10:00-23:00; Fr 09:00-14:00',
+  geo: '29.5540656,34.965476',
+  map_query: 'Ice Mall, קאמפן 8, אילת',
+  page_url: bl_page_url
+-%}
