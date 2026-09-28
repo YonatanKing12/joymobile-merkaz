@@ -43,15 +43,12 @@
 .floating-actions__top {
   width: var(--tap-target);
   height: var(--tap-target);
-  border-radius: 0;
-  border-start-end-radius: var(--radius-md);
-  border-end-end-radius: var(--radius-md);
 }
 
 @media (min-width: 768px) {
   .floating-actions__top {
-    width: 3.125rem;
-    height: 3.375rem;
+    width: 3rem;
+    height: 3rem;
   }
 }
 
