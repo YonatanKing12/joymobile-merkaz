@@ -2,7 +2,8 @@
   Product carousel: a heading row (bold title at the start, a "view all" link at the end), a collection and up
   to N product cards (snippets/card-product.liquid). Sold-out products are skipped by default (store rule:
   homepage strips show available products only) and the strip is not rendered at all when fewer than 2
-  products are left. Per view: 2.2 (<768, the next card peeks in) · 3.2 (768) · 4 (992) · 5 (1200).
+  products are left. Products with a photo come first. Per view: 2.2 (<768, the next card peeks in) · 3.2 (768) ·
+  4 (992) · 5 (1200).
   The arrows wrap around at the ends. Cards near the top of the page (section index <= 3, first five) are not
   lazy-loaded.
 {%- endcomment -%}
@@ -23,31 +24,43 @@
   assign pc_count = 0
 -%}
 
+{%- comment -%}
+  Two passes over the collection's first 50 products, each in the collection's order: products with a photo
+  first, then products without one, only to fill the strip (most of the catalogue has no photo yet).
+{%- endcomment -%}
 {%- capture pc_slides -%}
   {%- if pc_collection != blank -%}
-    {%- for card_product in pc_collection.products -%}
-      {%- if section.settings.hide_sold_out and card_product.available == false -%}
-        {%- continue -%}
-      {%- endif -%}
-      {%- liquid
-        assign pc_count = pc_count | plus: 1
-        assign pc_lazy = true
-        if pc_count <= pc_eager
-          assign pc_lazy = false
-        endif
-      -%}
-      <div class="carousel__slide product-carousel__slide" role="listitem">
-        {%- render 'card-product',
-          product: card_product,
-          lazy: pc_lazy,
-          heading: 'h3',
-          section_id: section.id,
-          show_swatches: settings.card_show_swatches
+    {%- for pc_pass in (1..2) -%}
+      {%- for card_product in pc_collection.products -%}
+        {%- if pc_count >= pc_limit -%}
+          {%- break -%}
+        {%- endif -%}
+        {%- if section.settings.hide_sold_out and card_product.available == false -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- if pc_pass == 1 and card_product.featured_media == blank -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- if pc_pass == 2 and card_product.featured_media != blank -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- liquid
+          assign pc_count = pc_count | plus: 1
+          assign pc_lazy = true
+          if pc_count <= pc_eager
+            assign pc_lazy = false
+          endif
         -%}
-      </div>
-      {%- if pc_count >= pc_limit -%}
-        {%- break -%}
-      {%- endif -%}
+        <div class="carousel__slide product-carousel__slide" role="listitem">
+          {%- render 'card-product',
+            product: card_product,
+            lazy: pc_lazy,
+            heading: 'h3',
+            section_id: section.id,
+            show_swatches: settings.card_show_swatches
+          -%}
+        </div>
+      {%- endfor -%}
     {%- endfor -%}
   {%- endif -%}
 {%- endcapture -%}

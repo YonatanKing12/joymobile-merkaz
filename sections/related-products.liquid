@@ -5,7 +5,7 @@
     1. the product's most specific collections — its collections sorted by size (smallest first),
        skipping the handles in "exclude" and catch-all collections that hold ≥ 90% of the catalogue;
        the first three are read in turn until the limit is reached (same product type and in-stock
-       only, by default; never the current product, never twice);
+       only, by default; never the current product, never twice; products with a photo first);
     2. then the Search & Discovery "related products" the owner picked for this product
        (metafield shopify--discovery--product_recommendation.related_products);
     3. then the fallback collection from the settings.
@@ -48,27 +48,36 @@
         endif
         assign rp_tried = rp_tried | plus: 1
       -%}
-      {%- for rp_product in rp_collection.products limit: 50 -%}
-        {%- liquid
-          assign rp_key = ',' | append: rp_product.handle | append: ','
-          if rp_seen contains rp_key
-            continue
-          endif
-          if rp_hide_sold_out and rp_product.available == false
-            continue
-          endif
-          if section.settings.same_type and rp_type != blank and rp_product.type != product.type
-            continue
-          endif
-          assign rp_seen = rp_seen | append: rp_product.handle | append: ','
-          assign rp_count = rp_count | plus: 1
-        -%}
-        <div class="carousel__slide related-products__slide" role="listitem">
-          {%- render 'card-product', product: rp_product, lazy: true, heading: 'h3', section_id: section.id -%}
-        </div>
-        {%- if rp_count >= rp_limit -%}
-          {%- break -%}
-        {%- endif -%}
+      {%- comment -%} Two passes over each collection: products with a photo first, then the rest. {%- endcomment -%}
+      {%- for rp_pass in (1..2) -%}
+        {%- for rp_product in rp_collection.products limit: 50 -%}
+          {%- liquid
+            if rp_count >= rp_limit
+              break
+            endif
+            if rp_pass == 1 and rp_product.featured_media == blank
+              continue
+            endif
+            if rp_pass == 2 and rp_product.featured_media != blank
+              continue
+            endif
+            assign rp_key = ',' | append: rp_product.handle | append: ','
+            if rp_seen contains rp_key
+              continue
+            endif
+            if rp_hide_sold_out and rp_product.available == false
+              continue
+            endif
+            if section.settings.same_type and rp_type != blank and rp_product.type != product.type
+              continue
+            endif
+            assign rp_seen = rp_seen | append: rp_product.handle | append: ','
+            assign rp_count = rp_count | plus: 1
+          -%}
+          <div class="carousel__slide related-products__slide" role="listitem">
+            {%- render 'card-product', product: rp_product, lazy: true, heading: 'h3', section_id: section.id -%}
+          </div>
+        {%- endfor -%}
       {%- endfor -%}
     {%- endfor -%}
   {%- endif -%}
