@@ -63,7 +63,8 @@
     assign card_image_2 = product.media[1].preview_image
   endif
 
-  assign card_sizes = '(min-width: 1200px) 320px, (min-width: 768px) 30vw, 50vw'
+  # Cards: ≈250–290px in desktop strips and grids, ≈30vw on tablets, 2–2.2 per row on phones (≈44vw).
+  assign card_sizes = '(min-width: 1200px) 290px, (min-width: 768px) 30vw, 44vw'
 
   assign card_vendor = product.vendor | strip
   assign card_brand_logo = nil
