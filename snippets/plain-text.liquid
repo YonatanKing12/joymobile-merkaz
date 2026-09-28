@@ -1,0 +1,58 @@
+{% doc %}
+  Plain text of an HTML fragment (a product, collection or page description, a rich text
+  setting…) for meta descriptions and structured data. Block-level tags (paragraphs,
+  headings, list items, line breaks, tables) become spaces while inline tags (a, strong,
+  em…) simply disappear, so "<a>…</a>." keeps its full stop; the common HTML entities are
+  decoded — a JSON-LD string is not HTML, so "&amp;" would reach search engines
+  literally — and runs of white space collapse into one space.
+
+  The output is raw text, not escaped: callers capture it and pipe it through `json`
+  (JSON-LD) or `escape` (an attribute).
+
+  @param {string} html - The HTML to flatten.
+  @param {boolean} [first_paragraph] - Only the opening of the text: whole paragraphs are
+    taken until there are at least 60 characters, so a short opener ("הגעתם למקום
+    הנכון!") is followed by the paragraph that actually describes the page.
+  @param {number} [limit] - At most this many characters: the text is cut at the last
+    whole word and ends with "…". Default: no limit.
+
+  @example
+  {%- capture text -%}{% render 'plain-text', html: product.description, limit: 160 %}{%- endcapture -%}
+{% enddoc %}
+{%- liquid
+  assign pt_html = html | default: ''
+
+  if first_paragraph
+    assign pt_paragraphs = pt_html | split: '</p>'
+    assign pt_opening = ''
+    for pt_paragraph in pt_paragraphs
+      assign pt_opening = pt_opening | append: ' ' | append: pt_paragraph | append: '</p>'
+      assign pt_opening_text = pt_opening | newline_to_br | strip_newlines | replace: '<', ' <' | strip_html | split: ' ' | join: ' '
+      if pt_opening_text.size >= 60
+        break
+      endif
+    endfor
+    assign pt_html = pt_opening
+  endif
+
+  # Line breaks become <br /> tags, and every block-level tag gets a space before it, so
+  # stripping the tags never glues two words together.
+  assign pt_text = pt_html | newline_to_br | strip_newlines | replace: '<p', ' <p' | replace: '</p', ' </p' | replace: '<br', ' <br' | replace: '<li', ' <li' | replace: '</li', ' </li' | replace: '<h', ' <h' | replace: '</h', ' </h' | replace: '<d', ' <d' | replace: '</d', ' </d' | replace: '<t', ' <t' | replace: '</t', ' </t' | replace: '<ul', ' <ul' | replace: '</ul', ' </ul' | replace: '<ol', ' <ol' | replace: '</ol', ' </ol' | replace: '<blockquote', ' <blockquote' | replace: '</blockquote', ' </blockquote' | replace: '<section', ' <section' | replace: '</section', ' </section'
+  assign pt_text = pt_text | strip_html
+  # "&amp;" last, so an escaped entity such as "&amp;lt;" stays the text "&lt;".
+  assign pt_text = pt_text | replace: '&nbsp;', ' ' | replace: '&#160;', ' ' | replace: '&quot;', '"' | replace: '&#34;', '"' | replace: '&#39;', "'" | replace: '&#039;', "'" | replace: '&apos;', "'" | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&ndash;', '–' | replace: '&mdash;', '—' | replace: '&hellip;', '…' | replace: '&lsquo;', '‘' | replace: '&rsquo;', '’' | replace: '&ldquo;', '“' | replace: '&rdquo;', '”' | replace: '&amp;', '&'
+  assign pt_text = pt_text | split: ' ' | join: ' ' | strip
+
+  assign pt_limit = limit | default: 0
+  if pt_limit > 0 and pt_text.size > pt_limit
+    assign pt_cut_size = pt_limit | minus: 1
+    assign pt_cut = pt_text | slice: 0, pt_cut_size
+    assign pt_last_word = pt_cut | split: ' ' | last
+    assign pt_words = pt_cut | remove_last: pt_last_word | strip
+    if pt_words == blank
+      assign pt_words = pt_cut
+    endif
+    assign pt_text = pt_words | append: '…'
+  endif
+-%}
+{{- pt_text -}}

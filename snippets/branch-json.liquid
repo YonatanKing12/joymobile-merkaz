@@ -1,0 +1,213 @@
+{% doc %}
+  One JOY Mobile branch as a schema.org store: a bare JSON object, without <script> or
+  "@context", for a caller that wraps it — sections/branches.liquid (one per branch block,
+  on the branches page) and snippets/branches-json.liquid (every branch, in the
+  Organization of the home page). Both describe the same nodes, so both go through here.
+
+  - "@type": the theme setting "סוג העסק" (store_business_type, default ElectronicsStore).
+  - "@id": <origin>/#store-<id>. The ids are the block keys of templates/page.branches.json
+    (branch-flagship, branch-icemall…), used by both callers.
+  - name: the branch name, with the brand in front when the name doesn't mention it
+    ("סניף מרכז השלום" → "JOY Mobile – סניף מרכז השלום"), so the node stands alone.
+  - address: a PostalAddress. The visible address ends with the city ("דרבן 150, פנינת
+    אילת (מול מול הים), אילת"): that ending (theme setting store_city, default אילת) is cut
+    from streetAddress and becomes addressLocality; addressCountry IL.
+  - telephone: the branch phone, else the theme phone, in international form (+972-…).
+  - openingHoursSpecification: from `hours_spec`, entries separated by ";" or line breaks,
+    each "<days> <opens>-<closes>": days as a range (Su-Th) or a list (Fr or Mo,We) of
+    Su Mo Tu We Th Fr Sa, times as HH:MM. Malformed entries are skipped. Hours that move
+    with Shabbat stay out: they can't be written as fixed times, and a guessed time would
+    be wrong half the year.
+  - geo: only from `geo` ("latitude,longitude" with decimals), never looked up or guessed.
+  - url: the branch card on the branches page (<page>#Branch-<id>, the id of its heading),
+    when the page is known; hasMap: a Google Maps search for the map query (else the address).
+  - parentOrganization: the Organization of snippets/structured-data (<origin>/#organization).
+  Every string goes through `json`; the caller replaces "</" before printing.
+
+  @param {string} id - Stable key of the branch: the block id (a block key of templates/page.branches.json).
+  @param {string} name - Branch name.
+  @param {string} address - Address as shown on the site, ending with the city, e.g. "שדרות התמרים 2 (צמוד לבנק דיסקונט), אילת".
+  @param {string} [services] - Services line; becomes the description.
+  @param {string} [phone] - Branch phone. Default: the theme setting contact_phone.
+  @param {string} [hours_spec] - Machine-readable opening hours, e.g. "Su-Th 10:00-23:00; Fr 10:00-14:00".
+  @param {string} [geo] - Exact coordinates, "latitude,longitude".
+  @param {string} [map_query] - Map search. Default: the address.
+  @param {string} [page_url] - Absolute URL of the page that lists the branch cards.
+  @param {image} [image] - Photo of the branch.
+
+  @example
+  {% render 'branch-json', id: block.id, name: block.settings.name, address: block.settings.address, hours_spec: block.settings.hours_spec, page_url: page_url %}
+{% enddoc %}
+{%- liquid
+  assign bj_origin = request.origin
+  assign bj_brand = settings.brand_name | strip | default: shop.name
+  assign bj_type = settings.store_business_type | default: 'ElectronicsStore'
+  assign bj_name = name | strip
+  assign bj_address = address | strip
+  assign bj_city = settings.store_city | strip | default: 'אילת'
+
+  # Name: the brand in front unless the name already carries its first word ("JOY").
+  assign bj_brand_word = bj_brand | split: ' ' | first | downcase
+  assign bj_name_key = bj_name | downcase
+  assign bj_full_name = bj_name
+  unless bj_name_key contains bj_brand_word
+    assign bj_full_name = bj_brand | append: ' – ' | append: bj_name
+  endunless
+
+  # Street: the visible address without its ", <city>" ending.
+  assign bj_street = bj_address
+  assign bj_city_suffix = ', ' | append: bj_city
+  assign bj_suffix_size = bj_city_suffix | size
+  assign bj_address_size = bj_address | size
+  if bj_address_size > bj_suffix_size
+    assign bj_street_size = bj_address_size | minus: bj_suffix_size
+    assign bj_ending = bj_address | slice: bj_street_size, bj_suffix_size
+    if bj_ending == bj_city_suffix
+      assign bj_street = bj_address | slice: 0, bj_street_size
+    endif
+  endif
+
+  # Phone: 03-511-7171 → +972-3-511-7171.
+  assign bj_phone = phone | strip | default: settings.contact_phone | strip
+  assign bj_phone_first = bj_phone | slice: 0
+  if bj_phone_first == '0'
+    assign bj_phone = bj_phone | remove_first: '0' | prepend: '+972-'
+  endif
+
+  # Opening hours: "Su-Th 10:00-23:00; Fr 10:00-14:00" → OpeningHoursSpecification objects.
+  assign bj_day_codes = 'Su,Mo,Tu,We,Th,Fr,Sa' | split: ','
+  assign bj_day_names = 'Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday' | split: ','
+  assign bj_hours_json = ''
+  assign bj_entries = hours_spec | default: '' | replace: '–', '-' | newline_to_br | strip_newlines | replace: '<br />', ';' | split: ';'
+  for bj_entry in bj_entries
+    assign bj_entry_parts = bj_entry | strip | split: ' '
+    if bj_entry_parts.size != 2
+      continue
+    endif
+
+    assign bj_times = bj_entry_parts[1] | split: '-'
+    if bj_times.size != 2
+      continue
+    endif
+    assign bj_opens = bj_times[0] | strip
+    assign bj_closes = bj_times[1] | strip
+    if bj_opens.size == 4
+      assign bj_opens = bj_opens | prepend: '0'
+    endif
+    if bj_closes.size == 4
+      assign bj_closes = bj_closes | prepend: '0'
+    endif
+    assign bj_opens_colon = bj_opens | slice: 2
+    assign bj_closes_colon = bj_closes | slice: 2
+    assign bj_time_rest = bj_opens | append: bj_closes | remove: ':' | remove: '0' | remove: '1' | remove: '2' | remove: '3' | remove: '4' | remove: '5' | remove: '6' | remove: '7' | remove: '8' | remove: '9'
+    unless bj_opens.size == 5 and bj_closes.size == 5 and bj_opens_colon == ':' and bj_closes_colon == ':' and bj_time_rest == blank
+      continue
+    endunless
+
+    assign bj_days_json = ''
+    assign bj_days = bj_entry_parts[0]
+    if bj_days contains '-'
+      assign bj_range = bj_days | split: '-'
+      assign bj_from_code = bj_range[0] | capitalize
+      assign bj_to_code = bj_range[1] | capitalize
+      assign bj_from = -1
+      assign bj_to = -1
+      for bj_code in bj_day_codes
+        if bj_code == bj_from_code
+          assign bj_from = forloop.index0
+        endif
+        if bj_code == bj_to_code
+          assign bj_to = forloop.index0
+        endif
+      endfor
+      if bj_from >= 0 and bj_to >= 0
+        # The week starts on Sunday; a range may wrap around it (Fr-Su).
+        assign bj_span = bj_to | minus: bj_from | plus: 7 | modulo: 7
+        for bj_step in (0..bj_span)
+          assign bj_day_index = bj_from | plus: bj_step | modulo: 7
+          assign bj_day_json = bj_day_names[bj_day_index] | json
+          assign bj_days_json = bj_days_json | append: ',' | append: bj_day_json
+        endfor
+      endif
+    else
+      assign bj_day_list = bj_days | split: ','
+      for bj_day in bj_day_list
+        assign bj_day_code = bj_day | strip | capitalize
+        for bj_code in bj_day_codes
+          if bj_code == bj_day_code
+            assign bj_day_json = bj_day_names[forloop.index0] | json
+            assign bj_days_json = bj_days_json | append: ',' | append: bj_day_json
+          endif
+        endfor
+      endfor
+    endif
+    if bj_days_json == blank
+      continue
+    endif
+
+    assign bj_opens_json = bj_opens | json
+    assign bj_closes_json = bj_closes | json
+    assign bj_days_json = bj_days_json | remove_first: ','
+    assign bj_hours_json = bj_hours_json | append: ',{"@type":"OpeningHoursSpecification","dayOfWeek":[' | append: bj_days_json | append: '],"opens":' | append: bj_opens_json | append: ',"closes":' | append: bj_closes_json | append: '}'
+  endfor
+  assign bj_hours_json = bj_hours_json | remove_first: ','
+
+  # Coordinates: two decimal numbers, printed as JSON numbers only once they are known to be valid.
+  assign bj_latitude = ''
+  assign bj_longitude = ''
+  assign bj_geo_parts = geo | default: '' | remove: ' ' | split: ','
+  if bj_geo_parts.size == 2
+    assign bj_geo_ok = true
+    for bj_coordinate in bj_geo_parts
+      assign bj_coordinate_abs = bj_coordinate
+      assign bj_coordinate_sign = bj_coordinate | slice: 0
+      if bj_coordinate_sign == '-'
+        assign bj_coordinate_abs = bj_coordinate | slice: 1, 40
+      endif
+      assign bj_coordinate_halves = bj_coordinate_abs | split: '.'
+      assign bj_coordinate_rest = bj_coordinate_abs | remove: '.' | remove: '0' | remove: '1' | remove: '2' | remove: '3' | remove: '4' | remove: '5' | remove: '6' | remove: '7' | remove: '8' | remove: '9'
+      assign bj_coordinate_lead = bj_coordinate_abs | slice: 0
+      if bj_coordinate_halves.size != 2 or bj_coordinate_halves[0] == blank or bj_coordinate_halves[1] == blank or bj_coordinate_rest != blank
+        assign bj_geo_ok = false
+      elsif bj_coordinate_lead == '0' and bj_coordinate_halves[0].size > 1
+        assign bj_geo_ok = false
+      endif
+    endfor
+    if bj_geo_ok
+      assign bj_latitude = bj_geo_parts[0]
+      assign bj_longitude = bj_geo_parts[1]
+    endif
+  endif
+
+  assign bj_map_query = map_query | strip | default: bj_address
+  assign bj_map_url = bj_map_query | url_encode | replace: '+', '%20' | prepend: 'https://www.google.com/maps/search/?api=1&query='
+
+  assign bj_url = ''
+  if page_url != blank
+    assign bj_url = page_url | append: '#Branch-' | append: id
+  endif
+-%}
+{
+  "@type": {{ bj_type | json }},
+  "@id": {{ bj_origin | append: '/#store-' | append: id | json }},
+  "name": {{ bj_full_name | json }}
+  {%- if services != blank -%},"description": {{ services | strip | json }}{%- endif -%},
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": {{ bj_street | json }},
+    "addressLocality": {{ bj_city | json }},
+    "addressCountry": "IL"
+  }
+  {%- if bj_phone != blank -%},"telephone": {{ bj_phone | json }}{%- endif -%}
+  {%- if bj_hours_json != blank -%},"openingHoursSpecification": [{{ bj_hours_json }}]{%- endif -%}
+  {%- if bj_latitude != blank -%},"geo": { "@type": "GeoCoordinates", "latitude": {{ bj_latitude }}, "longitude": {{ bj_longitude }} }{%- endif -%}
+  {%- if bj_url != blank -%},"url": {{ bj_url | json }}{%- endif -%}
+  {%- if bj_map_query != blank -%},"hasMap": {{ bj_map_url | json }}{%- endif -%}
+  {%- if image != blank -%},"image": {{ image | image_url: width: 1200 | remove_first: 'https:' | prepend: 'https:' | json }}{%- endif -%},
+  "parentOrganization": {
+    "@type": "Organization",
+    "@id": {{ bj_origin | append: '/#organization' | json }},
+    "name": {{ bj_brand | json }},
+    "url": {{ bj_origin | append: routes.root_url | json }}
+  }
+}

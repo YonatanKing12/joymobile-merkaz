@@ -2,37 +2,75 @@
   schema.org JSON-LD in a <script type="application/ld+json">.
 
   Types:
-  - 'organization': the store as a LocalBusiness subtype (theme setting
-    store_business_type, default ElectronicsStore): name = the theme's brand name
-    (settings.brand_name, e.g. JOY Mobile), logo (settings.logo → the JOY Mobile
-    lockup assets/logo-joy.png; the shop-level Brand logo is deliberately not used),
-    phone, email, address from theme settings (street/city/postal code, IL) and sameAs
-    from the social links. layout/theme.liquid prints it on the home page.
-  - 'website': WebSite + SearchAction (/search?q=…), named after the brand. Home page.
-  - 'product': Product with brand (vendor, omitted when the vendor is the store's own
-    name or the brand name — 227 products carry no real brand), sku, gtin (barcode of 8/12/13/14 digits),
-    images, and one Offer per variant (price = the Eilat price actually charged,
-    ILS, availability, url with ?variant=); aggregateRating when the standard
-    `reviews.rating` metafields exist. Product sections render it.
+  - 'organization': the chain, as an Organization (home page, from layout/theme.liquid):
+    name = the theme's brand name (settings.brand_name, e.g. JOY Mobile), alternateName =
+    the Hebrew name from the locale file (general.meta.alternate_name, ג׳וי מובייל), url,
+    logo (settings.logo → the JOY Mobile lockup assets/logo-joy.png; the shop-level Brand
+    logo is deliberately not used), description (general.meta.default_description), phone
+    in +972 form and email from the theme settings, the address of the theme settings
+    (street/city/postal code, IL), a customer-service ContactPoint, sameAs = the social
+    links, the return policy (below) and `department` = every branch as a store
+    (snippets/branches-json.liquid: the facts and ids of the branches page), so an engine
+    that reads the home page learns every location, phone and opening hours.
+  - 'website': WebSite + SearchAction (/search?q=…), named after the brand, with the Hebrew
+    name as alternateName (Google reads both as the site name). Home page.
+  - 'product': Product — name, description (plain text), up to 8 images, sku, brand (the
+    vendor; left out when it is the store itself — 227 products carry the vendor "joy
+    mobile" — or the brand name, compared case-insensitively), category (the product
+    type), url, and one Offer per variant with a price above zero: price in shekels as a
+    decimal (the Eilat price actually charged), priceCurrency, availability (InStock /
+    OutOfStock), itemCondition, url with ?variant=, sku, the GTIN, the seller (the
+    Organization) and the return policy. A single-variant product also carries its GTIN.
+    - GTIN: the variant barcode only when it is a real GS1 number — 8, 12, 13 or 14 digits
+      with a valid check digit — as gtin8/gtin12/gtin13/gtin14. The store's internal codes
+      ("6661", "432344") and part numbers ("MGDR4HB/A") never become GTINs.
+    - itemCondition: UsedCondition for the tag "יד שניה" (or "יד שנייה"),
+      RefurbishedCondition for "מחודש" — the tags behind the collection "מכשירים יד שניה
+      ומחודשים" — else NewCondition.
+    - No review or rating markup: the store has no reviews, and ratings may only describe
+      reviews that are visible on the page.
+    Printed once, in the <head> (layout/theme.liquid, placement: 'head'), so it doesn't
+    depend on the product section's markup. A call without that placement prints
+    nothing, so a section that still renders this type can't add a second Product.
   - 'breadcrumbs': BreadcrumbList — delegates to the breadcrumbs snippet so the
     JSON-LD always matches the visible trail.
   - 'article': BlogPosting for the current article.
+
+  Return policy (MerchantReturnPolicy, on the Organization and on every Offer): the
+  cancellation terms of the live store, under the Consumer Protection Law — 14 days from
+  receiving the product, the product returned to the store (ReturnInStore); a cancellation
+  that isn't due to a defect is at the customer's expense (ReturnFeesCustomerResponsibility;
+  its handling fee, 5% or ₪100 whichever is lower, has no schema.org form and is left out),
+  while a defective product is taken back free (itemDefectReturnFees FreeReturn).
+  merchantReturnLink: the Hebrew page "ביטול עסקה והחזרת מוצרים" (handle returns), else
+  Shopify's refund policy — the same rule as the footer's link.
+
+  Other structured data lives with its content: the branches page's stores in
+  sections/branches.liquid, the FAQ page's questions in sections/faq.liquid.
   Every value is JSON-encoded and "</" is written as "<\/" (same string in JSON), so content
   can never close the script.
 
   @param {string} type - 'organization' | 'website' | 'product' | 'breadcrumbs' | 'article'.
   @param {product} [product] - Product for 'product'. Default: the page's product.
+  @param {string} [placement] - 'head' when layout/theme.liquid renders the 'product' type; the only placement that prints it.
   @param {article} [article] - Article for 'article'. Default: the page's article.
 
   @example
   {% render 'structured-data', type: 'organization' %}
-  {% render 'structured-data', type: 'product', product: product %}
+  {% render 'structured-data', type: 'product', product: product, placement: 'head' %}
 {% enddoc %}
 {%- liquid
   assign site_url = request.origin
   assign org_id = site_url | append: '/#organization'
   assign brand_name = settings.brand_name | strip | default: shop.name
 -%}
+{%- capture return_policy_json -%}
+  {%- if type == 'organization' or type == 'product' -%}
+    {%- assign return_policy_url = pages['returns'].url | default: shop.refund_policy.url -%}
+    {"@type":"MerchantReturnPolicy","applicableCountry":"IL","returnPolicyCategory":"https://schema.org/MerchantReturnFiniteReturnWindow","merchantReturnDays":14,"returnMethod":"https://schema.org/ReturnInStore","returnFees":"https://schema.org/ReturnFeesCustomerResponsibility","itemDefectReturnFees":"https://schema.org/FreeReturn"
+    {%- if return_policy_url != blank -%},"merchantReturnLink":{{ site_url | append: return_policy_url | json }}{%- endif -%}}
+  {%- endif -%}
+{%- endcapture -%}
 {%- case type -%}
   {%- when 'breadcrumbs' -%}
     {%- render 'breadcrumbs', format: 'json' -%}
@@ -40,7 +78,6 @@
   {%- when 'organization' -%}
     {%- liquid
       assign org_logo = settings.logo
-      assign org_type = settings.store_business_type | default: 'ElectronicsStore'
       assign same_as = ''
       assign networks = 'facebook,instagram,telegram,tiktok,youtube' | split: ','
       for network in networks
@@ -50,13 +87,25 @@
         endif
       endfor
       assign same_as_list = same_as | remove_first: '|' | split: '|'
+
+      assign org_alternate_name = 'general.meta.alternate_name' | t | strip
+      assign org_description = 'general.meta.default_description' | t: brand: brand_name
+      assign org_email = settings.contact_email | strip
+      # 03-511-7171 → +972-3-511-7171: Google asks for the country code.
+      assign org_phone = settings.contact_phone | strip
+      assign org_phone_first = org_phone | slice: 0
+      if org_phone_first == '0'
+        assign org_phone = org_phone | remove_first: '0' | prepend: '+972-'
+      endif
     -%}
+    {%- capture org_branches -%}{%- render 'branches-json' -%}{%- endcapture -%}
     {%- capture org_json -%}
       {
         "@context": "https://schema.org",
-        "@type": {{ org_type | json }},
+        "@type": "Organization",
         "@id": {{ org_id | json }},
-        "name": {{ brand_name | json }},
+        "name": {{ brand_name | json }}
+        {%- if org_alternate_name != blank and org_alternate_name != brand_name -%},"alternateName": {{ org_alternate_name | json }}{%- endif -%},
         "url": {{ site_url | append: routes.root_url | json }}
         {%- if org_logo != blank -%}
           {%- assign org_logo_url = org_logo | image_url: width: 600 | remove_first: 'https:' | prepend: 'https:' -%}
@@ -64,12 +113,13 @@
           {%- assign org_logo_url = 'logo-joy.png' | asset_url | remove_first: 'https:' | prepend: 'https:' -%}
         {%- endif -%}
         ,"logo": {{ org_logo_url | json }},
-        "image": {{ org_logo_url | json }}
-        {%- if settings.contact_phone != blank -%}
-          ,"telephone": {{ settings.contact_phone | json }}
+        "image": {{ org_logo_url | json }},
+        "description": {{ org_description | json }}
+        {%- if org_phone != blank -%}
+          ,"telephone": {{ org_phone | json }}
         {%- endif -%}
-        {%- if settings.contact_email != blank -%}
-          ,"email": {{ settings.contact_email | json }}
+        {%- if org_email != blank -%}
+          ,"email": {{ org_email | json }}
         {%- endif -%}
         {%- if settings.store_street != blank or settings.store_city != blank -%}
           ,"address": {
@@ -80,21 +130,38 @@
             "addressCountry": "IL"
           }
         {%- endif -%}
+        {%- if org_phone != blank or org_email != blank -%}
+          ,"contactPoint": [{
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            {%- if org_phone != blank -%}"telephone": {{ org_phone | json }},{%- endif -%}
+            {%- if org_email != blank -%}"email": {{ org_email | json }},{%- endif -%}
+            "availableLanguage": "he"
+          }]
+        {%- endif -%}
         {%- if same_as_list.size > 0 -%}
           ,"sameAs": {{ same_as_list | json }}
+        {%- endif -%}
+        ,"hasMerchantReturnPolicy": {{ return_policy_json }}
+        {%- if org_branches != blank -%}
+          ,"department": [{{ org_branches }}]
         {%- endif -%}
       }
     {%- endcapture -%}
     <script type="application/ld+json">{{ org_json | strip_newlines | replace: '</', '<\/' }}</script>
 
   {%- when 'website' -%}
-    {%- assign search_template = site_url | append: routes.search_url | append: '?q={search_term_string}' -%}
+    {%- liquid
+      assign search_template = site_url | append: routes.search_url | append: '?q={search_term_string}'
+      assign website_alternate_name = 'general.meta.alternate_name' | t | strip
+    -%}
     {%- capture website_json -%}
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "@id": {{ site_url | append: '/#website' | json }},
-        "name": {{ brand_name | json }},
+        "name": {{ brand_name | json }}
+        {%- if website_alternate_name != blank and website_alternate_name != brand_name -%},"alternateName": {{ website_alternate_name | json }}{%- endif -%},
         "url": {{ site_url | append: routes.root_url | json }},
         "inLanguage": "he",
         "publisher": { "@id": {{ org_id | json }} },
@@ -111,12 +178,87 @@
     <script type="application/ld+json">{{ website_json | strip_newlines | replace: '</', '<\/' }}</script>
 
   {%- when 'product' -%}
-    {%- liquid
-      assign ld_product = product
-      assign ld_url = site_url | append: ld_product.url
-      assign ld_description = ld_product.description | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncate: 5000
-    -%}
-    {%- if ld_product != blank -%}
+    {%- if placement == 'head' and product != blank -%}
+      {%- liquid
+        assign ld_product = product
+        assign ld_url = site_url | append: ld_product.url
+        assign ld_currency = cart.currency.iso_code | default: shop.currency
+        assign ld_first = ld_product.selected_or_first_available_variant
+        assign ld_multiple = false
+        if ld_product.variants.size > 1
+          assign ld_multiple = true
+        endif
+
+        assign ld_vendor = ld_product.vendor | strip
+        assign ld_vendor_key = ld_vendor | downcase
+        assign ld_shop_key = shop.name | strip | downcase
+        assign ld_brand_key = brand_name | downcase
+        assign ld_brand = ''
+        if ld_vendor != blank and ld_vendor_key != ld_shop_key and ld_vendor_key != ld_brand_key
+          assign ld_brand = ld_vendor
+        endif
+
+        assign ld_condition = 'https://schema.org/NewCondition'
+        if ld_product.tags contains 'יד שניה' or ld_product.tags contains 'יד שנייה'
+          assign ld_condition = 'https://schema.org/UsedCondition'
+        elsif ld_product.tags contains 'מחודש'
+          assign ld_condition = 'https://schema.org/RefurbishedCondition'
+        endif
+      -%}
+      {%- capture ld_seller -%}{"@type":"Organization","@id":{{ org_id | json }},"name":{{ brand_name | json }}}{%- endcapture -%}
+      {%- capture ld_description -%}{%- render 'plain-text', html: ld_product.description, limit: 5000 -%}{%- endcapture -%}
+      {%- capture ld_offers -%}
+        {%- assign ld_offer_count = 0 -%}
+        {%- assign ld_product_gtin_key = '' -%}
+        {%- for ld_variant in ld_product.variants limit: 100 -%}
+          {%- if ld_variant.price > 0 -%}
+            {%- liquid
+              # GS1 check digit: from the digit before the check digit leftwards, weights 3, 1, 3, 1…
+              assign ld_gtin = ld_variant.barcode | strip
+              assign ld_gtin_key = ''
+              assign ld_gtin_rest = ld_gtin | remove: '0' | remove: '1' | remove: '2' | remove: '3' | remove: '4' | remove: '5' | remove: '6' | remove: '7' | remove: '8' | remove: '9'
+              if ld_gtin != blank and ld_gtin_rest == blank
+                case ld_gtin.size
+                  when 8, 12, 13, 14
+                    assign ld_gtin_last = ld_gtin.size | minus: 1
+                    assign ld_gtin_sum = 0
+                    for ld_gtin_step in (1..ld_gtin_last)
+                      assign ld_gtin_position = ld_gtin_last | minus: ld_gtin_step
+                      assign ld_gtin_digit = ld_gtin | slice: ld_gtin_position | plus: 0
+                      assign ld_gtin_weight = ld_gtin_step | modulo: 2 | times: 2 | plus: 1
+                      assign ld_gtin_sum = ld_gtin_digit | times: ld_gtin_weight | plus: ld_gtin_sum
+                    endfor
+                    assign ld_gtin_remainder = ld_gtin_sum | modulo: 10
+                    assign ld_gtin_check = 10 | minus: ld_gtin_remainder | modulo: 10
+                    assign ld_gtin_actual = ld_gtin | slice: ld_gtin_last | plus: 0
+                    if ld_gtin_check == ld_gtin_actual
+                      assign ld_gtin_key = 'gtin' | append: ld_gtin.size
+                    endif
+                endcase
+              endif
+              if ld_multiple == false and ld_gtin_key != blank
+                assign ld_product_gtin_key = ld_gtin_key
+                assign ld_product_gtin = ld_gtin
+              endif
+            -%}
+            {%- if ld_offer_count > 0 -%},{%- endif -%}
+            {%- assign ld_offer_count = ld_offer_count | plus: 1 -%}
+            {
+              "@type": "Offer",
+              "url": {{ ld_url | append: '?variant=' | append: ld_variant.id | json }},
+              "price": {{ ld_variant.price | divided_by: 100.0 | json }},
+              "priceCurrency": {{ ld_currency | json }},
+              "availability": {% if ld_variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
+              "itemCondition": {{ ld_condition | json }},
+              "seller": {{ ld_seller }},
+              "hasMerchantReturnPolicy": {{ return_policy_json }}
+              {%- if ld_multiple -%},"name": {{ ld_product.title | append: ' – ' | append: ld_variant.title | json }}{%- endif -%}
+              {%- if ld_variant.sku != blank -%},"sku": {{ ld_variant.sku | strip | json }}{%- endif -%}
+              {%- if ld_gtin_key != blank -%},{{ ld_gtin_key | json }}: {{ ld_gtin | json }}{%- endif -%}
+            }
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endcapture -%}
       {%- capture product_json -%}
         {
           "@context": "https://schema.org",
@@ -125,55 +267,18 @@
           "name": {{ ld_product.title | json }},
           "url": {{ ld_url | json }}
           {%- if ld_description != blank -%},"description": {{ ld_description | json }}{%- endif -%}
-          {%- if ld_product.vendor != blank and ld_product.vendor != shop.name and ld_product.vendor != brand_name -%},"brand": { "@type": "Brand", "name": {{ ld_product.vendor | json }} }{%- endif -%}
-          {%- if ld_product.type != blank -%},"category": {{ ld_product.type | json }}{%- endif -%}
           {%- if ld_product.images.size > 0 -%}
             ,"image": [
-              {%- for ld_image in ld_product.images limit: 5 -%}
+              {%- for ld_image in ld_product.images limit: 8 -%}
                 {{ ld_image | image_url: width: 1200 | remove_first: 'https:' | prepend: 'https:' | json }}{% unless forloop.last %},{% endunless %}
               {%- endfor -%}
             ]
           {%- endif -%}
-          {%- assign ld_first = ld_product.selected_or_first_available_variant -%}
-          {%- if ld_first.sku != blank -%},"sku": {{ ld_first.sku | json }}{%- endif -%}
-          {%- assign rating = ld_product.metafields.reviews.rating.value -%}
-          {%- assign rating_count = ld_product.metafields.reviews.rating_count.value -%}
-          {%- if rating != blank and rating_count > 0 -%}
-            ,"aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": {{ rating.rating | json }},
-              "bestRating": {{ rating.scale_max | json }},
-              "worstRating": {{ rating.scale_min | json }},
-              "ratingCount": {{ rating_count | json }}
-            }
-          {%- endif -%}
-          ,"offers": [
-            {%- for ld_variant in ld_product.variants limit: 100 -%}
-              {%- liquid
-                assign gtin_digits = ld_variant.barcode | strip
-                assign gtin_rest = gtin_digits | remove: '0' | remove: '1' | remove: '2' | remove: '3' | remove: '4' | remove: '5' | remove: '6' | remove: '7' | remove: '8' | remove: '9'
-                assign gtin_ok = false
-                if gtin_digits != blank and gtin_rest == blank
-                  case gtin_digits.size
-                    when 8, 12, 13, 14
-                      assign gtin_ok = true
-                  endcase
-                endif
-              -%}
-              {
-                "@type": "Offer",
-                "url": {{ ld_url | append: '?variant=' | append: ld_variant.id | json }},
-                "price": {{ ld_variant.price | divided_by: 100.0 | json }},
-                "priceCurrency": {{ cart.currency.iso_code | default: shop.currency | json }},
-                "availability": {% if ld_variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
-                "itemCondition": "https://schema.org/NewCondition",
-                "seller": { "@id": {{ org_id | json }} }
-                {%- if ld_product.variants.size > 1 -%},"name": {{ ld_product.title | append: ' – ' | append: ld_variant.title | json }}{%- endif -%}
-                {%- if ld_variant.sku != blank -%},"sku": {{ ld_variant.sku | json }}{%- endif -%}
-                {%- if gtin_ok -%},"gtin": {{ gtin_digits | json }}{%- endif -%}
-              }{% unless forloop.last %},{% endunless %}
-            {%- endfor -%}
-          ]
+          {%- if ld_first.sku != blank -%},"sku": {{ ld_first.sku | strip | json }}{%- endif -%}
+          {%- if ld_product_gtin_key != blank -%},{{ ld_product_gtin_key | json }}: {{ ld_product_gtin | json }}{%- endif -%}
+          {%- if ld_brand != blank -%},"brand": { "@type": "Brand", "name": {{ ld_brand | json }} }{%- endif -%}
+          {%- if ld_product.type != blank -%},"category": {{ ld_product.type | strip | json }}{%- endif -%}
+          {%- if ld_offer_count > 0 -%},"offers": [{{ ld_offers }}]{%- endif -%}
         }
       {%- endcapture -%}
       <script type="application/ld+json">{{ product_json | strip_newlines | replace: '</', '<\/' }}</script>
