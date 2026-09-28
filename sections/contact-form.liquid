@@ -198,7 +198,8 @@
           </div>
         {%- endif -%}
 
-        {%- if section.settings.show_privacy and shop.privacy_policy -%}
+        {%- assign privacy_url = pages['privacy'].url | default: shop.privacy_policy.url -%}
+        {%- if section.settings.show_privacy and privacy_url != blank -%}
           <div class="contact-form__consent">
             <div class="checkbox contact-form__check">
               <input
@@ -210,7 +211,7 @@
               >
               <label for="{{ form_id }}-privacy">
                 {{- 'contact.form.privacy_prefix' | t -}}
-                <a href="{{ shop.privacy_policy.url }}" target="_blank" rel="noopener">
+                <a href="{{ privacy_url }}" target="_blank" rel="noopener">
                   {{- 'contact.form.privacy_link' | t -}}
                   <span class="visually-hidden"> ({{ new_window }})</span>
                 </a>

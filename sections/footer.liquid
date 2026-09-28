@@ -238,14 +238,20 @@
             <li><a class="footer__link" href="{{ statement_url }}">{{ 'footer.accessibility' | t }}</a></li>
           {%- endif -%}
           {%- if section.settings.show_policies -%}
-            {%- if shop.privacy_policy != blank -%}
-              <li><a class="footer__link" href="{{ shop.privacy_policy.url }}">{{ 'footer.privacy' | t }}</a></li>
+            {%- # The Hebrew pages (handles privacy, terms, returns) win over Shopify's policy pages when they exist. -%}
+            {%- liquid
+              assign privacy_url = pages['privacy'].url | default: shop.privacy_policy.url
+              assign terms_url = pages['terms'].url | default: shop.terms_of_service.url
+              assign refund_url = pages['returns'].url | default: shop.refund_policy.url
+            -%}
+            {%- if privacy_url != blank -%}
+              <li><a class="footer__link" href="{{ privacy_url }}">{{ 'footer.privacy' | t }}</a></li>
             {%- endif -%}
-            {%- if shop.terms_of_service != blank -%}
-              <li><a class="footer__link" href="{{ shop.terms_of_service.url }}">{{ 'footer.terms' | t }}</a></li>
+            {%- if terms_url != blank -%}
+              <li><a class="footer__link" href="{{ terms_url }}">{{ 'footer.terms' | t }}</a></li>
             {%- endif -%}
-            {%- if shop.refund_policy != blank -%}
-              <li><a class="footer__link" href="{{ shop.refund_policy.url }}">{{ 'footer.refund' | t }}</a></li>
+            {%- if refund_url != blank -%}
+              <li><a class="footer__link" href="{{ refund_url }}">{{ 'footer.refund' | t }}</a></li>
             {%- endif -%}
           {%- endif -%}
         </ul>
