@@ -104,9 +104,27 @@
     endunless
   endif
 -%}
+{%- liquid
+  # An SEO description set in the admin wins. Without one, Shopify's page_description for a product,
+  # collection, article or page is its body with the tags stripped, which glues the last word of a
+  # paragraph to the first word of the next ("מתקדמתאייפון"), so those are flattened here instead.
+  assign explicit_description = ''
+  case request.page_type
+    when 'product'
+      assign explicit_description = product.metafields.global.description_tag.value
+    when 'collection'
+      assign explicit_description = collection.metafields.global.description_tag.value
+    when 'article'
+      assign explicit_description = article.metafields.global.description_tag.value
+    when 'page'
+      assign explicit_description = page.metafields.global.description_tag.value
+    when 'index', 'search', 'cart', '404', 'list-collections', 'blog'
+      assign explicit_description = page_description
+  endcase
+-%}
 {%- capture meta_description -%}
-  {%- if page_description != blank -%}
-    {%- render 'plain-text', html: page_description -%}
+  {%- if explicit_description != blank -%}
+    {%- render 'plain-text', html: explicit_description -%}
   {%- else -%}
     {%- case request.page_type -%}
       {%- when 'product' -%}
