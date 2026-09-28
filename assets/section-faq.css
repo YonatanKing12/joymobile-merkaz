@@ -14,8 +14,10 @@
   overflow-wrap: anywhere;
 }
 
+/* Centred under the page title (the FAQ template uses the narrow 800px page column). */
 .faq__inner {
   max-width: 50rem;
+  margin-inline: auto;
 }
 
 .faq__heading {

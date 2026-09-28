@@ -5,7 +5,7 @@
       "settings": {
         "show_breadcrumbs": true,
         "show_title": true,
-        "content_width": "wide"
+        "content_width": "narrow"
       }
     },
     "faq": {
