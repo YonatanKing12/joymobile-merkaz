@@ -1,27 +1,31 @@
 /* Cookie banner (sections/cookie-banner.liquid, assets/cookie-banner.js). Loaded by the script only when the banner
-   is shown. The old site's banner was a translucent white bar fixed to the bottom of the viewport, with the text, a black
-   "מאשר" pill and a ✕. Here it is an opaque white bar with a brand-green top edge: navy text, a navy primary button, an
-   outline "רק עוגיות חיוניות" button and a ✕ at the inline-end corner.
+   is shown: a floating white rounded card near the bottom edge with navy text, a navy primary button, an outline
+   "רק עוגיות חיוניות" button and a ✕ at the inline-end corner.
    Phones: text first, then the two buttons side by side (the old one squeezed the text into a narrow column beside
    the button). From 768px: one row with the text, the buttons and the ✕.
    Stacking: above the floating buttons and the product page's buy bar (the script lifts the floating buttons above it),
    below overlays and drawers, which cover it while they are open. */
 
+/* A floating rounded card 10px above the bottom edge (centred, 1040px at most, from 768px). */
 .cookie-banner__panel {
   position: fixed;
-  inset-inline: 0;
-  bottom: 0;
+  inset-inline: 0.625rem;
+  bottom: calc(0.625rem + env(safe-area-inset-bottom, 0px));
   z-index: calc(var(--z-floating) + 1);
-  border-block-start: 4px solid var(--color-brand);
+  max-width: 65rem;
+  margin-inline: auto;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 10%, var(--color-background));
+  border-radius: var(--radius-lg);
   background-color: var(--color-background);
-  box-shadow: 0 -4px 18px color-mix(in srgb, var(--color-ink) 14%, transparent);
+  box-shadow: var(--shadow-lg);
   color: var(--color-ink);
   animation: cookie-banner-in var(--duration-base) var(--ease-out);
 }
 
 @keyframes cookie-banner-in {
   from {
-    transform: translateY(100%);
+    opacity: 0;
+    transform: translateY(1.5rem);
   }
 }
 
@@ -39,14 +43,14 @@ html.a11y-no-motion .cookie-banner__panel {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-sm);
-  padding-block: var(--space-md) calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
 }
 
 /* Room for the ✕ at the inline-end corner. */
 .cookie-banner__text {
   padding-inline-end: 2.25rem;
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   line-height: var(--leading-snug);
 }
 
@@ -77,14 +81,16 @@ html.a11y-no-motion .cookie-banner__panel {
 .cookie-banner__button {
   flex: 1 1 0;
   min-width: 0;
+  min-height: 2.5rem;
   padding-inline: var(--space-sm);
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 
 .cookie-banner__close {
   position: absolute;
-  inset-block-start: var(--space-xs);
-  inset-inline-end: calc(var(--page-gutter) - var(--space-xs));
+  inset-block-start: 0.25rem;
+  inset-inline-end: 0.25rem;
   display: grid;
   place-items: center;
   width: var(--tap-target);
@@ -107,12 +113,12 @@ html.a11y-no-motion .cookie-banner__panel {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--space-lg);
-    padding-inline-end: calc(var(--page-gutter) + var(--tap-target) + var(--space-xs));
+    padding: 1rem calc(var(--tap-target) + 0.75rem) 1rem 1.5rem;
   }
 
   .cookie-banner__text {
     padding-inline-end: 0;
-    font-size: var(--text-md);
+    font-size: var(--text-sm);
   }
 
   .cookie-banner__button {
@@ -123,6 +129,7 @@ html.a11y-no-motion .cookie-banner__panel {
 
   .cookie-banner__close {
     inset-block-start: 50%;
+    inset-inline-end: 0.5rem;
     translate: 0 -50%;
   }
 }
