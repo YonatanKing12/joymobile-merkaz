@@ -1,5 +1,5 @@
 /* Brand logos (sections/brand-logos): soft rounded tiles, logos in grey that take their colours under the pointer.
-   Phones: a swipeable row of 110px tiles; from 768px one row sharing the width. */
+   Phones: a swipeable row of 112px tiles; from 768px one row sharing the width. */
 
 .brand-logos {
   padding-block: var(--brands-pad-top, 44px) var(--brands-pad-bottom, 10px);
@@ -38,7 +38,10 @@
   scroll-snap-align: start;
 }
 
+/* Positioned, so the visually-hidden link text (absolute) stays inside the swipeable row: with the row as its
+   only clipping ancestor and no positioned box in between, it escaped and widened the phone page. */
 .brand-logos__tile {
+  position: relative;
   display: grid;
   flex: 1 1 auto;
   place-items: center;
