@@ -1,10 +1,16 @@
 {%- comment -%}
   FAQ accordion. Native <details>/<summary>: keyboard and screen-reader accessible,
-  works without JavaScript, find-in-page opens the matching answer. Optional
-  "one open at a time" uses the <details name> grouping (browsers without it simply
-  allow several open). The store's own 7 Q&A (they lived in the previous theme's
-  templates/page.faqs.json) ship as the defaults in templates/page.faqs.json.
-  A contact call-to-action closes the list; optional FAQPage structured data.
+  works without JavaScript, find-in-page opens the matching answer (the answers are in
+  the HTML even while closed, so search engines and AI assistants read them too).
+  Optional "one open at a time" uses the <details name> grouping (browsers without it
+  simply allow several open). templates/page.faqs.json holds the store's questions,
+  answered only from the live site's pages (terms, cancellation, branches, lab) and the
+  store's own texts. A contact call-to-action closes the list.
+
+  Structured data (setting "נתונים מובנים"): a FAQPage from the same blocks, each answer
+  as plain text (snippets/plain-text: tags removed, entities decoded); a question whose
+  answer is empty is left out of it. One FAQPage per page, so one section per page with
+  the setting on.
 {%- endcomment -%}
 {{ 'section-faq.css' | asset_url | stylesheet_tag }}
 
@@ -65,19 +71,22 @@
 </div>
 
 {%- if section.settings.structured_data and question_count > 0 -%}
-  {%- capture faq_json -%}
-    {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
-    {%- assign faq_json_first = true -%}
+  {%- assign faq_json_count = 0 -%}
+  {%- capture faq_questions_json -%}
     {%- for block in section.blocks -%}
       {%- if block.type == 'question' and block.settings.question != blank -%}
-        {%- unless faq_json_first -%},{%- endunless -%}
-        {%- assign faq_json_first = false -%}
-        {"@type": "Question", "name": {{ block.settings.question | strip_html | json }}, "acceptedAnswer": {"@type": "Answer", "text": {{ block.settings.answer | json }} } }
+        {%- capture faq_answer_text -%}{%- render 'plain-text', html: block.settings.answer -%}{%- endcapture -%}
+        {%- if faq_answer_text != blank -%}
+          {%- if faq_json_count > 0 -%},{%- endif -%}
+          {%- assign faq_json_count = faq_json_count | plus: 1 -%}
+          {"@type": "Question", "name": {{ block.settings.question | strip_html | strip | json }}, "acceptedAnswer": {"@type": "Answer", "text": {{ faq_answer_text | json }} } }
+        {%- endif -%}
       {%- endif -%}
     {%- endfor -%}
-    ]}
   {%- endcapture -%}
-  <script type="application/ld+json">{{ faq_json | strip_newlines | replace: '</', '<\/' }}</script>
+  {%- if faq_json_count > 0 -%}
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{{ faq_questions_json | strip_newlines | replace: '</', '<\/' }}]}</script>
+  {%- endif -%}
 {%- endif -%}
 
 {% schema %}
@@ -181,21 +190,21 @@
           "type": "question",
           "settings": {
             "question": "איזה מחיר מוצג באתר?",
-            "answer": "<p>המחירים באתר הם מחירי אילת ללא מע״מ, להזמנה ולאיסוף עצמי במלאכה 7, אילת.</p>"
+            "answer": "<p>המחירים באתר הם מחירי אילת ללא מע״מ, לשריון באתר ולאיסוף עצמי מסניף באילת.</p>"
           }
         },
         {
           "type": "question",
           "settings": {
             "question": "מה זה שריון?",
-            "answer": "<p>שריון הוא הזמנה מראש של מוצר לאיסוף עצמי במלאכה 7, אילת. פרטי האיסוף יופיעו במהלך ההזמנה ובאישור שלה.</p>"
+            "answer": "<p>שריון הוא הזמנה מראש של מוצר באתר, לאיסוף עצמי מסניף באילת. פרטי האיסוף יופיעו במהלך ההזמנה ובאישור שלה.</p>"
           }
         },
         {
           "type": "question",
           "settings": {
-            "question": "האם אפשר להזמין משלוח?",
-            "answer": "<p>האתר מיועד לאיסוף עצמי באילת בלבד. לא ניתן להזמין דרכו משלוח.</p>"
+            "question": "איך מקבלים את ההזמנה?",
+            "answer": "<p>האתר בנוי לשריון ולאיסוף עצמי: משריינים באתר ואוספים בעצמכם מסניף באילת, בהצגת תעודה מזהה.</p>"
           }
         }
       ]
