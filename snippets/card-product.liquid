@@ -55,7 +55,8 @@
 
   assign card_uid = section_id | default: 'card' | append: '-' | append: product.id
   assign card_variant = product.selected_or_first_available_variant | default: product.variants.first
-  assign card_url = product.url | within: collection
+  # The canonical product URL (not /collections/…/products/…): one address per product for search engines.
+  assign card_url = product.url
 
   assign card_image = product.featured_media.preview_image
   assign card_image_2 = nil

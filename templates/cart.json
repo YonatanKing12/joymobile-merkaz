@@ -6,7 +6,7 @@
         "notice": {
           "type": "notice",
           "settings": {
-            "text": "<p><strong>חשוב לדעת:</strong> כל ההזמנות באתר הן לאיסוף עצמי מהסניף באילת — זה מה שמקנה את הפטור ממע״מ, ולכן אין משלוחים, גם לא בתוך אילת.</p>"
+            "text": "<p><strong>חשוב לדעת:</strong> ההזמנות באתר הן לשריון ואיסוף עצמי מסניפי JOY Mobile באילת, במחירי אילת ללא מע״מ. כל הפרטים ב<a href=\"/pages/shipping\">עמוד השריון והאיסוף</a>.</p>"
           }
         },
         "condition-ready": {
@@ -29,21 +29,13 @@
             "icon": "store",
             "text": "ההזמנה ממתינה לאיסוף בסניף עד 21 ימי עסקים."
           }
-        },
-        "condition-vat": {
-          "type": "condition",
-          "settings": {
-            "icon": "shield",
-            "text": "<strong>תנאי הפטור ממע״מ:</strong> בעת השריון אתם מאשרים שלא רכשתם באילת מוצר אחר מאותה קטגוריה ב־90 הימים שקדמו להזמנה."
-          }
         }
       },
       "block_order": [
         "notice",
         "condition-ready",
         "condition-id",
-        "condition-hold",
-        "condition-vat"
+        "condition-hold"
       ],
       "settings": {
         "show_breadcrumbs": true,

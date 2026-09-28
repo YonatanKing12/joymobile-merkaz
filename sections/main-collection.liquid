@@ -347,17 +347,25 @@
 
     {%- comment -%}
       FAQPage structured data from the description's questions: each <h3> is a question and the text up to the
-      next heading is its answer. Only when there are at least two of them.
+      next heading is its answer (flattened by snippets/plain-text). Only on the first page of the category, and
+      only when there are at least two of them.
     {%- endcomment -%}
-    {%- if desc_bottom contains '<h3' -%}
+    {%- if desc_bottom contains '<h3' and current_page == 1 -%}
       {%- liquid
         assign faq_json = ''
         assign faq_count = 0
         assign faq_parts = desc_bottom | split: '<h3'
         for faq_part in faq_parts offset: 1
-          assign faq_q = faq_part | split: '</h3>' | first | remove_first: '>' | strip_html | strip
+          assign faq_q_html = faq_part | split: '</h3>' | first | remove_first: '>'
+          capture faq_q
+            render 'plain-text', html: faq_q_html
+          endcapture
+          assign faq_q = faq_q | strip
           assign faq_rest = faq_part | split: '</h3>' | last | split: '<h2' | first
-          assign faq_a = faq_rest | strip_html | strip_newlines | strip
+          capture faq_a
+            render 'plain-text', html: faq_rest
+          endcapture
+          assign faq_a = faq_a | strip
           if faq_q != blank and faq_a != blank
             assign faq_count = faq_count | plus: 1
             assign faq_q_json = faq_q | json

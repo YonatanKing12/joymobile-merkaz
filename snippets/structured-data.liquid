@@ -15,9 +15,9 @@
   - 'website': WebSite + SearchAction (/search?q=…), named after the brand, with the Hebrew
     name as alternateName (Google reads both as the site name). Home page.
   - 'product': Product — name, description (plain text), up to 8 images, sku, brand (the
-    vendor; left out when it is the store itself — 227 products carry the vendor "joy
-    mobile" — or the brand name, compared case-insensitively), category (the product
-    type), url, and one Offer per variant with a price above zero: price in shekels as a
+    vendor; left out when it is the store itself, "joy mobile", or the brand name,
+    compared case-insensitively), category (the product type, POS department codes such
+    as "א.מכשירים" spelled out), url, and one Offer per variant with a price above zero: price in shekels as a
     decimal (the Eilat price actually charged), priceCurrency, availability (InStock /
     OutOfStock), itemCondition, url with ?variant=, sku, the GTIN, the seller (the
     Organization) and the return policy. A single-variant product also carries its GTIN.
@@ -259,6 +259,48 @@
           {%- endif -%}
         {%- endfor -%}
       {%- endcapture -%}
+      {%- comment -%}
+        Category: the product type, with the POS department codes (א.… = accessories, מ.… = console games)
+        spelled out; a code that is not a readable category is left out.
+      {%- endcomment -%}
+      {%- liquid
+        assign ld_type = ld_product.type | strip
+        case ld_type
+          when 'מכשירים'
+            assign ld_category = 'סמארטפונים'
+          when 'שעונים'
+            assign ld_category = 'שעונים חכמים'
+          when 'מולטימדיה ושמע'
+            assign ld_category = 'שמע ומולטימדיה'
+          when 'א.מכשירים'
+            assign ld_category = 'אביזרים לסמארטפונים'
+          when 'א.טאבלטים'
+            assign ld_category = 'אביזרים לטאבלטים'
+          when 'א.מחשבים'
+            assign ld_category = 'אביזרי מחשב וגיימינג'
+          when 'א.קונסולות'
+            assign ld_category = 'אביזרים לקונסולות'
+          when 'א.רכב'
+            assign ld_category = 'אביזרים לרכב'
+          when 'א.שעונים'
+            assign ld_category = 'אביזרים לשעונים חכמים'
+          when 'א.אוזניות'
+            assign ld_category = 'אביזרים לאוזניות'
+          when 'א.מצלמות'
+            assign ld_category = 'אביזרים למצלמות'
+          when 'א.אלקטרוניקה'
+            assign ld_category = 'אביזרי אלקטרוניקה'
+          when 'א.שואבים'
+            assign ld_category = 'אביזרים לשואבי אבק'
+          when 'מ.קונסולות'
+            assign ld_category = 'משחקי קונסולה'
+          else
+            assign ld_category = ld_type
+            if ld_type contains '.' or ld_type contains 'חייבים' or ld_type == 'TheLeeBox'
+              assign ld_category = ''
+            endif
+        endcase
+      -%}
       {%- capture product_json -%}
         {
           "@context": "https://schema.org",
@@ -277,7 +319,7 @@
           {%- if ld_first.sku != blank -%},"sku": {{ ld_first.sku | strip | json }}{%- endif -%}
           {%- if ld_product_gtin_key != blank -%},{{ ld_product_gtin_key | json }}: {{ ld_product_gtin | json }}{%- endif -%}
           {%- if ld_brand != blank -%},"brand": { "@type": "Brand", "name": {{ ld_brand | json }} }{%- endif -%}
-          {%- if ld_product.type != blank -%},"category": {{ ld_product.type | strip | json }}{%- endif -%}
+          {%- if ld_category != blank -%},"category": {{ ld_category | json }}{%- endif -%}
           {%- if ld_offer_count > 0 -%},"offers": [{{ ld_offers }}]{%- endif -%}
         }
       {%- endcapture -%}
