@@ -21,6 +21,8 @@
     (…_tax_free, with "ללא מע״מ", only for a non-taxable variant — the theme's TAX FREE rule);
   - collection: the opening paragraph of its description, else general.meta.collection_description;
   - article: its excerpt or content; page: the opening paragraph of its body;
+  - all categories (/collections): general.meta.collections_description; a blog without an SEO
+    description: general.meta.blog_description;
   - anything else, the home page included: general.meta.default_description.
   Generated descriptions are plain text cut at 160 characters (snippets/plain-text).
   Title and description print with escape_once: the `t` filter has already escaped the
@@ -161,6 +163,10 @@
         endif
       when 'collection'
         assign meta_description = 'general.meta.collection_description' | t: title: collection.title, site: title_suffix
+      when 'list-collections'
+        assign meta_description = 'general.meta.collections_description' | t: brand: brand_name
+      when 'blog'
+        assign meta_description = 'general.meta.blog_description' | t: title: blog.title, brand: brand_name
       else
         assign meta_description = 'general.meta.default_description' | t: brand: brand_name
     endcase
