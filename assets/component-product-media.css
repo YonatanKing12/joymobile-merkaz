@@ -92,7 +92,16 @@ button.product-media__frame:focus-visible::after {
   pointer-events: none;
 }
 
-/* Photos on white melt into the soft well (multiply: white takes the well's colour), as on the cards. */
+/* Photos on white melt into the soft well (multiply: white takes the well's colour), as on the cards.
+   The photo (and a video) fills the frame's own box, so a square or portrait photo is contained in the 5:4
+   frame, centred: as a grid item its height: 100% did not resolve, it kept its square height and the frame
+   cut it at the top and bottom. */
+.product-media__img,
+.product-media .product-media__video {
+  position: absolute;
+  inset: 0;
+}
+
 .product-media__img {
   width: 100%;
   height: 100%;
@@ -225,13 +234,23 @@ button.product-media__frame:hover .product-media__zoom-icon {
   scroll-snap-align: start;
 }
 
+/* A short row is centred under the photo. Auto margins, not justify-content: they fall to 0 once the row
+   overflows, so the first thumbnails never end up out of reach. */
+.product-media__thumb-item:first-child {
+  margin-inline-start: auto;
+}
+
+.product-media__thumb-item:last-child {
+  margin-inline-end: auto;
+}
+
 .product-media__thumb {
   position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 1;
   margin: 0;
-  padding: 0.25rem;
+  padding: 0.5rem;
   overflow: hidden;
   border: 2px solid transparent;
   border-radius: var(--radius-md);
