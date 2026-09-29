@@ -3,7 +3,8 @@
    slide 143×173: circle box 143², disc 112px bottom-aligned (1px outline, 8px light ring, grey inside →
    JOY Mobile: white ring, #f0f3ff disc from the section setting), label 16px/500 5px below. Phones: full
    width, 2 per view, 35px peeks, no arrows.
-   Per view: 2 · 3 (576) · 5 (768) · 6 (992) · setting, default 7 (1200); labels 14px below 1200
+   Per view: 2 · 3 (576) · 5 (768) · 6 (992) · setting, default 7 (1200) · one more (1600; the row is
+   capped at 1600px, then 1760px from 1920 and 1920px from 2300, so the circles grow); labels 14px below 1200
    (the old strip kept 7 per view and shrank everything until the labels covered the images).
    Arrows: transparent round buttons with a bold ≈11×22 black chevron (old: 36px, 24px chevron),
    centred on the disc.
@@ -268,5 +269,18 @@ html.no-js .category-circles__carousel .category-circles__arrow {
   .category-circles__arrow,
   .category-circles__pause {
     display: var(--cc-scroll-2xl, none);
+  }
+}
+
+/* Very wide screens: the same eight circles, larger (disc ≈ 140px at 1920, ≈ 156px from 2300). */
+@media (min-width: 1920px) {
+  .category-circles__carousel {
+    max-width: 110rem;
+  }
+}
+
+@media (min-width: 2300px) {
+  .category-circles__carousel {
+    max-width: 120rem;
   }
 }

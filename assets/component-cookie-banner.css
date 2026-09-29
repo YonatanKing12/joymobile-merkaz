@@ -113,7 +113,9 @@ html.a11y-no-motion .cookie-banner__panel {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--space-lg);
-    padding: 1rem calc(var(--tap-target) + 0.75rem) 1rem 1.5rem;
+    /* Logical sides: the room for the ✕ is at the inline end (the left edge in Hebrew). */
+    padding-block: 1rem;
+    padding-inline: 1.5rem calc(var(--tap-target) + 0.75rem);
   }
 
   .cookie-banner__text {

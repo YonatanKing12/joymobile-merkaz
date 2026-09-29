@@ -3,7 +3,8 @@
    the picture (343:180) first, then title, summary, excerpt and "קראו עוד"; "לכל הכתבות" as a pill.
    Phones: heading 13px, 1 per view with 30px peeks (gap 7px), card padding 9px 15px 15px,
    title 13px, body 11px, link 16px centred. Per view 1 · 3 (768, a static row like the old one,
-   with 16px titles / 13px text up to 991) · 3. Arrows / pause only where the cards overflow:
+   with 16px titles / 13px text up to 991) · 3; the picture is at most 240px high (wide screens).
+   Arrows / pause only where the cards overflow:
    --g-scroll-sm/md/lg (grid | none) from the section. */
 
 .guides {
@@ -358,5 +359,13 @@ html.no-js .guides__carousel .guides__arrow {
   .guides__arrow,
   .guides__pause {
     display: var(--g-scroll-lg, none);
+  }
+}
+
+/* Full-width layouts: three cards still share the row, so the picture stops growing at 240px high
+   and gets wider instead (≈ 2.5:1 at 1920, 3:1 at 2560) rather than reaching 400px. */
+@media (min-width: 1200px) {
+  .guides__media {
+    max-height: 15rem;
   }
 }
