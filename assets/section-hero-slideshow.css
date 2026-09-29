@@ -355,10 +355,10 @@ html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
   }
 
   .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow.carousel__btn--prev {
-    inset-inline-start: -2.75rem;
+    inset-inline-start: calc(-1 * min(2.75rem, var(--page-gutter) - 0.25rem));
   }
 
   .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow.carousel__btn--next {
-    inset-inline-end: -2.75rem;
+    inset-inline-end: calc(-1 * min(2.75rem, var(--page-gutter) - 0.25rem));
   }
 }

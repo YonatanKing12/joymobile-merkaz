@@ -257,3 +257,16 @@ html.no-js .category-circles__carousel .category-circles__arrow {
     display: var(--cc-scroll-xl, none);
   }
 }
+
+/* Full-width layouts: a wider row with one more circle, still capped so the circles keep their size. */
+@media (min-width: 1600px) {
+  .category-circles__carousel {
+    --per-view: var(--circles-per-view-xwide, 8);
+    max-width: 100rem;
+  }
+
+  .category-circles__arrow,
+  .category-circles__pause {
+    display: var(--cc-scroll-2xl, none);
+  }
+}

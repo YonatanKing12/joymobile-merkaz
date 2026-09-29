@@ -1,6 +1,6 @@
 /* Product carousel — sections/product-carousel.liquid (the homepage strips). Heading row: a bold title at the
-   start and a "view all" pill at the end. Track (component-carousel.css): 2.2 · 3.2 (768) · 4 (992) · 5 (1200)
-   cards per view, 12/16px apart; on phones the track runs to the screen edge so the next card peeks in.
+   start and a "view all" pill at the end. Track (component-carousel.css): 2.2 · 3.2 (768) · 4 (992) · 5 (1200) ·
+   6 (1600) · 7 (1920) · 8 (2300) cards per view, 12/16px apart; on phones the track runs to the screen edge so the next card peeks in.
    Arrows: round white buttons over the track's edges from 768px, shown only where the cards overflow
    (--pc-scroll-md/lg/xl from the section). No content-visibility: skipped strips paint blank in full-page
    captures and can flash empty on a fast scroll. */
@@ -88,6 +88,9 @@
   --per-view-tablet: 3.2;
   --per-view-desktop: 4;
   --per-view-wide: 5;
+  --per-view-xwide: 6;
+  --per-view-2xwide: 7;
+  --per-view-3xwide: 8;
   --carousel-gap-mobile: 0.75rem;
   --carousel-gap-desktop: 1rem;
   --carousel-peek-mobile: var(--page-gutter);
@@ -181,6 +184,24 @@ html.no-js .product-carousel__carousel .product-carousel__arrow {
 @media (min-width: 1200px) {
   .product-carousel__arrow {
     display: var(--pc-scroll-xl, none);
+  }
+}
+
+@media (min-width: 1600px) {
+  .product-carousel__arrow {
+    display: var(--pc-scroll-2xl, none);
+  }
+}
+
+@media (min-width: 1920px) {
+  .product-carousel__arrow {
+    display: var(--pc-scroll-3xl, none);
+  }
+}
+
+@media (min-width: 2300px) {
+  .product-carousel__arrow {
+    display: var(--pc-scroll-4xl, none);
   }
 }
 

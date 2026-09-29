@@ -699,3 +699,8 @@ cart-items[aria-busy="true"] .cart-summary__row--total dd {
   border-color: var(--color-brand);
   background-color: var(--color-hover-bg);
 }
+
+/* Full-width layouts: the cart keeps a comfortable width (at most 1600px, centred). */
+.main-cart > .page-width {
+  max-width: calc(100rem + 2 * var(--page-gutter));
+}

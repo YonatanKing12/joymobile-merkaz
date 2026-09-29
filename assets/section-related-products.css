@@ -182,6 +182,36 @@ html.no-js .related-products .related-products__arrow {
   }
 }
 
+@media (min-width: 1600px) {
+  .related-products .related-products__track {
+    --rp-per-view: 6;
+  }
+
+  .related-products .related-products__arrow {
+    display: var(--rp-scroll-2xl, none);
+  }
+}
+
+@media (min-width: 1920px) {
+  .related-products .related-products__track {
+    --rp-per-view: 7;
+  }
+
+  .related-products .related-products__arrow {
+    display: var(--rp-scroll-3xl, none);
+  }
+}
+
+@media (min-width: 2300px) {
+  .related-products .related-products__track {
+    --rp-per-view: 8;
+  }
+
+  .related-products .related-products__arrow {
+    display: var(--rp-scroll-4xl, none);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .related-products .related-products__track {
     scroll-behavior: auto;

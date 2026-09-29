@@ -1073,3 +1073,9 @@ html.no-js .product-wishlist {
     column-gap: 3rem;
   }
 }
+
+/* The page spreads over the whole screen on large monitors (theme setting page_width 2560); the product itself
+   keeps a comfortable width: the gallery and the purchase column at most 1600px, centred. */
+.main-product.page-width {
+  max-width: calc(100rem + 2 * var(--page-gutter));
+}

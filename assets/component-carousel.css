@@ -1,4 +1,4 @@
-/* <carousel-slider role="group" aria-roledescription aria-label> (assets/carousel.js). Per view from --per-view-mobile/-tablet(768)/-desktop(992)/-wide(1200)
+/* <carousel-slider role="group" aria-roledescription aria-label> (assets/carousel.js). Per view from --per-view-mobile/-tablet(768)/-desktop(992)/-wide(1200)/-xwide(1600)/-2xwide(1920)/-3xwide(2300)
    or --per-view on the track; gap --carousel-gap(-mobile/-desktop); peek --carousel-peek(-mobile/-desktop).
    All rules are :where() (specificity 0) so section styles win. Modifiers: .carousel--arrows-outside (≥1300),
    .carousel--arrows-round, .carousel--mobile-arrows, .carousel--dots-light. */
@@ -35,6 +35,26 @@
 @media (min-width: 1200px) {
   :where(carousel-slider) {
     --per-view: var(--per-view-wide, 4);
+  }
+}
+
+/* Full-width layouts on large screens: --per-view-xwide (1600), -2xwide (1920), -3xwide (2300), each falling back
+   to the level below, so a section that sets none keeps its 1200px count. */
+@media (min-width: 1600px) {
+  :where(carousel-slider) {
+    --per-view: var(--per-view-xwide, var(--per-view-wide, 4));
+  }
+}
+
+@media (min-width: 1920px) {
+  :where(carousel-slider) {
+    --per-view: var(--per-view-2xwide, var(--per-view-xwide, var(--per-view-wide, 4)));
+  }
+}
+
+@media (min-width: 2300px) {
+  :where(carousel-slider) {
+    --per-view: var(--per-view-3xwide, var(--per-view-2xwide, var(--per-view-xwide, var(--per-view-wide, 4))));
   }
 }
 

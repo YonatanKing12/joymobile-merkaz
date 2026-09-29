@@ -3,7 +3,7 @@
   to N product cards (snippets/card-product.liquid). Sold-out products are skipped by default (store rule:
   homepage strips show available products only) and the strip is not rendered at all when fewer than 2
   products are left. Products with a photo come first. Per view: 2.2 (<768, the next card peeks in) · 3.2 (768) ·
-  4 (992) · 5 (1200).
+  4 (992) · 5 (1200) · 6 (1600) · 7 (1920) · 8 (2300).
   The arrows wrap around at the ends. Cards near the top of the page (section index <= 3, first five) are not
   lazy-loaded.
 {%- endcomment -%}
@@ -78,7 +78,7 @@
 -%}
 
 {%- if pc_render -%}
-  {%- comment -%} Arrows only where the cards overflow: 2 · 3 (768) · 4 (992) · 5 (1200) whole cards per view. {%- endcomment -%}
+  {%- comment -%} Arrows only where the cards overflow: 2 · 3 (768) · 4 (992) · 5 (1200) · 6 (1600) · 7 (1920) · 8 (2300) whole cards per view. {%- endcomment -%}
   {%- style -%}
     #shopify-section-{{ section.id }} {
       --pc-pad-top: {{ section.settings.padding_top }}px;
@@ -86,6 +86,9 @@
       --pc-scroll-md: {% if pc_count > 3 %}grid{% else %}none{% endif %};
       --pc-scroll-lg: {% if pc_count > 4 %}grid{% else %}none{% endif %};
       --pc-scroll-xl: {% if pc_count > 5 %}grid{% else %}none{% endif %};
+      --pc-scroll-2xl: {% if pc_count > 6 %}grid{% else %}none{% endif %};
+      --pc-scroll-3xl: {% if pc_count > 7 %}grid{% else %}none{% endif %};
+      --pc-scroll-4xl: {% if pc_count > 8 %}grid{% else %}none{% endif %};
     }
   {%- endstyle -%}
 

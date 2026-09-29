@@ -71,4 +71,11 @@
       --logo-width: {{ settings.logo_width | default: 190 }}px;
     }
   }
+
+  {%- # Wide screens: the layout spreads over the whole width (page_width 2560), so the side margins grow with it. %}
+  @media (min-width: 1200px) {
+    :root {
+      --page-gutter: clamp({{ settings.page_gutter_desktop | default: 15 }}px, 3vw, 80px);
+    }
+  }
 {% endstyle %}

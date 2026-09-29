@@ -374,6 +374,25 @@ facet-filters[aria-busy="true"] .facets-layout__count::after {
   }
 }
 
+/* Full-width layouts: the cards keep their size and the row gains columns. */
+@media (min-width: 1600px) {
+  .product-grid {
+    --pg-cols: calc(var(--pg-cols-desktop, 4) + 1);
+  }
+}
+
+@media (min-width: 1920px) {
+  .product-grid {
+    --pg-cols: calc(var(--pg-cols-desktop, 4) + 2);
+  }
+}
+
+@media (min-width: 2300px) {
+  .product-grid {
+    --pg-cols: calc(var(--pg-cols-desktop, 4) + 3);
+  }
+}
+
 /* ---------- Pagination: "load previous", progress + "טען עוד", no-JS page links ---------- */
 .load-previous {
   display: flex;

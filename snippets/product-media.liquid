@@ -77,8 +77,9 @@
     assign pm_zoom = false
   endif
 
-  # Frame widths: the gallery column is 5/12 of the page from 768px (see component-product-media.css).
-  assign pm_wide = settings.page_width | default: 1170 | times: 5 | divided_by: 12
+  # Frame widths: the gallery column is 5/12 of the product area from 768px (see component-product-media.css);
+  # the product area is at most 1600px wide (section-main-product.css).
+  assign pm_wide = settings.page_width | default: 1170 | at_most: 1600 | times: 5 | divided_by: 12
   assign pm_sizes = '(min-width: 1200px) ' | append: pm_wide | append: 'px, (min-width: 768px) calc(42vw - 22px), calc(100vw - 32px)'
 
   assign pm_uid = 'ProductMedia-' | append: section_id
