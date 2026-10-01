@@ -348,7 +348,10 @@ html.a11y-no-motion .card-product:hover .card-product__img {
 }
 
 /* Narrow cards (phones: the 2-column grid and the strips, ≈155–175px wide): tighter insets and smaller type. */
-@container card-product (max-width: 12.5rem) {
+/* 200px, not 12.5rem: this threshold describes how physically narrow the card is, and the root
+   font-size is fluid above 1440, so a rem threshold would grow with the root and push wide-screen
+   cards into the compact rules while they are getting bigger, not smaller. */
+@container card-product (max-width: 200px) {
   .card-product__img {
     padding: 7%;
   }

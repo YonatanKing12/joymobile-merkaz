@@ -58,7 +58,12 @@
     --radius-card: {{ settings.radius_card }}px;
     --radius-badge: {{ settings.radius_badge }}px;
 
-    --logo-width: {{ settings.logo_width_mobile | default: 130 }}px;
+    {%- comment -%}
+      In rem, not px: the root font-size is fluid above 1440, so a px logo would stay 190 while every
+      word around it grew. The setting stays a plain pixel number for the owner — it is the size at
+      the normal 16px root, which is what phones and laptops render.
+    {%- endcomment -%}
+    --logo-width: {{ settings.logo_width_mobile | default: 130 | divided_by: 16.0 }}rem;
 
     --card-image-ratio: {{ settings.card_image_ratio | default: '1 / 1' }};
     --card-image-fit: {{ settings.card_image_fit | default: 'contain' }};
@@ -68,7 +73,7 @@
   @media (min-width: 992px) {
     :root {
       --page-gutter: {{ settings.page_gutter_desktop | default: 15 }}px;
-      --logo-width: {{ settings.logo_width | default: 190 }}px;
+      --logo-width: {{ settings.logo_width | default: 190 | divided_by: 16.0 }}rem;
     }
   }
 

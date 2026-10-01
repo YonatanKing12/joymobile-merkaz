@@ -128,7 +128,21 @@
 }
 
 html {
-  font-size: 100%; /* 16px; never changed per breakpoint (the old site's 12/14px root was a bug) */
+  /* Fluid root. Every token above is in rem, so the root carries the whole design -- type,
+     spacing, radii, card insets, tap targets, the carousels' rem max-widths. Scaling it is what
+     makes the page keep its proportions on a wide monitor instead of stretching with 16px text
+     inside it. The page stays full-bleed: this changes how big things are, not how wide the
+     layout is, and no breakpoint or column count moves (those are in px).
+
+     16px up to 1440 -- phones, tablets and laptops render exactly as before, which is why the
+     floor is a hard 1rem -- then linear to 20px at 2560 and capped there.
+
+     Written in rem + vw and never in px, so the reader's own browser font-size still multiplies
+     it: someone whose default is 20px gets 20px here, not 16. The a11y panel's two text-size
+     steps multiply the same value through --root-scale instead of replacing it; before this they
+     set 115%/130% of the browser default and silently threw the fluid size away. */
+  --root-scale: 1;
+  font-size: calc(clamp(1rem, 0.6786rem + 0.3571vw, 1.25rem) * var(--root-scale));
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-padding-top: var(--header-height, 0px);
@@ -884,11 +898,11 @@ input[type="radio"] {
 
 /* ---------- 10. Accessibility preferences (<a11y-panel> sets these on <html>) ---------- */
 html.a11y-text-lg {
-  font-size: 115%;
+  --root-scale: 1.15;
 }
 
 html.a11y-text-xl {
-  font-size: 130%;
+  --root-scale: 1.3;
 }
 
 /* High contrast: navy text everywhere (19.6:1), control-strength borders, darker green for text
