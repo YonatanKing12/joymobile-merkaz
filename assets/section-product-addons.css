@@ -3,19 +3,47 @@
    tile in a single /cart/add call. Sizes are in rem so the block grows with the fluid root like the
    rest of the page. */
 
+/* One bordered card under the gallery, so it reads as part of the product and not as another strip
+   of the page. It lives inside .product__media, which is roughly half the row on desktop and the
+   full width on phones — hence the auto-fill grid below rather than a fixed column count. */
 .pa {
-  padding-block: var(--pa-pad-top, 8px) var(--pa-pad-bottom, 32px);
+  display: block;
+  margin-block-start: var(--space-lg);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card, 16px);
+  background-color: var(--color-background);
 }
 
+.pa__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+}
+
+/* The green rule marks the block as the shop speaking, the way the section headings do. */
 .pa__heading {
-  font-size: var(--text-2xl);
+  position: relative;
+  padding-inline-start: 0.625rem;
+  font-size: var(--text-xl);
   font-weight: 800;
 }
 
+.pa__heading::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.1em 0.1em;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 2px;
+  background-color: var(--color-button-accent-bg);
+}
+
 .pa__sub {
-  margin-block-start: 0.25rem;
+  flex: 1 1 14rem;
   color: var(--color-muted);
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
 }
 
 /* ---------- Group pills ---------- */
@@ -27,8 +55,11 @@
 }
 
 .pa__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   min-height: var(--tap-target);
-  padding-inline: 1rem;
+  padding-inline: 0.875rem;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);
   background-color: var(--color-background);
@@ -57,11 +88,30 @@
   }
 }
 
+/* How many of that group are ticked — visible from any other group. */
+.pa__tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-inline: 0.25rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-ink);
+  color: var(--color-background);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+}
+
+.pa__tab[aria-selected="true"] .pa__tab-count {
+  background-color: var(--color-button-accent-text);
+  color: var(--color-button-accent-bg);
+}
+
 /* ---------- Tiles ---------- */
 .pa__list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.625rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -112,8 +162,8 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 3.75rem;
-  height: 3.75rem;
+  width: 4.25rem;
+  height: 4.25rem;
   border-radius: calc(var(--radius-card, 16px) - 0.5rem);
   background-color: color-mix(in srgb, var(--color-ink) 4%, var(--color-background));
   overflow: hidden;
@@ -192,6 +242,32 @@
   color: var(--color-button-accent-text);
 }
 
+.pa-card__mark {
+  color: var(--color-ink);
+}
+
+.pa-card__icon {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+
+.pa-card__mark {
+  display: grid;
+}
+
+.pa-card__icon--check {
+  opacity: 0;
+}
+
+.pa-card__label:has(.pa-card__check:checked) .pa-card__icon--plus {
+  opacity: 0;
+}
+
+.pa-card__label:has(.pa-card__check:checked) .pa-card__icon--check {
+  opacity: 1;
+}
+
 .pa-card__label:has(.pa-card__check:focus-visible) {
   outline: 2px solid var(--color-focus, var(--color-ink));
   outline-offset: 2px;
@@ -217,15 +293,33 @@
   justify-content: space-between;
   gap: 0.75rem;
   margin-block-start: var(--space-md);
+  padding-block-start: var(--space-md);
+  border-block-start: 1px solid var(--color-border-strong);
 }
 
-.pa__count {
-  font-size: var(--text-md);
-  font-weight: 700;
+.pa__sum {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.pa__sum-label {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.pa__sum-value {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.pa__sum-note {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
 }
 
 .pa__submit {
-  min-width: 15rem;
+  min-width: 13rem;
 }
 
 .pa__submit:disabled {

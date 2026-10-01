@@ -159,20 +159,10 @@
         "padding_top": 50,
         "padding_bottom": 40
       }
-    },
-    "addons": {
-      "type": "product-addons",
-      "settings": {
-        "heading": "השלימו את הערכה",
-        "subheading": "אביזרים שמתאימים בדיוק לדגם שבחרתם",
-        "padding_top": 8,
-        "padding_bottom": 32
-      }
     }
   },
   "order": [
     "main",
-    "addons",
     "related"
   ]
 }

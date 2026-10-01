@@ -1,0 +1,161 @@
+{% doc %}
+  "השלימו את הערכה" — the accessories that fit the phone on the page, under the gallery.
+
+  The shell only: a pill per group and an empty panel carrying that group's search query. The tiles
+  come from sections/product-addons rendered against /search, fetched by assets/product-addons.js
+  when the block first comes near the viewport. A product page nobody scrolls costs nothing.
+
+  It sits inside .product__media, under the gallery, on every width — on desktop the column beside
+  the buy panel is the one with room to spare, and on phones it lands directly under the photo and
+  above the price, which is where an add-on is still part of the same decision. At the foot of the
+  page it is a second visit, not an upsell.
+
+  The model comes off the product title: the importer suffix after the dash, the capacity, the SIM
+  wording, the colour and the maker's name are removed, so
+  "Apple iPhone 17 Pro Max 2TB כחול – יבואן רשמי" asks for "iPhone 17 Pro Max".
+
+  @param {product} product - The product on the page.
+  @param {string} section_id - The calling section's id; keeps the tab/panel ids unique.
+
+  @example
+  {% render 'product-addons', product: product, section_id: section.id %}
+{% enddoc %}
+{%- liquid
+  assign pa_type = product.type | strip
+  assign pa_groups = ''
+
+  if pa_type == 'מכשירים'
+    assign pa_base = product.title | split: ' – ' | first | split: ' - ' | first | strip
+    assign pa_model = pa_base
+
+    assign pa_noise = '2TB,1TB,512GB,256GB,128GB,64GB,32GB,eSIM,Dual SIM,5G,NFC'
+    assign pa_noise_list = pa_noise | split: ','
+    for pa_word in pa_noise_list
+      assign pa_model = pa_model | remove: pa_word
+    endfor
+
+    assign pa_colours = 'שחור,לבן,כחול,תכלת,כתום,ורוד,אדום,ירוק,סגול,אפור,זהב,כסוף,כסף,צהוב,חום,בורדו,ברונזה,קרם,לילך,בז׳,טבעי,מדברי,שמנת,תיטניום,טיטניום,כהה,בהיר'
+    assign pa_colour_list = pa_colours | split: ','
+    for pa_word in pa_colour_list
+      assign pa_model = pa_model | remove: pa_word
+    endfor
+
+    # The maker's name comes off too. "כיסוי iPhone 17 Pro Max" returns the matching cases from every
+    # maker; leaving "Apple" in front tilts the list to Apple's own and buries the cheaper ones the
+    # shop actually stocks for that model.
+    assign pa_vendor = product.vendor | strip
+    if pa_vendor != blank
+      assign pa_model = pa_model | remove_first: pa_vendor
+    endif
+    assign pa_model = pa_model | replace: '  ', ' ' | replace: '  ', ' ' | strip
+
+    capture pa_groups
+      echo 'cases|כיסויים|כיסוי '
+      echo pa_model
+      echo '###screens|מגני מסך|מגן מסך '
+      echo pa_model
+      echo '###chargers|מטענים|מטען '
+      echo pa_vendor
+      echo '###power|סוללות גיבוי|סוללה ניידת'
+    endcapture
+  endif
+
+  assign pa_group_list = pa_groups | split: '###'
+  assign pa_uid = section_id | default: 'pa'
+  assign pa_variant = product.selected_or_first_available_variant
+-%}
+
+{%- if pa_group_list.size > 0 -%}
+  {{ 'section-product-addons.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'product-addons.js' | asset_url }}"></script>
+
+  {%- comment -%}
+    data-pa-money is the shop's own money format string. The theme's rule is that money is never
+    formatted in JS, and the reason for it is that a hand-rolled format drifts from the shop's. The
+    running total has to add numbers, so it cannot be server-rendered — taking the format from
+    shop.money_format keeps the guarantee the rule exists for, and the authoritative total is still
+    the cart drawer's.
+  {%- endcomment -%}
+  <product-addons
+    class="pa"
+    data-pa-main-variant="{{ pa_variant.id }}"
+    data-pa-handle="{{ product.handle }}"
+    data-pa-base="{{ pa_variant.price }}"
+    data-pa-money="{{ shop.money_format | escape }}"
+  >
+    <div class="pa__head">
+      <h2 class="pa__heading">{{ 'products.addons.heading' | t }}</h2>
+      <p class="pa__sub">{{ 'products.addons.sub' | t }}</p>
+    </div>
+
+    <div class="pa__tabs" role="tablist" aria-label="{{ 'products.addons.heading' | t }}">
+      {%- for pa_group in pa_group_list -%}
+        {%- liquid
+          assign pa_parts = pa_group | split: '|'
+          assign pa_key = pa_parts[0]
+          assign pa_label = pa_parts[1]
+        -%}
+        <button
+          class="pa__tab"
+          type="button"
+          role="tab"
+          id="PaTab-{{ pa_uid }}-{{ pa_key }}"
+          aria-controls="PaPanel-{{ pa_uid }}-{{ pa_key }}"
+          aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+          tabindex="{% if forloop.first %}0{% else %}-1{% endif %}"
+        >
+          <span class="pa__tab-label">{{ pa_label | escape }}</span>
+          <span class="pa__tab-count" data-pa-tab-count hidden></span>
+        </button>
+      {%- endfor -%}
+    </div>
+
+    {%- for pa_group in pa_group_list -%}
+      {%- liquid
+        assign pa_parts = pa_group | split: '|'
+        assign pa_key = pa_parts[0]
+        assign pa_query = pa_parts[2] | strip
+      -%}
+      <div
+        class="pa__panel"
+        role="tabpanel"
+        id="PaPanel-{{ pa_uid }}-{{ pa_key }}"
+        aria-labelledby="PaTab-{{ pa_uid }}-{{ pa_key }}"
+        data-pa-panel
+        data-pa-query="{{ pa_query | escape }}"
+        {% unless forloop.first %}hidden{% endunless %}
+      >
+        <ul class="pa__list" role="list" data-pa-list>
+          {%- for pa_skeleton in (1..3) -%}
+            <li class="pa-card pa-card--loading" aria-hidden="true"></li>
+          {%- endfor -%}
+        </ul>
+        <p class="pa__empty" data-pa-empty hidden>{{ 'products.addons.empty' | t }}</p>
+      </div>
+    {%- endfor -%}
+
+    <div
+      class="pa__bar"
+      data-pa-bar
+      data-pa-str-idle="{{ 'products.addons.cta_idle' | t | escape }}"
+      data-pa-str-one="{{ 'products.addons.cta_one' | t | escape }}"
+      data-pa-str-many="{{ 'products.addons.cta_active' | t | escape }}"
+      data-pa-str-busy="{{ 'products.addons.cta_busy' | t | escape }}"
+      data-pa-str-error="{{ 'products.addons.error' | t | escape }}"
+      data-pa-str-count-one="{{ 'products.addons.count_one' | t | escape }}"
+      data-pa-str-count-many="{{ 'products.addons.count_many' | t | escape }}"
+    >
+      <p class="pa__sum">
+        <span class="pa__sum-label">{{ 'products.addons.total' | t }}</span>
+        <span class="pa__sum-value" data-pa-total aria-live="polite">
+          {{- pa_variant.price | money_without_trailing_zeros -}}
+        </span>
+        <span class="pa__sum-note" data-pa-note>{{ 'products.addons.total_note' | t }}</span>
+      </p>
+      <button class="button button--accent pa__submit" type="button" data-pa-submit disabled>
+        <span data-pa-submit-label>{{ 'products.addons.cta_idle' | t }}</span>
+      </button>
+    </div>
+    <p class="pa__error" role="alert" data-pa-error hidden></p>
+  </product-addons>
+{%- endif -%}

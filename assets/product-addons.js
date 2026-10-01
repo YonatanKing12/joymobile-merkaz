@@ -7,8 +7,10 @@
  * Nothing is fetched until a panel is first shown: the opening panel loads when the module scrolls
  * into view, the rest when their pill is pressed. A product page that nobody scrolls costs nothing.
  *
- * Money is never formatted here. Every price on a tile is server-rendered, the bar counts rather
- * than totals, and the real total is the cart drawer's.
+ * Every price on a tile is server-rendered. The running total has to add numbers, so it cannot be,
+ * and it is printed with the shop's own money_format string handed over in data-pa-money — which is
+ * what the theme's "no money in JS" rule is actually protecting: a format that cannot drift from the
+ * shop's. The authoritative total is still the cart drawer's, which the note under the sum says.
  */
 import { define, announce } from '@theme/global';
 import { addItems } from '@theme/cart';
@@ -28,6 +30,9 @@ class ProductAddons extends HTMLElement {
 
     this.str = this.bar.dataset;
     this.mainVariant = String(this.dataset.paMainVariant || '');
+    this.base = Number(this.dataset.paBase) || 0;
+    this.moneyFormat = this.dataset.paMoney || '{{amount_no_decimals_with_comma_separator}} ₪';
+    this.totalBox = this.querySelector('[data-pa-total]');
     this.addEventListener('change', this);
     this.tablist?.addEventListener('click', this);
     this.tablist?.addEventListener('keydown', this);
@@ -119,9 +124,41 @@ class ProductAddons extends HTMLElement {
     this.refresh();
   }
 
+  /* The shop's money_format, filled in. Only the four amount tokens Shopify defines are handled,
+     which is every format a shop can be set to. */
+  money(cents) {
+    const fmt = (value, decimals, sep) => {
+      const fixed = (value / 100).toFixed(decimals);
+      const [whole, part] = fixed.split('.');
+      const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+      return part ? `${grouped}.${part}` : grouped;
+    };
+    return this.moneyFormat.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, token) => {
+      if (token === 'amount') return fmt(cents, 2, ',');
+      if (token === 'amount_no_decimals') return fmt(cents, 0, ',');
+      if (token === 'amount_with_comma_separator') return fmt(cents, 2, '.').replace(/\.(\d{2})$/, ',$1');
+      if (token === 'amount_no_decimals_with_comma_separator') return fmt(cents, 0, '.');
+      return fmt(cents, 0, ',');
+    });
+  }
+
   refresh() {
     const n = this.checked.length;
     this.submit.disabled = n === 0;
+
+    const extras = this.checked.reduce((sum, c) => sum + (Number(c.closest('[data-pa-item]').dataset.paPrice) || 0), 0);
+    if (this.totalBox) this.totalBox.textContent = this.money(this.base + extras);
+
+    /* Each pill carries how many of its own tiles are ticked, so a choice made in one group is still
+       visible from the others. */
+    this.tabs.forEach((tab) => {
+      const panel = document.getElementById(tab.getAttribute('aria-controls'));
+      const box = tab.querySelector('[data-pa-tab-count]');
+      if (!panel || !box) return;
+      const picked = panel.querySelectorAll('[data-pa-check]:checked').length;
+      box.textContent = picked ? String(picked) : '';
+      box.hidden = picked === 0;
+    });
     if (this.label) {
       this.label.textContent = n === 0 ? this.str.paStrIdle
         : n === 1 ? this.str.paStrOne

@@ -346,6 +346,13 @@
         loop: section.settings.gallery_loop,
         badges: section.settings.gallery_badges
       -%}
+
+      {%- comment -%}
+        The add-ons sit under the gallery, in the same column, on every width: on desktop this is the
+        column with room to spare, and on phones it lands under the photo and above the price, while
+        the customer is still deciding. At the foot of the page it would be a second visit.
+      {%- endcomment -%}
+      {%- render 'product-addons', product: product, section_id: section.id -%}
     </div>
 
     <div class="product__info">
