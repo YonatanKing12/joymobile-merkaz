@@ -1,0 +1,281 @@
+{%- comment -%}
+  "השלימו את הערכה" — accessories matched to the phone on the page.
+
+  The section renders in two modes, decided by whether a search was performed:
+
+  1. On the product page it prints the shell: a heading, one pill per accessory group and an empty
+     panel per group carrying the group's search query. Nothing is fetched server side, so the
+     product page stays the same weight it was.
+  2. Fetched as /search?q=<query>&type=product&options[prefix]=last&section_id=product-addons it
+     prints the tiles for that one query. assets/product-addons.js moves them into the panel.
+
+  Why search and not collections: the matching accessory for "iPhone 17 Pro Max" is spread over a
+  3,390-product accessories collection, and Liquid cannot filter a collection by title. The store's
+  titles put the model after "ל-" ("כיסוי Apple TechWoven Case ל-iPhone 17 Pro Max שחור"), which the
+  search engine indexes, so a query of "כיסוי " + the model is an exact, server-side match over the
+  whole catalogue. This is the same trick the theme's predictive search uses, for the same reason:
+  /search/suggest rejects Hebrew on this store (HTTP 417).
+
+  The model comes off the product title: the importer suffix after the dash, then the capacity, the
+  SIM wording and the colour are removed, leaving "iPhone 17 Pro Max" out of
+  "Apple iPhone 17 Pro Max 2TB כחול – יבואן רשמי".
+
+  Styles: assets/section-product-addons.css. Script: assets/product-addons.js.
+{%- endcomment -%}
+
+{%- liquid
+  assign pa_results_mode = false
+  if search.performed and search.terms != blank
+    assign pa_results_mode = true
+  endif
+-%}
+
+{%- if pa_results_mode -%}
+  {%- comment -%}
+    Results fragment. Only accessories are kept: this store prefixes every accessory product type
+    with "א." (א.מכשירים, א.רכב, א.אוזניות…), so a brand query like "מטען Apple" cannot drag an iPad
+    into a list of chargers.
+  {%- endcomment -%}
+  {%- paginate search.results by 24 -%}
+    {%- assign pa_shown = 0 -%}
+    {%- for pa_item in search.results -%}
+      {%- liquid
+        if pa_shown >= 8
+          break
+        endif
+        assign pa_ok = false
+        if pa_item.object_type == 'product'
+          if pa_item.available
+            assign pa_type = pa_item.type | strip
+            assign pa_head = pa_type | slice: 0, 2
+            if pa_head == 'א.'
+              assign pa_ok = true
+            endif
+          endif
+        endif
+      -%}
+      {%- if pa_ok -%}
+        {%- liquid
+          assign pa_variant = pa_item.selected_or_first_available_variant
+          assign pa_compare = 0
+          if pa_variant.compare_at_price > pa_variant.price
+            assign pa_compare = pa_variant.compare_at_price
+          endif
+          assign pa_shown = pa_shown | plus: 1
+        -%}
+        <li
+          class="pa-card"
+          data-pa-item
+          data-pa-handle="{{ pa_item.handle }}"
+          data-pa-variant="{{ pa_variant.id }}"
+          data-pa-price="{{ pa_variant.price }}"
+          data-pa-compare="{{ pa_compare }}"
+          data-pa-title="{{ pa_item.title | escape }}"
+        >
+          <label class="pa-card__label">
+            <input class="pa-card__check" type="checkbox" data-pa-check>
+            <span class="pa-card__media">
+              {%- if pa_item.featured_media -%}
+                {%- render 'image',
+                  image: pa_item.featured_media.preview_image,
+                  widths: '120,240',
+                  sizes: '60px',
+                  decorative: true,
+                  class: 'pa-card__img'
+                -%}
+              {%- endif -%}
+            </span>
+            <span class="pa-card__text">
+              <span class="pa-card__title">{{ pa_item.title | escape }}</span>
+              <span class="pa-card__prices">
+                <span class="pa-card__price">{{ pa_variant.price | money }}</span>
+                {%- if pa_compare > 0 -%}
+                  <s class="pa-card__was">{{ pa_compare | money }}</s>
+                {%- endif -%}
+              </span>
+            </span>
+            <span class="pa-card__mark" aria-hidden="true">
+              {%- render 'icon', name: 'check', size: 16 -%}
+            </span>
+          </label>
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endpaginate -%}
+
+{%- elsif product != blank -%}
+  {%- liquid
+    # The model: drop the importer suffix, the capacity, the SIM wording and the colour.
+    assign pa_base = product.title | split: ' – ' | first | split: ' - ' | first | strip
+    assign pa_model = pa_base
+
+    assign pa_noise = '2TB,1TB,512GB,256GB,128GB,64GB,32GB,eSIM,Dual SIM,5G,NFC'
+    assign pa_noise_list = pa_noise | split: ','
+    for pa_word in pa_noise_list
+      assign pa_model = pa_model | remove: pa_word
+    endfor
+
+    assign pa_colours = 'שחור,לבן,כחול,תכלת,כתום,ורוד,אדום,ירוק,סגול,אפור,זהב,כסוף,כסף,צהוב,חום,בורדו,ברונזה,קרם,לילך,בז׳,טבעי,מדברי,שמנת,תיטניום,טיטניום,כהה,בהיר'
+    assign pa_colour_list = pa_colours | split: ','
+    for pa_word in pa_colour_list
+      assign pa_model = pa_model | remove: pa_word
+    endfor
+
+    # The maker's name comes off the front too. "כיסוי iPhone 17 Pro Max" returns the matching cases
+    # from every maker; leaving "Apple" in front tilts the list towards Apple's own and buries the
+    # cheaper ones the shop actually stocks for that model.
+    assign pa_vendor = product.vendor | strip
+    if pa_vendor != blank
+      assign pa_model = pa_model | remove_first: pa_vendor | strip
+    endif
+    assign pa_model = pa_model | replace: '  ', ' ' | replace: '  ', ' ' | strip
+
+    # Groups: key | label | query. A group with no query is not printed.
+    assign pa_groups = ''
+    assign pa_type = product.type | strip
+
+    if pa_type == 'מכשירים'
+      capture pa_groups
+        echo 'cases|כיסויים|כיסוי '
+        echo pa_model
+        echo '###screens|מגני מסך|מגן מסך '
+        echo pa_model
+        echo '###chargers|מטענים|מטען '
+        echo pa_vendor
+        echo '###power|סוללות גיבוי|סוללה ניידת'
+      endcapture
+    endif
+
+    assign pa_group_list = pa_groups | split: '###'
+    assign pa_heading = section.settings.heading | default: 'השלימו את הערכה'
+  -%}
+
+  {%- if pa_group_list.size > 0 -%}
+    {{ 'section-product-addons.css' | asset_url | stylesheet_tag }}
+    <script type="module" src="{{ 'product-addons.js' | asset_url }}"></script>
+
+    <product-addons
+      class="pa page-width"
+      data-pa-main-variant="{{ product.selected_or_first_available_variant.id }}"
+      data-pa-handle="{{ product.handle }}"
+      style="--pa-pad-top: {{ section.settings.padding_top }}px; --pa-pad-bottom: {{ section.settings.padding_bottom }}px;"
+    >
+      <h2 class="pa__heading">{{ pa_heading | escape }}</h2>
+      {%- if section.settings.subheading != blank -%}
+        <p class="pa__sub">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+
+      <div class="pa__tabs" role="tablist" data-pa-tablist>
+        {%- for pa_group in pa_group_list -%}
+          {%- liquid
+            assign pa_parts = pa_group | split: '|'
+            assign pa_key = pa_parts[0]
+            assign pa_label = pa_parts[1]
+          -%}
+          <button
+            class="pa__tab"
+            type="button"
+            role="tab"
+            id="PaTab-{{ section.id }}-{{ pa_key }}"
+            aria-controls="PaPanel-{{ section.id }}-{{ pa_key }}"
+            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+            tabindex="{% if forloop.first %}0{% else %}-1{% endif %}"
+          >
+            {{- pa_label | escape -}}
+          </button>
+        {%- endfor -%}
+      </div>
+
+      {%- for pa_group in pa_group_list -%}
+        {%- liquid
+          assign pa_parts = pa_group | split: '|'
+          assign pa_key = pa_parts[0]
+          assign pa_label = pa_parts[1]
+          assign pa_query = pa_parts[2] | strip
+        -%}
+        <div
+          class="pa__panel"
+          role="tabpanel"
+          id="PaPanel-{{ section.id }}-{{ pa_key }}"
+          aria-labelledby="PaTab-{{ section.id }}-{{ pa_key }}"
+          data-pa-panel
+          data-pa-query="{{ pa_query | escape }}"
+          {% unless forloop.first %}hidden{% endunless %}
+        >
+          <ul class="pa__list" role="list" data-pa-list>
+            {%- for pa_skeleton in (1..4) -%}
+              <li class="pa-card pa-card--loading" aria-hidden="true"></li>
+            {%- endfor -%}
+          </ul>
+          <p class="pa__empty" data-pa-empty hidden>{{ 'products.addons.empty' | t }}</p>
+        </div>
+      {%- endfor -%}
+
+      {%- comment -%}
+        The bar counts, it does not price. Money is never formatted in JS in this theme — every price
+        on the page is server-rendered — and the cart drawer that opens on add shows the real total.
+      {%- endcomment -%}
+      <div
+        class="pa__bar"
+        data-pa-bar
+        data-pa-str-idle="{{ 'products.addons.cta_idle' | t | escape }}"
+        data-pa-str-one="{{ 'products.addons.cta_one' | t | escape }}"
+        data-pa-str-many="{{ 'products.addons.cta_active' | t | escape }}"
+        data-pa-str-busy="{{ 'products.addons.cta_busy' | t | escape }}"
+        data-pa-str-error="{{ 'products.addons.error' | t | escape }}"
+        data-pa-str-count-one="{{ 'products.addons.count_one' | t | escape }}"
+        data-pa-str-count-many="{{ 'products.addons.count_many' | t | escape }}"
+      >
+        <p class="pa__count" data-pa-count aria-live="polite"></p>
+        <button class="button button--accent pa__submit" type="button" data-pa-submit disabled>
+          <span data-pa-submit-label>{{ 'products.addons.cta_idle' | t }}</span>
+        </button>
+      </div>
+      <p class="pa__error" role="alert" data-pa-error hidden></p>
+    </product-addons>
+  {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "תוספות למוצר",
+  "tag": "section",
+  "class": "section-product-addons",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "השלימו את הערכה"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "כותרת משנה",
+      "info": "לא חובה. מוצגת מתחת לכותרת.",
+      "default": "אביזרים שמתאימים בדיוק לדגם שבחרתם"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    }
+  ],
+  "presets": [{ "name": "תוספות למוצר" }]
+}
+{% endschema %}

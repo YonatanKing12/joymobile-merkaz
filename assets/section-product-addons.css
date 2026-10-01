@@ -1,0 +1,250 @@
+/* "השלימו את הערכה" — sections/product-addons.liquid.
+   A pill per accessory group over a grid of selectable tiles, then one bar that adds every ticked
+   tile in a single /cart/add call. Sizes are in rem so the block grows with the fluid root like the
+   rest of the page. */
+
+.pa {
+  padding-block: var(--pa-pad-top, 8px) var(--pa-pad-bottom, 32px);
+}
+
+.pa__heading {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+}
+
+.pa__sub {
+  margin-block-start: 0.25rem;
+  color: var(--color-muted);
+  font-size: var(--text-md);
+}
+
+/* ---------- Group pills ---------- */
+.pa__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: var(--space-md) var(--space-sm);
+}
+
+.pa__tab {
+  min-height: var(--tap-target);
+  padding-inline: 1rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--text-md);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+/* The selected pill is the brand green with navy text (5.8:1), the same pairing as the buy button.
+   The border changes with it, so the state does not rest on colour alone. */
+.pa__tab[aria-selected="true"] {
+  border-color: var(--color-button-accent-bg);
+  background-color: var(--color-button-accent-bg);
+  color: var(--color-button-accent-text);
+}
+
+@media (hover: hover) {
+  .pa__tab:not([aria-selected="true"]):hover {
+    border-color: var(--color-ink);
+  }
+}
+
+/* ---------- Tiles ---------- */
+.pa__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pa-card {
+  min-width: 0;
+}
+
+.pa-card--loading {
+  height: 5.25rem;
+  border-radius: var(--radius-card, 16px);
+  background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-background));
+}
+
+/* The whole tile is one <label> around a real checkbox: space selects it, Tab reaches it, and a
+   screen reader says "checkbox, checked" with no role juggling. */
+.pa-card__label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card, 16px);
+  background-color: var(--color-background);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.pa-card__check {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.pa-card__media {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: calc(var(--radius-card, 16px) - 0.5rem);
+  background-color: color-mix(in srgb, var(--color-ink) 4%, var(--color-background));
+  overflow: hidden;
+}
+
+.pa-card__img {
+  /* min-height: 0 so the photo's own height cannot beat height: 100% and spill out of the well —
+     the same grid-item minimum that was cutting the phones off on the product cards. */
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  padding: 8%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.pa-card__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pa-card__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+}
+
+.pa-card__prices {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.pa-card__price {
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.pa-card__was {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+/* The tick box: an outline when empty, the brand green when chosen. */
+.pa-card__mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--color-border-control);
+  border-radius: 50%;
+  color: transparent;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.pa-card__label:has(.pa-card__check:checked) {
+  border-color: var(--color-button-accent-bg);
+  background-color: color-mix(in srgb, var(--color-button-accent-bg) 8%, var(--color-background));
+}
+
+.pa-card__label:has(.pa-card__check:checked) .pa-card__mark {
+  border-color: var(--color-button-accent-bg);
+  background-color: var(--color-button-accent-bg);
+  color: var(--color-button-accent-text);
+}
+
+.pa-card__label:has(.pa-card__check:focus-visible) {
+  outline: 2px solid var(--color-focus, var(--color-ink));
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .pa-card__label:hover {
+    border-color: var(--color-ink);
+  }
+}
+
+.pa__empty {
+  padding-block: var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-md);
+}
+
+/* ---------- The bar ---------- */
+.pa__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-block-start: var(--space-md);
+}
+
+.pa__count {
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.pa__submit {
+  min-width: 15rem;
+}
+
+.pa__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pa__error {
+  margin-block-start: var(--space-2xs);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+@media (max-width: 575px) {
+  .pa__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pa__submit {
+    width: 100%;
+    min-width: 0;
+  }
+}
