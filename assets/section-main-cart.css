@@ -704,3 +704,34 @@ cart-items[aria-busy="true"] .cart-summary__row--total dd {
 .main-cart > .page-width {
   max-width: calc(100rem + 2 * var(--page-gutter));
 }
+
+/* Undo after a removal (@theme/cart fills and shows it). Same offer as the drawer's. */
+.main-cart__undo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-block-end: var(--space-md);
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+}
+
+.main-cart__undo[hidden] {
+  display: none;
+}
+
+.main-cart__undo-text {
+  min-width: 0;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-md);
+}
+
+.main-cart__undo-button {
+  flex-shrink: 0;
+  gap: var(--space-2xs);
+  min-height: 2.5rem;
+}

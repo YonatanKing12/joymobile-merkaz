@@ -89,6 +89,22 @@
       {%- endif -%}
     </div>
 
+    {%- comment -%}
+      Undo after a removal, same bar and same script as the drawer. Printed here, hidden, and outside
+      the has_items branch: removing the last line is exactly the removal worth taking back, and the
+      page is in its empty state by then.
+    {%- endcomment -%}
+    <div class="main-cart__undo" data-cart-undo role="status" hidden>
+      <p class="main-cart__undo-text">
+        <strong data-cart-undo-title></strong>
+        {{ 'cart.drawer.undo_removed' | t }}
+      </p>
+      <button class="button button--small main-cart__undo-button" type="button" data-cart-undo-button>
+        {%- render 'icon', name: 'arrow-right', size: 14 -%}
+        {{- 'cart.drawer.undo' | t -}}
+      </button>
+    </div>
+
     {%- if has_items -%}
       {%- for block in section.blocks -%}
         {%- if block.type == 'notice' and block.settings.text != blank -%}
@@ -123,7 +139,23 @@
                       endif
                     endif
                   -%}
-                  <li class="cart-item" data-key="{{ item.key | escape }}">
+                  {%- liquid
+                    # See snippets/cart-line: undo re-adds the variant and quantity only, so it is
+                    # offered only where that is the whole line.
+                    assign line_undoable = true
+                    if item.properties.size > 0 or item.selling_plan_allocation
+                      assign line_undoable = false
+                    endif
+                  -%}
+                  <li
+                    class="cart-item"
+                    data-key="{{ item.key | escape }}"
+                    {%- if line_undoable %}
+                      data-undo-variant="{{ item.variant_id }}"
+                      data-undo-quantity="{{ item.quantity }}"
+                      data-undo-title="{{ line_title | escape }}"
+                    {%- endif %}
+                  >
                     <div class="cart-item__media">
                       <a class="cart-item__image-link" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
                         {%- render 'image',
