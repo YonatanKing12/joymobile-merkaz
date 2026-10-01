@@ -352,6 +352,24 @@
    pads back in, so the first card lines up with the heading and the next one peeks in — the peek is
    what says "there is more", with no arrows to tap. */
 @media (max-width: 767px) {
+  /* The pills ride on one line too. Four of them wrap on a phone and the fourth lands alone on a
+     second row, which reads as a mistake; one scrolling line is the same gesture as the cards. */
+  .pa__tabs {
+    flex-wrap: nowrap;
+    margin-inline: calc(-1 * var(--space-md));
+    padding-inline: var(--space-md);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .pa__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pa__tab {
+    flex: none;
+  }
+
   .pa__list {
     display: flex;
     gap: 0.625rem;
