@@ -1,8 +1,8 @@
 {%- comment -%}
   Category circles carousel. Each block = collection + optional custom image + optional label.
-  Default look is a clean circle (measured: 112px disc in a 143px box, 1px outline, 8px light ring).
-  The owner may upload a frame image ("מסגרת לעיגול קטגוריה") that is drawn over every circle box —
-  the theme never draws a frame of its own. Collection images are product photos on white, so the
+  Default look is a disc with a 2px ring in the brand green (--color-brand).
+  The owner may upload a frame image ("מסגרת לעיגול קטגוריה") that is drawn over every circle box;
+  with a frame the ring is dropped, so the two never stack. Collection images are product photos on white, so the
   image is blended into the disc colour (multiply) and sits inside the disc's inscribed square.
   Per view: 2 (+35px peeks) < 576px, 3 < 768px, 5 at 768, 6 at 992, setting (default 7) at 1200 — the old strip
   showed 7 at every width >= 768 but shrank the circles until the labels covered the images. No autoplay by default

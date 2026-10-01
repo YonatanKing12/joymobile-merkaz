@@ -1,7 +1,8 @@
 /* Category circles — sections/category-circles.liquid. Track & slides: component-carousel.css.
    Measured @1440: carousel 90% wide with 45px arrow lanes (track 1206), 7 per view, gap 34px,
    slide 143×173: circle box 143², disc 112px bottom-aligned (1px outline, 8px light ring, grey inside →
-   JOY Mobile: white ring, #f0f3ff disc from the section setting), label 16px/500 5px below. Phones: full
+   JOY Mobile: a 2px brand-green ring around the #f0f3ff disc from the section setting), label 16px/500
+   5px below. A frame image from the section settings replaces the ring. Phones: full
    width, 2 per view, 35px peeks, no arrows.
    Per view: 2 · 3 (576) · 5 (768) · 6 (992) · setting, default 7 (1200) · one more (1600; the row is
    capped at 1600px, then 1760px from 1920 and 1920px from 2300, so the circles grow); labels 14px below 1200
@@ -54,6 +55,12 @@
   top: 20.3%;
   bottom: 1.4%;
   border-radius: 50%;
+  /* Outline in the brand green. It is a border, not a box-shadow, because :hover puts a drop shadow on
+     this same element and a second box-shadow layer there would have to repeat the ring. box-sizing is
+     border-box and all four insets are set, so the ring is drawn inside the disc's existing circle and
+     nothing moves. 3.37:1 on the page's white, 3.04:1 on the default #f0f3ff disc -- above the 3:1 that
+     a non-text boundary needs, so the circle keeps its edge for low-contrast vision too. */
+  border: var(--circle-ring-width, 2px) solid var(--circle-ring, var(--color-brand));
   background-color: var(--circle-disc, var(--color-surface));
   transition:
     box-shadow var(--duration-base) var(--ease-out),
@@ -78,6 +85,11 @@
   position: relative;
   z-index: 2;
   display: block;
+  /* A flex item's automatic minimum size is its content size; for a photo that is its intrinsic height
+     at this width, and it beats `height: 100%`. Without this a portrait category photo grows past the
+     media box and spills over the disc's edge (the same cause as the cut-off phones on the cards). */
+  min-width: 0;
+  min-height: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
