@@ -704,12 +704,10 @@ html.a11y-no-motion .menu-drawer__submenu {
      an auto margin eats every pixel of free space before flex-grow sees any, so at 2560 the row had
      a single 1010px void between the logo and the search. */
   .header__inner {
-    display: grid;
-    /* RTL: the first area is the rightmost, so the controls are named first and the logo last to keep
-       the row the way it has always read — logo on the left, controls on the right. */
-    grid-template-areas: "actions search logo";
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    column-gap: 1.5rem;
     width: 100%;
     max-width: calc(var(--page-width) + 2 * 0.9375rem);
     margin-inline: auto;
@@ -724,7 +722,7 @@ html.a11y-no-motion .menu-drawer__submenu {
   }
 
   .header__cart {
-    margin-inline-end: 1.8125rem;
+    margin-inline-end: 1.5rem;
   }
 
   .header__cart-icon {
@@ -744,7 +742,7 @@ html.a11y-no-motion .menu-drawer__submenu {
   }
 
   .header__whatsapp {
-    margin-inline-end: 1.9375rem;
+    margin-inline-end: 1.5rem;
   }
 
   .header__whatsapp::before {
@@ -757,11 +755,11 @@ html.a11y-no-motion .menu-drawer__submenu {
   }
 
   .header__account {
-    margin-inline-end: 3.5rem;
+    margin-inline-end: 1.5rem;
   }
 
   .header__branches {
-    margin-inline-end: 2.8125rem;
+    margin-inline-end: 1.5rem;
     padding-inline: 0.75rem; /* old 3px 2px + 5px 10px below 1200px → 129px wide */
   }
 
@@ -769,25 +767,18 @@ html.a11y-no-motion .menu-drawer__submenu {
      440px at 2560, since it is in rem and rides the fluid root). The side tracks keep whatever is
      left, which is where the planned מרכז/אילת switch will go without moving the field. */
   .header__search {
-    grid-area: search;
-    width: 22rem;
-    max-width: 100%;
-    margin-inline: 1.5rem;
+    flex: 0 1 22rem;
+    min-width: 9rem;
   }
 
   .header__actions {
-    grid-area: actions;
-    justify-content: flex-start; /* RTL: packs the controls against the row's right edge */
+    flex: none;
   }
 
-  /* The cart is the last control; its trailing margin would push the whole group off the row's edge. */
-  .header__cart {
-    margin-inline-end: 0;
-  }
+
 
   .header__logo {
-    grid-area: logo;
-    justify-self: end; /* RTL: the logo's own track ends at the row's left edge */
+    flex: none;
     min-width: 0;
     margin-block-end: 0.625rem; /* logo centre at y≈35.5, as measured */
   }
@@ -806,6 +797,43 @@ html.a11y-no-motion .menu-drawer__submenu {
     font-size: var(--text-2xl);
     -webkit-line-clamp: 2;
   }
+}
+
+/* From 1500px the row becomes three tracks and the field sits on the row's exact midpoint. Below
+   that it stays a flex row: logo at one edge, controls at the other, field between them, which is
+   how it has always behaved.
+
+   1500 is measured, not chosen. Equal side tracks mean each one is as wide as the wider side, so
+   the row needs 2 × controls + field before it can centre honestly: at 1440 that is 2 × 474 + 352,
+   and the controls overflow their track and run into the field (measured overlap: 17px at 1400,
+   117px at 1200). Forcing it lower either overlaps or pushes the row past the viewport. The old
+   spacing between the controls (45/56/31/24/29px) is now a uniform 24px, which is what brought the
+   threshold down from about 1650 to 1500. */
+@media (min-width: 1500px) {
+  .header__inner {
+    display: grid;
+    /* RTL: the first area is the rightmost, so the controls are named first and the logo last, which
+       keeps the row as it has always read — logo on the left, controls on the right. */
+    grid-template-areas: "actions search logo";
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .header__search {
+    grid-area: search;
+    flex: none;
+    width: 22rem;
+  }
+
+  .header__actions {
+    grid-area: actions;
+    justify-content: flex-start; /* RTL: packs the controls against the row's right edge */
+  }
+
+  .header__logo {
+    grid-area: logo;
+    justify-self: end; /* RTL: the logo's track ends at the row's left edge */
+  }
+
 }
 
 @media (min-width: 1200px) {
