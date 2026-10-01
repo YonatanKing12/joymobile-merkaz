@@ -19,6 +19,10 @@
   button "המשך לשריון" and @app blocks.
 {%- endcomment -%}
 {{ 'section-main-cart.css' | asset_url | stylesheet_tag }}
+{%- if section.settings.show_upsell -%}
+  {{ 'component-cart-upsell.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'cart-upsell.js' | asset_url }}"></script>
+{%- endif -%}
 
 {%- liquid
   assign cart_form_id = 'CartForm-' | append: section.id
@@ -274,6 +278,10 @@
               </ul>
             </div>
 
+            {%- if section.settings.show_upsell -%}
+              {%- render 'cart-upsell', context: 'page' -%}
+            {%- endif -%}
+
             <div class="main-cart__actions">
               <a class="main-cart__continue" href="{{ routes.all_products_collection_url }}">
                 {%- render 'icon', name: 'arrow-right', size: 18 -%}
@@ -477,6 +485,13 @@
       "type": "checkbox",
       "id": "show_breadcrumbs",
       "label": "מסלול ניווט (פירורי לחם)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_upsell",
+      "label": "אביזרים משלימים",
+      "info": "אביזרים שמתאימים למכשיר שבעגלה, מתחת לרשימת המוצרים.",
       "default": true
     },
     {

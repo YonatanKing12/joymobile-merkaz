@@ -1,0 +1,218 @@
+/* "להשלים את הערכה" in the cart drawer and on the cart page (snippets/cart-upsell).
+   The block is printed hidden and revealed by @theme/cart-upsell once it holds a tile. */
+
+.cu[hidden] {
+  display: none;
+}
+
+.cu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.cu__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-xs);
+}
+
+.cu__heading {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.cu__sub {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+/* A scroll row everywhere it is narrow: in a 420px drawer four tiles side by side would each be
+   95px, which fits neither a title nor a price. Two and a bit visible say "there is more here"
+   without a control that has to be taught. */
+.cu__list {
+  display: flex;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0 0 var(--space-2xs);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+.cu-card {
+  position: relative;
+  display: flex;
+  flex: 0 0 9.5rem;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding: var(--space-xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-background);
+  scroll-snap-align: start;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .cu-card:hover {
+    border-color: var(--color-brand);
+  }
+}
+
+.cu-card__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.cu-card__media {
+  display: grid;
+  place-items: center;
+  height: 3.75rem;
+  background-color: var(--color-surface);
+}
+
+.cu-card__img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+/* The JOY symbol stands in for a missing photo, so it is sized as a mark and not as a product. */
+.cu-card__img--fallback {
+  width: auto;
+  height: 2.25rem;
+  opacity: 0.45;
+}
+
+.cu-card__title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.cu-card__link:hover .cu-card__title {
+  text-decoration: underline;
+}
+
+.cu-card__prices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2xs);
+  margin: 0;
+  /* Room for the add button, which overlaps this row rather than taking a row of its own. */
+  padding-inline-end: 2.25rem;
+}
+
+.cu-card__price {
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cu-card__was {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.cu-card__add {
+  position: absolute;
+  inset-block-end: var(--space-xs);
+  inset-inline-end: var(--space-xs);
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  /* The theme's accent pair, the same one the checkout button uses: a contrast ratio the theme
+     already answers for, rather than a new colour guessed against this card. */
+  background-color: var(--color-button-accent-bg);
+  color: var(--color-button-accent-text);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out), scale var(--duration-fast) var(--ease-out);
+}
+
+.cu-card__add:hover {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.cu-card__add:active {
+  scale: 0.9;
+}
+
+.cu-card__add[aria-busy="true"] {
+  opacity: 0.6;
+}
+
+.cu-card__add:disabled {
+  cursor: default;
+}
+
+/* Plus until it is in the cart, tick after. Both are always in the DOM; the CSS picks one. */
+.cu-card__icon--check,
+.cu-card.is-added .cu-card__icon--plus {
+  display: none;
+}
+
+.cu-card.is-added .cu-card__icon--check {
+  display: grid;
+}
+
+.cu-card.is-added .cu-card__add {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  opacity: 1;
+}
+
+/* The cart page has a full column to work with, so the row becomes a grid and stops scrolling. */
+@media (min-width: 768px) {
+  .cu--page {
+    gap: var(--space-sm);
+    padding: var(--space-md) 0 0;
+  }
+
+  .cu--page .cu__heading {
+    font-size: var(--text-lg);
+  }
+
+  .cu--page .cu__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-sm);
+    overflow: visible;
+  }
+
+  .cu--page .cu-card {
+    flex: initial;
+    padding: var(--space-sm);
+  }
+
+  .cu--page .cu-card__media {
+    height: 5rem;
+  }
+
+  .cu--page .cu-card__title {
+    font-size: var(--text-sm);
+  }
+}

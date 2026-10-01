@@ -1,0 +1,108 @@
+{% doc %}
+  "להשלים את הערכה" inside the cart — accessories that fit what is already in it.
+
+  The shell only, and it starts hidden: the tiles come from sections/cart-upsell rendered against
+  /search and fetched by assets/cart-upsell.js, and a block that may legitimately come back empty
+  should not hold space in a drawer while it waits. No skeleton for the same reason.
+
+  The anchor is the first line that is a device rather than an accessory (this store prefixes every
+  accessory product type with "א."), because that is what the rest of the cart hangs off: someone
+  buying a phone still needs a case, someone buying a case does not need another one. A cart with no
+  device in it gets no block at all.
+
+  @param {string} [context] - 'drawer' (default) or 'page'; picks the layout.
+
+  @example
+  {% render 'cart-upsell', context: 'drawer' %}
+{% enddoc %}
+{%- liquid
+  assign cu_context = context | default: 'drawer'
+  assign cu_anchor = nil
+  assign cu_skip = ''
+
+  for cu_line in cart.items
+    assign cu_skip = cu_skip | append: cu_line.product.handle | append: ','
+    if cu_anchor == nil
+      assign cu_line_type = cu_line.product.type | strip
+      assign cu_head = cu_line_type | slice: 0, 2
+      unless cu_head == 'א.'
+        assign cu_anchor = cu_line.product
+      endunless
+    endif
+  endfor
+-%}
+
+{%- if cu_anchor != nil -%}
+  {%- capture cu_model -%}{%- render 'accessory-model', product: cu_anchor -%}{%- endcapture -%}
+  {%- capture cu_watch -%}{%- render 'accessory-model', product: cu_anchor, mode: 'watch' -%}{%- endcapture -%}
+  {%- liquid
+    assign cu_model = cu_model | strip
+    assign cu_watch = cu_watch | strip
+    assign cu_type = cu_anchor.type | strip
+    assign cu_vendor = cu_anchor.vendor | strip
+    assign cu_queries = ''
+
+    # Two queries, not four groups: the cart is not the place to browse a catalogue. The first is
+    # what nearly everyone buying this kind of device adds, the second tops the row up when the
+    # first does not fill it.
+    case cu_type
+      when 'מכשירים'
+        capture cu_queries
+          echo 'כיסוי '
+          echo cu_model
+          echo '|||מגן מסך '
+          echo cu_model
+        endcapture
+      when 'טאבלטים'
+        capture cu_queries
+          echo 'כיסוי '
+          echo cu_model
+          echo '|||מגן מסך '
+          echo cu_model
+        endcapture
+      when 'שעונים'
+        capture cu_queries
+          echo 'רצועה '
+          echo cu_watch
+          echo '|||מגן מסך '
+          echo cu_watch
+        endcapture
+      when 'אוזניות'
+        capture cu_queries
+          echo 'כיסוי '
+          echo cu_model
+          echo '|||כבל '
+          echo cu_vendor
+        endcapture
+      else
+        capture cu_queries
+          echo 'מטען '
+          echo cu_vendor
+          echo '|||כבל '
+          echo cu_vendor
+        endcapture
+    endcase
+    assign cu_queries = cu_queries | strip
+  -%}
+
+  {%- comment -%}
+    The stylesheet and the script are loaded by the calling section, not here: this markup reaches
+    the page through section rendering after a cart change, and a <script> inserted that way never
+    executes — a cart that started empty would print the block and leave it hidden forever.
+  {%- endcomment -%}
+  <cart-upsell
+    class="cu cu--{{ cu_context }}"
+    data-cu-queries="{{ cu_queries | escape }}"
+    data-cu-skip="{{ cu_skip | escape }}"
+    data-cu-limit="4"
+    data-cu-str-error="{{ 'cart.upsell.error' | t | escape }}"
+    data-cu-str-added="{{ 'cart.upsell.added' | t | escape }}"
+    hidden
+  >
+    <div class="cu__head">
+      <h2 class="cu__heading">{{ 'cart.upsell.heading' | t }}</h2>
+      <p class="cu__sub">{{ 'cart.upsell.sub' | t }}</p>
+    </div>
+    <ul class="cu__list" role="list" data-cu-list></ul>
+  </cart-upsell>
+{%- endif -%}

@@ -1,0 +1,111 @@
+{%- comment -%}
+  Results fragment for the cart's "להשלים את הערכה" (snippets/cart-upsell).
+
+  Fetched as /search?q=<query>&type=product&options[prefix]=last&section_id=cart-upsell and printed
+  as bare tiles; assets/cart-upsell.js moves them into the list in the drawer and on the cart page.
+  The shell is a snippet, so this file is only ever the fragment.
+
+  Why search and not a collection: the case that fits "iPhone 17 Pro Max" sits inside a
+  3,390-product accessories collection, and Liquid cannot filter a collection by title. The store's
+  titles put the model after "ל-", which the search engine indexes. /search/suggest answers 417 to
+  Hebrew on this store, so the Section Rendering API is the route.
+{%- endcomment -%}
+{%- if search.performed and search.terms != blank -%}
+  {%- paginate search.results by 24 -%}
+    {%- assign cu_shown = 0 -%}
+    {%- for cu_item in search.results -%}
+      {%- liquid
+        # Eight, not four: the script drops what is already in the cart and merges two queries, so it
+        # needs more candidates than it will show.
+        if cu_shown >= 8
+          break
+        endif
+        assign cu_ok = false
+        if cu_item.object_type == 'product'
+          if cu_item.available
+            assign cu_type = cu_item.type | strip
+            assign cu_head = cu_type | slice: 0, 2
+            if cu_head == 'א.'
+              assign cu_ok = true
+            endif
+          endif
+        endif
+      -%}
+      {%- if cu_ok -%}
+        {%- liquid
+          assign cu_variant = cu_item.selected_or_first_available_variant
+          assign cu_compare = 0
+          if cu_variant.compare_at_price > cu_variant.price
+            assign cu_compare = cu_variant.compare_at_price
+          endif
+          assign cu_shown = cu_shown | plus: 1
+        -%}
+        <li
+          class="cu-card"
+          data-cu-item
+          data-cu-handle="{{ cu_item.handle }}"
+          data-cu-variant="{{ cu_variant.id }}"
+        >
+          <a class="cu-card__link" href="{{ cu_item.url }}">
+            {%- comment -%}
+              Most of these accessories have no photo in Shopify — measured on the live catalogue:
+              86% of the cases, 94% of the screen protectors and 76% of the chargers — so the well
+              falls back to the JOY symbol rather than printing nothing.
+            {%- endcomment -%}
+            <span class="cu-card__media">
+              {%- if cu_item.featured_media != blank -%}
+                {%- render 'image',
+                  image: cu_item.featured_media.preview_image,
+                  widths: '120,240',
+                  sizes: '60px',
+                  decorative: true,
+                  class: 'cu-card__img'
+                -%}
+              {%- else -%}
+                <img
+                  class="cu-card__img cu-card__img--fallback"
+                  src="{{ 'logo-joy-symbol.png' | asset_url }}"
+                  alt=""
+                  width="361"
+                  height="472"
+                  loading="lazy"
+                >
+              {%- endif -%}
+            </span>
+            <span class="cu-card__title">{{ cu_item.title | escape }}</span>
+          </a>
+
+          <p class="cu-card__prices">
+            <span class="cu-card__price">{{ cu_variant.price | money_without_trailing_zeros }}</span>
+            {%- if cu_compare > 0 -%}
+              <s class="cu-card__was">{{ cu_compare | money_without_trailing_zeros }}</s>
+            {%- endif -%}
+          </p>
+
+          {%- comment -%}
+            One press adds it. In a cart there is nothing left to decide, so a tick box and a second
+            "add" press would only put a step between the shopper and the thing they want.
+          {%- endcomment -%}
+          <button
+            class="cu-card__add"
+            type="button"
+            data-cu-add
+            aria-label="{{ 'cart.upsell.add_label' | t: title: cu_item.title }}"
+          >
+            <span class="cu-card__icon cu-card__icon--plus">{%- render 'icon', name: 'plus', size: 16 -%}</span>
+            <span class="cu-card__icon cu-card__icon--check">{%- render 'icon', name: 'check', size: 16 -%}</span>
+          </button>
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endpaginate -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "תוספות בעגלה (תוצאות)",
+  "tag": "div",
+  "class": "section-cart-upsell-results",
+  "settings": []
+}
+{% endschema %}

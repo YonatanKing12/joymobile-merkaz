@@ -24,41 +24,17 @@
   assign pa_type = product.type | strip
   assign pa_vendor = product.vendor | strip
   assign pa_groups = ''
-
-  # Everything before the importer suffix, then the noise that is true of the box and not of the
-  # model: capacity, radio, chip, band and colour. What is left is what an accessory title names.
-  assign pa_base = product.title | split: ' – ' | first | split: ' - ' | first | strip
-  assign pa_model = pa_base
-
-  assign pa_noise = '2TB,1TB,512GB,256GB,128GB,64GB,32GB,12GB RAM,8GB RAM,eSIM,Dual SIM,5G,NFC,Wi-Fi,WiFi,Cellular,Bluetooth,LTE,GPS,USB-C,ANC,M1,M2,M3,M4,M5,A16,A17,A18,Ocean Band,Sport Band,Sport Loop,Milanese'
-  assign pa_noise_list = pa_noise | split: ','
-  for pa_word in pa_noise_list
-    assign pa_model = pa_model | remove: pa_word
-  endfor
-
-  assign pa_colours = 'שחור,לבן,כחול,תכלת,כתום,ורוד,אדום,ירוק,סגול,אפור,זהב,כסוף,כסף,סילבר,צהוב,חום,בורדו,ברונזה,קרם,לילך,בז׳,טבעי,מדברי,שמנת,שמפניה,מוקה,אור כוכבים,תיטניום,טיטניום,מילנז,מילנזי,כהה,בהיר'
-  assign pa_colour_list = pa_colours | split: ','
-  for pa_word in pa_colour_list
-    assign pa_model = pa_model | remove: pa_word
-  endfor
-
-  # The inch mark kills the match: "כיסוי iPad Pro 13"" returns nothing where "כיסוי iPad Pro 13"
-  # returns the four covers for it. Measured against the live search before this was written.
-  assign pa_model = pa_model | remove: '"' | remove: '”'
-
-  # Headphone titles open with the category word, which would land in the query twice.
-  assign pa_model = pa_model | remove_first: 'אוזניות ' | remove_first: 'רמקול '
-
-  # The maker's name comes off for phones and tablets, where "iPhone"/"iPad"/"Galaxy" already names
-  # the model and the maker only tilts the list to that maker's own accessories. It stays on watches
-  # and headphones, where "Apple Watch" and "Apple AirPods" are the identifying phrase.
-  if pa_type == 'מכשירים' or pa_type == 'טאבלטים'
-    if pa_vendor != blank
-      assign pa_model = pa_model | remove_first: pa_vendor
-    endif
-  endif
-
-  assign pa_model = pa_model | replace: '  ', ' ' | replace: '  ', ' ' | strip
+-%}
+{%- comment -%}
+  The model and the watch phrase come from snippets/accessory-model, which the cart's upsell renders
+  too: the rules for stripping a product title down to what an accessory title names were measured
+  against the live search, and two copies of them would drift.
+{%- endcomment -%}
+{%- capture pa_model -%}{%- render 'accessory-model', product: product -%}{%- endcapture -%}
+{%- capture pa_watch -%}{%- render 'accessory-model', product: product, mode: 'watch' -%}{%- endcapture -%}
+{%- liquid
+  assign pa_model = pa_model | strip
+  assign pa_watch = pa_watch | strip
 
   case pa_type
     when 'מכשירים'
@@ -85,23 +61,6 @@
       endcapture
 
     when 'שעונים'
-      # A watch is asked for by its case size, and the straps are listed as "ל-Apple Watch 45/49" —
-      # with the size as a bare number and no "mm". So the query is everything up to and including
-      # "Watch" plus that number: "Apple Watch 49", "Samsung Galaxy Watch 46". Keeping the series
-      # name instead ("רצועה Apple Watch Ultra") pulls Galaxy straps onto an Apple Watch page, which
-      # is what the measurement showed before this rule.
-      assign pa_watch = pa_model
-      assign pa_watch_split = pa_model | split: 'Watch'
-      if pa_watch_split.size > 1
-        assign pa_watch = pa_watch_split[0] | append: 'Watch'
-      endif
-      assign pa_mm = pa_base | split: 'mm'
-      if pa_mm.size > 1
-        assign pa_mm_words = pa_mm[0] | split: ' '
-        assign pa_size = pa_mm_words | last | strip
-        assign pa_watch = pa_watch | append: ' ' | append: pa_size
-      endif
-      assign pa_watch = pa_watch | replace: '  ', ' ' | strip
       capture pa_groups
         echo 'bands|רצועות|רצועה '
         echo pa_watch

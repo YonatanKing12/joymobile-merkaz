@@ -1,0 +1,75 @@
+{% doc %}
+  The model name an accessory title would use for this product, derived from its own title.
+
+  The store's accessory titles name the model after "ל-" ("כיסוי Apple TechWoven Case ל-iPhone 17
+  Pro Max שחור"), so the search index answers an exact match for "<category> <model>". What has to
+  come off the product title first is everything that is true of the box and not of the model: the
+  importer suffix after the dash, the capacity, the radio and chip wording, the colour, and for
+  phones and tablets the maker's name (there "iPhone"/"iPad"/"Galaxy" already identifies the model
+  and the maker only tilts the list to that maker's own accessories; on watches and headphones
+  "Apple Watch" and "Apple AirPods" are the identifying phrase, so it stays).
+
+  Every rule here was measured against the live search. Two copies of them would drift, so this is
+  the one place they live: snippets/product-addons (the product page) and snippets/cart-upsell (the
+  cart and the drawer) both render it.
+
+  @param {product} product - The product to name.
+  @param {string} [mode] - 'model' (default) or 'watch'.
+
+  @example
+  {%- capture model -%}{%- render 'accessory-model', product: product -%}{%- endcapture -%}
+{% enddoc %}
+{%- liquid
+  assign am_type = product.type | strip
+  assign am_vendor = product.vendor | strip
+  assign am_base = product.title | split: ' – ' | first | split: ' - ' | first | strip
+  assign am_model = am_base
+
+  assign am_noise = '2TB,1TB,512GB,256GB,128GB,64GB,32GB,12GB RAM,8GB RAM,eSIM,Dual SIM,5G,NFC,Wi-Fi,WiFi,Cellular,Bluetooth,LTE,GPS,USB-C,ANC,M1,M2,M3,M4,M5,A16,A17,A18,Ocean Band,Sport Band,Sport Loop,Milanese'
+  assign am_noise_list = am_noise | split: ','
+  for am_word in am_noise_list
+    assign am_model = am_model | remove: am_word
+  endfor
+
+  assign am_colours = 'שחור,לבן,כחול,תכלת,כתום,ורוד,אדום,ירוק,סגול,אפור,זהב,כסוף,כסף,סילבר,צהוב,חום,בורדו,ברונזה,קרם,לילך,בז׳,טבעי,מדברי,שמנת,שמפניה,מוקה,אור כוכבים,תיטניום,טיטניום,מילנז,מילנזי,כהה,בהיר'
+  assign am_colour_list = am_colours | split: ','
+  for am_word in am_colour_list
+    assign am_model = am_model | remove: am_word
+  endfor
+
+  # The inch mark kills the match: "כיסוי iPad Pro 13"" returns nothing where "כיסוי iPad Pro 13"
+  # returns the four covers for it.
+  assign am_model = am_model | remove: '"' | remove: '”'
+
+  # Headphone titles open with the category word, which would land in the query twice.
+  assign am_model = am_model | remove_first: 'אוזניות ' | remove_first: 'רמקול '
+
+  if am_type == 'מכשירים' or am_type == 'טאבלטים'
+    if am_vendor != blank
+      assign am_model = am_model | remove_first: am_vendor
+    endif
+  endif
+
+  assign am_model = am_model | replace: '  ', ' ' | replace: '  ', ' ' | strip
+
+  # A watch is asked for by its case size, and the straps are listed as "ל-Apple Watch 45/49" — with
+  # the size as a bare number and no "mm". So the query is everything up to and including "Watch"
+  # plus that number: "Apple Watch 49", "Samsung Galaxy Watch 46". Keeping the series name instead
+  # ("רצועה Apple Watch Ultra") pulls Galaxy straps onto an Apple Watch page.
+  if mode == 'watch'
+    assign am_watch = am_model
+    assign am_watch_split = am_model | split: 'Watch'
+    if am_watch_split.size > 1
+      assign am_watch = am_watch_split[0] | append: 'Watch'
+    endif
+    assign am_mm = am_base | split: 'mm'
+    if am_mm.size > 1
+      assign am_mm_words = am_mm[0] | split: ' '
+      assign am_size = am_mm_words | last | strip
+      assign am_watch = am_watch | append: ' ' | append: am_size
+    endif
+    assign am_model = am_watch | replace: '  ', ' ' | strip
+  endif
+
+  echo am_model
+-%}
