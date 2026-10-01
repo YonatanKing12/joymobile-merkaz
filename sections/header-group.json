@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "type": "header",
   "name": "כותרת עליונה",
@@ -6,6 +15,9 @@
       "type": "cookie-banner",
       "settings": {
         "enabled": true,
+        "text": "<p>האתר עושה שימוש ב\"עוגיות\" (Cookies) במטרה לתפעל ולשפר את האתר, להראות לכם פרסום הקשור להעדפותיכם על סמך הרגלי הגלישה והמוצרים בהם התעניינתם ולמטרות אנליטיות. ג'וי מובייל עושה שימוש ב\"עוגיות\" (Cookies) שלה ושל צדדים שלישיים. מידע נוסף ניתן למצוא ב<a href=\"/pages/privacy\">מדיניות הפרטיות</a>.</p>",
+        "accept_label": "אישור",
+        "decline_label": "רק עוגיות חיוניות",
         "audience": "all",
         "renew_days": "365"
       }
@@ -16,8 +28,8 @@
         "message-galaxy": {
           "type": "message",
           "settings": {
-            "text": "סדרת Samsung Galaxy S26 זמינה לשריון באילת!",
-            "link": "shopify://collections/phones-samsung"
+            "text": "סדרת IPHONE 18 PRO & PRO MAX זמינה לשריון באילת!",
+            "link": "shopify://collections/phones-apple"
           }
         }
       },
@@ -39,6 +51,7 @@
         "show_whatsapp": true,
         "show_branches": true,
         "branches_label": "סניפים באילת",
+        "branches_link": "",
         "sticky": true
       }
     }
