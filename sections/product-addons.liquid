@@ -24,7 +24,8 @@
     {%- assign pa_shown = 0 -%}
     {%- for pa_item in search.results -%}
       {%- liquid
-        if pa_shown >= 8
+        # Four per group, not eight: a short, scannable row beats a wall of near-identical colours.
+        if pa_shown >= 4
           break
         endif
         assign pa_ok = false

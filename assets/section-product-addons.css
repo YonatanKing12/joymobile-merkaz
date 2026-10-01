@@ -343,13 +343,50 @@
   font-weight: 600;
 }
 
-@media (max-width: 575px) {
+/* Phones (below the width where the product page becomes two columns): one card at a time in a row
+   you swipe, not a tall stack. Four stacked cards push the price and the buy button off the screen,
+   which is the opposite of what an add-on next to the gallery is for.
+
+   Native scroll-snap, no script: a touch swipe is the browser's own, it keeps working with JS off,
+   and the keyboard still tabs through the cards in order. The row bleeds to the card's edges and
+   pads back in, so the first card lines up with the heading and the next one peeks in — the peek is
+   what says "there is more", with no arrows to tap. */
+@media (max-width: 767px) {
   .pa__list {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    gap: 0.625rem;
+    margin-inline: calc(-1 * var(--space-md));
+    padding-inline: var(--space-md);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline-start: var(--space-md);
+    scrollbar-width: none;
+  }
+
+  .pa__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pa-card {
+    flex: 0 0 min(86%, 20rem);
+    scroll-snap-align: start;
+  }
+
+  .pa-card--loading {
+    height: 6rem;
   }
 
   .pa__submit {
     width: 100%;
     min-width: 0;
+  }
+}
+
+/* A swipe is a pointer gesture; someone who asked for less motion still gets the row, without the
+   smooth scroll the snap would otherwise animate. */
+@media (prefers-reduced-motion: reduce) {
+  .pa__list {
+    scroll-behavior: auto;
   }
 }
