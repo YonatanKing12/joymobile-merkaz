@@ -133,13 +133,16 @@ class ProductAddons extends HTMLElement {
       const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
       return part ? `${grouped}.${part}` : grouped;
     };
-    return this.moneyFormat.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, token) => {
+    /* The page prints prices with money_without_trailing_zeros, so a whole amount loses its .00
+       here too and the total matches every other price around it. */
+    const strip = (text) => text.replace(/\.00(?=\D*$)/, '');
+    return strip(this.moneyFormat.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, token) => {
       if (token === 'amount') return fmt(cents, 2, ',');
       if (token === 'amount_no_decimals') return fmt(cents, 0, ',');
       if (token === 'amount_with_comma_separator') return fmt(cents, 2, '.').replace(/\.(\d{2})$/, ',$1');
       if (token === 'amount_no_decimals_with_comma_separator') return fmt(cents, 0, '.');
       return fmt(cents, 0, ',');
-    });
+    }));
   }
 
   refresh() {

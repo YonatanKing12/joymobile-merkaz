@@ -59,32 +59,17 @@
           <label class="pa-card__label">
             <input class="pa-card__check" type="checkbox" data-pa-check>
             {%- comment -%}
-              A product inside search.results does not carry the media objects a product page has:
-              featured_media came back blank and every tile rendered an empty well. featured_image is
-              the one that is populated here; images.first and media are kept as a fallback so a
-              future API change cannot silently empty the wells again, and data-pa-img records which
-              one answered so the next person can see it from the DOM.
+              The image comes from all_products[handle], not from the search result. A product inside
+              search.results carries its title, type and variants but no image accessor at all —
+              featured_image, featured_media and images all came back empty, and every tile rendered
+              an empty well twice before this. all_products hands back the real product object, and
+              Liquid's limit of 20 such lookups per request is far above the 8 tiles printed here.
             {%- endcomment -%}
-            {%- liquid
-              assign pa_img = nil
-              assign pa_img_from = 'none'
-              if pa_item.featured_image != blank
-                assign pa_img = pa_item.featured_image
-                assign pa_img_from = 'featured_image'
-              elsif pa_item.featured_media != blank
-                assign pa_img = pa_item.featured_media.preview_image
-                assign pa_img_from = 'featured_media'
-              else
-                for pa_candidate in pa_item.images limit: 1
-                  assign pa_img = pa_candidate
-                  assign pa_img_from = 'images'
-                endfor
-              endif
-            -%}
-            <span class="pa-card__media" data-pa-img="{{ pa_img_from }}">
-              {%- if pa_img != blank -%}
+            {%- assign pa_full = all_products[pa_item.handle] -%}
+            <span class="pa-card__media">
+              {%- if pa_full.featured_image != blank -%}
                 {%- render 'image',
-                  image: pa_img,
+                  image: pa_full.featured_image,
                   widths: '120,240',
                   sizes: '68px',
                   decorative: true,
