@@ -832,11 +832,11 @@ html.a11y-no-motion .menu-drawer__submenu {
   display: none;
 }
 
-/* The bar is the brand green with navy text (5.8:1). The focus ring and the tab indicator are navy
-   too: the mint they used on the old navy bar is only 1.80:1 on green, i.e. invisible exactly where an
-   indicator has to be seen. */
+/* The bar is the brand's dark green with white text (5.01:1). White needs a dark enough green: on the
+   lighter #309d7a it is only 3.37:1, which a 16px label does not pass. The focus ring and the tab
+   indicator follow the text colour, so they stay at 5.01:1 instead of the 1.80:1 mint would give. */
 .header__nav {
-  --color-focus: var(--color-ink);
+  --color-focus: var(--color-nav-text);
   background-color: var(--color-nav-bg);
   color: var(--color-nav-text);
 }
@@ -875,7 +875,7 @@ html.a11y-no-motion .menu-drawer__submenu {
   cursor: pointer;
 }
 
-/* Tab indicator: a 3px navy bar on the bar's bottom edge — for the current section, the hovered
+/* Tab indicator: a 3px white bar on the bar's bottom edge — for the current section, the hovered
    item and the open panel. */
 .mega-menu__top::before {
   content: "";
@@ -883,7 +883,7 @@ html.a11y-no-motion .menu-drawer__submenu {
   inset-inline: 0.125rem;
   bottom: 0;
   height: 3px;
-  background-color: var(--color-ink);
+  background-color: var(--color-nav-text);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
@@ -920,9 +920,10 @@ html.a11y-no-motion .menu-drawer__submenu {
   pointer-events: none;
 }
 
-/* Hovered item / open panel: the label sits on a mint pill, navy text (10.4:1). On the old navy bar
-   the text itself turned mint; on the green bar that pairing is 1.80:1, so the mint moved behind the
-   text instead of into it. The weight does not change, so the row cannot shift. */
+/* Hovered item / open panel: the label sits on a mint pill, navy text (10.4:1) — the same mint every
+   other control in the theme takes under the pointer. The weight does not change, so the row cannot
+   shift. The white tab indicator above carries the state as well, for anyone who cannot tell the pill
+   from the bar behind it. */
 .mega-menu__item:hover .mega-menu__label,
 .mega-menu__details[open] .mega-menu__label,
 .mega-menu__top.is-active .mega-menu__label {
