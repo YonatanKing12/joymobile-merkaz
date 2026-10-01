@@ -278,8 +278,11 @@ html.a11y-no-motion .card-product:hover .card-product__img {
 }
 
 .card-product__button {
-  --button-bg: var(--color-button-bg);
-  --button-text: var(--color-button-text);
+  /* The green CTA, same pairing as "שריון באילת" on the product page (.button--accent): the brand green
+     at rest, mint under the pointer. The label is 14px, so it needs 4.5:1 and white would not do -- white
+     on #309d7a is 3.37:1. Navy on the brand green is 5.8:1 (the logo's own pairing) and 10.4:1 on mint. */
+  --button-bg: var(--color-button-accent-bg);
+  --button-text: var(--color-button-accent-text);
   gap: 0.5rem;
   width: 100%;
   min-height: 2.625rem;
@@ -301,8 +304,10 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   inset: -0.0625rem 0;
 }
 
-/* The whole card answers the pointer: its navy button turns mint with navy text (10.4:1). */
+/* The whole card answers the pointer: its green button turns mint, navy text throughout (10.4:1). */
+/* :active is listed too, because a phone has no hover: without it a tap would never show the mint. */
 .card-product__button:hover,
+.card-product__button:active,
 .card-product__button:focus-visible {
   border-color: var(--button-hover-border);
   background-color: var(--button-hover-bg);
