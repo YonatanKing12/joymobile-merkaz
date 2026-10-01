@@ -74,10 +74,15 @@
         >
           <label class="pa-card__label">
             <input class="pa-card__check" type="checkbox" data-pa-check>
+            {%- comment -%}
+              featured_image, not featured_media: a product inside search.results does not carry its
+              media objects, so featured_media is blank there and every tile came out with an empty
+              well. featured_image is an image object on the result itself.
+            {%- endcomment -%}
             <span class="pa-card__media">
-              {%- if pa_item.featured_media -%}
+              {%- if pa_item.featured_image -%}
                 {%- render 'image',
-                  image: pa_item.featured_media.preview_image,
+                  image: pa_item.featured_image,
                   widths: '120,240',
                   sizes: '60px',
                   decorative: true,
@@ -88,9 +93,9 @@
             <span class="pa-card__text">
               <span class="pa-card__title">{{ pa_item.title | escape }}</span>
               <span class="pa-card__prices">
-                <span class="pa-card__price">{{ pa_variant.price | money }}</span>
+                <span class="pa-card__price">{{ pa_variant.price | money_without_trailing_zeros }}</span>
                 {%- if pa_compare > 0 -%}
-                  <s class="pa-card__was">{{ pa_compare | money }}</s>
+                  <s class="pa-card__was">{{ pa_compare | money_without_trailing_zeros }}</s>
                 {%- endif -%}
               </span>
             </span>
