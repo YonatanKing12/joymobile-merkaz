@@ -10,6 +10,13 @@ function serial(task) {
   return run;
 }
 const pageCarts = () => document.querySelectorAll('cart-items:not(cart-drawer cart-items)');
+
+// Undo lives here, not on an element: removing a line re-renders the drawer, and removing the last
+// one swaps <cart-items> for the empty state, so any element that held the state is gone by the time
+// the offer has to appear. { variant, quantity, title, expires }.
+const UNDO_WINDOW = 8000;
+let pendingUndo = null;
+let undoTimer;
 const drawerId = (drawer) => sectionIdOf(drawer) || 'cart-drawer';
 function sectionIds() {
   const ids = new Set(['cart-count']), drawer = document.querySelector('cart-drawer');
@@ -75,21 +82,68 @@ export const updateNote = (note) => update({ note }, 'note');
 // Cart attributes, e.g. the consent checkboxes ('' removes one): saved on change, so a re-render keeps the tick.
 export const updateAttributes = (attributes) => update({ attributes }, 'attributes');
 
+// Only an undo that puts the line back as it was is worth offering, so the line says whether it can
+// be: snippets/cart-line prints data-undo-* for plain lines and withholds it from lines carrying
+// properties or a selling plan, which /cart/add.js could not restore.
+function rememberForUndo(line) {
+  const { undoVariant, undoQuantity, undoTitle } = line.dataset;
+  pendingUndo = undoVariant
+    ? { variant: undoVariant, quantity: +undoQuantity || 1, title: undoTitle || '', expires: Date.now() + UNDO_WINDOW }
+    : null;
+}
+
+function clearUndo(bar) {
+  pendingUndo = null;
+  clearTimeout(undoTimer);
+  if (bar) bar.hidden = true;
+}
+
 class CartDrawer extends DialogElement {
   connectedCallback() {
     super.connectedCallback();
     this.off = on('cart:open', (e) => this.open(e.detail?.opener));
+    this.addEventListener('click', this.onClick);
+    this.syncUndo();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    this.removeEventListener('click', this.onClick);
     this.off();
+  }
+
+  onClick = (e) => {
+    if (!e.target.closest('[data-cart-undo-button]')) return;
+    const undo = pendingUndo;
+    if (!undo) return;
+    clearUndo(this.querySelector('[data-cart-undo]'));
+    addItems([{ id: undo.variant, quantity: undo.quantity }], { open: false }).catch((err) => announce(err.message));
+  };
+
+  // Called on connect and after every re-render: the bar is printed hidden, and shows only while a
+  // removal is still fresh enough to be worth taking back.
+  syncUndo() {
+    const bar = this.querySelector('[data-cart-undo]');
+    if (!bar) return;
+    if (!pendingUndo || pendingUndo.expires <= Date.now()) return clearUndo(bar);
+    const title = bar.querySelector('[data-cart-undo-title]');
+    if (title) title.textContent = pendingUndo.title;
+    bar.hidden = false;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(() => clearUndo(this.querySelector('[data-cart-undo]')), pendingUndo.expires - Date.now());
   }
 
   render(next) {
     const hadFocus = this.contains(document.activeElement);
+    const before = this.querySelector('[data-cart-total]')?.textContent;
     this.className = next.className;
-    if (!replaceContent(this, next) && hadFocus && this.isOpen) (this.querySelector('[role="dialog"]') || this).focus();
+    const refocused = replaceContent(this, next);
+    if (!refocused && hadFocus && this.isOpen) (this.querySelector('[role="dialog"]') || this).focus();
+    this.syncUndo();
+    // The total is the one number a shopper checks after every tap, and it sits far from the control
+    // they touched: a short flash is what connects the two.
+    const total = this.querySelector('[data-cart-total]');
+    if (total && before !== undefined && before !== total.textContent) total.classList.add('is-flashing');
   }
 }
 
@@ -120,11 +174,15 @@ class CartItems extends HTMLElement {
 
   async update(line, quantity) {
     const { key } = line.dataset, input = line.querySelector('input');
+    // Every route to 0 is a removal: the remove mark, stepping down from 1, and typing it. The
+    // stepper carries data-key too, so climb to the line for the undo data.
+    if (quantity === 0) rememberForUndo(line.closest('li[data-key]') || line);
     line.classList.add('is-loading');
     this.setAttribute('aria-busy', 'true');
     try {
       await changeLine({ key, quantity });
     } catch (err) {
+      if (quantity === 0) clearUndo(document.querySelector('[data-cart-undo]')); // the line is still there
       if (input) input.value = input.defaultValue;
       document.querySelectorAll(`[data-key="${CSS.escape(key)}"] [data-line-error]`).forEach((box) => {
         box.textContent = err.message;

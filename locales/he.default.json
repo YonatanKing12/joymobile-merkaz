@@ -379,7 +379,9 @@
         "unit_price": "{{ price }} ליחידה",
         "original_price": "מחיר לפני הנחה",
         "final_price": "מחיר"
-      }
+      },
+      "undo": "ביטול",
+      "undo_removed": "הוסר מהעגלה"
     },
     "page": {
       "title": "עגלת הקניות",

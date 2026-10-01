@@ -33,6 +33,23 @@
       </button>
     </div>
 
+    {%- comment -%}
+      The undo bar is printed here, hidden, rather than created by the script: every cart change
+      re-renders this section, so anything the script injected would be wiped a moment later. It sits
+      outside <cart-items> because removing the last line replaces that element with the empty state,
+      and that is exactly the removal a shopper is most likely to want back.
+    {%- endcomment -%}
+    <div class="cart-drawer__undo" data-cart-undo role="status" hidden>
+      <p class="cart-drawer__undo-text">
+        <strong data-cart-undo-title></strong>
+        {{ 'cart.drawer.undo_removed' | t }}
+      </p>
+      <button class="button button--small cart-drawer__undo-button" type="button" data-cart-undo-button>
+        {%- render 'icon', name: 'arrow-right', size: 14 -%}
+        {{- 'cart.drawer.undo' | t -}}
+      </button>
+    </div>
+
     {%- if drawer_count > 0 -%}
       <cart-items class="drawer__body cart-drawer__body">
         <ul class="cart-drawer__lines" role="list" aria-label="{{ 'cart.drawer.lines_label' | t }}">
@@ -82,7 +99,7 @@
 
             <p class="cart-drawer__total">
               <span>{{ 'cart.drawer.subtotal' | t }}</span>
-              <span class="cart-drawer__total-amount">{{ cart.total_price | money_without_trailing_zeros }}</span>
+              <span class="cart-drawer__total-amount" data-cart-total>{{ cart.total_price | money_without_trailing_zeros }}</span>
             </p>
 
             {%- if settings.cart_vat_consent_enabled and settings.cart_vat_consent_text != blank -%}
@@ -112,6 +129,15 @@
               {%- render 'icon', name: 'lock', size: 14 -%}
               {{ 'cart.drawer.checkout_note' | t }}
             </p>
+
+            {%- comment -%}
+              The card marks sit under the checkout button, not at the bottom of the panel: they are
+              there to answer "can I pay with my card" at the moment of pressing it. Below the fold
+              they answer nobody.
+            {%- endcomment -%}
+            {%- if section.settings.show_payment_icons -%}
+              {%- render 'payment-icons', class: 'cart-drawer__payments' -%}
+            {%- endif -%}
           </div>
 
           <div class="cart-drawer__extras">
@@ -121,10 +147,6 @@
                 <a class="link cart-drawer__view-cart" href="{{ routes.cart_url }}">{{ 'cart.drawer.view_cart' | t }}</a>
               {%- endif -%}
             </div>
-
-            {%- if section.settings.show_payment_icons -%}
-              {%- render 'payment-icons', class: 'cart-drawer__payments' -%}
-            {%- endif -%}
           </div>
         </form>
       </cart-items>

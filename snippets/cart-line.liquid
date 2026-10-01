@@ -47,8 +47,29 @@
   if item.product.has_only_default_variant or item.variant.title == blank
     assign show_options = false
   endif
+
+  # Undo after a removal re-adds the variant and the quantity, nothing else, so it is only offered
+  # where that is the whole line: one carrying custom properties (an engraving, an upload) or a
+  # subscription plan would come back stripped of them, which is worse than no undo at all.
+  assign line_undoable = true
+  if item.properties.size > 0 or item.selling_plan_allocation
+    assign line_undoable = false
+  endif
 -%}
-<li class="cart-line cart-line--{{ line_context }}" data-key="{{ item.key | escape }}" data-line="{{ index }}">
+{%- comment -%}
+  data-undo-* is what an undo needs: once the line is gone the cart no longer holds the variant or
+  the quantity, and the section has already re-rendered by the time the bar appears.
+{%- endcomment -%}
+<li
+  class="cart-line cart-line--{{ line_context }}"
+  data-key="{{ item.key | escape }}"
+  data-line="{{ index }}"
+  {%- if line_undoable %}
+    data-undo-variant="{{ item.variant_id }}"
+    data-undo-quantity="{{ item.quantity }}"
+    data-undo-title="{{ line_title | escape }}"
+  {%- endif %}
+>
   <a class="cart-line__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
     {%- render 'image',
       image: item.image,
@@ -101,23 +122,10 @@
       </p>
     {%- endfor -%}
 
-    <div class="cart-line__price">
-      {%- if item.original_line_price > item.final_line_price -%}
-        <s class="cart-line__compare">
-          <span class="visually-hidden">{{ 'cart.drawer.line.original_price' | t }}</span>
-          {{ item.original_line_price | money_without_trailing_zeros }}
-        </s>
-      {%- endif -%}
-      <span class="cart-line__amount">
-        <span class="visually-hidden">{{ 'cart.drawer.line.final_price' | t }}</span>
-        {{ item.final_line_price | money_without_trailing_zeros }}
-      </span>
-      {%- if item.quantity > 1 -%}
-        {%- assign unit_price = item.final_price | money_without_trailing_zeros -%}
-        <span class="cart-line__unit">{{ 'cart.drawer.line.unit_price' | t: price: unit_price }}</span>
-      {%- endif -%}
-    </div>
-
+    {%- comment -%}
+      Stepper and price share one row: on a phone that is the difference between three lines on
+      screen and five.
+    {%- endcomment -%}
     <div class="cart-line__controls">
       {%- render 'quantity-input',
         id: qty_id,
@@ -130,14 +138,23 @@
         label: line_title,
         class: 'cart-line__quantity'
       -%}
-      <a
-        class="cart-line__remove"
-        href="{{ item.url_to_remove }}"
-        data-cart-remove
-        aria-label="{{ 'cart.drawer.line.remove' | t: title: line_title }}"
-      >
-        {%- render 'icon', name: 'trash', size: 20 -%}
-      </a>
+
+      <div class="cart-line__price">
+        {%- if item.original_line_price > item.final_line_price -%}
+          <s class="cart-line__compare">
+            <span class="visually-hidden">{{ 'cart.drawer.line.original_price' | t }}</span>
+            {{ item.original_line_price | money_without_trailing_zeros }}
+          </s>
+        {%- endif -%}
+        <span class="cart-line__amount">
+          <span class="visually-hidden">{{ 'cart.drawer.line.final_price' | t }}</span>
+          {{ item.final_line_price | money_without_trailing_zeros }}
+        </span>
+        {%- if item.quantity > 1 -%}
+          {%- assign unit_price = item.final_price | money_without_trailing_zeros -%}
+          <span class="cart-line__unit">{{ 'cart.drawer.line.unit_price' | t: price: unit_price }}</span>
+        {%- endif -%}
+      </div>
     </div>
 
     {%- if line_low_stock -%}
@@ -146,4 +163,13 @@
 
     <p class="cart-line__error form-message form-message--error" data-line-error hidden></p>
   </div>
+
+  <a
+    class="cart-line__remove"
+    href="{{ item.url_to_remove }}"
+    data-cart-remove
+    aria-label="{{ 'cart.drawer.line.remove' | t: title: line_title }}"
+  >
+    {%- render 'icon', name: 'close', size: 16 -%}
+  </a>
 </li>
