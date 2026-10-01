@@ -66,12 +66,12 @@
   height: auto;
   aspect-ratio: 3;
   object-fit: contain;
-  filter: grayscale(1);
-  opacity: 0.85;
+  /* The marks show in their own colours. They used to be greyed and only coloured under the pointer,
+     which a phone never does -- and the files were monochrome anyway, so the hover had nothing to
+     reveal. The files are the official marks now, so the colour is simply left alone. */
+  opacity: 0.92;
   mix-blend-mode: multiply;
-  transition:
-    filter var(--duration-base) var(--ease-out),
-    opacity var(--duration-base) var(--ease-out);
+  transition: opacity var(--duration-base) var(--ease-out);
 }
 
 .brand-logos__name {
@@ -86,7 +86,6 @@ a.brand-logos__tile:hover {
 
 a.brand-logos__tile:hover .brand-logos__img,
 a.brand-logos__tile:focus-visible .brand-logos__img {
-  filter: none;
   opacity: 1;
 }
 
