@@ -8,16 +8,38 @@
   @example
   {% render 'payment-icons' %}
 {% enddoc %}
-{%- if shop.enabled_payment_types.size > 0 -%}
-  {%- liquid
-    # Shopify's marks carry fixed ids (<title id="pi-visa">, aria-labelledby="pi-visa"), and the
-    # footer, the cart drawer and the cart page can show them on one page: prefix them per list.
-    assign pi_prefix = class | default: 'payment-icons' | handle | prepend: 'pi-' | append: '-'
-    assign pi_attr = pi_prefix | prepend: '"'
-    assign pi_ref = pi_prefix | prepend: '#'
-  -%}
+{%- liquid
+  # The list is the store's enabled types first, then the cards the shop takes that Shopify has not
+  # been told about yet. Leaning on shop.enabled_payment_types alone printed exactly one mark on the
+  # live site, because only one provider is switched on in checkout — and a single lonely card icon
+  # reads as a store that takes one card.
+  assign pi_extra = settings.payment_icons_extra | default: 'visa,master,american_express,diners_club'
+  assign pi_types = ''
+  for pi_type in shop.enabled_payment_types
+    assign pi_types = pi_types | append: pi_type | append: ','
+  endfor
+  assign pi_extra_list = pi_extra | split: ','
+  for pi_candidate in pi_extra_list
+    assign pi_key = pi_candidate | strip
+    if pi_key != blank
+      assign pi_probe = ',' | append: pi_types | prepend: ','
+      assign pi_needle = ',' | append: pi_key | append: ','
+      unless pi_probe contains pi_needle
+        assign pi_types = pi_types | append: pi_key | append: ','
+      endunless
+    endif
+  endfor
+  assign pi_list = pi_types | split: ','
+
+  # Shopify's marks carry fixed ids (<title id="pi-visa">, aria-labelledby="pi-visa"), and the
+  # footer, the cart drawer and the cart page can show them on one page: prefix them per list.
+  assign pi_prefix = class | default: 'payment-icons' | handle | prepend: 'pi-' | append: '-'
+  assign pi_attr = pi_prefix | prepend: '"'
+  assign pi_ref = pi_prefix | prepend: '#'
+-%}
+{%- if pi_list.size > 0 -%}
   <ul class="payment-icons{% if class != blank %} {{ class }}{% endif %}" role="list" aria-label="{{ 'general.payment.label' | t }}">
-    {%- for payment_type in shop.enabled_payment_types -%}
+    {%- for payment_type in pi_list -%}
       <li class="payment-icons__item">
         {{- payment_type | payment_type_svg_tag: class: 'payment-icons__icon' | replace: '"pi-', pi_attr | replace: '#pi-', pi_ref -}}
       </li>
