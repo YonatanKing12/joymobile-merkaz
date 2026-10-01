@@ -93,8 +93,13 @@ class ProductAddons extends HTMLElement {
     if (panel) this.load(panel);
   }
 
-  async load(panel) {
-    if (!panel || panel.dataset.paLoaded) return;
+  /* One retry on an empty answer. The search endpoint returns an empty result set under a burst of
+     requests — measured: the same four queries came back 0, then 4 on every one of four later
+     rounds. Without the retry a single blip would leave "no accessories" on a group that has four,
+     for the rest of the visit, because the panel would already be marked loaded. */
+  async load(panel, attempt = 0) {
+    if (!panel || panel.dataset.paLoaded === 'true') return;
+    if (attempt === 0 && panel.dataset.paLoaded === 'pending') return;
     panel.dataset.paLoaded = 'pending';
     const list = panel.querySelector('[data-pa-list]');
     const empty = panel.querySelector('[data-pa-empty]');
@@ -110,6 +115,10 @@ class ProductAddons extends HTMLElement {
       const items = [...doc.querySelectorAll('[data-pa-item]')]
         /* Never offer the phone that is already on the page. */
         .filter((li) => li.dataset.paVariant !== this.mainVariant && li.dataset.paHandle !== this.dataset.paHandle);
+      if (!items.length && attempt < 1) {
+        await new Promise((r) => setTimeout(r, 700));
+        return this.load(panel, attempt + 1);
+      }
       list.innerHTML = '';
       items.forEach((li) => list.appendChild(li));
       panel.dataset.paLoaded = 'true';
@@ -119,6 +128,11 @@ class ProductAddons extends HTMLElement {
       }
     } catch (error) {
       if (error.name === 'AbortError') return;
+      if (attempt < 1) {
+        await new Promise((r) => setTimeout(r, 700));
+        return this.load(panel, attempt + 1);
+      }
+      /* Left unmarked, so pressing the pill again tries once more. */
       panel.dataset.paLoaded = '';
       list.innerHTML = '';
       list.hidden = true;
