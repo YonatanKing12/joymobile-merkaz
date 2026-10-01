@@ -35,10 +35,18 @@ sticky-header {
 
 .header__inner {
   display: grid;
-  grid-template-areas: "menu search logo cart whatsapp";
-  grid-template-columns: var(--tap-target) var(--tap-target) minmax(0, 1fr) var(--tap-target) var(--tap-target);
+  grid-template-areas: "menu search logo actions";
+  grid-template-columns: var(--tap-target) var(--tap-target) minmax(0, 1fr) auto;
   align-items: center;
   height: 100%;
+}
+
+/* The cart and the WhatsApp badge sit inside .header__actions now, so the phone row holds them as one
+   cell instead of two tracks. RTL keeps their order: cart nearest the logo, WhatsApp at the edge. */
+.header__actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
 }
 
 .header__drawer {
@@ -54,13 +62,7 @@ sticky-header {
   justify-self: center;
 }
 
-.header__cart {
-  grid-area: cart;
-}
 
-.header__whatsapp {
-  grid-area: whatsapp;
-}
 
 .header__icon {
   position: relative;
@@ -695,14 +697,19 @@ html.a11y-no-motion .menu-drawer__submenu {
     box-shadow: none;
   }
 
-  /* space-between, so whatever width the search does not take is shared between the items instead of
-     collecting in one hole. Before this the logo carried margin-inline-start: auto and an auto margin
-     eats every pixel of free space before flex-grow sees any: at 2560 that was a single 1010px void
-     between the logo and the search, with the rest of the bar crowded into the far side. */
+  /* Three tracks: logo | search | actions, with the two side tracks minmax(0, 1fr) and therefore
+     equal. That equality is the whole point -- it puts the search on the row's true midpoint, which
+     centring inside a flex row cannot do: there the midpoint falls between the logo and the controls,
+     and those are very different widths. Before this the logo carried margin-inline-start: auto, and
+     an auto margin eats every pixel of free space before flex-grow sees any, so at 2560 the row had
+     a single 1010px void between the logo and the search. */
   .header__inner {
-    display: flex;
+    display: grid;
+    /* RTL: the first area is the rightmost, so the controls are named first and the logo last to keep
+       the row the way it has always read — logo on the left, controls on the right. */
+    grid-template-areas: "actions search logo";
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    justify-content: space-between;
     width: 100%;
     max-width: calc(var(--page-width) + 2 * 0.9375rem);
     margin-inline: auto;
@@ -758,19 +765,29 @@ html.a11y-no-motion .menu-drawer__submenu {
     padding-inline: 0.75rem; /* old 3px 2px + 5px 10px below 1200px → 129px wide */
   }
 
-  /* The search takes the free width instead of staying at its 402px basis: on a 3,300-product store
-     the field people type into is the best thing to spend a wide header on. Capped at 56rem so it
-     stays a search box and not a banner; at 1440 that cap is never reached, so the row fills exactly
-     and nothing is left over, and only past ~1700px does space-between have anything to share. */
+  /* A short field on the row's midpoint, not a wide one filling it: 22rem (352px at the normal root,
+     440px at 2560, since it is in rem and rides the fluid root). The side tracks keep whatever is
+     left, which is where the planned מרכז/אילת switch will go without moving the field. */
   .header__search {
-    flex: 1 1 25.125rem;
-    min-width: 9rem;
-    max-width: 56rem;
-    margin-inline-end: 3rem;
+    grid-area: search;
+    width: 22rem;
+    max-width: 100%;
+    margin-inline: 1.5rem;
+  }
+
+  .header__actions {
+    grid-area: actions;
+    justify-content: flex-start; /* RTL: packs the controls against the row's right edge */
+  }
+
+  /* The cart is the last control; its trailing margin would push the whole group off the row's edge. */
+  .header__cart {
+    margin-inline-end: 0;
   }
 
   .header__logo {
-    flex-shrink: 0;
+    grid-area: logo;
+    justify-self: end; /* RTL: the logo's own track ends at the row's left edge */
     min-width: 0;
     margin-block-end: 0.625rem; /* logo centre at y≈35.5, as measured */
   }

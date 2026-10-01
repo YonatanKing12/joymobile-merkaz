@@ -209,6 +209,16 @@
           </details>
         </menu-drawer>
 
+        {%- comment -%}
+          The five controls are one box so the row can be a three-track grid: logo | search | actions,
+          with the two side tracks equal. That is what lets the search sit on the row's true midpoint
+          instead of the midpoint between the logo and the controls, which are very different widths.
+          It is also where the planned "אתר מרכז / אתר אילת" switch goes.
+          Order inside is RTL, so the DOM order cart → wishlist → whatsapp → account → branches renders
+          left to right as branches, account, whatsapp, wishlist, cart — the order the row already had.
+        {%- endcomment -%}
+        <div class="header__actions">
+
         <a
           class="header__icon header__cart"
           href="{{ routes.cart_url }}"
@@ -280,6 +290,7 @@
             {%- render 'icon', name: 'chevron-left', size: 14, class: 'header__branches-icon' -%}
           </a>
         {%- endif -%}
+        </div>
 
         <div class="header__search below-desktop-hide">
           <predictive-search class="search-form search-form--desktop">
