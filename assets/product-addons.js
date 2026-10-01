@@ -19,7 +19,10 @@ const SECTION = 'product-addons';
 
 class ProductAddons extends HTMLElement {
   connectedCallback() {
-    this.tablist = this.querySelector('[data-pa-tablist]');
+    /* [role=tablist], not a data hook: the markup moved to a snippet and the hook did not come with
+       it, so the pills had no listener at all and nothing happened when one was pressed. The role is
+       the thing that actually has to be there. */
+    this.tablist = this.querySelector('[role="tablist"]');
     this.panels = [...this.querySelectorAll('[data-pa-panel]')];
     this.bar = this.querySelector('[data-pa-bar]');
     this.submit = this.querySelector('[data-pa-submit]');

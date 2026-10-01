@@ -181,6 +181,15 @@
   mix-blend-mode: multiply;
 }
 
+/* No photo in the catalogue: the JOY symbol, faint, so the well reads as deliberate. */
+.pa-card__img--fallback {
+  width: 55%;
+  height: auto;
+  padding: 0;
+  opacity: 0.16;
+  object-fit: contain;
+}
+
 .pa-card__text {
   flex: 1 1 auto;
   min-width: 0;
