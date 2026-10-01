@@ -198,12 +198,19 @@ html.no-js .category-circles__carousel .category-circles__arrow {
 }
 
 @media (min-width: 768px) {
+  /* The row lines up with every other section on the page. It used to be 90% wide with a rem cap, so
+     its circles started 82px inside the USP cards and the hero above them -- the one row on the page
+     that did not share the page's edges. Now it spans the same gutter-to-gutter box they do, and the
+     45px arrow lane is pushed back out into the gutter so the circles themselves, not the lane, meet
+     that edge. The push is capped at the gutter's own width: this carousel's parent is full-bleed and
+     has no padding to borrow from, so anything wider hangs off the page and raises a scrollbar. */
   .category-circles__carousel {
     --per-view: var(--circles-per-view-md, 5);
     --carousel-gap: 25px;
     --carousel-peek: 0px;
-    width: 90%;
-    max-width: 81rem; /* 1296: the measured 1206px track at 1440 and wider */
+    --cc-bleed: min(45px, var(--page-gutter));
+    width: calc(100% - 2 * var(--page-gutter) + 2 * var(--cc-bleed));
+    margin-inline: auto;
     padding-inline: 45px;
   }
 
@@ -275,7 +282,6 @@ html.no-js .category-circles__carousel .category-circles__arrow {
 @media (min-width: 1600px) {
   .category-circles__carousel {
     --per-view: var(--circles-per-view-xwide, 8);
-    max-width: 100rem;
   }
 
   .category-circles__arrow,
@@ -287,12 +293,10 @@ html.no-js .category-circles__carousel .category-circles__arrow {
 /* Very wide screens: the same eight circles, larger (disc ≈ 140px at 1920, ≈ 156px from 2300). */
 @media (min-width: 1920px) {
   .category-circles__carousel {
-    max-width: 110rem;
   }
 }
 
 @media (min-width: 2300px) {
   .category-circles__carousel {
-    max-width: 120rem;
   }
 }

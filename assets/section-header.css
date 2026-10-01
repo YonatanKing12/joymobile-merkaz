@@ -695,9 +695,14 @@ html.a11y-no-motion .menu-drawer__submenu {
     box-shadow: none;
   }
 
+  /* space-between, so whatever width the search does not take is shared between the items instead of
+     collecting in one hole. Before this the logo carried margin-inline-start: auto and an auto margin
+     eats every pixel of free space before flex-grow sees any: at 2560 that was a single 1010px void
+     between the logo and the search, with the rest of the bar crowded into the far side. */
   .header__inner {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     width: 100%;
     max-width: calc(var(--page-width) + 2 * 0.9375rem);
     margin-inline: auto;
@@ -753,16 +758,20 @@ html.a11y-no-motion .menu-drawer__submenu {
     padding-inline: 0.75rem; /* old 3px 2px + 5px 10px below 1200px → 129px wide */
   }
 
+  /* The search takes the free width instead of staying at its 402px basis: on a 3,300-product store
+     the field people type into is the best thing to spend a wide header on. Capped at 56rem so it
+     stays a search box and not a banner; at 1440 that cap is never reached, so the row fills exactly
+     and nothing is left over, and only past ~1700px does space-between have anything to share. */
   .header__search {
-    flex: 0 1 25.125rem;
+    flex: 1 1 25.125rem;
     min-width: 9rem;
+    max-width: 56rem;
     margin-inline-end: 3rem;
   }
 
   .header__logo {
     flex-shrink: 0;
     min-width: 0;
-    margin-inline-start: auto;
     margin-block-end: 0.625rem; /* logo centre at y≈35.5, as measured */
   }
 
