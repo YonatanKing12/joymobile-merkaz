@@ -75,26 +75,39 @@
             <span class="cu-card__title">{{ cu_item.title | escape }}</span>
           </a>
 
-          <p class="cu-card__prices">
-            <span class="cu-card__price">{{ cu_variant.price | money_without_trailing_zeros }}</span>
-            {%- if cu_compare > 0 -%}
-              <s class="cu-card__was">{{ cu_compare | money_without_trailing_zeros }}</s>
-            {%- endif -%}
-          </p>
-
           {%- comment -%}
-            One press adds it. In a cart there is nothing left to decide, so a tick box and a second
-            "add" press would only put a step between the shopper and the thing they want.
+            Price and button sit at the foot in normal flow. The button was a circle positioned over
+            the price row, and at tile width that put it through the price and over the card's own
+            border -- and a bare "+" never said it was a button at all.
           {%- endcomment -%}
-          <button
-            class="cu-card__add"
-            type="button"
-            data-cu-add
-            aria-label="{{ 'cart.upsell.add_label' | t: title: cu_item.title }}"
-          >
-            <span class="cu-card__icon cu-card__icon--plus">{%- render 'icon', name: 'plus', size: 16 -%}</span>
-            <span class="cu-card__icon cu-card__icon--check">{%- render 'icon', name: 'check', size: 16 -%}</span>
-          </button>
+          <div class="cu-card__foot">
+            <p class="cu-card__prices">
+              <span class="cu-card__price">{{ cu_variant.price | money_without_trailing_zeros }}</span>
+              {%- if cu_compare > 0 -%}
+                <s class="cu-card__was">{{ cu_compare | money_without_trailing_zeros }}</s>
+              {%- endif -%}
+            </p>
+
+            {%- comment -%}
+              One press adds it. In a cart there is nothing left to decide, so a tick box and a
+              second "add" press would only put a step between the shopper and what they want.
+            {%- endcomment -%}
+            <button
+              class="cu-card__add"
+              type="button"
+              data-cu-add
+              aria-label="{{ 'cart.upsell.add_label' | t: title: cu_item.title }}"
+            >
+              <span class="cu-card__state cu-card__state--idle">
+                {%- render 'icon', name: 'plus', size: 14 -%}
+                {{- 'cart.upsell.add' | t -}}
+              </span>
+              <span class="cu-card__state cu-card__state--done">
+                {%- render 'icon', name: 'check', size: 14 -%}
+                {{- 'cart.upsell.in_cart' | t -}}
+              </span>
+            </button>
+          </div>
         </li>
       {%- endif -%}
     {%- endfor -%}
