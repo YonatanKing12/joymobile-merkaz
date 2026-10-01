@@ -87,6 +87,31 @@ a.hero-slideshow__cover:focus-visible::after {
   color: var(--color-brand);
 }
 
+/* Over the image, not instead of it. Invisible until @theme/hero-video has the video actually
+   playing, so a slide never shows a black box while the first frames arrive, and a video that is
+   refused (a battery saver, a tab policy, reduced motion) simply leaves the image on screen. */
+.hero-slideshow__video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--duration-base, 250ms) var(--ease-out, ease);
+  pointer-events: none;
+}
+
+.hero-slideshow__video.is-playing {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-slideshow__video {
+    display: none;
+  }
+}
+
 /* ---------- Optional text overlay (phones: bottom by default) ---------- */
 .hero-slideshow__content {
   position: absolute;

@@ -52,6 +52,13 @@
     endif
   endfor
 
+  assign has_any_video = false
+  for block in section.blocks
+    if block.settings.video != blank or block.settings.video_mobile != blank
+      assign has_any_video = true
+    endif
+  endfor
+
   assign carousel_label = section.settings.label
   if carousel_label == blank
     assign carousel_label = 'home.hero.label' | t
@@ -73,6 +80,9 @@
 {{ 'component-carousel.css' | asset_url | stylesheet_tag }}
 {{ 'section-hero-slideshow.css' | asset_url | stylesheet_tag }}
 <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
+{%- if has_any_video -%}
+  <script type="module" src="{{ 'hero-video.js' | asset_url }}"></script>
+{%- endif -%}
 
 <div class="hero-slideshow{% if peek > 0 %} hero-slideshow--peek{% endif %}">
   {%- if section.settings.page_heading != blank -%}
@@ -108,6 +118,19 @@
             assign show_button = false
             if button_label != blank and link != blank
               assign show_button = true
+            endif
+
+            # Video is an overlay on the slide's image, never a replacement: the image stays the
+            # poster and the first paint, so the LCP and the slide's ratio are unchanged and a slide
+            # whose video never plays still looks finished.
+            assign video_desktop = block.settings.video
+            assign video_mobile = block.settings.video_mobile | default: video_desktop
+            unless block.settings.video_on_mobile
+              assign video_mobile = nil
+            endunless
+            assign has_video = false
+            if video_desktop != blank or video_mobile != blank
+              assign has_video = true
             endif
 
             assign alt = block.settings.alt | default: image_desktop.alt | strip
@@ -177,6 +200,43 @@
                   class: 'hero-slideshow__img',
                   alt: alt
                 -%}
+              {%- endif -%}
+
+              {%- if has_video -%}
+                {%- liquid
+                  assign src_desktop = ''
+                  for source in video_desktop.sources
+                    if source.format == 'mp4' and src_desktop == ''
+                      assign src_desktop = source.url
+                    endif
+                  endfor
+                  assign src_mobile = ''
+                  for source in video_mobile.sources
+                    if source.format == 'mp4' and src_mobile == ''
+                      assign src_mobile = source.url
+                    endif
+                  endfor
+                -%}
+                {%- comment -%}
+                  The file to use is carried as data, not as <source> children: a <video> picks the
+                  first source it can play and ignores screen width, so a desktop and a mobile file
+                  side by side would send the desktop one to every phone. @theme/hero-video sets src
+                  for the viewport at the moment it decides to play, which is also what keeps a hero
+                  nobody scrolls to, a phone with video switched off, and a visitor who asked for
+                  less motion at zero bytes.
+                {%- endcomment -%}
+                <video
+                  class="hero-slideshow__video"
+                  data-hero-video
+                  {% if src_desktop != blank %}data-hero-src-desktop="{{ src_desktop }}"{% endif %}
+                  {% if src_mobile != blank %}data-hero-src-mobile="{{ src_mobile }}"{% endif %}
+                  muted
+                  loop
+                  playsinline
+                  preload="none"
+                  tabindex="-1"
+                  aria-hidden="true"
+                ></video>
               {%- endif -%}
             </div>
             {%- if heading != blank or slide_text != blank or show_button -%}
@@ -378,6 +438,33 @@
           "type": "url",
           "id": "link",
           "label": "קישור"
+        },
+        {
+          "type": "header",
+          "content": "וידאו (לא חובה)"
+        },
+        {
+          "type": "paragraph",
+          "content": "הווידאו מתנגן מושתק ובלולאה מעל התמונה, רק כשהשקופית מוצגת. התמונה נשארת תמונת הפתיחה, אז חובה להשאיר אותה גם כשיש וידאו. מבקר שביקש להפחית אנימציות יראה את התמונה בלבד."
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "וידאו למחשב",
+          "info": "MP4, באותו יחס של התמונה. מומלץ עד 10 שניות ועד 5 מגה."
+        },
+        {
+          "type": "checkbox",
+          "id": "video_on_mobile",
+          "label": "וידאו גם במובייל",
+          "info": "כבוי כברירת מחדל: בטלפון זו חבילת גלישה של הלקוח וזמן הטעינה הקריטי ביותר.",
+          "default": false
+        },
+        {
+          "type": "video",
+          "id": "video_mobile",
+          "label": "וידאו למובייל",
+          "info": "רק אם \"וידאו גם במובייל\" מסומן. בלי קובץ נפרד יוצג וידאו המחשב."
         },
         {
           "type": "header",
