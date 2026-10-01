@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "hero": {
@@ -6,7 +15,7 @@
         "slide-galaxy-s26": {
           "type": "slide",
           "settings": {
-            "image": "shopify://shop_images/joy-hero-galaxy-s26-desktop.png",
+            "image": "shopify://shop_images/WhatsApp_Image_2026-10-01_at_13.16.19.jpg",
             "image_mobile": "shopify://shop_images/joy-hero-galaxy-s26-mobile.png",
             "alt": "סדרת סמסונג S26 – חבילת השקה משתלמת במיוחד",
             "link": "/search?q=Samsung+Galaxy+S26&type=product",
@@ -49,6 +58,58 @@
         "padding_top": 30,
         "padding_top_mobile": 14,
         "padding_bottom": 0
+      }
+    },
+    "usp": {
+      "type": "usp-bar",
+      "blocks": {
+        "usp-vat": {
+          "type": "usp",
+          "settings": {
+            "icon": "tag",
+            "title": "מחירי אילת ללא מע״מ",
+            "text": "חוסכים את המע״מ על כל מוצר",
+            "link": ""
+          }
+        },
+        "usp-pickup": {
+          "type": "usp",
+          "settings": {
+            "icon": "store",
+            "title": "איסוף מ-4 סניפים באילת",
+            "text": "משריינים באתר ואוספים מהסניף",
+            "link": "/pages/branches"
+          }
+        },
+        "usp-warranty": {
+          "type": "usp",
+          "settings": {
+            "icon": "shield",
+            "title": "אחריות מלאה",
+            "text": "יבואן רשמי או יבוא מקביל, כמצוין במוצר",
+            "link": ""
+          }
+        },
+        "usp-fix": {
+          "type": "usp",
+          "settings": {
+            "icon": "bolt",
+            "title": "מעבדת JOY FIX",
+            "text": "תיקון סמארטפונים וטאבלטים במקום",
+            "link": "/pages/joy-fix"
+          }
+        }
+      },
+      "block_order": [
+        "usp-vat",
+        "usp-pickup",
+        "usp-warranty",
+        "usp-fix"
+      ],
+      "settings": {
+        "heading": "למה לקנות ב-JOY Mobile",
+        "padding_top": 16,
+        "padding_bottom": 6
       }
     },
     "categories": {
@@ -197,98 +258,6 @@
         "padding_bottom": 50
       }
     },
-    "about": {
-      "type": "brand-about",
-      "settings": {
-        "show_logo": true,
-        "logo_width": 220,
-        "heading": "",
-        "text": "<p>JOY Mobile היא רשת חנויות הסלולר, המחשבים והגיימינג של אילת: סמארטפונים, טאבלטים, שעונים חכמים, אוזניות ורמקולים, מחשבים ומוצרי חשמל במחירי אילת ללא מע״מ. בוחרים באתר, משריינים ואוספים באחד מסניפי JOY Mobile בעיר: טיילת אילת (פנינת אילת), קניון אייס מול, מרכז השלום ו-JOY התחנה. במעבדות JOY FIX מתקנים סמארטפונים וטאבלטים במקום.</p>",
-        "button_label": "עוד עלינו",
-        "button_link": "shopify://pages/about",
-        "padding_top": 0,
-        "padding_bottom": 20
-      }
-    },
-    "guides": {
-      "type": "guides",
-      "settings": {
-        "heading": "מדריכים והשוואות מוצרים שיעזרו לך לבחור נכון",
-        "blog": "tips",
-        "articles_count": 3,
-        "show_preview": true,
-        "show_view_all": true,
-        "view_all_label": "לכל הכתבות",
-        "autoplay": false,
-        "autoplay_speed": 5,
-        "padding_top": 0,
-        "padding_bottom": 0
-      }
-    },
-    "testimonials": {
-      "type": "testimonials",
-      "disabled": true,
-      "settings": {
-        "heading": "אז מה אומרים הלקוחות שלנו?",
-        "star_color": "#309d7a",
-        "autoplay": false,
-        "autoplay_speed": 6,
-        "padding_top": 30,
-        "padding_bottom": 20
-      }
-    },
-    "usp": {
-      "type": "usp-bar",
-      "blocks": {
-        "usp-vat": {
-          "type": "usp",
-          "settings": {
-            "icon": "tag",
-            "title": "מחירי אילת ללא מע״מ",
-            "text": "חוסכים את המע״מ על כל מוצר",
-            "link": ""
-          }
-        },
-        "usp-pickup": {
-          "type": "usp",
-          "settings": {
-            "icon": "store",
-            "title": "איסוף מ-4 סניפים באילת",
-            "text": "משריינים באתר ואוספים מהסניף",
-            "link": "/pages/branches"
-          }
-        },
-        "usp-warranty": {
-          "type": "usp",
-          "settings": {
-            "icon": "shield",
-            "title": "אחריות מלאה",
-            "text": "יבואן רשמי או יבוא מקביל, כמצוין במוצר",
-            "link": ""
-          }
-        },
-        "usp-fix": {
-          "type": "usp",
-          "settings": {
-            "icon": "bolt",
-            "title": "מעבדת JOY FIX",
-            "text": "תיקון סמארטפונים וטאבלטים במקום",
-            "link": "/pages/joy-fix"
-          }
-        }
-      },
-      "block_order": [
-        "usp-vat",
-        "usp-pickup",
-        "usp-warranty",
-        "usp-fix"
-      ],
-      "settings": {
-        "heading": "למה לקנות ב-JOY Mobile",
-        "padding_top": 16,
-        "padding_bottom": 6
-      }
-    },
     "brands": {
       "type": "brand-logos",
       "blocks": {
@@ -371,6 +340,46 @@
         "heading": "המותגים המובילים",
         "padding_top": 44,
         "padding_bottom": 24
+      }
+    },
+    "about": {
+      "type": "brand-about",
+      "settings": {
+        "show_logo": true,
+        "logo_width": 220,
+        "heading": "",
+        "text": "<p>JOY Mobile היא רשת חנויות הסלולר, המחשבים והגיימינג של אילת: סמארטפונים, טאבלטים, שעונים חכמים, אוזניות ורמקולים, מחשבים ומוצרי חשמל במחירי אילת ללא מע״מ. בוחרים באתר, משריינים ואוספים באחד מסניפי JOY Mobile בעיר: טיילת אילת (פנינת אילת), קניון אייס מול, מרכז השלום ו-JOY התחנה. במעבדות JOY FIX מתקנים סמארטפונים וטאבלטים במקום.</p>",
+        "button_label": "עוד עלינו",
+        "button_link": "shopify://pages/about",
+        "padding_top": 0,
+        "padding_bottom": 20
+      }
+    },
+    "guides": {
+      "type": "guides",
+      "settings": {
+        "heading": "מדריכים והשוואות מוצרים שיעזרו לך לבחור נכון",
+        "blog": "tips",
+        "articles_count": 3,
+        "show_preview": true,
+        "show_view_all": true,
+        "view_all_label": "לכל הכתבות",
+        "autoplay": false,
+        "autoplay_speed": 5,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "disabled": true,
+      "settings": {
+        "heading": "אז מה אומרים הלקוחות שלנו?",
+        "star_color": "#309d7a",
+        "autoplay": false,
+        "autoplay_speed": 6,
+        "padding_top": 30,
+        "padding_bottom": 20
       }
     }
   },
