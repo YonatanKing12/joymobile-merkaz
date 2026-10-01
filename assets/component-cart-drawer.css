@@ -96,6 +96,7 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
 }
 
 .cart-drawer .cart-line__media {
+  grid-area: 1 / 1;
   display: block;
   width: 4.375rem;
   height: 4.375rem;
@@ -111,6 +112,7 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
 }
 
 .cart-drawer .cart-line__body {
+  grid-area: 1 / 2;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -213,11 +215,14 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
 }
 
 /* The mark is 1.75rem; the touch area is the full tap target, laid over it by ::after so the grid
-   column stays narrow and the row height is unaffected. */
+   column stays narrow and the row height is unaffected.
+   All three children name their cell: giving only this one a row made it a positioned item, and
+   positioned items are placed before auto-placed ones -- it took column 1 and pushed the media and
+   the body one column along, squeezing the whole line into the 1.75rem track. */
 .cart-drawer .cart-line__remove {
   position: relative;
+  grid-area: 1 / 3;
   display: grid;
-  grid-row: 1;
   place-items: center;
   align-self: start;
   width: 1.75rem;
