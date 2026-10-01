@@ -886,9 +886,10 @@ html.a11y-no-motion .menu-drawer__submenu {
   display: none;
 }
 
-/* The bar is the brand's dark green with white text (5.01:1). White needs a dark enough green: on the
-   lighter #309d7a it is only 3.37:1, which a 16px label does not pass. The focus ring and the tab
-   indicator follow the text colour, so they stay at 5.01:1 instead of the 1.80:1 mint would give. */
+/* The bar is the green sampled from the logo file itself, #3b9c79: 12,628 of its pixels, next to the
+   navy. White on it is 3.38:1, under the 4.5:1 a normal-size label needs, so the label is set at 19px
+   bold. That is past the 18.66px bold where the standard treats text as large and 3:1 is the bar, and
+   3.38:1 clears it. The focus ring and the tab indicator follow the text colour. */
 .header__nav {
   --color-focus: var(--color-nav-text);
   background-color: var(--color-nav-bg);
@@ -922,7 +923,7 @@ html.a11y-no-motion .menu-drawer__submenu {
   align-items: center;
   height: 100%;
   color: inherit;
-  font-size: var(--text-lg);
+  font-size: 1.1875rem; /* 19px: large text, so white clears 3:1 on the logo green */
   font-weight: 800;
   text-decoration: none;
   white-space: nowrap;
@@ -992,10 +993,6 @@ html.a11y-no-motion .menu-drawer__submenu {
 }
 
 @media (min-width: 1200px) {
-  .mega-menu__top {
-    font-size: var(--text-body);
-  }
-
   .mega-menu__label {
     padding-inline: 1rem;
   }
