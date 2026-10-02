@@ -62,9 +62,7 @@
      a non-text boundary needs, so the circle keeps its edge for low-contrast vision too. */
   border: var(--circle-ring-width, 2px) solid var(--circle-ring, var(--color-brand));
   background-color: var(--circle-disc, var(--color-surface));
-  transition:
-    box-shadow var(--duration-base) var(--ease-out),
-    transform var(--duration-base) var(--ease-out);
+  transition: box-shadow var(--duration-base) var(--ease-out);
 }
 
 /* Product photos on white: multiply turns their white margins into the disc/ring colour, so
@@ -127,17 +125,27 @@
   overflow-wrap: anywhere;
 }
 
-.category-circles__link:hover .category-circles__disc {
-  box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--color-ink) 35%, transparent);
-}
-
-@media (prefers-reduced-motion: no-preference) {
+/* Hover effects only where there is a pointer. On a touch screen Safari applies :hover on tap and
+   keeps it, which is what made the lift fire on a tap in the first place. */
+@media (hover: hover) {
   .category-circles__link:hover .category-circles__disc {
-    transform: translateY(-3px);
+    box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--color-ink) 35%, transparent);
   }
 }
 
-html.a11y-no-motion .category-circles__link:hover .category-circles__disc {
+/* The lift moves the whole circle, not the disc alone. Two reasons, and the second is the bug:
+   a transform on the disc promotes it to its own layer, and Safari then stops blending the photo
+   with it -- the photo's white margin appears as a white box inside the circle, exactly on tap.
+   Transforming the circle keeps the disc and the photo in one blend group. It also fixes the disc
+   sliding up while the photo stayed put. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .category-circles__link:hover .category-circles__circle {
+    transform: translateY(-3px);
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+}
+
+html.a11y-no-motion .category-circles__link:hover .category-circles__circle {
   transform: none;
 }
 
