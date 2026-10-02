@@ -31,10 +31,10 @@
         "slide-telegram-vip": {
           "type": "slide",
           "settings": {
-            "image": "shopify://shop_images/joy-hero-telegram-vip-desktop.png",
-            "image_mobile": "shopify://shop_images/joy-hero-telegram-vip-mobile.png",
-            "alt": "קבוצת VIP בטלגרם של JOY Mobile – מבצעים בלעדיים ללקוחות. להצטרפות",
-            "link": "https://ms.connecto.site/join/joy/?c=3febd6",
+            "image": "shopify://shop_images/180_daa8db9d-d808-4d33-8d26-86e1a3181dbf.png",
+            "image_mobile": "shopify://shop_images/180.png",
+            "alt": "לשמור על דופק בסטייל",
+            "link": "shopify://collections/שעוני-infinx",
             "video_on_mobile": false,
             "heading": "",
             "text": "",
