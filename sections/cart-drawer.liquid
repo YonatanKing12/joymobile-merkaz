@@ -82,6 +82,18 @@
           {%- endfor -%}
         </ul>
 
+        {%- comment -%}
+          Pickup only, pay at the branch or online: said right under the lines, before the accessory row
+          that appears a moment later, so the one thing that differs from an ordinary shop is never
+          pushed out of sight.
+        {%- endcomment -%}
+        {%- if pickup_message != blank -%}
+          <div class="cart-drawer__notice">
+            {%- render 'icon', name: 'store', size: 22 -%}
+            <p><span class="visually-hidden">{{ 'cart.drawer.pickup_label' | t }}: </span>{{ pickup_message }}</p>
+          </div>
+        {%- endif -%}
+
         {%- if section.settings.show_upsell -%}
           {%- render 'cart-upsell', context: 'drawer' -%}
         {%- endif -%}
@@ -91,13 +103,6 @@
         {%- endfor -%}
 
         <form class="cart-drawer__form" action="{{ routes.cart_url }}" method="post" id="CartDrawer-Form" accept-charset="UTF-8">
-          {%- if pickup_message != blank -%}
-            <div class="cart-drawer__notice">
-              {%- render 'icon', name: 'store', size: 22 -%}
-              <p><span class="visually-hidden">{{ 'cart.drawer.pickup_label' | t }}: </span>{{ pickup_message }}</p>
-            </div>
-          {%- endif -%}
-
           {%- render 'branch-picker', context: 'drawer', class: 'cart-drawer__branch' -%}
 
           {%- if section.settings.conditions != blank -%}
