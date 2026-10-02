@@ -134,7 +134,7 @@ export function releaseFocus(returnTo, ...container) {
     document.removeEventListener('keydown', onTrapKey);
     document.removeEventListener('focusin', onTrapFocus);
   }
-  if (returnTo?.isConnected) returnTo.focus();
+  if (returnTo?.isConnected) returnTo.focus({ preventScroll: true }); // the opener is where the shopper left it; scrolling to it jumped the page to the top (sticky header + scroll-padding)
 }
 export function onEscape(el, fn) {
   const handler = (e) => e.key === 'Escape' && !e.defaultPrevented && fn(e) !== false && e.preventDefault();
