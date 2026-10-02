@@ -5,12 +5,12 @@
   assistant that reads only the home page still learns every branch, its address, phone
   and opening hours.
 
-  The home page can't read the blocks of another template, so the facts are written here
-  once more: they are the branch blocks of templates/page.branches.json (the visible
-  branches page, which prints the same nodes from sections/branches.liquid), with the same
-  ids. When a branch, its address or its hours change, change both files. Source of the
-  facts: the live site's branches page (the contact page shows the same five). Only the
-  lab's coordinates are known.
+  Source: the "branch" metaobject (Admin › תוכן › מטא-אובייקטים › סניף), the same entries
+  the branches page shows (sections/branches.liquid), in their "סדר הצגה" order
+  (snippets/branch-order.liquid); the @ids are the entries' handles (branch-flagship…), the
+  same nodes the branches page prints. Only when the store has no active entry are the five
+  branches below printed instead: a frozen copy of the branch blocks of
+  templates/page.branches.json, kept so the home page never loses its stores.
 
   @example
   "department": [{% render 'branches-json' %}]
@@ -20,7 +20,36 @@
   if settings.branches_page != blank
     assign bl_page_url = request.origin | append: settings.branches_page.url
   endif
+
+  capture bl_order
+    render 'branch-order'
+  endcapture
+  assign bl_order = bl_order | split: ','
+  assign bl_count = 0
 -%}
+{%- if bl_order.size > 0 -%}
+  {%- for bl_position in bl_order -%}
+    {%- assign bl_index = bl_position | plus: 0 -%}
+    {%- for bl_entry in metaobjects.branch.values -%}
+      {%- if forloop.index0 == bl_index and bl_entry.name.value != blank and bl_entry.address.value != blank -%}
+        {%- if bl_count > 0 -%},{%- endif -%}
+        {%- assign bl_count = bl_count | plus: 1 -%}
+        {%- render 'branch-json',
+          id: bl_entry.system.handle,
+          name: bl_entry.name.value,
+          services: bl_entry.services.value,
+          address: bl_entry.address.value,
+          phone: bl_entry.phone.value,
+          hours_spec: bl_entry.hours_spec.value,
+          geo: bl_entry.geo.value,
+          map_query: bl_entry.map_query.value,
+          image: bl_entry.image.value.preview_image,
+          page_url: bl_page_url
+        -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endfor -%}
+{%- else -%}
 {%- render 'branch-json',
   id: 'branch-flagship',
   name: 'סניף הדגל – טיילת אילת',
@@ -72,3 +101,4 @@
   map_query: 'Ice Mall, קאמפן 8, אילת',
   page_url: bl_page_url
 -%}
+{%- endif -%}

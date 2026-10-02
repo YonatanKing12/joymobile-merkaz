@@ -1,46 +1,33 @@
 {% doc %}
-  The store's WhatsApp link — the one place that reads and normalises the theme setting
-  "מספר וואטסאפ" (contact_whatsapp). Prints `https://wa.me/<digits>` (plus `?text=` when a
-  message is given), or nothing when the setting is empty; callers capture the output.
+  The store's WhatsApp link — the one place that reads the theme setting "מספר וואטסאפ"
+  (contact_whatsapp). Prints `https://wa.me/<digits>` (plus `?text=` when a message is given),
+  or nothing when there is no number; callers capture the output.
   The closing doc tag trims the newline after it: left-trimming the liquid tag instead leaves one
   newline (Shopify's whitespace trimming keeps it), which would start every captured value.
-  Normalising: spaces, dashes, dots, parentheses and "+" are removed, a leading "00" is
-  dropped and a leading 0 (Israeli local format, 05x…) becomes 972. `format: 'display'`
-  prints the number for people instead: local format for Israeli numbers (053-3255020),
-  "+<digits>" for others.
+  The number is normalised by snippets/phone-href (spaces, dashes, dots, parentheses and "+"
+  removed, a leading "00" dropped, a leading 0 — Israeli local format, 05x… — becomes 972), so
+  the WhatsApp link and the tap-to-call links follow the same rules. `format: 'display'` prints
+  the number for people instead: local format for Israeli numbers (053-3255020), "+<digits>"
+  for others.
 
   @param {string} [text] - Pre-filled message as plain text (not HTML-escaped). URL-encoded here, spaces as %20 (WhatsApp shows "+" literally).
   @param {string} [format] - 'url' (default) or 'display'.
+  @param {string} [phone] - Another WhatsApp number (e.g. a branch's). Default: the theme setting contact_whatsapp.
 
   @example
   {%- capture whatsapp_url -%}{% render 'whatsapp-url', text: settings.contact_whatsapp_message %}{%- endcapture -%}
   {%- capture whatsapp_display -%}{% render 'whatsapp-url', format: 'display' %}{%- endcapture -%}
 {% enddoc -%}
 {% liquid
-  assign wa_digits = settings.contact_whatsapp | strip | remove: ' ' | remove: '-' | remove: '.' | remove: '(' | remove: ')' | remove: '+'
-  assign wa_head = wa_digits | slice: 0, 2
-  if wa_head == '00'
-    assign wa_digits = wa_digits | remove_first: '00'
-  elsif wa_digits != blank
-    assign wa_head = wa_digits | slice: 0
-    if wa_head == '0'
-      assign wa_digits = wa_digits | remove_first: '0' | prepend: '972'
-    endif
-  endif
+  assign wa_phone = phone | strip | default: settings.contact_whatsapp
+  capture wa_digits
+    render 'phone-href', phone: wa_phone, format: 'e164'
+  endcapture
+  assign wa_digits = wa_digits | remove: '+'
 
   if wa_digits != blank
     if format == 'display'
-      assign wa_head = wa_digits | slice: 0, 3
-      if wa_head == '972'
-        assign wa_local = wa_digits | slice: 3, 20 | prepend: '0'
-        if wa_local.size == 10
-          assign wa_tail = wa_local | slice: 3, 7
-          assign wa_local = wa_local | slice: 0, 3 | append: '-' | append: wa_tail
-        endif
-        echo wa_local
-      else
-        echo '+' | append: wa_digits
-      endif
+      render 'phone-href', phone: wa_phone, format: 'display'
     else
       echo 'https://wa.me/' | append: wa_digits
       assign wa_text = text | strip | url_encode | replace: '+', '%20'

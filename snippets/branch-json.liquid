@@ -5,14 +5,19 @@
   Organization of the home page). Both describe the same nodes, so both go through here.
 
   - "@type": the theme setting "סוג העסק" (store_business_type, default ElectronicsStore).
-  - "@id": <origin>/#store-<id>. The ids are the block keys of templates/page.branches.json
-    (branch-flagship, branch-icemall…), used by both callers.
+  - "@id": <origin>/#store-<id>. The ids are the handles of the "branch" metaobject entries,
+    which are the block keys of templates/page.branches.json (branch-flagship,
+    branch-icemall…), used by both callers.
   - name: the branch name, with the brand in front when the name doesn't mention it
     ("סניף מרכז השלום" → "JOY Mobile – סניף מרכז השלום"), so the node stands alone.
   - address: a PostalAddress. The visible address ends with the city ("דרבן 150, פנינת
     אילת (מול מול הים), אילת"): that ending (theme setting store_city, default אילת) is cut
     from streetAddress and becomes addressLocality; addressCountry IL.
-  - telephone: the branch phone, else the theme phone, in international form (+972-…).
+  - telephone: the branch phone, else the theme phone, in international form (+9723…,
+    snippets/phone-href).
+  - currenciesAccepted: the store currency (ILS); paymentAccepted: the cards of the theme
+    setting "סמלי אשראי נוספים" (payment_icons_extra, the cards the shop takes, by name);
+    priceRange: "₪₪", the relative price level Google asks for (no range is invented).
   - openingHoursSpecification: from `hours_spec`, entries separated by ";" or line breaks,
     each "<days> <opens>-<closes>": days as a range (Su-Th) or a list (Fr or Mo,We) of
     Su Mo Tu We Th Fr Sa, times as HH:MM. Malformed entries are skipped. Hours that move
@@ -24,7 +29,7 @@
   - parentOrganization: the Organization of snippets/structured-data (<origin>/#organization).
   Every string goes through `json`; the caller replaces "</" before printing.
 
-  @param {string} id - Stable key of the branch: the block id (a block key of templates/page.branches.json).
+  @param {string} id - Stable key of the branch: the metaobject handle, or the block id (a block key of templates/page.branches.json).
   @param {string} name - Branch name.
   @param {string} address - Address as shown on the site, ending with the city, e.g. "שדרות התמרים 2 (צמוד לבנק דיסקונט), אילת".
   @param {string} [services] - Services line; becomes the description.
@@ -67,12 +72,44 @@
     endif
   endif
 
-  # Phone: 03-511-7171 → +972-3-511-7171.
+  # Phone: 03-511-7171 → +97235117171 (the same rules as the tel: links).
   assign bj_phone = phone | strip | default: settings.contact_phone | strip
-  assign bj_phone_first = bj_phone | slice: 0
-  if bj_phone_first == '0'
-    assign bj_phone = bj_phone | remove_first: '0' | prepend: '+972-'
-  endif
+  capture bj_phone
+    render 'phone-href', phone: bj_phone, format: 'e164'
+  endcapture
+
+  # Payment: the cards the shop takes (theme setting payment_icons_extra), by their names.
+  assign bj_payment = ''
+  assign bj_cards = settings.payment_icons_extra | default: 'visa,master,american_express,diners_club' | split: ','
+  for bj_card in bj_cards
+    assign bj_card_key = bj_card | strip
+    case bj_card_key
+      when ''
+        continue
+      when 'master'
+        assign bj_card_name = 'Mastercard'
+      when 'american_express'
+        assign bj_card_name = 'American Express'
+      when 'diners_club'
+        assign bj_card_name = 'Diners Club'
+      when 'jcb'
+        assign bj_card_name = 'JCB'
+      when 'unionpay'
+        assign bj_card_name = 'UnionPay'
+      when 'paypal'
+        assign bj_card_name = 'PayPal'
+      when 'apple_pay'
+        assign bj_card_name = 'Apple Pay'
+      when 'google_pay'
+        assign bj_card_name = 'Google Pay'
+      when 'shopify_pay'
+        assign bj_card_name = 'Shop Pay'
+      else
+        assign bj_card_name = bj_card_key | replace: '_', ' ' | capitalize
+    endcase
+    assign bj_payment = bj_payment | append: ', ' | append: bj_card_name
+  endfor
+  assign bj_payment = bj_payment | remove_first: ', '
 
   # Opening hours: "Su-Th 10:00-23:00; Fr 10:00-14:00" → OpeningHoursSpecification objects.
   assign bj_day_codes = 'Su,Mo,Tu,We,Th,Fr,Sa' | split: ','
@@ -198,7 +235,10 @@
     "addressLocality": {{ bj_city | json }},
     "addressCountry": "IL"
   }
-  {%- if bj_phone != blank -%},"telephone": {{ bj_phone | json }}{%- endif -%}
+  {%- if bj_phone != blank -%},"telephone": {{ bj_phone | json }}{%- endif -%},
+  "currenciesAccepted": {{ shop.currency | default: 'ILS' | json }}
+  {%- if bj_payment != blank -%},"paymentAccepted": {{ bj_payment | json }}{%- endif -%},
+  "priceRange": "₪₪"
   {%- if bj_hours_json != blank -%},"openingHoursSpecification": [{{ bj_hours_json }}]{%- endif -%}
   {%- if bj_latitude != blank -%},"geo": { "@type": "GeoCoordinates", "latitude": {{ bj_latitude }}, "longitude": {{ bj_longitude }} }{%- endif -%}
   {%- if bj_url != blank -%},"url": {{ bj_url | json }}{%- endif -%}

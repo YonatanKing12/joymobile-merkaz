@@ -553,7 +553,30 @@
       "privacy_field": "אישור מדיניות הפרטיות",
       "privacy_value": "אושר",
       "submit": "שליחת הפנייה",
-      "success": "תודה! הפנייה נשלחה ונחזור אליכם בהקדם."
+      "success": "תודה! הפנייה נשלחה ונחזור אליכם בהקדם.",
+      "choose": "בחרו",
+      "whatsapp_button": "שליחה בוואטסאפ"
+    },
+    "repair": {
+      "subject": "בקשת תיקון – JOY FIX",
+      "device": "יצרן ודגם המכשיר",
+      "device_placeholder": "לדוגמה: iPhone 15 Pro, Galaxy S24",
+      "fault": "סוג התקלה",
+      "fault_options": "מסך|סוללה|שקע טעינה|נוזלים|אחר",
+      "branch": "סניף מועדף",
+      "branch_any": "ללא העדפה",
+      "description": "תיאור התקלה",
+      "whatsapp_message": "היי, אשמח לבדיקה של המכשיר שלי במעבדת JOY FIX."
+    },
+    "trade_in": {
+      "subject": "בקשת טרייד-אין",
+      "device": "המכשיר שלכם (יצרן ודגם)",
+      "condition": "מצב המכשיר",
+      "condition_options": "כמו חדש|סימני שימוש קלים|סימני שימוש בולטים|פגום או שבור",
+      "storage": "נפח אחסון",
+      "storage_options": "לא ידוע|64GB|128GB|256GB|512GB|1TB",
+      "details": "פרטים נוספים",
+      "whatsapp_message": "היי, אשמח לקבל הצעת טרייד-אין על המכשיר שלי."
     },
     "info": {
       "phone": "טלפון",

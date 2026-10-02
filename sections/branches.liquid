@@ -2,37 +2,42 @@
   Branches + pickup facts (anchor id "branches", so any link can point to
   <page>#branches). Konimbo's branches page stacked 5 branches, each with a name,
   services line, address, hours and an eagerly loaded Google Maps iframe; here every
-  branch is a block. templates/page.branches.json holds the chain's five locations from
-  the live site (the flagship on the promenade, ICE MALL, מרכז השלום, JOY התחנה and the
-  JOY FIX lab) and the pickup facts (a message when the order is ready, ID required, held
-  up to 21 business days), with the same data and wording as the contact page.
+  branch is a card (snippets/branch-card.liquid).
 
-  Maps: the address builds a Google Maps link and a Waze link; the embedded map is
-  click-to-load (a closed <details> keeps its lazy iframe from loading), so no
-  third-party request happens until the visitor asks for it. Opening hours are not
-  stored in Shopify: the block's hours, else the theme setting, else a line
-  asking to call the branch, whose number follows (never invented hours).
+  Where the branches come from: the "branch" metaobject (Admin › תוכן › מטא-אובייקטים ›
+  סניף), the one place the merchant edits a branch — the home page's structured data
+  (snippets/branches-json.liquid) and the repair form's branch list read the same entries.
+  Entries are ordered by their "סדר הצגה" field (snippets/branch-order.liquid). Only when the
+  store has no active entry does the section fall back to its own `branch` blocks
+  (templates/page.branches.json and page.contact.json hold the five locations), so the page
+  never goes empty. The pickup facts are always blocks.
+
+  Maps: the address builds a Google Maps link and a Waze link; the embedded map loads only
+  when the visitor opens it (<branch-map> below copies the frame's data-src on the
+  <details> toggle), so no third-party request happens until the visitor asks for it.
 
   Structured data (section setting "נתונים מובנים", on in templates/page.branches.json
-  only): every branch block with a name and an address becomes a store in one
-  JSON-LD @graph (snippets/branch-json.liquid: address, phone, hours, coordinates, link to
-  its card, parent Organization). The machine-readable hours come from the block setting
-  "שעות פתיחה למנועי חיפוש" (Su-Th 10:00-23:00; Fr 10:00-14:00), never from the free
-  text, and hours that move with Shabbat stay out of it. Only one page should carry the
-  stores (the contact page shows the same branches without them). The home page's
-  Organization lists the same stores from snippets/branches-json.liquid, which must
-  follow any change made here.
+  only): every branch with a name and an address becomes a store in one JSON-LD @graph
+  (snippets/branch-json.liquid: address, phone, hours, coordinates, link to its card, parent
+  Organization). The machine-readable hours come from "שעות פתיחה למנועי חיפוש"
+  (Su-Th 10:00-23:00; Fr 10:00-14:00), never from the free text, and hours that move with
+  Shabbat stay out of it. Only one page should carry the stores (the contact page shows the
+  same branches without them).
 {%- endcomment -%}
 {{ 'section-branches.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
-  assign new_window = 'accessibility.new_window' | t
   assign fact_count = 0
   for block in section.blocks
     if block.type == 'fact'
       assign fact_count = fact_count | plus: 1
     endif
   endfor
+
+  capture branch_order
+    render 'branch-order'
+  endcapture
+  assign branch_order = branch_order | split: ','
 -%}
 
 <div class="branches page-width" id="branches">
@@ -59,134 +64,51 @@
   {%- endif -%}
 
   <div class="branches__list">
-    {%- for block in section.blocks -%}
-      {%- if block.type == 'branch' -%}
-        {%- liquid
-          assign branch_name = block.settings.name | strip
-          assign branch_address = block.settings.address | strip
-          assign map_query = block.settings.map_query | strip | default: branch_address
-          assign map_query_encoded = map_query | url_encode | replace: '+', '%20'
-
-          assign branch_phone = block.settings.phone | strip | default: settings.contact_phone | strip
-          assign phone_digits = branch_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
-          assign phone_first = phone_digits | slice: 0
-          if phone_first == '0'
-            assign phone_tel = phone_digits | remove_first: '0' | prepend: '+972'
-          else
-            assign phone_tel = phone_digits
-          endif
-
-          assign branch_hours = block.settings.hours | strip
-          if branch_hours == blank
-            assign branch_hours = settings.store_hours | strip
-          endif
-        -%}
-        <article class="branch" {{ block.shopify_attributes }}{% if branch_name != blank %} aria-labelledby="Branch-{{ block.id }}"{% endif %}>
-          <div class="branch__body">
-            {%- if branch_name != blank -%}
-              <h3 class="branch__name" id="Branch-{{ block.id }}">{{ branch_name | escape }}</h3>
-            {%- endif -%}
-            {%- if block.settings.services != blank -%}
-              <p class="branch__services">{{ block.settings.services | escape }}</p>
-            {%- endif -%}
-
-            <dl class="branch__details">
-              {%- if branch_address != blank -%}
-                <div class="branch__row">
-                  <dt>
-                    {%- render 'icon', name: 'location', size: 20, class: 'branch__icon' -%}
-                    <span>{{ 'branches.address' | t }}</span>
-                  </dt>
-                  <dd class="branch__address">{{ branch_address | escape }}</dd>
-                </div>
-              {%- endif -%}
-              {%- if branch_hours != blank or branch_phone != blank -%}
-                <div class="branch__row">
-                  <dt>
-                    {%- render 'icon', name: 'clock', size: 20, class: 'branch__icon' -%}
-                    <span>{{ 'branches.hours' | t }}</span>
-                  </dt>
-                  {%- if branch_hours != blank -%}
-                    <dd>{{ branch_hours | escape | newline_to_br }}</dd>
-                  {%- else -%}
-                    <dd class="branch__hours-fallback">{{ 'branches.hours_fallback' | t }}</dd>
-                  {%- endif -%}
-                </div>
-              {%- endif -%}
-              {%- if branch_phone != blank -%}
-                <div class="branch__row">
-                  <dt>
-                    {%- render 'icon', name: 'phone', size: 20, class: 'branch__icon' -%}
-                    <span>{{ 'branches.phone' | t }}</span>
-                  </dt>
-                  <dd><a class="branch__phone" href="tel:{{ phone_tel }}" dir="ltr">{{ branch_phone | escape }}</a></dd>
-                </div>
-              {%- endif -%}
-            </dl>
-
-            {%- if block.settings.text != blank -%}
-              <div class="branch__text rte">{{ block.settings.text }}</div>
-            {%- endif -%}
-
-            {%- if map_query != blank -%}
-              <p class="branch__actions">
-                <a
-                  class="button button--small"
-                  href="https://www.google.com/maps/search/?api=1&amp;query={{ map_query_encoded }}"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  {%- render 'icon', name: 'location', size: 16 -%}
-                  <span>{{ 'branches.open_maps' | t }}</span>
-                  <span class="visually-hidden">({{ new_window }})</span>
-                </a>
-                <a
-                  class="button button--small button--outline"
-                  href="https://waze.com/ul?q={{ map_query_encoded }}&amp;navigate=yes"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  {%- render 'icon', name: 'external', size: 16 -%}
-                  <span>{{ 'branches.open_waze' | t }}</span>
-                  <span class="visually-hidden">({{ new_window }})</span>
-                </a>
-              </p>
-            {%- endif -%}
-          </div>
-
-          {%- if block.settings.image != blank -%}
-            <div class="branch__media">
-              {%- render 'image',
-                image: block.settings.image,
-                widths: '375,560,750,1100',
-                sizes: '(min-width: 992px) 50vw, calc(100vw - 30px)',
-                class: 'branch__image'
-              -%}
-            </div>
-          {%- elsif section.settings.show_map and map_query != blank -%}
-            <details class="branch__map">
-              <summary class="branch__map-toggle">
-                {%- render 'icon', name: 'location', size: 28, class: 'branch__map-icon' -%}
-                <span class="branch__map-label">
-                  <span class="branch__map-show">{{ 'branches.show_map' | t }}</span>
-                  <span class="branch__map-hide">{{ 'branches.hide_map' | t }}</span>
-                </span>
-                <span class="branch__map-address">{{ map_query | escape }}</span>
-              </summary>
-              <iframe
-                class="branch__map-frame"
-                src="https://www.google.com/maps?q={{ map_query_encoded }}&amp;output=embed"
-                title="{{ 'branches.map_title' | t: name: map_query }}"
-                width="600"
-                height="350"
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-              ></iframe>
-            </details>
+    {%- if branch_order.size > 0 -%}
+      {%- for branch_position in branch_order -%}
+        {%- assign branch_index = branch_position | plus: 0 -%}
+        {%- for entry in metaobjects.branch.values -%}
+          {%- if forloop.index0 == branch_index -%}
+            {%- liquid
+              assign entry_text = ''
+              if entry.text != blank
+                assign entry_text = entry.text | metafield_tag
+              endif
+            -%}
+            {%- render 'branch-card',
+              id: entry.system.handle,
+              name: entry.name.value,
+              services: entry.services.value,
+              address: entry.address.value,
+              hours: entry.hours.value,
+              phone: entry.phone.value,
+              text: entry_text,
+              map_query: entry.map_query.value,
+              image: entry.image.value.preview_image,
+              show_map: section.settings.show_map
+            -%}
           {%- endif -%}
-        </article>
-      {%- endif -%}
-    {%- endfor -%}
+        {%- endfor -%}
+      {%- endfor -%}
+    {%- else -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'branch' -%}
+          {%- render 'branch-card',
+            id: block.id,
+            name: block.settings.name,
+            services: block.settings.services,
+            address: block.settings.address,
+            hours: block.settings.hours,
+            phone: block.settings.phone,
+            text: block.settings.text,
+            map_query: block.settings.map_query,
+            image: block.settings.image,
+            show_map: section.settings.show_map,
+            attributes: block.shopify_attributes
+          -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
   </div>
 
   {%- if fact_count > 0 -%}
@@ -215,30 +137,84 @@
   {%- endif -%}
 </div>
 
+{%- if section.settings.show_map -%}
+  {%- # Inline: defined once per page; a section re-rendered by the theme editor upgrades on its own. -%}
+  <script type="module">
+    import { define } from '@theme/global';
+
+    // The map frame gets its src only when the visitor opens the <details>: no Google request (or
+    // cookie) before that tap. The fallback link is for visitors without JavaScript.
+    define('branch-map', class extends HTMLElement {
+      connectedCallback() {
+        this.details = this.querySelector('details');
+        this.details?.addEventListener('toggle', this);
+        if (this.details?.open) this.handleEvent();
+      }
+
+      disconnectedCallback() {
+        this.details?.removeEventListener('toggle', this);
+      }
+
+      handleEvent() {
+        const frame = this.querySelector('iframe[data-src]');
+        if (!this.details.open || !frame) return;
+        frame.src = frame.dataset.src;
+        frame.removeAttribute('data-src');
+        frame.hidden = false;
+        this.querySelector('[data-map-fallback]')?.setAttribute('hidden', '');
+      }
+    });
+  </script>
+{%- endif -%}
+
 {%- if section.settings.structured_data -%}
   {%- liquid
     assign ld_page_url = request.origin | append: request.path
     assign ld_store_count = 0
   -%}
   {%- capture ld_stores -%}
-    {%- for block in section.blocks -%}
-      {%- if block.type == 'branch' and block.settings.name != blank and block.settings.address != blank -%}
-        {%- if ld_store_count > 0 -%},{%- endif -%}
-        {%- assign ld_store_count = ld_store_count | plus: 1 -%}
-        {%- render 'branch-json',
-          id: block.id,
-          name: block.settings.name,
-          address: block.settings.address,
-          services: block.settings.services,
-          phone: block.settings.phone,
-          hours_spec: block.settings.hours_spec,
-          geo: block.settings.geo,
-          map_query: block.settings.map_query,
-          image: block.settings.image,
-          page_url: ld_page_url
-        -%}
-      {%- endif -%}
-    {%- endfor -%}
+    {%- if branch_order.size > 0 -%}
+      {%- for branch_position in branch_order -%}
+        {%- assign branch_index = branch_position | plus: 0 -%}
+        {%- for entry in metaobjects.branch.values -%}
+          {%- if forloop.index0 == branch_index and entry.name.value != blank and entry.address.value != blank -%}
+            {%- if ld_store_count > 0 -%},{%- endif -%}
+            {%- assign ld_store_count = ld_store_count | plus: 1 -%}
+            {%- render 'branch-json',
+              id: entry.system.handle,
+              name: entry.name.value,
+              address: entry.address.value,
+              services: entry.services.value,
+              phone: entry.phone.value,
+              hours_spec: entry.hours_spec.value,
+              geo: entry.geo.value,
+              map_query: entry.map_query.value,
+              image: entry.image.value.preview_image,
+              page_url: ld_page_url
+            -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endfor -%}
+    {%- else -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'branch' and block.settings.name != blank and block.settings.address != blank -%}
+          {%- if ld_store_count > 0 -%},{%- endif -%}
+          {%- assign ld_store_count = ld_store_count | plus: 1 -%}
+          {%- render 'branch-json',
+            id: block.id,
+            name: block.settings.name,
+            address: block.settings.address,
+            services: block.settings.services,
+            phone: block.settings.phone,
+            hours_spec: block.settings.hours_spec,
+            geo: block.settings.geo,
+            map_query: block.settings.map_query,
+            image: block.settings.image,
+            page_url: ld_page_url
+          -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
   {%- endcapture -%}
   {%- if ld_store_count > 0 -%}
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{{ ld_stores | strip_newlines | replace: '</', '<\/' }}]}</script>
@@ -253,6 +229,10 @@
     "groups": ["header", "aside"]
   },
   "settings": [
+    {
+      "type": "paragraph",
+      "content": "את הסניפים (שם, כתובת, שעות, טלפון, מפה ותמונה) עורכים בניהול החנות › תוכן › מטא-אובייקטים › סניף. אותם סניפים מוצגים כאן, בדף הבית (נתונים מובנים) ובטופס התיקונים. בלוקי הסניף כאן מוצגים רק כשאין שם אף סניף פעיל."
+    },
     {
       "type": "image_picker",
       "id": "banner",
@@ -291,7 +271,7 @@
       "type": "checkbox",
       "id": "structured_data",
       "label": "נתונים מובנים (סניפים)",
-      "info": "כל סניף עם שם וכתובת נכנס לנתונים המובנים של העמוד (LocalBusiness). להפעיל רק בעמוד הסניפים, כדי שלכל סניף יהיה עמוד אחד. דף הבית מציג את אותם סניפים מתוך קוד התבנית (snippets/branches-json.liquid), ולכן שינוי בסניף צריך להגיע גם לשם.",
+      "info": "כל סניף עם שם וכתובת נכנס לנתונים המובנים של העמוד (LocalBusiness). להפעיל רק בעמוד הסניפים, כדי שלכל סניף יהיה עמוד אחד. דף הבית קורא את אותם סניפים מתוכן › מטא-אובייקטים › סניף, כך ששינוי בסניף מגיע לשני המקומות.",
       "default": false
     }
   ],
@@ -301,6 +281,10 @@
       "name": "סניף",
       "limit": 10,
       "settings": [
+        {
+          "type": "paragraph",
+          "content": "גיבוי בלבד: הבלוק מוצג רק כשאין סניף פעיל בתוכן › מטא-אובייקטים › סניף. שם עורכים את הסניפים."
+        },
         {
           "type": "text",
           "id": "name",

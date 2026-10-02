@@ -251,6 +251,13 @@
   border: 0;
 }
 
+/* Without JavaScript the frame never gets its src (sections/branches.liquid): a link instead. */
+.branch__map-fallback {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-lg) var(--space-md);
+}
+
 @media (min-width: 992px) {
   .branch__map-toggle {
     min-height: 21.875rem;

@@ -15,6 +15,17 @@
 
   Contact details come from the theme settings (יצירת קשר ורשתות חברתיות), so the
   footer, the structured data and this page always agree.
+
+  "סוג הטופס" (form_kind) swaps the fields between name/phone/email and the consent:
+  - contact: the message (required).
+  - repair (JOY FIX intake, templates/page.joy-fix.json): device, fault type, preferred
+    branch (the "branch" metaobject entries, snippets/branch-order; left out when there are
+    none) and an optional description.
+  - trade_in (templates/page.trade-in.json): device, condition, storage, optional details.
+  repair and trade_in add a hidden contact[subject], so the store's inbox can sort the
+  emails. Every field is named by its Hebrew label: that is what the notification email shows.
+  An optional WhatsApp button (show_whatsapp) offers the same request as a chat, with a
+  message pre-filled for the form type.
 {%- endcomment -%}
 {{ 'section-contact.css' | asset_url | stylesheet_tag }}
 
@@ -22,18 +33,54 @@
   assign form_id = 'ContactForm-' | append: section.id
   assign required_mark = '<span class="contact-form__req" aria-hidden="true">*</span>'
 
+  assign form_kind = section.settings.form_kind | default: 'contact'
+
+  # tel: link from the same rules as the WhatsApp link (snippets/phone-href).
   assign phone_display = settings.contact_phone | strip
-  assign phone_digits = phone_display | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
-  assign phone_first = phone_digits | slice: 0
-  if phone_first == '0'
-    assign phone_tel = phone_digits | remove_first: '0' | prepend: '+972'
-  else
-    assign phone_tel = phone_digits
-  endif
+  capture phone_href
+    render 'phone-href', phone: phone_display
+  endcapture
 
   capture whatsapp_url
     render 'whatsapp-url', text: settings.contact_whatsapp_message
   endcapture
+
+  # The WhatsApp alternative under the form: its own number when set, a message for the form type.
+  assign form_whatsapp_url = ''
+  if section.settings.show_whatsapp
+    assign form_whatsapp_text = section.settings.whatsapp_message | strip
+    if form_whatsapp_text == blank
+      case form_kind
+        when 'repair'
+          assign form_whatsapp_text = 'contact.repair.whatsapp_message' | t
+        when 'trade_in'
+          assign form_whatsapp_text = 'contact.trade_in.whatsapp_message' | t
+        else
+          assign form_whatsapp_text = settings.contact_whatsapp_message
+      endcase
+    endif
+    capture form_whatsapp_url
+      render 'whatsapp-url', text: form_whatsapp_text, phone: section.settings.whatsapp_number
+    endcapture
+  endif
+
+  assign body_required = true
+  assign body_label = 'contact.form.body' | t
+  if form_kind == 'repair'
+    assign body_required = false
+    assign body_label = 'contact.repair.description' | t
+    assign form_subject = 'contact.repair.subject' | t
+
+    capture branch_order
+      render 'branch-order'
+    endcapture
+    assign branch_order = branch_order | split: ','
+  elsif form_kind == 'trade_in'
+    assign body_required = false
+    assign body_label = 'contact.trade_in.details' | t
+    assign form_subject = 'contact.trade_in.subject' | t
+  endif
+
   capture whatsapp_display
     render 'whatsapp-url', format: 'display'
   endcapture
@@ -170,14 +217,122 @@
           </p>
         </div>
 
+        {%- if form_kind == 'repair' -%}
+          <input type="hidden" name="contact[subject]" value="{{ form_subject | escape }}">
+
+          <div class="field">
+            <label class="field__label" for="{{ form_id }}-device">{{ 'contact.repair.device' | t }} {{ required_mark }}</label>
+            <input
+              class="input"
+              type="text"
+              id="{{ form_id }}-device"
+              name="contact[{{ 'contact.repair.device' | t | escape }}]"
+              placeholder="{{ 'contact.repair.device_placeholder' | t }}"
+              autocomplete="off"
+              required
+            >
+            <p class="form-message form-message--error contact-form__error">
+              {%- render 'icon', name: 'alert', size: 16 -%}
+              <span>{{ 'errors.required' | t }}</span>
+            </p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="{{ form_id }}-fault">{{ 'contact.repair.fault' | t }} {{ required_mark }}</label>
+            <div class="select">
+              <select id="{{ form_id }}-fault" name="contact[{{ 'contact.repair.fault' | t | escape }}]" required>
+                <option value="">{{ 'contact.form.choose' | t }}</option>
+                {%- assign fault_options = 'contact.repair.fault_options' | t | split: '|' -%}
+                {%- for fault_option in fault_options -%}
+                  <option value="{{ fault_option | strip | escape }}">{{ fault_option | strip | escape }}</option>
+                {%- endfor -%}
+              </select>
+            </div>
+            <p class="form-message form-message--error contact-form__error">
+              {%- render 'icon', name: 'alert', size: 16 -%}
+              <span>{{ 'errors.required' | t }}</span>
+            </p>
+          </div>
+
+          {%- if branch_order.size > 0 -%}
+            <div class="field">
+              <label class="field__label" for="{{ form_id }}-branch">{{ 'contact.repair.branch' | t }}</label>
+              <div class="select">
+                <select id="{{ form_id }}-branch" name="contact[{{ 'contact.repair.branch' | t | escape }}]">
+                  <option value="{{ 'contact.repair.branch_any' | t | escape }}">{{ 'contact.repair.branch_any' | t }}</option>
+                  {%- for branch_position in branch_order -%}
+                    {%- assign branch_index = branch_position | plus: 0 -%}
+                    {%- for entry in metaobjects.branch.values -%}
+                      {%- if forloop.index0 == branch_index and entry.name.value != blank -%}
+                        <option value="{{ entry.name.value | strip | escape }}">{{ entry.name.value | strip | escape }}</option>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- endfor -%}
+                </select>
+              </div>
+            </div>
+          {%- endif -%}
+        {%- elsif form_kind == 'trade_in' -%}
+          <input type="hidden" name="contact[subject]" value="{{ form_subject | escape }}">
+
+          <div class="field">
+            <label class="field__label" for="{{ form_id }}-device">{{ 'contact.trade_in.device' | t }} {{ required_mark }}</label>
+            <input
+              class="input"
+              type="text"
+              id="{{ form_id }}-device"
+              name="contact[{{ 'contact.trade_in.device' | t | escape }}]"
+              placeholder="{{ 'contact.repair.device_placeholder' | t }}"
+              autocomplete="off"
+              required
+            >
+            <p class="form-message form-message--error contact-form__error">
+              {%- render 'icon', name: 'alert', size: 16 -%}
+              <span>{{ 'errors.required' | t }}</span>
+            </p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="{{ form_id }}-condition">{{ 'contact.trade_in.condition' | t }} {{ required_mark }}</label>
+            <div class="select">
+              <select id="{{ form_id }}-condition" name="contact[{{ 'contact.trade_in.condition' | t | escape }}]" required>
+                <option value="">{{ 'contact.form.choose' | t }}</option>
+                {%- assign condition_options = 'contact.trade_in.condition_options' | t | split: '|' -%}
+                {%- for condition_option in condition_options -%}
+                  <option value="{{ condition_option | strip | escape }}">{{ condition_option | strip | escape }}</option>
+                {%- endfor -%}
+              </select>
+            </div>
+            <p class="form-message form-message--error contact-form__error">
+              {%- render 'icon', name: 'alert', size: 16 -%}
+              <span>{{ 'errors.required' | t }}</span>
+            </p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="{{ form_id }}-storage">{{ 'contact.trade_in.storage' | t }}</label>
+            <div class="select">
+              <select id="{{ form_id }}-storage" name="contact[{{ 'contact.trade_in.storage' | t | escape }}]">
+                {%- assign storage_options = 'contact.trade_in.storage_options' | t | split: '|' -%}
+                {%- for storage_option in storage_options -%}
+                  <option value="{{ storage_option | strip | escape }}">{{ storage_option | strip | escape }}</option>
+                {%- endfor -%}
+              </select>
+            </div>
+          </div>
+        {%- endif -%}
+
         <div class="field">
-          <label class="field__label" for="{{ form_id }}-body">{{ 'contact.form.body' | t }} {{ required_mark }}</label>
+          <label class="field__label" for="{{ form_id }}-body">
+            {{- body_label -}}
+            {%- if body_required %} {{ required_mark }}{% endif -%}
+          </label>
           <textarea
             class="textarea"
             id="{{ form_id }}-body"
             name="contact[body]"
             rows="5"
-            required
+            {% if body_required %}required{% endif %}
             {% if body_invalid %}aria-invalid="true"{% endif %}
           >{{ form.body | escape }}</textarea>
           <p class="form-message form-message--error contact-form__error">
@@ -228,6 +383,20 @@
         <button type="submit" class="button button--accent button--large contact-form__submit">
           {{- submit_label | escape -}}
         </button>
+
+        {%- if form_whatsapp_url != blank -%}
+          {%- # Same size and place as the submit button (contact-form__submit sizing). -%}
+          <a
+            class="button button--outline button--large contact-form__submit contact-form__whatsapp"
+            href="{{ form_whatsapp_url }}"
+            target="_blank"
+            rel="noopener"
+          >
+            {%- render 'icon', name: 'whatsapp', size: 20 -%}
+            <span>{{ 'contact.form.whatsapp_button' | t }}</span>
+            <span class="visually-hidden">({{ new_window }})</span>
+          </a>
+        {%- endif -%}
       {%- endform -%}
     </div>
 
@@ -238,12 +407,12 @@
         {%- endif -%}
 
         <ul class="contact-info" role="list">
-          {%- if phone_display != blank -%}
+          {%- if phone_href != blank -%}
             <li class="contact-info__item">
               {%- render 'icon', name: 'phone', size: 22, class: 'contact-info__icon' -%}
               <div>
                 <p class="contact-info__label">{{ 'contact.info.phone' | t }}</p>
-                <a class="contact-info__value" href="tel:{{ phone_tel }}" dir="ltr">{{ phone_display | escape }}</a>
+                <a class="contact-info__value" href="{{ phone_href }}" dir="ltr">{{ phone_display | escape }}</a>
               </div>
             </li>
           {%- endif -%}
@@ -314,6 +483,18 @@
   },
   "settings": [
     {
+      "type": "select",
+      "id": "form_kind",
+      "label": "סוג הטופס",
+      "info": "פנייה: שם, טלפון, אימייל והודעה. תיקון: דגם, סוג התקלה, סניף מועדף ותיאור. טרייד-אין: דגם, מצב המכשיר ונפח אחסון. בתיקון ובטרייד-אין נוסף למייל נושא קבוע.",
+      "default": "contact",
+      "options": [
+        { "value": "contact", "label": "פנייה כללית" },
+        { "value": "repair", "label": "תיקון (JOY FIX)" },
+        { "value": "trade_in", "label": "טרייד-אין" }
+      ]
+    },
+    {
       "type": "text",
       "id": "heading",
       "label": "כותרת",
@@ -356,6 +537,25 @@
       "id": "submit_label",
       "label": "טקסט הכפתור",
       "default": "שליחת הפנייה"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_whatsapp",
+      "label": "כפתור 'שליחה בוואטסאפ'",
+      "info": "מתחת לכפתור השליחה, עם הודעה מוכנה לפי סוג הטופס.",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "whatsapp_number",
+      "label": "מספר וואטסאפ לכפתור",
+      "info": "כשריק: מספר הוואטסאפ מהגדרות התבנית › יצירת קשר ורשתות חברתיות."
+    },
+    {
+      "type": "text",
+      "id": "whatsapp_message",
+      "label": "הודעה מוכנה בוואטסאפ",
+      "info": "כשריק: הודעה לפי סוג הטופס (בפנייה כללית — ההודעה מהגדרות התבנית)."
     },
     {
       "type": "header",

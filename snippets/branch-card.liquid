@@ -1,0 +1,163 @@
+{% doc %}
+  One branch card of sections/branches.liquid: name, services, address, opening hours,
+  phone, extra text, Google Maps / Waze links, and the branch photo or a click-to-load map.
+  The section renders it once per branch, from the "branch" metaobject entries when the
+  store has them, else from its own branch blocks, so both sources print the same card.
+
+  Opening hours: the given hours, else the theme setting, else a line asking to call the
+  branch, whose number follows (never invented hours). The tel: link comes from
+  snippets/phone-href.
+
+  Map: the address (or the map query) builds a Google Maps link and a Waze link. The
+  embedded map sits in a closed <details> with no src: <branch-map> (script in
+  sections/branches.liquid) copies data-src to src when the visitor opens it, so no request
+  goes to Google before that tap. It is sandboxed and sends the browser's default
+  (origin-only) referrer. Without JavaScript the open <details> shows a Google Maps link
+  instead of the frame.
+
+  @param {string} id - Stable key of the branch (metaobject handle or block id): the heading id is Branch-<id>.
+  @param {string} name - Branch name.
+  @param {string} [services] - Services line.
+  @param {string} [address] - Address as shown, ending with the city.
+  @param {string} [hours] - Opening hours for people, one range per line.
+  @param {string} [phone] - Branch phone. Default: the theme setting contact_phone.
+  @param {string} [text] - Extra text, HTML (rich text).
+  @param {string} [map_query] - Map search. Default: the address.
+  @param {image} [image] - Photo of the branch; shown instead of the map.
+  @param {boolean} [show_map] - Offer the click-to-load map when there is no photo.
+  @param {string} [attributes] - Extra attributes for the <article> (block.shopify_attributes).
+
+  @example
+  {% render 'branch-card', id: block.id, name: block.settings.name, address: block.settings.address, hours: block.settings.hours, show_map: section.settings.show_map, attributes: block.shopify_attributes %}
+{% enddoc %}
+{%- liquid
+  assign bc_new_window = 'accessibility.new_window' | t
+  assign bc_name = name | strip
+  assign bc_address = address | strip
+  assign bc_map_query = map_query | strip | default: bc_address
+  assign bc_map_query_encoded = bc_map_query | url_encode | replace: '+', '%20'
+
+  assign bc_phone = phone | strip | default: settings.contact_phone | strip
+  capture bc_phone_href
+    render 'phone-href', phone: bc_phone
+  endcapture
+
+  assign bc_hours = hours | strip
+  if bc_hours == blank
+    assign bc_hours = settings.store_hours | strip
+  endif
+-%}
+<article class="branch"{% if attributes != blank %} {{ attributes }}{% endif %}{% if bc_name != blank %} aria-labelledby="Branch-{{ id }}"{% endif %}>
+  <div class="branch__body">
+    {%- if bc_name != blank -%}
+      <h3 class="branch__name" id="Branch-{{ id }}">{{ bc_name | escape }}</h3>
+    {%- endif -%}
+    {%- if services != blank -%}
+      <p class="branch__services">{{ services | escape }}</p>
+    {%- endif -%}
+
+    <dl class="branch__details">
+      {%- if bc_address != blank -%}
+        <div class="branch__row">
+          <dt>
+            {%- render 'icon', name: 'location', size: 20, class: 'branch__icon' -%}
+            <span>{{ 'branches.address' | t }}</span>
+          </dt>
+          <dd class="branch__address">{{ bc_address | escape }}</dd>
+        </div>
+      {%- endif -%}
+      {%- if bc_hours != blank or bc_phone != blank -%}
+        <div class="branch__row">
+          <dt>
+            {%- render 'icon', name: 'clock', size: 20, class: 'branch__icon' -%}
+            <span>{{ 'branches.hours' | t }}</span>
+          </dt>
+          {%- if bc_hours != blank -%}
+            <dd>{{ bc_hours | escape | newline_to_br }}</dd>
+          {%- else -%}
+            <dd class="branch__hours-fallback">{{ 'branches.hours_fallback' | t }}</dd>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+      {%- if bc_phone_href != blank -%}
+        <div class="branch__row">
+          <dt>
+            {%- render 'icon', name: 'phone', size: 20, class: 'branch__icon' -%}
+            <span>{{ 'branches.phone' | t }}</span>
+          </dt>
+          <dd><a class="branch__phone" href="{{ bc_phone_href }}" dir="ltr">{{ bc_phone | escape }}</a></dd>
+        </div>
+      {%- endif -%}
+    </dl>
+
+    {%- if text != blank -%}
+      <div class="branch__text rte">{{ text }}</div>
+    {%- endif -%}
+
+    {%- if bc_map_query != blank -%}
+      <p class="branch__actions">
+        <a
+          class="button button--small"
+          href="https://www.google.com/maps/search/?api=1&amp;query={{ bc_map_query_encoded }}"
+          target="_blank"
+          rel="noopener"
+        >
+          {%- render 'icon', name: 'location', size: 16 -%}
+          <span>{{ 'branches.open_maps' | t }}</span>
+          <span class="visually-hidden">({{ bc_new_window }})</span>
+        </a>
+        <a
+          class="button button--small button--outline"
+          href="https://waze.com/ul?q={{ bc_map_query_encoded }}&amp;navigate=yes"
+          target="_blank"
+          rel="noopener"
+        >
+          {%- render 'icon', name: 'external', size: 16 -%}
+          <span>{{ 'branches.open_waze' | t }}</span>
+          <span class="visually-hidden">({{ bc_new_window }})</span>
+        </a>
+      </p>
+    {%- endif -%}
+  </div>
+
+  {%- if image != blank -%}
+    <div class="branch__media">
+      {%- render 'image',
+        image: image,
+        widths: '375,560,750,1100',
+        sizes: '(min-width: 992px) 50vw, calc(100vw - 30px)',
+        class: 'branch__image'
+      -%}
+    </div>
+  {%- elsif show_map and bc_map_query != blank -%}
+    <branch-map>
+      <details class="branch__map">
+        <summary class="branch__map-toggle">
+          {%- render 'icon', name: 'location', size: 28, class: 'branch__map-icon' -%}
+          <span class="branch__map-label">
+            <span class="branch__map-show">{{ 'branches.show_map' | t }}</span>
+            <span class="branch__map-hide">{{ 'branches.hide_map' | t }}</span>
+          </span>
+          <span class="branch__map-address">{{ bc_map_query | escape }}</span>
+        </summary>
+        <p class="branch__map-fallback" data-map-fallback>
+          <a class="button" href="https://www.google.com/maps/search/?api=1&amp;query={{ bc_map_query_encoded }}" target="_blank" rel="noopener">
+            {%- render 'icon', name: 'location', size: 16 -%}
+            <span>{{ 'branches.open_maps' | t }}</span>
+            <span class="visually-hidden">({{ bc_new_window }})</span>
+          </a>
+        </p>
+        <iframe
+          class="branch__map-frame"
+          data-src="https://www.google.com/maps?q={{ bc_map_query_encoded }}&amp;output=embed"
+          title="{{ 'branches.map_title' | t: name: bc_map_query }}"
+          width="600"
+          height="350"
+          loading="lazy"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+          hidden
+        ></iframe>
+      </details>
+    </branch-map>
+  {%- endif -%}
+</article>

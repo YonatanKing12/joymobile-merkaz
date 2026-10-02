@@ -1,0 +1,38 @@
+{% doc %}
+  The order of the store's branches: the positions (0-based) of the entries of the "branch"
+  metaobject (תוכן › מטא-אובייקטים › סניף) in `metaobjects.branch.values`, sorted by their
+  "סדר הצגה" field (sort_order, smallest first; empty = last) and then by their position, as
+  a comma-separated list ("2,0,1,4,3"). Prints nothing when there is no active entry, which is
+  how the callers know to fall back to their own data. Liquid can't sort entries by a field,
+  so the callers loop over this list and pick each entry by its position.
+  Callers: sections/branches.liquid, snippets/branches-json.liquid, sections/contact-form.liquid.
+
+  @example
+  {%- capture branch_order -%}{% render 'branch-order' %}{%- endcapture -%}
+  {%- assign branch_order = branch_order | split: ',' -%}
+{% enddoc -%}
+{% liquid
+  assign bo_keys = ''
+  for bo_entry in metaobjects.branch.values
+    assign bo_rank = bo_entry.sort_order.value | default: 9999 | plus: 0
+    if bo_rank < 0
+      assign bo_rank = 0
+    elsif bo_rank > 9999
+      assign bo_rank = 9999
+    endif
+    # Fixed-width keys ("10003-1001"), so a text sort is a numeric sort: rank, then position.
+    assign bo_position = forloop.index0 | plus: 1000
+    assign bo_key = bo_rank | plus: 10000 | append: '-' | append: bo_position
+    assign bo_keys = bo_keys | append: ',' | append: bo_key
+  endfor
+
+  if bo_keys != blank
+    assign bo_keys = bo_keys | remove_first: ',' | split: ',' | sort
+    assign bo_positions = ''
+    for bo_key in bo_keys
+      assign bo_position = bo_key | split: '-' | last | minus: 1000
+      assign bo_positions = bo_positions | append: ',' | append: bo_position
+    endfor
+    echo bo_positions | remove_first: ','
+  endif
+-%}

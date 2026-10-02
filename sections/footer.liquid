@@ -22,12 +22,10 @@
   assign map_query = store_address | url_encode
   assign map_url = 'https://www.google.com/maps/search/?api=1&query=' | append: map_query
 
-  assign phone_digits = settings.contact_phone | remove: ' ' | remove: '-' | remove: '(' | remove: ')' | strip
-  assign phone_first = phone_digits | slice: 0
-  assign phone_href = phone_digits
-  if phone_first == '0'
-    assign phone_href = phone_digits | remove_first: '0' | prepend: '+972'
-  endif
+  # tel: link from the same rules as the WhatsApp link (snippets/phone-href).
+  capture phone_href
+    render 'phone-href', phone: settings.contact_phone
+  endcapture
 
   capture wa_url
     render 'whatsapp-url'
@@ -151,10 +149,10 @@
                         <dd>{{ settings.store_hours | escape | newline_to_br }}</dd>
                       </div>
                     {%- endif -%}
-                    {%- if phone_digits != blank -%}
+                    {%- if phone_href != blank -%}
                       <div class="footer__fact">
                         <dt>{%- render 'icon', name: 'phone', size: 18 -%}<span class="visually-hidden">{{ 'footer.branches.phone' | t }}</span></dt>
-                        <dd><a class="footer__link" href="tel:{{ phone_href }}" dir="ltr">{{ settings.contact_phone | escape }}</a></dd>
+                        <dd><a class="footer__link" href="{{ phone_href }}" dir="ltr">{{ settings.contact_phone | strip | escape }}</a></dd>
                       </div>
                     {%- endif -%}
                     {%- if wa_url != blank -%}
@@ -162,7 +160,7 @@
                         <dt>{%- render 'icon', name: 'whatsapp', size: 18 -%}<span class="visually-hidden">{{ 'footer.branches.whatsapp' | t }}</span></dt>
                         <dd>
                           <a class="footer__link" href="{{ wa_url }}" target="_blank" rel="noopener">
-                            <span dir="ltr">{{ wa_display }}</span>
+                            <span dir="ltr">{{ wa_display | escape }}</span>
                             <span class="visually-hidden"> {{ 'general.new_window' | t }}</span>
                           </a>
                         </dd>
@@ -340,7 +338,7 @@
           "type": "text",
           "id": "heading",
           "label": "כותרת",
-          "default": "הסניף שלנו באילת"
+          "default": "סניף הדגל באילת"
         },
         {
           "type": "text",
@@ -397,7 +395,7 @@
           "type": "richtext",
           "id": "text",
           "label": "טקסט",
-          "default": "<p>מוצרי חשמל, מחשבים ואלקטרוניקה במקום אחד באילת. מזמינים באתר ואוספים במלאכה 7.</p>"
+          "default": "<p>משריינים באתר ואוספים באחד הסניפים באילת, במחירי אילת ללא מע״מ.</p>"
         }
       ]
     }

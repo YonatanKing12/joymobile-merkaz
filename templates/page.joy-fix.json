@@ -1,0 +1,34 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "show_breadcrumbs": true,
+        "show_title": true,
+        "content_width": "narrow"
+      }
+    },
+    "repair-form": {
+      "type": "contact-form",
+      "settings": {
+        "form_kind": "repair",
+        "heading": "השארת פרטים לתיקון",
+        "intro": "<p>ספרו לנו איזה מכשיר ומה התקלה, ונחזור אליכם לתיאום. את הצעת המחיר לתיקון נותנים במעבדה, אחרי בדיקה. אפשר גם להתקשר למעבדת JOY FIX: <a href=\"tel:+972533252060\">053-325-2060</a>.</p>",
+        "show_phone": true,
+        "phone_required": true,
+        "show_privacy": true,
+        "show_marketing": false,
+        "submit_label": "שליחת בקשת תיקון",
+        "show_whatsapp": true,
+        "whatsapp_number": "",
+        "whatsapp_message": "",
+        "show_info": false,
+        "info_heading": "פרטי התקשרות"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "repair-form"
+  ]
+}

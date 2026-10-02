@@ -1,0 +1,88 @@
+{% doc %}
+  One phone number, normalised — the only place that turns a number as the merchant typed it
+  (theme settings, a branch) into a link or an international form: footer, contact form,
+  branch cards, the branches' structured data and the WhatsApp link (snippets/whatsapp-url)
+  all go through here, so every format the merchant may type works everywhere at once.
+  Prints nothing when there is no number; callers capture the output. The closing doc tag
+  trims the newline after it (see whatsapp-url), so a captured value starts clean.
+
+  Normalising: spaces, dashes, dots and parentheses are removed. "+…" and "00…" are
+  international; a leading 0 is Israeli local (05x…, 0x…) and becomes 972; digits that
+  already start with 972 are Israeli international too ("972-3-511-7171"), and the trunk 0
+  some people keep after it ("+972 (0)53…") is dropped. Anything else (1-800 / 1-700
+  numbers, *2060) has no country code and is kept as typed: those dial only inside Israel.
+
+  - 'tel' (default): "tel:+972533255020" ("tel:1800800800" without a country code).
+  - 'e164': "+972533255020" (digits as typed without a country code: "1800800800").
+  - 'display': Israeli numbers in local form — 053-3255020, 03-5117171 — other countries
+    "+<digits>", and a number without a country code exactly as typed. Plain text, not
+    HTML-escaped: escape it when printing.
+
+  @param {string} phone - The number as typed, e.g. "053-325-5020", "+972 53 325 5020", "00972533255020".
+  @param {string} [format] - 'tel' (default), 'e164' or 'display'.
+
+  @example
+  {%- capture phone_href -%}{% render 'phone-href', phone: settings.contact_phone %}{%- endcapture -%}
+  {%- capture phone_e164 -%}{% render 'phone-href', phone: branch_phone, format: 'e164' %}{%- endcapture -%}
+{% enddoc -%}
+{% liquid
+  assign ph_typed = phone | strip
+  assign ph_digits = ph_typed | remove: ' ' | remove: '-' | remove: '–' | remove: '.' | remove: '(' | remove: ')'
+  assign ph_country = false
+
+  assign ph_head = ph_digits | slice: 0
+  assign ph_head_two = ph_digits | slice: 0, 2
+  if ph_head == '+'
+    assign ph_country = true
+    assign ph_digits = ph_digits | remove: '+'
+  elsif ph_head_two == '00'
+    assign ph_country = true
+    assign ph_digits = ph_digits | remove_first: '00'
+  elsif ph_head == '0'
+    assign ph_country = true
+    assign ph_digits = ph_digits | remove_first: '0' | prepend: '972'
+  endif
+
+  assign ph_head = ph_digits | slice: 0, 3
+  if ph_head == '972'
+    assign ph_country = true
+    assign ph_trunk = ph_digits | slice: 3
+    if ph_trunk == '0'
+      assign ph_digits = ph_digits | slice: 4, 20 | prepend: '972'
+    endif
+  endif
+
+  if ph_digits != blank
+    case format
+      when 'e164'
+        if ph_country
+          echo '+' | append: ph_digits
+        else
+          echo ph_digits
+        endif
+      when 'display'
+        assign ph_head = ph_digits | slice: 0, 3
+        if ph_head == '972'
+          assign ph_local = ph_digits | slice: 3, 20 | prepend: '0'
+          if ph_local.size == 10
+            assign ph_tail = ph_local | slice: 3, 7
+            assign ph_local = ph_local | slice: 0, 3 | append: '-' | append: ph_tail
+          elsif ph_local.size == 9
+            assign ph_tail = ph_local | slice: 2, 7
+            assign ph_local = ph_local | slice: 0, 2 | append: '-' | append: ph_tail
+          endif
+          echo ph_local
+        elsif ph_country
+          echo '+' | append: ph_digits
+        else
+          echo ph_typed
+        endif
+      else
+        if ph_country
+          echo 'tel:+' | append: ph_digits
+        else
+          echo 'tel:' | append: ph_digits
+        endif
+    endcase
+  endif
+-%}
