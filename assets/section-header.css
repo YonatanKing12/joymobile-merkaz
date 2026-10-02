@@ -1211,3 +1211,27 @@ sticky-header.is-compact .header {
     display: none;
   }
 }
+
+/* Predictive search busy state (assets/predictive-search.js sets aria-busy). Here, in a render-blocking
+   sheet, not in the deferred component-predictive-search.css: a search typed on a slow connection before
+   that sheet lands still shows the spinner while its results wait for it. */
+predictive-search[aria-busy="true"] .search-form__submit .icon {
+  visibility: hidden;
+}
+
+predictive-search[aria-busy="true"] .search-form__submit {
+  position: relative;
+}
+
+predictive-search[aria-busy="true"] .search-form__submit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 1rem;
+  height: 1rem;
+  margin: auto;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}

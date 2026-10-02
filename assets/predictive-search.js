@@ -234,10 +234,14 @@ class PredictiveSearch extends HTMLElement {
     const links = [...document.querySelectorAll('link[href*="component-predictive-search"]')];
     const pending = links.filter((link) => link.media === 'print');
     if (!pending.length || pending.length < links.length) return Promise.resolve();
-    return new Promise((resolve) => pending.forEach((link) => {
-      link.addEventListener('load', resolve, { once: true });
-      link.addEventListener('error', resolve, { once: true });
-    }));
+    // At most 4s: a sheet that failed (or errored before this listened) must not hold the results for good.
+    return new Promise((resolve) => {
+      setTimeout(resolve, 4000);
+      pending.forEach((link) => {
+        link.addEventListener('load', resolve, { once: true });
+        link.addEventListener('error', resolve, { once: true });
+      });
+    });
   }
 
   async search() {

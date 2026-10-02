@@ -258,27 +258,6 @@
   font-weight: 500;
 }
 
-predictive-search[aria-busy="true"] .search-form__submit .icon {
-  visibility: hidden;
-}
-
-predictive-search[aria-busy="true"] .search-form__submit {
-  position: relative;
-}
-
-predictive-search[aria-busy="true"] .search-form__submit::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: 1rem;
-  height: 1rem;
-  margin: auto;
-  border: 2px solid currentColor;
-  border-inline-end-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
 /* Results page (sections/main-search, <search-correction>): "האם התכוונת ל„iphone”?" or
    "מציג תוצאות עבור „iphone”. לחיפוש „ןפיםמק” במקום זאת", on a line of its own under the title. */
 .search-correction {
