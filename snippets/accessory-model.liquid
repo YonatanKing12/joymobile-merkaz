@@ -2,16 +2,31 @@
   The model name an accessory title would use for this product, derived from its own title.
 
   The store's accessory titles name the model after "ל-" ("כיסוי Apple TechWoven Case ל-iPhone 17
-  Pro Max שחור"), so the search index answers an exact match for "<category> <model>". What has to
-  come off the product title first is everything that is true of the box and not of the model: the
-  importer suffix after the dash, the capacity, the radio and chip wording, the colour, and for
-  phones and tablets the maker's name (there "iPhone"/"iPad"/"Galaxy" already identifies the model
-  and the maker only tilts the list to that maker's own accessories; on watches and headphones
-  "Apple Watch" and "Apple AirPods" are the identifying phrase, so it stays).
+  Pro Max שחור"), and Shopify search ANDs every word of a query, so one word in the model that no
+  accessory title carries ("6GB", "לבנדר", "SM-X130") empties the whole group. What comes off is
+  everything that is true of the box and not of the model, one word at a time. A word is dropped
+  only whole, so "A16" the iPad chip goes and "Galaxy A16" the phone stays:
 
-  Every rule here was measured against the live search. Two copies of them would drift, so this is
-  the one place they live: snippets/product-addons (the product page) and snippets/cart-upsell (the
-  cart and the drawer) both render it.
+  - the importer suffix after the dash, and the POS import's "|" and "#" separators;
+  - every Hebrew word: category ("אוזניות", "טאבלט"), colour ("לבנדר", "כחול קרח") and the channel
+    the import appends ("רשמי", "מקביל", "יד שניה", "מחודש", "באנדל"). No device model is written
+    in Hebrew, so there is no colour list to fall behind the next import;
+  - capacity in any form ("256GB", "12GB/256GB", "4+4GB", "64/4GB", "RAM"), radio and SIM words,
+    "DCS", band sizes (M/L) and Samsung's SM- codes;
+  - Apple chip names (M1-M5, A16-A18), on an iPad or a Mac only;
+  - the screen size, except on an iPad: "ל-iPad Air 11"" names it, "ל-Galaxy Tab S9 FE" does not;
+  - for phones and tablets the maker's name ("iPhone"/"Galaxy" already identifies the model),
+    unless that would leave a bare number: "OnePlus 13" stays "OnePlus 13", not "13".
+
+  "Apple iPhone 17 Pro Max 2TB כחול – יבואן רשמי" → "iPhone 17 Pro Max";
+  "Samsung Galaxy S25 Ultra 5G 12GB/256GB" → "Galaxy S25 Ultra";
+  "Samsung Galaxy Tab A11 SM-X130 64GB Wi-Fi 8.7"" → "Galaxy Tab A11";
+  "iPad Pro 13 | M4 | WiFi | 256GB | שחור | רשמי" → "iPad Pro 13".
+
+  Checked against every published device title (Oct 2026) and against the live search. Two copies
+  of these rules would drift, so this is the one place they live: snippets/product-addons (the
+  product page) and snippets/cart-upsell (the cart and the drawer) both render it. The result can
+  be blank ("אוזניות USB-C ל-iOS" names no model); a caller must then not send the group word alone.
 
   @param {product} product - The product to name.
   @param {string} [mode] - 'model' (default) or 'watch'.
@@ -21,54 +36,113 @@
 {% enddoc %}
 {%- liquid
   assign am_type = product.type | strip
-  assign am_vendor = product.vendor | strip
+  assign am_vendor_key = product.vendor | strip | downcase
   assign am_base = product.title | split: ' – ' | first | split: ' - ' | first | strip
-  assign am_model = am_base
 
-  assign am_noise = '2TB,1TB,512GB,256GB,128GB,64GB,32GB,12GB RAM,8GB RAM,eSIM,Dual SIM,5G,NFC,Wi-Fi,WiFi,Cellular,Bluetooth,LTE,GPS,USB-C,ANC,M1,M2,M3,M4,M5,A16,A17,A18,Ocean Band,Sport Band,Sport Loop,Milanese'
-  assign am_noise_list = am_noise | split: ','
-  for am_word in am_noise_list
-    assign am_model = am_model | remove: am_word
+  # The POS import writes "AppleWatch | S8 | 45mm" and "GalaxyS22"; accessory titles say "Apple
+  # Watch" and "Galaxy S22". The doubled space this leaves is harmless: split on ' ' collapses it.
+  assign am_base = am_base | replace: '|', ' ' | replace: '#', ' ' | replace: 'AppleWatch', 'Apple Watch' | replace: 'Galaxy', 'Galaxy '
+  assign am_phrases = 'Dual SIM,Ocean Band,Sport Band,Sport Loop,Milanese Loop,Milanese' | split: ','
+  for am_phrase in am_phrases
+    assign am_base = am_base | remove: am_phrase
   endfor
 
-  assign am_colours = 'שחור,לבן,כחול,תכלת,כתום,ורוד,אדום,ירוק,סגול,אפור,זהב,כסוף,כסף,סילבר,צהוב,חום,בורדו,ברונזה,קרם,לילך,בז׳,טבעי,מדברי,שמנת,שמפניה,מוקה,אור כוכבים,תיטניום,טיטניום,מילנז,מילנזי,כהה,בהיר'
-  assign am_colour_list = am_colours | split: ','
-  for am_word in am_colour_list
-    assign am_model = am_model | remove: am_word
+  assign am_probe = am_base | downcase
+  assign am_ipad = false
+  assign am_apple_silicon = false
+  if am_probe contains 'ipad'
+    assign am_ipad = true
+    assign am_apple_silicon = true
+  elsif am_probe contains 'macbook' or am_probe contains 'imac'
+    assign am_apple_silicon = true
+  endif
+
+  assign am_hebrew = 'אבגדהוזחטיכךלמםנןסעפףצץקרשת'
+  assign am_digits = '0,1,2,3,4,5,6,7,8,9' | split: ','
+  assign am_noise = 'esim,sim,5g,4g,lte,nfc,wi-fi,wifi,cellular,cell,gps,gps+cell,gps+cellular,bluetooth,usb-c,anc,ram,dcs,s/m,m/l,s/l' | split: ','
+  assign am_chips = 'm1,m2,m3,m4,m5,a16,a17,a18' | split: ','
+  assign am_inch = '",”,״' | split: ','
+
+  assign am_model = ''
+  assign am_size = ''
+  assign am_tokens = am_base | split: ' '
+  for am_token in am_tokens
+    assign am_key = am_token | downcase
+    assign am_head = am_token | slice: 0
+    assign am_tail = am_token | slice: -1
+    assign am_sm = am_key | slice: 0, 3
+    assign am_keep = true
+    if am_hebrew contains am_head
+      assign am_keep = false
+    elsif am_noise contains am_key
+      assign am_keep = false
+    elsif am_sm == 'sm-'
+      assign am_keep = false
+    elsif am_apple_silicon and am_chips contains am_key
+      assign am_keep = false
+    elsif am_inch contains am_tail
+      unless am_ipad
+        assign am_keep = false
+      endunless
+    else
+      assign am_digit = false
+      for am_d in am_digits
+        if am_key contains am_d
+          assign am_digit = true
+        endif
+      endfor
+      if am_digit
+        if am_key contains 'gb' or am_key contains 'tb' or am_key contains '/'
+          assign am_keep = false
+        elsif am_key.size == 4
+          # "44mm" is a watch's case size: kept aside for watch mode, never part of the model.
+          assign am_mm = am_key | slice: 2, 2
+          assign am_d1 = am_key | slice: 0
+          assign am_d2 = am_key | slice: 1
+          if am_mm == 'mm' and am_digits contains am_d1 and am_digits contains am_d2
+            assign am_size = am_key | slice: 0, 2
+            assign am_keep = false
+          endif
+        endif
+      endif
+    endif
+    if am_keep
+      assign am_word = am_token | remove: '"' | remove: '”' | remove: '״'
+      assign am_model = am_model | append: ' ' | append: am_word
+    endif
   endfor
-
-  # The inch mark kills the match: "כיסוי iPad Pro 13"" returns nothing where "כיסוי iPad Pro 13"
-  # returns the four covers for it.
-  assign am_model = am_model | remove: '"' | remove: '”'
-
-  # Headphone titles open with the category word, which would land in the query twice.
-  assign am_model = am_model | remove_first: 'אוזניות ' | remove_first: 'רמקול '
+  assign am_model = am_model | strip
 
   if am_type == 'מכשירים' or am_type == 'טאבלטים'
-    if am_vendor != blank
-      assign am_model = am_model | remove_first: am_vendor
+    if am_vendor_key != blank
+      assign am_cut = am_vendor_key.size | plus: 1
+      assign am_lead = am_model | slice: 0, am_cut | downcase
+      assign am_vendor_lead = am_vendor_key | append: ' '
+      if am_lead == am_vendor_lead
+        assign am_rest = am_model | slice: am_cut, 200
+        assign am_rest_head = am_rest | slice: 0
+        unless am_digits contains am_rest_head
+          assign am_model = am_rest
+        endunless
+      endif
     endif
   endif
 
-  assign am_model = am_model | replace: '  ', ' ' | replace: '  ', ' ' | strip
-
-  # A watch is asked for by its case size, and the straps are listed as "ל-Apple Watch 45/49" — with
-  # the size as a bare number and no "mm". So the query is everything up to and including "Watch"
-  # plus that number: "Apple Watch 49", "Samsung Galaxy Watch 46". Keeping the series name instead
-  # ("רצועה Apple Watch Ultra") pulls Galaxy straps onto an Apple Watch page.
+  # A watch is asked for by its case size, and the straps are listed as "ל-Apple Watch 45/49": the
+  # size as a bare number, no "mm". So the query is everything up to and including "Watch" (any
+  # case) plus that number: "Apple Watch 49", "Samsung Galaxy Watch 46". Keeping the series name
+  # instead ("רצועה Apple Watch Ultra") pulls Galaxy straps onto an Apple Watch page.
   if mode == 'watch'
     assign am_watch = am_model
-    assign am_watch_split = am_model | split: 'Watch'
-    if am_watch_split.size > 1
-      assign am_watch = am_watch_split[0] | append: 'Watch'
+    assign am_probe = am_model | downcase
+    if am_probe contains 'watch'
+      assign am_cut = am_probe | split: 'watch' | first | size | plus: 5
+      assign am_watch = am_model | slice: 0, am_cut
     endif
-    assign am_mm = am_base | split: 'mm'
-    if am_mm.size > 1
-      assign am_mm_words = am_mm[0] | split: ' '
-      assign am_size = am_mm_words | last | strip
+    if am_size != ''
       assign am_watch = am_watch | append: ' ' | append: am_size
     endif
-    assign am_model = am_watch | replace: '  ', ' ' | strip
+    assign am_model = am_watch | strip
   endif
 
   echo am_model

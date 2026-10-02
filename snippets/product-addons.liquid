@@ -45,53 +45,50 @@
   assign pa_model = pa_model | strip
   assign pa_watch = pa_watch | strip
 
+  # Each group is "###key|label|query". A group that needs the model is left out when the title
+  # yields none (snippets/accessory-model can return blank), so no tab ever asks for a bare "כיסוי".
   case pa_type
     when 'מכשירים'
       capture pa_groups
-        echo 'cases|כיסויים|כיסוי '
-        echo pa_model
-        echo '###screens|מגני מסך|מגן מסך '
-        echo pa_model
-        echo '###chargers|מטענים|מטען '
-        echo pa_vendor
+        if pa_model != blank
+          echo '###cases|כיסויים|כיסוי ' | append: pa_model
+          echo '###screens|מגני מסך|מגן מסך ' | append: pa_model
+        endif
+        echo '###chargers|מטענים|מטען ' | append: pa_vendor
         echo '###power|סוללות גיבוי|סוללה ניידת'
       endcapture
 
     when 'טאבלטים'
       capture pa_groups
-        echo 'cases|כיסויים|כיסוי '
-        echo pa_model
-        echo '###screens|מגני מסך|מגן מסך '
-        echo pa_model
-        echo '###chargers|מטענים|מטען '
-        echo pa_vendor
-        echo '###cables|כבלים|כבל '
-        echo pa_vendor
+        if pa_model != blank
+          echo '###cases|כיסויים|כיסוי ' | append: pa_model
+          echo '###screens|מגני מסך|מגן מסך ' | append: pa_model
+        endif
+        echo '###chargers|מטענים|מטען ' | append: pa_vendor
+        echo '###cables|כבלים|כבל ' | append: pa_vendor
       endcapture
 
     when 'שעונים'
       capture pa_groups
-        echo 'bands|רצועות|רצועה '
-        echo pa_watch
-        echo '###screens|מגני מסך|מגן מסך '
-        echo pa_watch
-        echo '###chargers|מטענים|מטען '
-        echo pa_vendor
+        if pa_watch != blank
+          echo '###bands|רצועות|רצועה ' | append: pa_watch
+          echo '###screens|מגני מסך|מגן מסך ' | append: pa_watch
+        endif
+        echo '###chargers|מטענים|מטען ' | append: pa_vendor
       endcapture
 
     when 'אוזניות'
       capture pa_groups
-        echo 'cases|כיסויים|כיסוי '
-        echo pa_model
-        echo '###chargers|מטענים|מטען '
-        echo pa_vendor
-        echo '###cables|כבלים|כבל '
-        echo pa_vendor
+        if pa_model != blank
+          echo '###cases|כיסויים|כיסוי ' | append: pa_model
+        endif
+        echo '###chargers|מטענים|מטען ' | append: pa_vendor
+        echo '###cables|כבלים|כבל ' | append: pa_vendor
         echo '###power|סוללות גיבוי|סוללה ניידת'
       endcapture
   endcase
 
-  assign pa_group_list = pa_groups | split: '###'
+  assign pa_group_list = pa_groups | strip | remove_first: '###' | split: '###'
   assign pa_uid = section_id | default: 'pa'
   assign pa_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
 -%}

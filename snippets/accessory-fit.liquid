@@ -1,0 +1,186 @@
+{% doc %}
+  Prints "fit" when an accessory that a search returned really fits the model the search asked for.
+
+  Shopify search ANDs the words of "כיסוי iPhone 17" and matches the last one as a prefix, so it
+  also returns the cases for the iPhone 17 Pro and Pro Max; "כיסוי iPad 11" returns the covers for
+  the iPad Pro 11 and Air 11. Measured on the live index (Oct 2026): of the first four tiles, 2 were
+  for another model for "כיסוי iPhone 13" and "כיסוי Galaxy S26", 3 for "מגן מסך iPhone 16" and
+  all 4 for "כיסוי iPad 11". The results fragments (sections/product-addons, sections/cart-upsell)
+  keep a tile only when this prints "fit":
+
+  - The model is the query minus its group word ("כיסוי ", "מגן מסך "). A charger, cable or power
+    bank query names a maker or nothing, and a watch query is pinned by the case size, so those
+    always fit. A "-word" (a negative search term) is not part of the model.
+  - The title must name that kind of thing: a lens guard is not a screen protector.
+  - The title must carry the model number (the first word with a digit, and what follows it), the
+    word before it must be the model's ("iPad Air 11" is not "iPad 11"), and the word after it
+    must not make it a sibling (Pro, Max, Plus, Ultra, FE, mini, Air, e, Lite, Edge, XL, a "+").
+  - "ל-" and "/" separate the models a title lists, read the way the catalogue writes them:
+    "ל-iPhone 13/14/15" fits each; in "ל-iPhone 18/17 Pro Max" the bare 18 takes the next one's
+    "Pro Max"; "ל-iPhone 15/15 Pro/16" repeats the number, so its bare 15 is the base model; a
+    later model may drop the family word or follow a chip ("ל-iPad 10.9"/A16 11"").
+
+  Measured on the same live result pages: a second page (results 25-48) held no further fitting
+  accessory for the worst queries, so the fragments keep paginating by 24.
+
+  @param {string} title - The accessory's title.
+  @param {string} terms - The search terms (search.terms).
+
+  @example
+  {%- capture fit -%}{%- render 'accessory-fit', title: item.title, terms: search.terms -%}{%- endcapture -%}
+{% enddoc %}
+{%- liquid
+  assign af_digits = '0,1,2,3,4,5,6,7,8,9' | split: ','
+  assign af_groups = 'כיסוי ,מגן מסך ' | split: ','
+  assign af_siblings = 'pro,max,plus,ultra,fe,mini,air,e,lite,edge,xl,neo,slim' | split: ','
+
+  assign af_terms = terms | downcase | strip
+  assign af_model = ''
+  assign af_kind = ''
+  for af_group in af_groups
+    assign af_group_size = af_group | size
+    assign af_group_lead = af_terms | slice: 0, af_group_size
+    if af_group_lead == af_group
+      assign af_model = af_terms | slice: af_group_size, 200
+      assign af_kind = af_group | strip
+    endif
+  endfor
+  if af_model contains 'watch'
+    assign af_model = ''
+  endif
+
+  assign af_words = ''
+  assign af_model_words = af_model | split: ' '
+  for af_word in af_model_words
+    assign af_sign = af_word | slice: 0
+    if af_sign != '-'
+      assign af_words = af_words | append: ' ' | append: af_word
+    endif
+  endfor
+  assign af_words = af_words | split: ' '
+
+  assign af_fit = true
+  if af_words.size > 0
+    assign af_fit = false
+
+    # The model number: the first word with a digit in it (else the last word), and the word before.
+    assign af_from = -1
+    for af_word in af_words
+      if af_from == -1
+        for af_d in af_digits
+          if af_word contains af_d
+            assign af_from = forloop.parentloop.index0
+          endif
+        endfor
+      endif
+    endfor
+    if af_from == -1
+      assign af_from = af_words.size | minus: 1
+    endif
+    assign af_prev = ''
+    if af_from > 0
+      assign af_i = af_from | minus: 1
+      assign af_prev = af_words[af_i]
+    endif
+    assign af_tail = ''
+    for af_word in af_words offset: af_from
+      assign af_tail = af_tail | append: ' ' | append: af_word
+    endfor
+    assign af_tail = af_tail | split: ' '
+    assign af_tail_size = af_tail.size
+    assign af_tail_first = af_tail | first
+
+    assign af_title = title | downcase
+    if af_title contains af_kind
+      assign af_title = af_title | remove: '"' | remove: '”' | remove: '״' | remove: ',' | replace: 'ל-', '/'
+      assign af_segments = af_title | split: '/'
+      assign af_segment_count = af_segments.size
+      for af_segment in af_segments
+        assign af_si = forloop.index0
+        assign af_own = af_segment | split: ' '
+
+        # A bare number before the next model takes that model's suffix ("18/17 Pro Max"), unless
+        # the next one repeats the number ("15/15 Pro"): borrow the next model's words after its first.
+        assign af_ext = af_segment
+        assign af_ni = af_si | plus: 1
+        if af_ni < af_segment_count
+          assign af_next = af_segments[af_ni] | split: ' '
+          assign af_own_last = af_own | last
+          assign af_next_first = af_next | first
+          assign af_last_digit = false
+          assign af_next_digit = false
+          for af_d in af_digits
+            if af_own_last contains af_d
+              assign af_last_digit = true
+            endif
+            if af_next_first contains af_d
+              assign af_next_digit = true
+            endif
+          endfor
+          if af_last_digit and af_next_digit and af_next_first != af_own_last
+            for af_x in af_next offset: 1
+              assign af_ext = af_ext | append: ' ' | append: af_x
+            endfor
+          endif
+        endif
+        assign af_e = af_ext | split: ' '
+
+        for af_w in af_own
+          if af_w == af_tail_first
+            assign af_j = forloop.index0
+            assign af_before = ''
+            if af_j > 0
+              assign af_b = af_j | minus: 1
+              assign af_before = af_e[af_b]
+            endif
+
+            assign af_head_ok = false
+            if af_prev == '' or af_before == af_prev
+              assign af_head_ok = true
+            elsif af_si > 0 and af_j == 0
+              assign af_head_ok = true
+            elsif af_si > 0
+              # A later model may follow a chip name: "ל-iPad 10.9"/A16 11"".
+              assign af_before_head = af_before | slice: 0
+              unless af_digits contains af_before_head
+                for af_d in af_digits
+                  if af_before contains af_d
+                    assign af_head_ok = true
+                  endif
+                endfor
+              endunless
+            endif
+
+            if af_head_ok
+              assign af_same = true
+              for af_t in af_tail offset: 1
+                assign af_idx = af_j | plus: forloop.index
+                if af_e[af_idx] != af_t
+                  assign af_same = false
+                endif
+              endfor
+              if af_same
+                assign af_idx = af_j | plus: af_tail_size
+                assign af_after = af_e[af_idx] | default: ''
+                assign af_after_key = af_after | remove: '+'
+                assign af_sibling = false
+                if af_after != ''
+                  if af_after_key == '' or af_siblings contains af_after_key
+                    assign af_sibling = true
+                  endif
+                endif
+                unless af_sibling
+                  assign af_fit = true
+                endunless
+              endif
+            endif
+          endif
+        endfor
+      endfor
+    endif
+  endif
+
+  if af_fit
+    echo 'fit'
+  endif
+-%}

@@ -18,7 +18,8 @@
   {%- comment -%}
     Results fragment. Only accessories are kept: this store prefixes every accessory product type
     with "א." (א.מכשירים, א.רכב, א.אוזניות…), so a brand query like "מטען Apple" cannot drag an iPad
-    into a list of chargers.
+    into a list of chargers. And only those that fit the model asked for: the search also answers
+    "כיסוי iPhone 17" with Pro and Pro Max cases (snippets/accessory-fit).
   {%- endcomment -%}
   {%- paginate search.results by 24 -%}
     {%- assign pa_shown = 0 -%}
@@ -34,7 +35,12 @@
             assign pa_type = pa_item.type | strip
             assign pa_head = pa_type | slice: 0, 2
             if pa_head == 'א.'
-              assign pa_ok = true
+              capture pa_fit
+                render 'accessory-fit', title: pa_item.title, terms: search.terms
+              endcapture
+              if pa_fit contains 'fit'
+                assign pa_ok = true
+              endif
             endif
           endif
         endif
@@ -87,7 +93,11 @@
               {%- endif -%}
             </span>
             <span class="pa-card__text">
-              <span class="pa-card__title">{{ pa_item.title | escape }}</span>
+              {%- comment -%}
+                The trailing LRM keeps a title that ends in Latin ("ל-Galaxy S25+", '12.9"') from
+                throwing its last mark to the start of the line; <bdi> would reverse every Latin-first title.
+              {%- endcomment -%}
+              <span class="pa-card__title">{{ pa_item.title | escape }}&lrm;</span>
               <span class="pa-card__prices">
                 <span class="pa-card__price">{{ pa_variant.price | money_without_trailing_zeros }}</span>
                 {%- if pa_compare > 0 -%}

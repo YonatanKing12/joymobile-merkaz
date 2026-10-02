@@ -5,10 +5,14 @@
   /search and fetched by assets/cart-upsell.js, and a block that may legitimately come back empty
   should not hold space in a drawer while it waits. No skeleton for the same reason.
 
-  The anchor is the first line that is a device rather than an accessory (this store prefixes every
-  accessory product type with "א."), because that is what the rest of the cart hangs off: someone
-  buying a phone still needs a case, someone buying a case does not need another one. A cart with no
-  device in it gets no block at all.
+  The anchor is the first line that is a device (type מכשירים, טאבלטים, שעונים or אוזניות),
+  because that is what the rest of the cart hangs off: someone buying a phone still needs a case,
+  someone buying a case does not need another one, and a game or a gift card has no accessories to
+  match. A cart with no device in it gets no block at all.
+
+  Every query names the model or the maker. One that would be the group word alone ("כבל", "כיסוי")
+  is not sent: it would fill the row with whatever ranks first in the whole catalogue. The house
+  vendor ("joy mobile", the store itself on 236 products) is no maker, so it counts as none.
 
   @param {string} [context] - 'drawer' (default) or 'page'; picks the layout.
 
@@ -24,10 +28,10 @@
     assign cu_skip = cu_skip | append: cu_line.product.handle | append: ','
     if cu_anchor == nil
       assign cu_line_type = cu_line.product.type | strip
-      assign cu_head = cu_line_type | slice: 0, 2
-      unless cu_head == 'א.'
-        assign cu_anchor = cu_line.product
-      endunless
+      case cu_line_type
+        when 'מכשירים', 'טאבלטים', 'שעונים', 'אוזניות'
+          assign cu_anchor = cu_line.product
+      endcase
     endif
   endfor
 -%}
@@ -40,49 +44,44 @@
     assign cu_watch = cu_watch | strip
     assign cu_type = cu_anchor.type | strip
     assign cu_vendor = cu_anchor.vendor | strip
-    assign cu_queries = ''
+    assign cu_vendor_key = cu_vendor | downcase
+    assign cu_house = shop.name | strip | downcase
+    assign cu_brand = settings.brand_name | strip | downcase
+    if cu_vendor_key == cu_house or cu_vendor_key == cu_brand
+      assign cu_vendor = ''
+    endif
 
     # Two queries, not four groups: the cart is not the place to browse a catalogue. The first is
     # what nearly everyone buying this kind of device adds, the second tops the row up when the
-    # first does not fill it.
+    # first does not fill it. Each is "<group word> <model or maker>", or left out.
+    assign cu_first = ''
+    assign cu_second = ''
     case cu_type
-      when 'מכשירים'
-        capture cu_queries
-          echo 'כיסוי '
-          echo cu_model
-          echo '|||מגן מסך '
-          echo cu_model
-        endcapture
-      when 'טאבלטים'
-        capture cu_queries
-          echo 'כיסוי '
-          echo cu_model
-          echo '|||מגן מסך '
-          echo cu_model
-        endcapture
+      when 'מכשירים', 'טאבלטים'
+        if cu_model != blank
+          assign cu_first = 'כיסוי ' | append: cu_model
+          assign cu_second = 'מגן מסך ' | append: cu_model
+        endif
       when 'שעונים'
-        capture cu_queries
-          echo 'רצועה '
-          echo cu_watch
-          echo '|||מגן מסך '
-          echo cu_watch
-        endcapture
+        if cu_watch != blank
+          assign cu_first = 'רצועה ' | append: cu_watch
+          assign cu_second = 'מגן מסך ' | append: cu_watch
+        endif
       when 'אוזניות'
-        capture cu_queries
-          echo 'כיסוי '
-          echo cu_model
-          echo '|||כבל '
-          echo cu_vendor
-        endcapture
-      else
-        capture cu_queries
-          echo 'מטען '
-          echo cu_vendor
-          echo '|||כבל '
-          echo cu_vendor
-        endcapture
+        if cu_model != blank
+          assign cu_first = 'כיסוי ' | append: cu_model
+        endif
+        if cu_vendor != blank
+          assign cu_second = 'כבל ' | append: cu_vendor
+        endif
     endcase
-    assign cu_queries = cu_queries | strip
+    assign cu_queries = cu_first
+    if cu_second != blank
+      if cu_queries != blank
+        assign cu_queries = cu_queries | append: '|||'
+      endif
+      assign cu_queries = cu_queries | append: cu_second
+    endif
   -%}
 
   {%- comment -%}
@@ -90,19 +89,21 @@
     the page through section rendering after a cart change, and a <script> inserted that way never
     executes — a cart that started empty would print the block and leave it hidden forever.
   {%- endcomment -%}
-  <cart-upsell
-    class="cu cu--{{ cu_context }}"
-    data-cu-queries="{{ cu_queries | escape }}"
-    data-cu-skip="{{ cu_skip | escape }}"
-    data-cu-limit="4"
-    data-cu-str-error="{{ 'cart.upsell.error' | t | escape }}"
-    data-cu-str-added="{{ 'cart.upsell.added' | t | escape }}"
-    hidden
-  >
-    <div class="cu__head">
-      <h2 class="cu__heading">{{ 'cart.upsell.heading' | t }}</h2>
-      <p class="cu__sub">{{ 'cart.upsell.sub' | t }}</p>
-    </div>
-    <ul class="cu__list" role="list" data-cu-list></ul>
-  </cart-upsell>
+  {%- if cu_queries != blank -%}
+    <cart-upsell
+      class="cu cu--{{ cu_context }}"
+      data-cu-queries="{{ cu_queries | escape }}"
+      data-cu-skip="{{ cu_skip | escape }}"
+      data-cu-limit="4"
+      data-cu-str-error="{{ 'cart.upsell.error' | t | escape }}"
+      data-cu-str-added="{{ 'cart.upsell.added' | t | escape }}"
+      hidden
+    >
+      <div class="cu__head">
+        <h2 class="cu__heading">{{ 'cart.upsell.heading' | t }}</h2>
+        <p class="cu__sub">{{ 'cart.upsell.sub' | t }}</p>
+      </div>
+      <ul class="cu__list" role="list" data-cu-list></ul>
+    </cart-upsell>
+  {%- endif -%}
 {%- endif -%}
