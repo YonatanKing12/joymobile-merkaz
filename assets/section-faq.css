@@ -65,9 +65,14 @@
   display: none;
 }
 
-.faq-item__question:hover,
 .faq-item[open] > .faq-item__question {
   background-color: var(--color-hover-bg);
+}
+
+@media (hover: hover) {
+  .faq-item__question:hover {
+    background-color: var(--color-hover-bg);
+  }
 }
 
 .faq-item__question:focus-visible {

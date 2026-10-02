@@ -110,8 +110,10 @@
   text-align: end;
 }
 
-.vip-signup__input:hover {
-  border-color: var(--color-ink);
+@media (hover: hover) {
+  .vip-signup__input:hover {
+    border-color: var(--color-ink);
+  }
 }
 
 .vip-signup__input:focus-visible {
@@ -141,10 +143,12 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.vip-signup__submit:hover {
-  border-color: var(--color-ink);
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+@media (hover: hover) {
+  .vip-signup__submit:hover {
+    border-color: var(--color-ink);
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .vip-signup__consent {

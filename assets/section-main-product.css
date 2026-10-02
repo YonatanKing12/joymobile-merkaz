@@ -209,9 +209,11 @@ html:has(main :focus-visible) {
   text-decoration-color: color-mix(in srgb, var(--color-ink) 40%, transparent);
 }
 
-.product__read-more:hover {
-  color: var(--color-brand-text);
-  text-decoration-color: currentColor;
+@media (hover: hover) {
+  .product__read-more:hover {
+    color: var(--color-brand-text);
+    text-decoration-color: currentColor;
+  }
 }
 
 .product__meta {
@@ -244,8 +246,10 @@ html:has(main :focus-visible) {
   text-decoration: underline;
 }
 
-.product__specs-link:hover {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .product__specs-link:hover {
+    color: var(--color-brand-text);
+  }
 }
 
 @media (max-width: 767px) {
@@ -372,8 +376,10 @@ html:has(main :focus-visible) {
   color: var(--color-whatsapp);
 }
 
-.product-form__whatsapp:hover {
-  background-color: color-mix(in srgb, var(--color-whatsapp) 8%, var(--color-background));
+@media (hover: hover) {
+  .product-form__whatsapp:hover {
+    background-color: color-mix(in srgb, var(--color-whatsapp) 8%, var(--color-background));
+  }
 }
 
 .product-form__error {
@@ -531,8 +537,10 @@ html.no-js .product-wishlist {
   cursor: pointer;
 }
 
-.product-wishlist__button:hover .product-wishlist__label {
-  text-decoration: underline;
+@media (hover: hover) {
+  .product-wishlist__button:hover .product-wishlist__label {
+    text-decoration: underline;
+  }
 }
 
 .product-wishlist__icons {
@@ -707,8 +715,10 @@ html.no-js .product-wishlist {
   text-decoration: underline;
 }
 
-.product-trust__whatsapp:hover {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .product-trust__whatsapp:hover {
+    color: var(--color-brand-text);
+  }
 }
 
 .product-trust__whatsapp-icon {
@@ -743,8 +753,10 @@ html.no-js .product-wishlist {
   display: none;
 }
 
-.product-details__summary:hover .product-details__title {
-  text-decoration: underline;
+@media (hover: hover) {
+  .product-details__summary:hover .product-details__title {
+    text-decoration: underline;
+  }
 }
 
 .product-details__summary:focus-visible {
@@ -843,8 +855,10 @@ html.no-js .product-wishlist {
       background-color: var(--color-surface-soft);
     }
 
-    .product-details__summary:hover {
-      background-color: var(--color-hover-bg);
+    @media (hover: hover) {
+      .product-details__summary:hover {
+        background-color: var(--color-hover-bg);
+      }
     }
 
     .product-details__item[open] > .product-details__summary {

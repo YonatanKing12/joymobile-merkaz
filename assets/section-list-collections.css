@@ -96,8 +96,10 @@
   transition: border-color var(--duration-base) var(--ease-out);
 }
 
-.collection-card:hover {
-  border-color: var(--color-brand);
+@media (hover: hover) {
+  .collection-card:hover {
+    border-color: var(--color-brand);
+  }
 }
 
 .collection-card__media {
@@ -159,8 +161,10 @@
   font-size: var(--text-sm);
 }
 
-.collection-card:hover .collection-card__title {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .collection-card:hover .collection-card__title {
+    color: var(--color-brand-text);
+  }
 }
 
 @media (hover: hover) {

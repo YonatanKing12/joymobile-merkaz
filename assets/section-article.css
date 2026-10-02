@@ -56,8 +56,10 @@
   text-decoration: none;
 }
 
-.article__topic a:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .article__topic a:hover {
+    text-decoration: underline;
+  }
 }
 
 .article__title {
@@ -102,9 +104,11 @@
     border-color var(--duration-fast) var(--ease-out);
 }
 
-.article-share__link:hover {
-  border-color: var(--color-ink);
-  background-color: var(--color-hover-bg);
+@media (hover: hover) {
+  .article-share__link:hover {
+    border-color: var(--color-ink);
+    background-color: var(--color-hover-bg);
+  }
 }
 
 @media (min-width: 768px) {
@@ -190,8 +194,10 @@
   text-underline-offset: 0.2em;
 }
 
-.article__back:hover {
-  color: var(--color-ink);
+@media (hover: hover) {
+  .article__back:hover {
+    color: var(--color-ink);
+  }
 }
 
 /* ---------- Products and more articles ---------- */
@@ -225,8 +231,10 @@
   text-decoration: none;
 }
 
-.article-section-head__link:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .article-section-head__link:hover {
+    text-decoration: underline;
+  }
 }
 
 @media (min-width: 768px) {

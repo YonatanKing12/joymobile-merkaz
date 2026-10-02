@@ -583,8 +583,10 @@ bdi {
   cursor: pointer;
 }
 
-.link:hover {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .link:hover {
+    color: var(--color-brand-text);
+  }
 }
 
 /* ---------- 6. Forms ---------- */
@@ -668,10 +670,12 @@ input[type="search"][dir="auto"] {
   opacity: 1;
 }
 
-.input:hover,
-.textarea:hover,
-.select > select:hover {
-  border-color: var(--color-ink);
+@media (hover: hover) {
+  .input:hover,
+    .textarea:hover,
+    .select > select:hover {
+    border-color: var(--color-ink);
+  }
 }
 
 .input[aria-invalid="true"],
@@ -807,8 +811,10 @@ input[type="radio"] {
   text-decoration: underline;
 }
 
-.rte a:hover {
-  color: var(--color-ink);
+@media (hover: hover) {
+  .rte a:hover {
+    color: var(--color-ink);
+  }
 }
 
 .rte :is(ul, ol) {

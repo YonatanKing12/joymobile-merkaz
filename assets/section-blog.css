@@ -93,8 +93,10 @@
   color: var(--color-ink);
 }
 
-.blog-search__button:hover {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .blog-search__button:hover {
+    color: var(--color-brand-text);
+  }
 }
 
 .blog-search__button:focus-visible {
@@ -146,9 +148,11 @@
   text-decoration: none;
 }
 
-.blog-tags__link:hover {
-  border-color: var(--color-ink);
-  background-color: var(--color-hover-bg);
+@media (hover: hover) {
+  .blog-tags__link:hover {
+    border-color: var(--color-ink);
+    background-color: var(--color-hover-bg);
+  }
 }
 
 .blog-tags__link[aria-current="page"] {
@@ -187,8 +191,10 @@
   text-decoration: none;
 }
 
-.blog__jump:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .blog__jump:hover {
+    text-decoration: underline;
+  }
 }
 
 /* Phones: the jump link shows the arrow only (measured); the text stays for
@@ -310,10 +316,16 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.featured-article:hover .featured-article__cta,
 .featured-article:has(.featured-article__link:focus-visible) .featured-article__cta {
   background-color: var(--color-accent);
   color: var(--color-on-accent);
+}
+
+@media (hover: hover) {
+  .featured-article:hover .featured-article__cta {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .featured-article__media {
@@ -443,8 +455,10 @@
   transition: box-shadow var(--duration-base) linear;
 }
 
-.article-card:hover {
-  box-shadow: var(--shadow-lg);
+@media (hover: hover) {
+  .article-card:hover {
+    box-shadow: var(--shadow-lg);
+  }
 }
 
 .article-card:has(.article-card__link:focus-visible) {
@@ -516,9 +530,11 @@
   text-underline-offset: 0.15em;
 }
 
-.article-card:hover .article-card__title {
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+@media (hover: hover) {
+  .article-card:hover .article-card__title {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
 }
 
 /* Two lines from 768px; hidden on phones, where Konimbo cards show the title only. */

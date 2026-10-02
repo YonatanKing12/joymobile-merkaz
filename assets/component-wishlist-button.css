@@ -20,8 +20,10 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.wishlist-button__control:hover {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .wishlist-button__control:hover {
+    color: var(--color-brand-text);
+  }
 }
 
 .wishlist-button__control:active {

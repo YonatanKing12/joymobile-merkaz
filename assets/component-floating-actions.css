@@ -20,18 +20,22 @@
   box-shadow: var(--shadow-md);
 }
 
-.floating-actions .floating-actions__top:hover {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+@media (hover: hover) {
+  .floating-actions .floating-actions__top:hover {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .floating-actions .floating-actions__wishlist {
   border-color: var(--color-border-control);
 }
 
-.floating-actions .floating-actions__wishlist:hover {
-  background: var(--color-hover-bg);
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .floating-actions .floating-actions__wishlist:hover {
+    background: var(--color-hover-bg);
+    color: var(--color-brand-text);
+  }
 }
 
 .floating-actions .floating-actions__count {
@@ -75,8 +79,10 @@ html.scroll-locked .floating-actions__whatsapp {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .floating-actions__whatsapp:hover {
-    transform: none;
+  @media (hover: hover) {
+    .floating-actions__whatsapp:hover {
+      transform: none;
+    }
   }
 }
 

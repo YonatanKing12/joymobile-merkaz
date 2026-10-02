@@ -150,8 +150,10 @@ button.product-media__frame:focus-visible::after {
   transition: color var(--duration-fast) var(--ease-out);
 }
 
-button.product-media__frame:hover .product-media__zoom-icon {
-  color: var(--color-ink);
+@media (hover: hover) {
+  button.product-media__frame:hover .product-media__zoom-icon {
+    color: var(--color-ink);
+  }
 }
 
 /* Arrows: always visible when there is more than one media item (the Liquid prints them only then). */
@@ -177,9 +179,11 @@ button.product-media__frame:hover .product-media__zoom-icon {
     color var(--duration-fast) var(--ease-out);
 }
 
-.product-media .product-media__arrow:hover {
-  background-color: var(--color-ink);
-  color: var(--color-background);
+@media (hover: hover) {
+  .product-media .product-media__arrow:hover {
+    background-color: var(--color-ink);
+    color: var(--color-background);
+  }
 }
 
 .product-media .product-media__arrow[aria-disabled="true"] {
@@ -260,8 +264,10 @@ button.product-media__frame:hover .product-media__zoom-icon {
   transition: border-color var(--duration-fast) var(--ease-out);
 }
 
-.product-media__thumb:hover {
-  border-color: var(--color-border-strong);
+@media (hover: hover) {
+  .product-media__thumb:hover {
+    border-color: var(--color-border-strong);
+  }
 }
 
 /* Current thumb: a brand-green 2px frame (3.4:1 on white). */
@@ -342,9 +348,11 @@ button.product-media__frame:hover .product-media__zoom-icon {
   cursor: pointer;
 }
 
-.product-lightbox__close:hover {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+@media (hover: hover) {
+  .product-lightbox__close:hover {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 /* On the navy backdrop: mint rings and current dot (10.4:1). */
@@ -420,9 +428,11 @@ button.product-media__frame:hover .product-media__zoom-icon {
   translate: 0 -50%;
 }
 
-.product-lightbox .product-lightbox__arrow:hover {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+@media (hover: hover) {
+  .product-lightbox .product-lightbox__arrow:hover {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .product-lightbox .carousel__btn--prev.product-lightbox__arrow {

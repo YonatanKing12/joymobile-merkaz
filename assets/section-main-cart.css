@@ -226,8 +226,10 @@
   text-decoration: none;
 }
 
-.cart-item__title:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .cart-item__title:hover {
+    text-decoration: underline;
+  }
 }
 
 .cart-item__options,
@@ -342,9 +344,11 @@
     background-color var(--duration-fast) var(--ease-out);
 }
 
-.cart-item__remove:hover {
-  background-color: var(--color-background);
-  color: var(--color-error);
+@media (hover: hover) {
+  .cart-item__remove:hover {
+    background-color: var(--color-background);
+    color: var(--color-error);
+  }
 }
 
 @media (min-width: 768px) {
@@ -419,8 +423,10 @@
   text-underline-offset: 0.2em;
 }
 
-.main-cart__continue:hover {
-  color: var(--color-ink);
+@media (hover: hover) {
+  .main-cart__continue:hover {
+    color: var(--color-ink);
+  }
 }
 
 .main-cart__note {
@@ -698,9 +704,11 @@ cart-items[aria-busy="true"] .cart-summary__row--total dd {
     background-color var(--duration-fast) var(--ease-out);
 }
 
-.main-cart__chip:hover {
-  border-color: var(--color-brand);
-  background-color: var(--color-hover-bg);
+@media (hover: hover) {
+  .main-cart__chip:hover {
+    border-color: var(--color-brand);
+    background-color: var(--color-hover-bg);
+  }
 }
 
 /* Full-width layouts: the cart keeps a comfortable width (at most 1600px, centred). */

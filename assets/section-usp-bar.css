@@ -38,8 +38,10 @@
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
-.usp-bar__tile--link:hover {
-  background-color: var(--color-accent-soft);
+@media (hover: hover) {
+  .usp-bar__tile--link:hover {
+    background-color: var(--color-accent-soft);
+  }
 }
 
 .usp-bar__icon {

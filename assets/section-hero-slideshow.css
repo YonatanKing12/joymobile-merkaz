@@ -215,10 +215,12 @@ a.hero-slideshow__cover:focus-visible::after {
   z-index: 1;
 }
 
-.hero-slideshow__slide:hover .hero-slideshow__button {
-  border-color: var(--button-hover-border);
-  background-color: var(--button-hover-bg);
-  color: var(--button-hover-text);
+@media (hover: hover) {
+  .hero-slideshow__slide:hover .hero-slideshow__button {
+    border-color: var(--button-hover-border);
+    background-color: var(--button-hover-bg);
+    color: var(--button-hover-text);
+  }
 }
 
 /* ---------- Dots + pause, centred 25px above the bottom edge ---------- */
@@ -320,8 +322,10 @@ html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
     color: var(--color-ink);
   }
 
-  .hero-slideshow__arrow:hover {
-    color: var(--color-brand-text);
+  @media (hover: hover) {
+    .hero-slideshow__arrow:hover {
+      color: var(--color-brand-text);
+    }
   }
 
   /* A thin white outline keeps the black chevron visible (3:1) over dark banner areas. */
@@ -348,9 +352,11 @@ html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
     box-shadow: var(--shadow-md);
   }
 
-  .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow:hover {
-    background-color: var(--color-ink);
-    color: var(--color-background);
+  @media (hover: hover) {
+    .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow:hover {
+      background-color: var(--color-ink);
+      color: var(--color-background);
+    }
   }
 
   .hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__arrow .icon {

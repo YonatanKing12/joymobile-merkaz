@@ -72,8 +72,10 @@ html.a11y-no-motion .cookie-banner__panel {
   text-underline-offset: 0.2em;
 }
 
-.cookie-banner__text a:hover {
-  text-decoration-thickness: 2px;
+@media (hover: hover) {
+  .cookie-banner__text a:hover {
+    text-decoration-thickness: 2px;
+  }
 }
 
 .cookie-banner__actions {
@@ -107,8 +109,10 @@ html.a11y-no-motion .cookie-banner__panel {
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.cookie-banner__close:hover {
-  background-color: var(--color-hover-bg);
+@media (hover: hover) {
+  .cookie-banner__close:hover {
+    background-color: var(--color-hover-bg);
+  }
 }
 
 @media (min-width: 768px) {

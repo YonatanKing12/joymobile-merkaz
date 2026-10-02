@@ -103,8 +103,10 @@
   cursor: pointer;
 }
 
-.drawer__close:hover {
-  background-color: var(--color-surface-alt);
+@media (hover: hover) {
+  .drawer__close:hover {
+    background-color: var(--color-surface-alt);
+  }
 }
 
 .drawer__body {

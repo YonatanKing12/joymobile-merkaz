@@ -129,8 +129,10 @@
   text-underline-offset: 0.2em;
 }
 
-.branch__phone:hover {
-  text-decoration-thickness: 2px;
+@media (hover: hover) {
+  .branch__phone:hover {
+    text-decoration-thickness: 2px;
+  }
 }
 
 .branch__text {
@@ -211,9 +213,11 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.branch__map-toggle:hover .branch__map-label {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+@media (hover: hover) {
+  .branch__map-toggle:hover .branch__map-label {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .branch__map-hide,

@@ -226,8 +226,10 @@
   text-underline-offset: 0.2em;
 }
 
-.contact-info__value:hover {
-  text-decoration-thickness: 2px;
+@media (hover: hover) {
+  .contact-info__value:hover {
+    text-decoration-thickness: 2px;
+  }
 }
 
 .contact-info__text {

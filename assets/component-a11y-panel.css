@@ -112,9 +112,11 @@
     background-color var(--duration-fast) var(--ease-out);
 }
 
-.a11y-panel__option:hover {
-  border-color: var(--color-ink);
-  background-color: var(--color-hover-bg);
+@media (hover: hover) {
+  .a11y-panel__option:hover {
+    border-color: var(--color-ink);
+    background-color: var(--color-hover-bg);
+  }
 }
 
 .a11y-panel__option[aria-pressed="true"] {

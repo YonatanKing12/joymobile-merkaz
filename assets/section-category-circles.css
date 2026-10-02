@@ -145,8 +145,10 @@
   }
 }
 
-html.a11y-no-motion .category-circles__link:hover .category-circles__circle {
-  transform: none;
+@media (hover: hover) {
+  html.a11y-no-motion .category-circles__link:hover .category-circles__circle {
+    transform: none;
+  }
 }
 
 .category-circles__link:is(:hover, :focus-visible) .category-circles__label {
@@ -244,9 +246,11 @@ html.no-js .category-circles__carousel .category-circles__arrow {
     }
   }
 
-  .category-circles__arrow:hover {
-    background-color: var(--color-surface);
-    color: var(--color-ink);
+  @media (hover: hover) {
+    .category-circles__arrow:hover {
+      background-color: var(--color-surface);
+      color: var(--color-ink);
+    }
   }
 
   .category-circles__label {

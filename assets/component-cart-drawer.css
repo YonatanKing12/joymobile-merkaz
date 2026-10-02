@@ -131,9 +131,11 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   -webkit-line-clamp: 2;
 }
 
-.cart-drawer .cart-line__title:hover {
-  color: var(--color-brand-text);
-  text-decoration: underline;
+@media (hover: hover) {
+  .cart-drawer .cart-line__title:hover {
+    color: var(--color-brand-text);
+    text-decoration: underline;
+  }
 }
 
 .cart-drawer .cart-line__options,
@@ -257,9 +259,11 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   inset: calc((1.75rem - var(--tap-target)) / 2);
 }
 
-.cart-drawer .cart-line__remove:hover {
-  background-color: var(--color-surface-alt);
-  color: var(--color-error);
+@media (hover: hover) {
+  .cart-drawer .cart-line__remove:hover {
+    background-color: var(--color-surface-alt);
+    color: var(--color-error);
+  }
 }
 
 .cart-drawer .cart-line__remove:active {

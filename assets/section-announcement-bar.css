@@ -36,9 +36,11 @@
   white-space: nowrap;
 }
 
-.announcement-bar__link:hover {
-  color: var(--color-accent);
-  text-decoration: underline;
+@media (hover: hover) {
+  .announcement-bar__link:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
 }
 
 .announcement-bar :focus-visible {
@@ -88,11 +90,17 @@
   cursor: pointer;
 }
 
-.announcement-bar__pause:hover,
 .announcement-bar__pause:focus-visible,
 .announcement-bar__pause[aria-pressed="true"] {
   color: var(--color-accent);
   opacity: 1;
+}
+
+@media (hover: hover) {
+  .announcement-bar__pause:hover {
+    color: var(--color-accent);
+    opacity: 1;
+  }
 }
 
 .announcement-bar__pause .icon {
@@ -168,10 +176,15 @@
   }
 }
 
-.announcement-bar__marquee:hover .announcement-bar__marquee-track,
 .announcement-bar__marquee:focus-within .announcement-bar__marquee-track,
 .announcement-bar__marquee:has(.announcement-bar__marquee-toggle:checked) .announcement-bar__marquee-track {
   animation-play-state: paused;
+}
+
+@media (hover: hover) {
+  .announcement-bar__marquee:hover .announcement-bar__marquee-track {
+    animation-play-state: paused;
+  }
 }
 
 /* The native checkbox is the pause control (works without JS); the label draws it. */

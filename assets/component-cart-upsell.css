@@ -117,8 +117,10 @@
   -webkit-line-clamp: 2;
 }
 
-.cu-card__link:hover .cu-card__title {
-  text-decoration: underline;
+@media (hover: hover) {
+  .cu-card__link:hover .cu-card__title {
+    text-decoration: underline;
+  }
 }
 
 /* Pushed to the bottom so tiles of different title lengths still line their buttons up. */
@@ -170,9 +172,11 @@
   transition: background-color var(--duration-fast) var(--ease-out), scale var(--duration-fast) var(--ease-out);
 }
 
-.cu-card__add:hover {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+@media (hover: hover) {
+  .cu-card__add:hover {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .cu-card__add:active {

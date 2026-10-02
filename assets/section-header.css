@@ -189,8 +189,10 @@ sticky-header {
   transition: box-shadow var(--duration-fast) var(--ease-out);
 }
 
-.header__whatsapp:hover .header__whatsapp-badge {
-  box-shadow: 0 0 0 2px var(--color-accent);
+@media (hover: hover) {
+  .header__whatsapp:hover .header__whatsapp-badge {
+    box-shadow: 0 0 0 2px var(--color-accent);
+  }
 }
 
 .header__whatsapp-badge .icon {
@@ -243,12 +245,16 @@ sticky-header {
   line-height: 0.75rem;
 }
 
-.header__account:hover {
-  color: var(--color-accent);
+@media (hover: hover) {
+  .header__account:hover {
+    color: var(--color-accent);
+  }
 }
 
-.header__account:hover .header__account-text {
-  text-decoration: underline;
+@media (hover: hover) {
+  .header__account:hover .header__account-text {
+    text-decoration: underline;
+  }
 }
 
 /* Outlined in mint on the navy row; under the pointer it fills mint with navy text (10.4:1). */
@@ -273,9 +279,11 @@ sticky-header {
     color 0.3s var(--ease-in-out);
 }
 
-.header__branches:hover {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+@media (hover: hover) {
+  .header__branches:hover {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .header__branches-icon {
@@ -286,8 +294,10 @@ sticky-header {
   transition: color 0.3s var(--ease-in-out);
 }
 
-.header__branches:hover .header__branches-icon {
-  color: inherit;
+@media (hover: hover) {
+  .header__branches:hover .header__branches-icon {
+    color: inherit;
+  }
 }
 
 /* Two chevrons drawn as one « (the old ">>" pointed the wrong way for RTL). */
@@ -392,8 +402,10 @@ sticky-header {
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.search-form--desktop .search-form__submit:hover {
-  background-color: var(--color-brand);
+@media (hover: hover) {
+  .search-form--desktop .search-form__submit:hover {
+    background-color: var(--color-brand);
+  }
 }
 
 /* Inside the field, a ring drawn on the mint button would vanish: the whole field shows it (above). */
@@ -486,10 +498,12 @@ sticky-header {
   text-decoration: none;
 }
 
-.search-drawer__chip:hover {
-  border-color: var(--color-brand);
-  background-color: var(--color-hover-bg);
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .search-drawer__chip:hover {
+    border-color: var(--color-brand);
+    background-color: var(--color-hover-bg);
+    color: var(--color-brand-text);
+  }
 }
 
 /* Dim the page under the open search bar / menu (tap = close). No pans: iOS would scroll the page behind it. */
@@ -886,8 +900,10 @@ html.a11y-no-motion .menu-drawer__submenu {
   }
 }
 
-.header__wishlist:hover {
-  color: var(--color-accent);
+@media (hover: hover) {
+  .header__wishlist:hover {
+    color: var(--color-accent);
+  }
 }
 
 .header__wishlist-icon {
@@ -975,9 +991,14 @@ html.a11y-no-motion .menu-drawer__submenu {
 }
 
 .mega-menu__top.is-active::before,
-.mega-menu__item:hover .mega-menu__top::before,
 .mega-menu__details[open] > .mega-menu__top::before {
   opacity: 1;
+}
+
+@media (hover: hover) {
+  .mega-menu__item:hover .mega-menu__top::before {
+    opacity: 1;
+  }
 }
 
 .mega-menu__top:focus-visible {
@@ -1010,12 +1031,19 @@ html.a11y-no-motion .menu-drawer__submenu {
    other control in the theme takes under the pointer. The weight does not change, so the row cannot
    shift. The white tab indicator above carries the state as well, for anyone who cannot tell the pill
    from the bar behind it. */
-.mega-menu__item:hover .mega-menu__label,
 .mega-menu__details[open] .mega-menu__label,
 .mega-menu__top.is-active .mega-menu__label {
   border-radius: var(--radius-pill);
   background-color: var(--color-accent);
   color: var(--color-on-accent);
+}
+
+@media (hover: hover) {
+  .mega-menu__item:hover .mega-menu__label {
+    border-radius: var(--radius-pill);
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .mega-menu__top:focus-visible .mega-menu__label {
@@ -1128,10 +1156,12 @@ html.a11y-no-motion .menu-drawer__submenu {
   font-weight: 700;
 }
 
-.mega-menu__link:hover,
-.mega-menu__group-title:hover {
-  background-color: var(--color-hover-bg);
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .mega-menu__link:hover,
+    .mega-menu__group-title:hover {
+    background-color: var(--color-hover-bg);
+    color: var(--color-brand-text);
+  }
 }
 
 .mega-menu__link:focus-visible,
@@ -1159,8 +1189,10 @@ html.a11y-no-motion .menu-drawer__submenu {
   text-decoration: none;
 }
 
-.mega-menu__all:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .mega-menu__all:hover {
+    text-decoration: underline;
+  }
 }
 
 sticky-header.is-compact .header {

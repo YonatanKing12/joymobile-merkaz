@@ -68,10 +68,12 @@
   inset: -0.25rem 0;
 }
 
-.product-carousel__view-all:hover {
-  border-color: var(--color-ink);
-  background-color: var(--color-ink);
-  color: var(--color-background);
+@media (hover: hover) {
+  .product-carousel__view-all:hover {
+    border-color: var(--color-ink);
+    background-color: var(--color-ink);
+    color: var(--color-background);
+  }
 }
 
 .product-carousel__notice {
@@ -139,9 +141,11 @@
   color: var(--color-ink);
 }
 
-.product-carousel__arrow:hover {
-  background: var(--color-ink);
-  color: var(--color-background);
+@media (hover: hover) {
+  .product-carousel__arrow:hover {
+    background: var(--color-ink);
+    color: var(--color-background);
+  }
 }
 
 html.no-js .product-carousel__carousel .product-carousel__arrow {

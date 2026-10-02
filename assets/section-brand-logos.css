@@ -79,14 +79,21 @@
   font-weight: 800;
 }
 
-a.brand-logos__tile:hover {
-  background-color: var(--color-background);
-  box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--color-ink) 30%, transparent);
+@media (hover: hover) {
+  a.brand-logos__tile:hover {
+    background-color: var(--color-background);
+    box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--color-ink) 30%, transparent);
+  }
 }
 
-a.brand-logos__tile:hover .brand-logos__img,
 a.brand-logos__tile:focus-visible .brand-logos__img {
   opacity: 1;
+}
+
+@media (hover: hover) {
+  a.brand-logos__tile:hover .brand-logos__img {
+    opacity: 1;
+  }
 }
 
 @media (min-width: 768px) {

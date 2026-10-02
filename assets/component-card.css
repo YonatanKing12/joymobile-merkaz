@@ -43,8 +43,10 @@
   }
 }
 
-html.a11y-no-motion .card-product:hover {
-  translate: none;
+@media (hover: hover) {
+  html.a11y-no-motion .card-product:hover {
+    translate: none;
+  }
 }
 
 /* ---------- Image well ---------- */
@@ -108,8 +110,10 @@ html.a11y-no-motion .card-product:hover {
   }
 }
 
-html.a11y-no-motion .card-product:hover .card-product__img {
-  transform: none;
+@media (hover: hover) {
+  html.a11y-no-motion .card-product:hover .card-product__img {
+    transform: none;
+  }
 }
 
 /* No photo: the brand's logo, or the JOY Mobile symbol, faint in the well. */
@@ -299,12 +303,19 @@ html.a11y-no-motion .card-product:hover .card-product__img {
 
 /* The whole card answers the pointer: its green button turns mint, navy text throughout (10.4:1). */
 /* :active is listed too, because a phone has no hover: without it a tap would never show the mint. */
-.card-product__button:hover,
 .card-product__button:active,
 .card-product__button:focus-visible {
   border-color: var(--button-hover-border);
   background-color: var(--button-hover-bg);
   color: var(--button-hover-text);
+}
+
+@media (hover: hover) {
+  .card-product__button:hover {
+    border-color: var(--button-hover-border);
+    background-color: var(--button-hover-bg);
+    color: var(--button-hover-text);
+  }
 }
 
 @media (hover: hover) {
@@ -315,12 +326,20 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   }
 }
 
-.card-product__button:disabled,
-.card-product__button:disabled:hover {
+.card-product__button:disabled {
   border-color: var(--card-well);
   background-color: var(--card-well);
   color: var(--color-muted);
   opacity: 1;
+}
+
+@media (hover: hover) {
+  .card-product__button:disabled:hover {
+    border-color: var(--card-well);
+    background-color: var(--card-well);
+    color: var(--color-muted);
+    opacity: 1;
+  }
 }
 
 .card-product__button[aria-busy="true"] {

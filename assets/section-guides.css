@@ -247,10 +247,12 @@
   text-decoration: none;
 }
 
-.guides__view-all:hover {
-  border-color: var(--color-ink);
-  background-color: var(--color-ink);
-  color: var(--color-background);
+@media (hover: hover) {
+  .guides__view-all:hover {
+    border-color: var(--color-ink);
+    background-color: var(--color-ink);
+    color: var(--color-background);
+  }
 }
 
 /* ---------- Arrows (>= 768) and pause ---------- */

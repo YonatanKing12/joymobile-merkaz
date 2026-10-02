@@ -126,8 +126,10 @@
   inset-inline-end: var(--carousel-arrow-offset);
 }
 
-:where(.carousel__btn):hover {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  :where(.carousel__btn):hover {
+    color: var(--color-brand-text);
+  }
 }
 
 /* Fade the chevron, not the button: a keyboard ring on a disabled arrow stays at full strength. */
@@ -139,8 +141,10 @@
   opacity: 0.3;
 }
 
-:where(.carousel__btn)[aria-disabled="true"]:hover {
-  color: var(--color-ink);
+@media (hover: hover) {
+  :where(.carousel__btn)[aria-disabled="true"]:hover {
+    color: var(--color-ink);
+  }
 }
 
 :where(.carousel__btn) .icon {

@@ -108,9 +108,11 @@
   stroke-width: 2;
 }
 
-.related-products .related-products__arrow:hover {
-  background: var(--color-ink);
-  color: var(--color-background);
+@media (hover: hover) {
+  .related-products .related-products__arrow:hover {
+    background: var(--color-ink);
+    color: var(--color-background);
+  }
 }
 
 /* Fade the chevron, not the button: a keyboard ring on a disabled arrow stays at full strength. */
@@ -122,9 +124,11 @@
   opacity: 0.25;
 }
 
-.related-products .related-products__arrow[aria-disabled="true"]:hover {
-  background: var(--color-background);
-  color: var(--color-ink);
+@media (hover: hover) {
+  .related-products .related-products__arrow[aria-disabled="true"]:hover {
+    background: var(--color-background);
+    color: var(--color-ink);
+  }
 }
 
 /* Phones swipe: no arrows below 768px. */

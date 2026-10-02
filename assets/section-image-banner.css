@@ -103,10 +103,12 @@ a.image-banner__cover:focus-visible {
   z-index: 1;
 }
 
-.image-banner__cover:hover .image-banner__button {
-  border-color: var(--button-hover-border);
-  background-color: var(--button-hover-bg);
-  color: var(--button-hover-text);
+@media (hover: hover) {
+  .image-banner__cover:hover .image-banner__button {
+    border-color: var(--button-hover-border);
+    background-color: var(--button-hover-bg);
+    color: var(--button-hover-text);
+  }
 }
 
 @media (min-width: 768px) {

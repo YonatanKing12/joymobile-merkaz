@@ -41,8 +41,10 @@
   color: var(--color-ink);
 }
 
-.facets__close:hover {
-  background-color: var(--color-surface);
+@media (hover: hover) {
+  .facets__close:hover {
+    background-color: var(--color-surface);
+  }
 }
 
 .no-js .facets__close {
@@ -85,8 +87,10 @@
   transition: border-color var(--duration-fast) var(--ease-out);
 }
 
-.active-filters__chip:hover {
-  border-color: var(--color-ink);
+@media (hover: hover) {
+  .active-filters__chip:hover {
+    border-color: var(--color-ink);
+  }
 }
 
 .active-filters__icon {
@@ -94,8 +98,10 @@
   color: var(--color-muted);
 }
 
-.active-filters__chip:hover .active-filters__icon {
-  color: var(--color-ink);
+@media (hover: hover) {
+  .active-filters__chip:hover .active-filters__icon {
+    color: var(--color-ink);
+  }
 }
 
 .active-filters__clear {
@@ -110,8 +116,10 @@
   text-underline-offset: 0.2em;
 }
 
-.active-filters__clear:hover {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .active-filters__clear:hover {
+    color: var(--color-brand-text);
+  }
 }
 
 /* Sidebar box: chips stacked full width, as measured ("בחרת לסנן לפי:"). */
@@ -233,10 +241,12 @@
   font-size: var(--text-md);
 }
 
-.facets__option:hover .facets__value {
-  color: var(--color-ink);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+@media (hover: hover) {
+  .facets__option:hover .facets__value {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
 }
 
 /* Values that would return nothing (count 0) are disabled. */
@@ -250,8 +260,10 @@
   text-decoration: line-through;
 }
 
-.facets__option:has(.facets__checkbox:disabled):hover .facets__value {
-  color: var(--color-muted);
+@media (hover: hover) {
+  .facets__option:has(.facets__checkbox:disabled):hover .facets__value {
+    color: var(--color-muted);
+  }
 }
 
 .facets__swatch {
@@ -432,13 +444,17 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.sort-by__link:hover {
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .sort-by__link:hover {
+    color: var(--color-brand-text);
+  }
 }
 
-.sort-by__inline .sort-by__link:hover {
-  border-color: var(--color-ink);
-  color: var(--color-ink);
+@media (hover: hover) {
+  .sort-by__inline .sort-by__link:hover {
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+  }
 }
 
 .sort-by__link[aria-current="true"] {
@@ -516,9 +532,11 @@
   font-size: var(--text-lg);
 }
 
-.sort-by__options .sort-by__link:hover {
-  background-color: var(--color-hover-bg);
-  color: var(--color-brand-text);
+@media (hover: hover) {
+  .sort-by__options .sort-by__link:hover {
+    background-color: var(--color-hover-bg);
+    color: var(--color-brand-text);
+  }
 }
 
 .sort-by__options .sort-by__link[aria-current="true"] {
@@ -690,8 +708,10 @@
     font-weight: 500;
   }
 
-  .facets__summary:hover {
-    color: var(--color-brand-text);
+  @media (hover: hover) {
+    .facets__summary:hover {
+      color: var(--color-brand-text);
+    }
   }
 
   .facets__option {

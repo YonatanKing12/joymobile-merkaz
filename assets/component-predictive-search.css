@@ -82,12 +82,18 @@
   cursor: pointer;
 }
 
-.predictive-search__item:hover,
 .predictive-search__item[aria-selected="true"],
-.predictive-search__chip:hover,
 .predictive-search__chip[aria-selected="true"] {
   background-color: var(--color-hover-bg);
   color: var(--color-ink);
+}
+
+@media (hover: hover) {
+  .predictive-search__item:hover,
+    .predictive-search__chip:hover {
+    background-color: var(--color-hover-bg);
+    color: var(--color-ink);
+  }
 }
 
 .predictive-search__thumb {

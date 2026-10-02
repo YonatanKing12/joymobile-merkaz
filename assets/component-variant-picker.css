@@ -82,8 +82,10 @@
     background-color var(--duration-fast) var(--ease-out);
 }
 
-.variant-picker__value:hover {
-  border-color: var(--color-ink);
+@media (hover: hover) {
+  .variant-picker__value:hover {
+    border-color: var(--color-ink);
+  }
 }
 
 .variant-picker__input:checked + .variant-picker__value {
