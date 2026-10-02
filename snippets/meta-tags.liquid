@@ -230,7 +230,8 @@
       assign og_title = meta_title
     when 'product'
       assign og_type = 'product'
-      assign og_title = product.title
+      # Same head as <title> (no " – יבואן רשמי" tail), so a shared link previews the product name.
+      assign og_title = base_title | default: product.title
     when 'article'
       assign og_type = 'article'
       assign og_title = article.title
