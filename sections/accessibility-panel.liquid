@@ -26,16 +26,7 @@
 -%}
 {{ 'component-floating-actions.css' | asset_url | stylesheet_tag }}
 {%- if settings.a11y_panel_enabled -%}
-  {%- comment -%}
-    The drawer shell loads without blocking, as in sections/cart-drawer (same inline first rule, so this
-    section stands alone). component-a11y-panel.css stays a normal stylesheet: it also places the trigger,
-    which is on screen at first paint.
-  {%- endcomment -%}
-  <style>
-    .drawer { position: fixed; inset: 0; z-index: var(--z-drawer); visibility: hidden; }
-  </style>
-  <link rel="stylesheet" href="{{ 'component-drawer.css' | asset_url }}" media="print" onload="this.onload=null;this.media='all'">
-  <noscript>{{ 'component-drawer.css' | asset_url | stylesheet_tag }}</noscript>
+  {{ 'component-drawer.css' | asset_url | stylesheet_tag }}
   {{ 'component-a11y-panel.css' | asset_url | stylesheet_tag }}
 
   <button class="a11y-trigger" type="button" aria-haspopup="dialog" aria-controls="A11yPanel" aria-expanded="false">

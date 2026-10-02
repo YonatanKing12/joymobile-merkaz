@@ -228,6 +228,18 @@ class PredictiveSearch extends HTMLElement {
     this.sayTimer = setTimeout(() => (this.status.textContent = message), 100);
   }
 
+  // The panel's stylesheet loads without blocking (sections/header.liquid: it held up the hero). Results
+  // wait for it, so a search typed on a slow connection before it lands is never drawn unstyled over the page.
+  styled() {
+    const links = [...document.querySelectorAll('link[href*="component-predictive-search"]')];
+    const pending = links.filter((link) => link.media === 'print');
+    if (!pending.length || pending.length < links.length) return Promise.resolve();
+    return new Promise((resolve) => pending.forEach((link) => {
+      link.addEventListener('load', resolve, { once: true });
+      link.addEventListener('error', resolve, { once: true });
+    }));
+  }
+
   async search() {
     const typed = this.query;
     if (typed.length < 2) return;
@@ -242,6 +254,8 @@ class PredictiveSearch extends HTMLElement {
       const doc = parseHTML(await fetchSectionHTML(url, 'predictive-search', { signal: ctrl.signal }));
       const section = doc.querySelector('.shopify-section') || doc;
       const message = this.prepare(section, fixed ? typed : '');
+      await this.styled();
+      if (ctrl.signal.aborted) return;
       this.results.replaceChildren(...section.childNodes);
       this.say(message);
     } catch (err) {

@@ -59,6 +59,12 @@
   border-radius: max(calc(var(--card-radius) - var(--card-inset)), 4px);
   background-color: var(--card-well);
   isolation: isolate; /* the photos' multiply blend stops at the well */
+  /* isolation makes the well its own stacking context, so the heart's z-index only counted inside it
+     and the card's stretched link (::after, z-index 1) covered it: a tap on the heart opened the
+     product. The well sits above the link instead, and lets pointer events on the photo fall through
+     to it; only the heart takes them back. */
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* Product photos on white melt into the well (multiply: white takes the well's colour). */
@@ -155,6 +161,7 @@
   top: 0.375rem;
   inset-inline-end: 0.375rem;
   z-index: 3;
+  pointer-events: auto;
 }
 
 /* ---------- Body ---------- */
