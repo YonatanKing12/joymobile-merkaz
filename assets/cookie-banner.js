@@ -1,9 +1,11 @@
 // <cookie-banner> — sections/cookie-banner.liquid. Shows the cookie notice to visitors who have not chosen yet and
 // records their choice with Shopify's Customer Privacy API, which Shopify analytics and app pixels honour.
-// localStorage keeps the choice too, so the banner never flashes for a returning visitor, and a choice whose Shopify
-// cookie is gone is applied again. ✕ / Escape hide the banner for the current browsing session only.
-// While the banner is shown, the floating buttons (--floating-offset-bottom) and the page's scroll-padding move up
-// above it, so a focused control is never hidden under the banner (WCAG 2.4.11).
+// localStorage keeps the choice too, so the banner never flashes for a returning visitor. A stored "decline" whose
+// Shopify cookie is gone is applied again; a stored "accept" is not (clearing cookies is how many visitors withdraw
+// it): the banner asks again. ✕ / Escape hide the banner for the current browsing session only.
+// While the banner is shown it publishes --cookie-offset on <body>, which base.css adds into --floating-offset-bottom
+// (the floating buttons rise above it), and the page's scroll-padding clears it, so a focused control is never hidden
+// under the banner (WCAG 2.4.11). On a product page it sits above the phone buy bar (--buybar-offset).
 import { define, focusables, announce } from '@theme/global';
 
 const KEY = 'joy:cookie-consent'; // {choice: 'accept' | 'decline', at: epoch ms}
@@ -22,6 +24,11 @@ const read = (store, key) => {
 const write = (store, key, value) => {
   try {
     window[store].setItem(key, JSON.stringify(value));
+  } catch {}
+};
+const forget = (store, key) => {
+  try {
+    window[store].removeItem(key);
   } catch {}
 };
 
@@ -151,14 +158,18 @@ class CookieBanner extends HTMLElement {
     this.show();
   }
 
-  // A choice stored here whose Shopify consent cookie is gone (cleared or expired) is applied again, once a session,
-  // when the browser is idle.
+  // Once a session, when the browser is idle: a stored choice whose Shopify consent cookie is gone (cleared or
+  // expired). A decline is applied again silently; an accept is not consent given now, so it is forgotten and the
+  // banner asks again (on this page and, until answered, on the next ones).
   sync(stored) {
     if (read('sessionStorage', SYNCED)) return;
     write('sessionStorage', SYNCED, true);
     (window.requestIdleCallback || ((fn) => setTimeout(fn, 2000)))(async () => {
       const privacy = await privacyApi();
-      if (privacy && !hasChosen(privacy)) record(privacy, stored.choice === 'accept');
+      if (!privacy || hasChosen(privacy)) return;
+      if (stored.choice === 'decline') return record(privacy, false);
+      forget('localStorage', KEY);
+      if (!read('sessionStorage', DISMISSED)) this.decide();
     });
   }
 
@@ -178,14 +189,17 @@ class CookieBanner extends HTMLElement {
     this.offset(0);
   }
 
-  // Lift the floating buttons and the scroll-padding by the banner's height while it is on screen.
+  // While the banner is on screen: --cookie-offset is the band it takes above whatever is under it (its height and
+  // the 0.625rem gap below it, component-cookie-banner.css); the scroll-padding clears the whole bottom stack, read
+  // from the panel's own bottom (gap, buy bar, home indicator), plus 8px.
   offset(height = this.hidden ? 0 : Math.ceil(this.panel.getBoundingClientRect().height)) {
     const body = document.body.style, root = document.documentElement.style;
     if (height > 0) {
-      body.setProperty('--floating-offset-bottom', `${height}px`);
-      root.setProperty('scroll-padding-block-end', `${height + 8}px`);
+      const bottom = parseFloat(getComputedStyle(this.panel).bottom) || 0;
+      body.setProperty('--cookie-offset', `calc(${height}px + 0.625rem)`);
+      root.setProperty('scroll-padding-block-end', `${Math.ceil(height + bottom) + 8}px`);
     } else {
-      body.removeProperty('--floating-offset-bottom');
+      body.removeProperty('--cookie-offset');
       root.removeProperty('scroll-padding-block-end');
     }
   }

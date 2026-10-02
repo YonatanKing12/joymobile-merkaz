@@ -216,17 +216,20 @@
   font-weight: 700;
 }
 
-.guides__card:hover .guides__img {
-  transform: scale(1.1);
-}
+/* Pointer hover only: after a tap iOS would keep the zoomed photo while the page navigates. */
+@media (hover: hover) {
+  .guides__card:hover .guides__img {
+    transform: scale(1.1);
+  }
 
-.guides__card:hover .guides__panel-thumb {
-  transform: scale(1.06);
-}
+  .guides__card:hover .guides__panel-thumb {
+    transform: scale(1.06);
+  }
 
-.guides__card:hover .guides__more {
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+  .guides__card:hover .guides__more {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
 }
 
 .guides__view-all {

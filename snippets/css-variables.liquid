@@ -51,7 +51,8 @@
     --font-heading-weight: {{ settings.type_heading_weight | default: 700 }};
 
     --page-width: {{ settings.page_width | default: 1170 }}px;
-    --page-gutter: {{ settings.page_gutter_mobile | default: 15 }}px;
+    {%- # At least the safe areas: with viewport-fit=cover a landscape iPhone's notch sits on the page's sides. %}
+    --page-gutter: max({{ settings.page_gutter_mobile | default: 15 }}px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
 
     --radius-button: {{ settings.radius_button }}px;
     --radius-input: {{ settings.radius_input }}px;

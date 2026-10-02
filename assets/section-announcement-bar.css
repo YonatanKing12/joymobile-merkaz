@@ -11,11 +11,13 @@
   }
 }
 
+/* No overflow: hidden here: each part clips its own text (the message's ellipsis, the track, the marquee viewport), so
+   the pause control's touch area can reach below the strip, over the sticky header (hence the z-index). */
 .announcement-bar {
   --color-focus: var(--color-focus-on-dark);
   position: relative;
+  z-index: calc(var(--z-floating) + 2);
   height: var(--announcement-bar-height);
-  overflow: hidden;
   background-color: var(--color-header-bg);
   color: var(--color-header-text);
   font-size: var(--text-xs);
@@ -96,6 +98,17 @@
 .announcement-bar__pause .icon {
   width: 0.625rem;
   height: 0.625rem;
+}
+
+/* Touch area of the pause controls: a full tap-target wide (toward the message) and 0.5rem into the header's empty top
+   padding below: 24px tall on phones (WCAG 2.5.8), the most the 16px strip can take without covering the header's
+   icons, which start 0.5rem down the row. */
+.announcement-bar__pause::after,
+.announcement-bar__marquee-pause::after {
+  content: "";
+  position: absolute;
+  inset-block: 0 -0.5rem;
+  inset-inline: calc(100% - var(--tap-target)) 0;
 }
 
 .announcement-bar__play-icon,

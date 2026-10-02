@@ -78,12 +78,23 @@ export function debounce(fn, ms) {
 }
 
 let live;
-export function announce(message) {
+const shown = (el) => el.checkVisibility?.({ visibilityProperty: true }) ?? (el.getClientRects().length > 0 && getComputedStyle(el).visibility === 'visible');
+// VoiceOver drops every live region outside an open aria-modal dialog, so while one is open a message goes to the
+// dialog's own [data-a11y-live] region (the cart drawer has one); otherwise, or when it has none, to #a11y-live.
+function liveRegion() {
+  for (const box of document.querySelectorAll('cart-drawer[open], dialog[open], [aria-modal="true"]')) {
+    const region = box.querySelector('[data-a11y-live]');
+    if (region && shown(box)) return region;
+  }
   live ||= document.getElementById('a11y-live') ||
     document.body.appendChild(Object.assign(document.createElement('div'), { id: 'a11y-live', className: 'visually-hidden' }));
   live.setAttribute('aria-live', 'polite');
-  live.textContent = '';
-  setTimeout(() => (live.textContent = message), 100); // clearing first re-announces repeats
+  return live;
+}
+export function announce(message) {
+  liveRegion().textContent = '';
+  // Clearing first re-announces repeats. Resolved again: an add opens the cart drawer right after announcing.
+  setTimeout(() => (liveRegion().textContent = message), 100);
 }
 export function showError(box, message) {
   if (box) {
@@ -130,12 +141,74 @@ export function onEscape(el, fn) {
   el.addEventListener('keydown', handler);
   return () => el.removeEventListener('keydown', handler);
 }
+// Scroll lock. iOS Safari ignores overflow: hidden on <html>, so under an open drawer a drag would scroll the page
+// behind it. While the page is locked, a one-finger drag is cancelled unless something under the finger can still
+// scroll that way (the drawer's list, a textarea, a horizontal track). The body is never pinned: that froze the page
+// on iPhones (da6f22d). The class on <html> is the only state the touch code reads, and a lock nothing holds any more
+// is dropped at the next touch, page show or tab return, so a stale lock costs one touch, never the page.
+const SCROLLS = /^(auto|scroll|overlay)$/;
+function canScroll(el, dx, dy) {
+  const vertical = Math.abs(dy) >= Math.abs(dx);
+  for (; el && el !== document.body && el !== html; el = el.parentElement) {
+    if (el.matches('input[type="range"]')) return true;
+    const style = getComputedStyle(el);
+    if (vertical) {
+      if (SCROLLS.test(style.overflowY) && el.scrollHeight > el.clientHeight &&
+        (dy > 0 ? el.scrollTop > 0 : el.scrollTop + el.clientHeight < el.scrollHeight - 1)) return true;
+    } else if (SCROLLS.test(style.overflowX) && el.scrollWidth > el.clientWidth) {
+      // scrollLeft runs 0…max left-to-right and -max…0 right-to-left; a finger moving right lowers it.
+      const max = el.scrollWidth - el.clientWidth, low = style.direction === 'rtl' ? -max : 0;
+      if (dx > 0 ? el.scrollLeft > low + 1 : el.scrollLeft < low + max - 1) return true;
+    }
+  }
+  return false;
+}
+let touch = null;
+function onTouchMove(e) {
+  if (!touch || !e.cancelable || e.touches.length !== 1 || !html.classList.contains('scroll-locked')) return;
+  if ((window.visualViewport?.scale ?? 1) > 1.01) return; // zoomed in: the finger pans the zoomed view
+  const { clientX: x, clientY: y } = e.touches[0], dx = x - touch.x, dy = y - touch.y;
+  touch = { x, y };
+  if ((dx || dy) && !canScroll(e.target, dx, dy)) e.preventDefault();
+}
+
 let locks = 0;
-export function lockScroll(lock) {
-  locks = Math.max(0, locks + (lock ? 1 : -1));
+function applyLock() {
   html.classList.toggle('scroll-locked', locks > 0);
   html.style.overflow = locks ? 'hidden' : '';
+  // Scroll-blocking listener only while locked: the rest of the time touch scrolling never waits for the main thread.
+  document[locks ? 'addEventListener' : 'removeEventListener']('touchmove', onTouchMove, { passive: false });
 }
+export function lockScroll(lock) {
+  locks = Math.max(0, locks + (lock ? 1 : -1));
+  applyLock();
+}
+
+// What takes the lock: DialogElement hosts (cart drawer, a11y panel), the header's menu and search drawers
+// (menu-drawer > details), the filters drawer (facet-filters) and the product lightbox (a modal <dialog>).
+const modal = (dialog) => {
+  try {
+    return dialog.matches(':modal');
+  } catch {
+    return true;
+  }
+};
+const lockHolderOpen = () => [...document.querySelectorAll('[open]')].some((el) =>
+  el instanceof DialogElement || el.matches('menu-drawer > details, facet-filters') || (el.localName === 'dialog' && modal(el)));
+function healScrollLock() {
+  if ((locks || html.classList.contains('scroll-locked')) && !lockHolderOpen()) {
+    locks = 0;
+    applyLock();
+  }
+}
+addEventListener('pageshow', healScrollLock);
+document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && healScrollLock());
+document.addEventListener('touchstart', (e) => {
+  touch = null;
+  if (!html.classList.contains('scroll-locked')) return;
+  healScrollLock();
+  if (e.touches.length === 1 && html.classList.contains('scroll-locked')) touch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
 
 const EDITOR = ['shopify:section:select', 'shopify:section:deselect'];
 export class DialogElement extends HTMLElement {

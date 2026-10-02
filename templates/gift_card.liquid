@@ -11,7 +11,7 @@
   assign brand_name = settings.brand_name | strip | default: shop.name
 -%}
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="{{ request.locale.iso_code }}" dir="{{ 'general.direction' | t }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

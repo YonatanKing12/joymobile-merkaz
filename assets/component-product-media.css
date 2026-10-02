@@ -441,12 +441,13 @@ button.product-media__frame:hover .product-media__zoom-icon {
   margin-block-start: var(--space-xs);
 }
 
+/* A full tap target around the small disc; the negative block margins keep the row 1.5rem tall. */
 .product-lightbox .carousel__dot {
   display: inline-grid;
   place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  margin: 0;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  margin: calc((1.5rem - var(--tap-target)) / 2) 0;
   padding: 0;
   border: 0;
   background: transparent;

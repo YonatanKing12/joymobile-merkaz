@@ -1,12 +1,12 @@
 /* Accessibility panel (sections/accessibility-panel) on the drawer shell (.drawer--end). Trigger bottom-left as the
    old widget: brand green with a navy figure (5.8:1), mint under the pointer; its focus ring is two-tone (mint
    inside, navy outside) because the page behind it may be white or the navy footer. Preference classes: base.css.
-   --floating-offset-bottom (set on <body> by bottom-sticky UI such as the product page's phone buy bar) lifts the
-   trigger, as it lifts the floating-actions stack. */
+   --floating-offset-bottom (base.css: the cookie banner plus the product page's phone buy bar) lifts the trigger, as it
+   lifts the floating-actions stack. */
 
 .a11y-trigger {
   position: fixed;
-  inset-inline-end: 0;
+  inset-inline-end: var(--safe-inline-end); /* clear of a landscape iPhone's notch */
   inset-block-end: calc(var(--floating-offset-bottom, 0px) + env(safe-area-inset-bottom, 0px));
   z-index: var(--z-floating);
   display: grid;
@@ -24,9 +24,11 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.a11y-trigger:hover {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+@media (hover: hover) {
+  .a11y-trigger:hover {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
 }
 
 .a11y-trigger:focus-visible {

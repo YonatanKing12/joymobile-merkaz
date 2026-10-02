@@ -39,6 +39,7 @@ sticky-header {
   grid-template-columns: var(--tap-target) var(--tap-target) minmax(0, 1fr) auto;
   align-items: center;
   height: 100%;
+  padding-inline: var(--safe-inline-start) var(--safe-inline-end); /* landscape iPhone: icons clear of the notch */
 }
 
 /* The cart and the WhatsApp badge sit inside .header__actions now, so the phone row holds them as one
@@ -78,8 +79,10 @@ sticky-header {
   text-decoration: none;
 }
 
-.header__icon:hover {
-  color: var(--color-accent);
+@media (hover: hover) {
+  .header__icon:hover {
+    color: var(--color-accent);
+  }
 }
 
 .header__icon:focus-visible {
@@ -412,6 +415,7 @@ sticky-header {
   inset-inline: 0;
   z-index: 2;
   max-height: calc(100dvh - var(--header-height, 3.75rem) - var(--header-offset, 0px));
+  padding-inline: var(--safe-inline-start) var(--safe-inline-end);
   overflow-y: auto;
   overscroll-behavior: contain;
   background-color: var(--color-background);
@@ -488,7 +492,7 @@ sticky-header {
   color: var(--color-brand-text);
 }
 
-/* Dim the page under the open search bar / menu (tap = close). */
+/* Dim the page under the open search bar / menu (tap = close). No pans: iOS would scroll the page behind it. */
 .search-drawer__overlay,
 .menu-drawer__overlay {
   position: absolute;
@@ -497,6 +501,7 @@ sticky-header {
   z-index: 1;
   height: 100dvh;
   background-color: var(--color-overlay);
+  touch-action: none;
 }
 
 /* One panel at a time: the other toggle rests while one is open. */
@@ -527,13 +532,16 @@ sticky-header {
   inset-inline: 0;
   z-index: 2;
   height: calc(100dvh - var(--drawer-top));
+  padding-inline: var(--safe-inline-start) var(--safe-inline-end);
+  padding-block-end: env(safe-area-inset-bottom, 0px);
   overflow-y: auto;
   overscroll-behavior: contain;
   background-color: var(--color-background);
   color: var(--color-ink);
 }
 
-/* Before scrolling, the announcement strip still sits above the header. */
+/* How much of the announcement strip is still on screen above the header. @theme/header publishes the live value on
+   <sticky-header> as the strip scrolls away (inline, so it wins); this is the value before it runs, and without it. */
 sticky-header:not(.is-compact) {
   --header-offset: var(--announcement-bar-height, 0px);
 }
@@ -551,9 +559,27 @@ sticky-header:not(.is-compact) {
   bottom: 0;
   inset-inline: 0;
   z-index: 1;
+  padding-inline: var(--safe-inline-start) var(--safe-inline-end);
+  padding-block-end: env(safe-area-inset-bottom, 0px);
   overflow-y: auto;
   overscroll-behavior: contain;
   background-color: var(--color-background);
+}
+
+/* overscroll-behavior only holds on a box that can scroll: 1px of extra height keeps a short panel or level
+   scrollable, so a drag on it never reaches the page (iOS). Touch screens only, whose scrollbars overlay. */
+@media (pointer: coarse) {
+  .search-drawer__panel::after,
+  .menu-drawer__panel::after,
+  .menu-drawer__submenu::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    width: 1px;
+    height: calc(100% + 1px);
+    pointer-events: none;
+  }
 }
 
 /* The old accordion row: 43px (44 here), 1px #ccc rule, 16px black, 15px start padding,
@@ -581,9 +607,14 @@ sticky-header:not(.is-compact) {
   cursor: pointer;
 }
 
-.menu-drawer__row:hover,
 .menu-drawer__level[open] > .menu-drawer__row {
   background-color: var(--color-hover-bg);
+}
+
+@media (hover: hover) {
+  .menu-drawer__row:hover {
+    background-color: var(--color-hover-bg);
+  }
 }
 
 .menu-drawer__row:focus-visible {

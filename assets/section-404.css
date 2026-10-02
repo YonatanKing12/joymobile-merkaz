@@ -142,18 +142,21 @@
   line-height: var(--leading-tight);
 }
 
-.collection-tile:hover .collection-tile__media {
-  box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--color-ink) 35%, transparent);
-}
-
-@media (prefers-reduced-motion: no-preference) {
+/* Pointer hover only: after a tap iOS would keep the tile lifted. */
+@media (hover: hover) {
   .collection-tile:hover .collection-tile__media {
-    transform: translateY(-3px);
+    box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+
+  .collection-tile:hover .collection-tile__title {
+    color: var(--color-brand-text);
   }
 }
 
-.collection-tile:hover .collection-tile__title {
-  color: var(--color-brand-text);
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .collection-tile:hover .collection-tile__media {
+    transform: translateY(-3px);
+  }
 }
 
 @media (min-width: 992px) {

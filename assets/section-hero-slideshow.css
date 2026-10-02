@@ -203,14 +203,22 @@ a.hero-slideshow__cover:focus-visible::after {
   margin: 0;
 }
 
-/* The pause button matches the dots: white disc, navy ring and glyph. */
+/* The pause button matches the dots: white disc, navy ring and glyph. In the controls' row (relative, not the
+   carousel's absolute), with a full tap target laid over the disc by ::after. */
 .hero-slideshow__pause {
-  position: static;
-  width: 24px;
-  height: 24px;
+  position: relative;
+  inset: auto;
+  width: 1.5rem;
+  height: 1.5rem;
   background-color: var(--color-background);
   box-shadow: inset 0 0 0 1.5px var(--color-ink);
   color: var(--color-ink);
+}
+
+.hero-slideshow__pause::after {
+  content: "";
+  position: absolute;
+  inset: calc((1.5rem - var(--tap-target)) / 2);
 }
 
 /* No autoplay with reduced motion: nothing to pause. */

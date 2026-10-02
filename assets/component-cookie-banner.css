@@ -3,14 +3,17 @@
    "רק עוגיות חיוניות" button and a ✕ at the inline-end corner.
    Phones: text first, then the two buttons side by side (the old one squeezed the text into a narrow column beside
    the button). From 768px: one row with the text, the buttons and the ✕.
-   Stacking: above the floating buttons and the product page's buy bar (the script lifts the floating buttons above it),
-   below overlays and drawers, which cover it while they are open. */
+   Stacking: above the floating buttons (the script's --cookie-offset lifts them above it), below overlays and drawers,
+   which cover it while they are open. On a phone product page it stands on the buy bar (--buybar-offset, set on
+   <body> while the bar shows) instead of covering it.
+   The 0.625rem gap under the panel is also in cookie-banner.js (--cookie-offset). */
 
-/* A floating rounded card 10px above the bottom edge (centred, 1040px at most, from 768px). */
+/* A floating rounded card 10px above the bottom edge or the buy bar (centred, 1040px at most, from 768px); its sides
+   clear a landscape iPhone's notch. */
 .cookie-banner__panel {
   position: fixed;
-  inset-inline: 0.625rem;
-  bottom: calc(0.625rem + env(safe-area-inset-bottom, 0px));
+  inset-inline: calc(0.625rem + var(--safe-inline-start)) calc(0.625rem + var(--safe-inline-end));
+  bottom: calc(0.625rem + var(--buybar-offset, 0px) + env(safe-area-inset-bottom, 0px));
   z-index: calc(var(--z-floating) + 1);
   max-width: 65rem;
   margin-inline: auto;

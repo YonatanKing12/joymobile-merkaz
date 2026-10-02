@@ -100,6 +100,26 @@
   --color-accent-soft: #e0fff2; /* mint wash: hover rows, selected options */
 }
 
+/* Safe areas (viewport-fit=cover, layout/theme.liquid): a landscape iPhone's notch and rounded corners sit on the
+   inline sides. env() is physical; this maps it to the logical sides once (RTL: inline-start is the right edge), for
+   the controls pinned to an edge (header row, drawers, floating buttons, cookie banner). */
+:root {
+  --safe-inline-start: env(safe-area-inset-right, 0px);
+  --safe-inline-end: env(safe-area-inset-left, 0px);
+}
+
+:root[dir="ltr"] {
+  --safe-inline-start: env(safe-area-inset-left, 0px);
+  --safe-inline-end: env(safe-area-inset-right, 0px);
+}
+
+/* What the floating controls (WhatsApp/back-to-top stack, a11y trigger, hCaptcha badge) rise above: the cookie
+   banner (--cookie-offset, cookie-banner.js) plus the product page's phone buy bar (--buybar-offset). Both are set on
+   <body>, so the sum is declared there too: a var() resolves on the element that declares it. */
+body {
+  --floating-offset-bottom: calc(var(--cookie-offset, 0px) + var(--buybar-offset, 0px));
+}
+
 @media (min-width: 992px) {
   :root {
     --section-space: var(--space-2xl);
@@ -186,6 +206,18 @@ button,
 [role="button"],
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* No double-tap zoom on controls (iOS): a quick second tap on a stepper, arrow or chip is a second press. Pinch-zoom
+   stays everywhere. */
+button,
+[role="button"],
+a,
+summary,
+label,
+input[type="checkbox"],
+input[type="radio"] {
+  touch-action: manipulation;
 }
 
 p,
@@ -454,10 +486,24 @@ bdi {
     color var(--duration-fast) var(--ease-out);
 }
 
-.button:hover {
-  border-color: var(--button-hover-border);
-  background-color: var(--button-hover-bg);
-  color: var(--button-hover-text);
+/* Hover only where there is a pointer that hovers: after a tap, iOS keeps :hover until the next touch elsewhere, and
+   the mint "hover" look would read as a selected state. A touch gets the pressed state below instead. */
+@media (hover: hover) {
+  .button:hover {
+    border-color: var(--button-hover-border);
+    background-color: var(--button-hover-bg);
+    color: var(--button-hover-text);
+  }
+}
+
+.button:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+  filter: brightness(0.92);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-no-motion) .button:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    translate: 0 1px;
+  }
 }
 
 /* Green: brand green with navy text (theme settings). */
@@ -494,11 +540,13 @@ bdi {
   opacity: 0.5;
 }
 
-.button:disabled:hover,
-.button[aria-disabled="true"]:hover {
-  background-color: var(--button-bg);
-  border-color: var(--button-border);
-  color: var(--button-text);
+@media (hover: hover) {
+  .button:disabled:hover,
+  .button[aria-disabled="true"]:hover {
+    background-color: var(--button-bg);
+    border-color: var(--button-border);
+    color: var(--button-text);
+  }
 }
 
 /* Busy state set by scripts while a request is in flight. */
@@ -926,10 +974,15 @@ html.a11y-contrast a:not(.button) {
 }
 
 html.a11y-links a:not(.button) {
-  outline: 1px solid currentColor;
   background-color: var(--color-highlight) !important;
   color: var(--color-ink) !important;
   text-decoration: underline !important;
+}
+
+/* The marker's thin outline steps aside on keyboard focus, so the focus ring (2px, offset) still singles out the
+   focused link (WCAG 2.4.7). */
+html.a11y-links a:not(.button):not(:focus-visible) {
+  outline: 1px solid currentColor;
 }
 
 html.a11y-readable {

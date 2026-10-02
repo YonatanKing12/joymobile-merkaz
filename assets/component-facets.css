@@ -541,10 +541,10 @@
     display: flex;
     flex-direction: column;
     inline-size: min(22.5rem, 88vw);
-    padding: var(--space-md) var(--space-md) 0;
+    padding-block: var(--space-md) 0;
+    padding-inline: calc(var(--space-md) + var(--safe-inline-start)) var(--space-md); /* its screen edge clears a landscape iPhone's notch */
     background-color: var(--color-background);
     box-shadow: var(--shadow-lg);
-    overscroll-behavior: contain;
     visibility: hidden;
     transform: translateX(100%);
     transition:
@@ -567,7 +567,9 @@
     min-block-size: 0;
   }
 
+  /* The scroller: overscroll-behavior belongs here (on .facets, which does not scroll, it did nothing). */
   .js .facets__region {
+    position: relative;
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -575,6 +577,21 @@
     margin-inline: calc(var(--space-md) * -1);
     padding-inline: var(--space-md);
     overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* overscroll-behavior only holds on a box that can scroll: 1px of extra height keeps a short list scrollable (touch
+     screens only, whose scrollbars overlay). */
+  @media (pointer: coarse) {
+    .js .facets__region::after {
+      content: "";
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      width: 1px;
+      height: calc(100% + 1px);
+      pointer-events: none;
+    }
   }
 
   .js .facets__footer {
@@ -593,6 +610,7 @@
     z-index: var(--z-overlay);
     display: block;
     background-color: var(--color-overlay);
+    touch-action: none; /* a drag on the dimmed page never scrolls it (iOS) */
     opacity: 0;
     visibility: hidden;
     transition:

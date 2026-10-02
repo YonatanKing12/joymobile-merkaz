@@ -4,9 +4,12 @@ const summaryOf = (details) => details.querySelector(':scope > summary');
 
 // Publishes --header-height (scroll-padding-top, sticky offsets) whatever the scroll position: the compact state only
 // adds a shadow, so the height is the same — and a page restored mid-scroll must get it too.
+// Also --header-offset: how far down the header starts, i.e. how much of the announcement strip above it is still on
+// screen. The strip scrolls away pixel by pixel, so the menu drawer and its levels follow the live value.
 class StickyHeader extends HTMLElement {
   connectedCallback() {
     addEventListener('scroll', this, { passive: true });
+    addEventListener('resize', this, { passive: true }); // the strip is taller from 768px
     const measure = () => document.documentElement.style.setProperty('--header-height', `${(this.height = this.offsetHeight)}px`);
     (this.ro = new ResizeObserver(measure)).observe(this);
     measure();
@@ -15,6 +18,7 @@ class StickyHeader extends HTMLElement {
 
   disconnectedCallback() {
     removeEventListener('scroll', this);
+    removeEventListener('resize', this);
     this.ro.disconnect();
   }
 
@@ -23,6 +27,8 @@ class StickyHeader extends HTMLElement {
       this.raf = 0;
       const compact = scrollY > (+this.dataset.threshold || this.height);
       if (compact !== !!this.compact) this.classList.toggle('is-compact', (this.compact = compact));
+      const offset = Math.max(0, Math.round(this.getBoundingClientRect().top));
+      if (offset !== this.offset) this.style.setProperty('--header-offset', `${(this.offset = offset)}px`);
     });
   }
 }

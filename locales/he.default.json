@@ -1,5 +1,6 @@
 {
   "general": {
+    "direction": "rtl",
     "home": "דף הבית",
     "new_window": "(נפתח בלשונית חדשה)",
     "breadcrumbs": {

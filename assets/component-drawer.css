@@ -1,6 +1,8 @@
 /* Drawer shell for <cart-drawer>/<a11y-panel> (DialogElement): host[open], .drawer__overlay, .drawer__panel
    (from the inline-start side; .drawer--end from the inline-end side), header/body/footer. Delayed visibility
-   transition so the panel can slide out and is focusable the frame after opening. */
+   transition so the panel can slide out and is focusable the frame after opening.
+   Scroll lock on iOS (which ignores overflow: hidden on <html>; global.js cancels the rest): the overlay and the
+   header take no pans, and the body contains its own overscroll even when its content is short. */
 
 .drawer {
   position: fixed;
@@ -21,6 +23,7 @@
   background-color: var(--color-overlay);
   opacity: 0;
   cursor: pointer;
+  touch-action: none; /* a drag on the dimmed page never scrolls it */
   transition: opacity var(--duration-base) var(--ease-out);
 }
 
@@ -41,11 +44,15 @@
   box-shadow: var(--shadow-lg);
   transform: translateX(100%);
   transition: transform var(--duration-base) var(--ease-out);
+  /* Clear of a landscape iPhone's notch on its screen edge, and of the home indicator. */
+  padding-inline-start: var(--safe-inline-start);
+  padding-block-end: env(safe-area-inset-bottom, 0px);
 }
 
 .drawer--end .drawer__panel {
   inset-inline-start: auto;
   inset-inline-end: 0;
+  padding-inline: 0 var(--safe-inline-end);
   transform: translateX(-100%);
 }
 
@@ -67,6 +74,7 @@
   min-height: 3.75rem;
   padding: var(--space-xs) var(--space-md);
   border-block-end: 1px solid var(--color-border);
+  touch-action: pinch-zoom; /* chrome that never scrolls: a drag here could only move the page behind */
 }
 
 .drawer__title {
@@ -100,10 +108,25 @@
 }
 
 .drawer__body {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* overscroll-behavior only holds on a box that can scroll: 1px of extra height keeps a short body scrollable, so a
+   drag on it never reaches the page. Touch screens only, whose scrollbars overlay (no bar appears). */
+@media (pointer: coarse) {
+  .drawer__body::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    width: 1px;
+    height: calc(100% + 1px);
+    pointer-events: none;
+  }
 }
 
 .drawer__footer {

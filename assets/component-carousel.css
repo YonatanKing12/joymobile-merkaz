@@ -215,18 +215,21 @@
   margin-block-start: var(--space-xs);
 }
 
+/* A full tap target (WCAG 2.5.5) around a small disc. The negative block margins keep the row 1.5rem tall, as it was,
+   so nothing around the dots moves; the target reaches over the space above and below them. */
 :where(.carousel__dot) {
   display: inline-grid;
   place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  margin-block: calc((1.5rem - var(--tap-target)) / 2);
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
 }
 
-/* 15×15 disc inside a 24px hit area (4px apart, as measured on the hero). */
+/* 15×15 disc (as measured on the hero) in the middle of the target. */
 :where(.carousel__dot)::before {
   content: "";
   width: 0.9375rem;

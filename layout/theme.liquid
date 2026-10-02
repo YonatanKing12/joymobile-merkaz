@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="he" dir="rtl" class="no-js{% if settings.type_mobile_boost %} text-boost{% endif %}">
+<html lang="{{ request.locale.iso_code }}" dir="{{ 'general.direction' | t }}" class="no-js{% if settings.type_mobile_boost %} text-boost{% endif %}">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {% render 'meta-tags' %}
 
     {%- comment -%}
