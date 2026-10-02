@@ -70,8 +70,10 @@
     font-size: var(--text-sm);
     text-decoration: none;
   }
-  a.pagination__link:hover {
-    border-color: var(--color-ink);
+  @media (hover: hover) {
+    a.pagination__link:hover {
+      border-color: var(--color-ink);
+    }
   }
   .pagination__link--current {
     border-color: var(--color-ink);

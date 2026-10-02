@@ -1,8 +1,8 @@
-// @theme/global. Money is never formatted in JS: prices always come server-rendered.
+// @theme/global. Prices come server-rendered. The one sum JS has to add (the add-ons total in
+// assets/product-addons.js) is printed with the shop's own money_format, never a hand-rolled one.
 const cfg = window.theme || {};
 const html = document.documentElement;
 
-export const isRTL = true;
 export const routes = { root: '/', cart: '/cart', cart_add: '/cart/add', cart_change: '/cart/change', cart_update: '/cart/update', search: '/search', ...cfg.routes };
 routes.root = routes.root.replace(/\/?$/, '/');
 export const strings = {

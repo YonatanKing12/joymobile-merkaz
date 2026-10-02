@@ -37,12 +37,11 @@
     assign branches_text = 'header.branches' | t
   endif
 
-  assign phone_digits = settings.contact_phone | remove: ' ' | remove: '-' | remove: '(' | remove: ')' | strip
-  assign phone_first = phone_digits | slice: 0
-  assign phone_href = phone_digits
-  if phone_first == '0'
-    assign phone_href = phone_digits | remove_first: '0' | prepend: '+972'
-  endif
+  # The same normalising as the footer and the branch cards (snippets/phone-href): "tel:+972…".
+  capture phone_href
+    render 'phone-href', phone: settings.contact_phone
+  endcapture
+  assign phone_href = phone_href | strip
 
   assign wishlist_url = nil
   if settings.wishlist_enabled and settings.wishlist_page != blank
@@ -140,9 +139,9 @@
             </a>
           </li>
         {%- endif -%}
-        {%- if phone_digits != blank -%}
+        {%- if phone_href != blank -%}
           <li>
-            <a class="menu-drawer__row menu-drawer__row--icon" href="tel:{{ phone_href }}">
+            <a class="menu-drawer__row menu-drawer__row--icon" href="{{ phone_href }}">
               {%- render 'icon', name: 'phone', size: 22 -%}
               {{- 'header.phone' | t: phone: settings.contact_phone -}}
             </a>

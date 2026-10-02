@@ -14,7 +14,7 @@
     sold-out state and the "לבירור זמינות" link; CSS strikes them through and reveals a
     screen-reader-only suffix ("אזל מהמלאי") inside the label only while the radio carries
     `data-unavailable`, so the spoken name follows the script's marking.
-  - The variants JSON holds `{id, options, available, featured_media}` per variant.
+  - The variants JSON holds `{id, options, available, price, featured_media}` per variant (price in cents: the add-ons total in snippets/product-addons follows it).
   - Without JavaScript the radios are hidden and the buy form's `<noscript>` select is used.
   Nothing is rendered for products with only the default variant.
   Styles: assets/component-variant-picker.css.
@@ -104,7 +104,7 @@
     <script type="application/json">
       [
         {%- for vp_variant in product.variants -%}
-          {"id":{{ vp_variant.id }},"options":{{ vp_variant.options | json }},"available":{{ vp_variant.available | json }},"featured_media":
+          {"id":{{ vp_variant.id }},"options":{{ vp_variant.options | json }},"available":{{ vp_variant.available | json }},"price":{{ vp_variant.price | json }},"featured_media":
           {%- if vp_variant.featured_media -%}
             {"id":{{ vp_variant.featured_media.id }} }
           {%- else -%}

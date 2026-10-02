@@ -12,14 +12,30 @@
   (on phones inside the <summary>), so the heading outline is the same at every width.
 {%- endcomment -%}
 {%- liquid
-  assign store_address = settings.store_street | strip
-  if settings.store_city != blank
-    if store_address != blank
-      assign store_address = store_address | append: ', '
+  # The flagship's address, hours and map search come from its "branch" metaobject entry
+  # (handle branch-flagship), the same entry the branches page shows, so a change there reaches the
+  # footer too. The theme settings (store_street, store_city, store_hours) are the fallback when
+  # the store has no such entry.
+  assign flagship = metaobjects.branch['branch-flagship']
+  assign store_address = flagship.address.value | strip
+  assign store_hours = flagship.hours.value | strip
+  assign map_query = flagship.map_query.value | strip
+  if store_address == blank
+    assign store_address = settings.store_street | strip
+    if settings.store_city != blank
+      if store_address != blank
+        assign store_address = store_address | append: ', '
+      endif
+      assign store_address = store_address | append: settings.store_city
     endif
-    assign store_address = store_address | append: settings.store_city
   endif
-  assign map_query = store_address | url_encode
+  if store_hours == blank
+    assign store_hours = settings.store_hours | strip
+  endif
+  if map_query == blank
+    assign map_query = store_address
+  endif
+  assign map_query = map_query | url_encode
   assign map_url = 'https://www.google.com/maps/search/?api=1&query=' | append: map_query
 
   # tel: link from the same rules as the WhatsApp link (snippets/phone-href).
@@ -143,10 +159,10 @@
                         </dd>
                       </div>
                     {%- endif -%}
-                    {%- if settings.store_hours != blank -%}
+                    {%- if store_hours != blank -%}
                       <div class="footer__fact">
                         <dt>{%- render 'icon', name: 'clock', size: 18 -%}<span class="visually-hidden">{{ 'footer.branches.hours' | t }}</span></dt>
-                        <dd>{{ settings.store_hours | escape | newline_to_br }}</dd>
+                        <dd>{{ store_hours | escape | newline_to_br }}</dd>
                       </div>
                     {%- endif -%}
                     {%- if phone_href != blank -%}

@@ -5,10 +5,11 @@
   /search and fetched by assets/cart-upsell.js, and a block that may legitimately come back empty
   should not hold space in a drawer while it waits. No skeleton for the same reason.
 
-  The anchor is the first line that is a device (type מכשירים, טאבלטים, שעונים or אוזניות),
-  because that is what the rest of the cart hangs off: someone buying a phone still needs a case,
-  someone buying a case does not need another one, and a game or a gift card has no accessories to
-  match. A cart with no device in it gets no block at all.
+  The anchor is the first line whose product has accessory groups under the theme's accessory
+  rules (snippets/addon-groups, theme setting addon_rules): the same rules as the product page, so
+  a product type the merchant adds there (מחשבים, say) gets the block in the cart too. Devices have
+  rules and accessories do not, which is the point: someone buying a phone still needs a case,
+  someone buying a case does not need another one. A cart with no such line gets no block at all.
 
   Every query names the model or the maker. One that would be the group word alone ("כבל", "כיסוי")
   is not sent: it would fill the row with whatever ranks first in the whole catalogue. The house
@@ -27,11 +28,14 @@
   for cu_line in cart.items
     assign cu_skip = cu_skip | append: cu_line.product.handle | append: ','
     if cu_anchor == nil
-      assign cu_line_type = cu_line.product.type | strip
-      case cu_line_type
-        when 'מכשירים', 'טאבלטים', 'שעונים', 'אוזניות'
-          assign cu_anchor = cu_line.product
-      endcase
+      capture cu_probe
+        render 'addon-groups', product: cu_line.product
+      endcapture
+      assign cu_probe = cu_probe | strip
+      if cu_probe != blank
+        assign cu_anchor = cu_line.product
+        assign cu_groups = cu_probe
+      endif
     endif
   endfor
 -%}
@@ -43,7 +47,6 @@
     or a brand; a group that would ask for its word alone ("כבל", "מטען") is skipped, because it
     would fill the row with whatever ranks first in the whole catalogue.
   {%- endcomment -%}
-  {%- capture cu_groups -%}{%- render 'addon-groups', product: cu_anchor -%}{%- endcapture -%}
   {%- liquid
     assign cu_queries = ''
     assign cu_taken = 0

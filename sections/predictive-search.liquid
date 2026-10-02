@@ -147,7 +147,7 @@
               tabindex="-1"
             >
               <span class="predictive-search__type">{{ type_key | t }}</span>
-              <span class="predictive-search__title">{{ item.title | escape | highlight: ps_terms }}</span>
+              <span class="predictive-search__title">{{ item.title | escape | highlight: ps_terms }}&lrm;</span>
             </a>
           {%- endfor -%}
         </div>

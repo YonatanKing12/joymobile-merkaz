@@ -26,9 +26,7 @@ const SECTION = 'product-addons';
 
 class ProductAddons extends HTMLElement {
   connectedCallback() {
-    /* [role=tablist], not a data hook: the markup moved to a snippet and the hook did not come with
-       it, so the pills had no listener at all and nothing happened when one was pressed. The role is
-       the thing that actually has to be there. */
+    /* The pills are found by [role=tablist], the attribute the markup must carry anyway. */
     this.tablist = this.querySelector('[role="tablist"]');
     this.panels = [...this.querySelectorAll('[data-pa-panel]')];
     this.bar = this.querySelector('[data-pa-bar]');
@@ -47,6 +45,8 @@ class ProductAddons extends HTMLElement {
     this.available = this.dataset.paAvailable !== 'false';
     this.moneyFormat = this.dataset.paMoney || '{{amount_no_decimals_with_comma_separator}} ₪';
     this.totalBox = this.querySelector('[data-pa-total]');
+    this.subBox = this.querySelector('[data-pa-sub]');
+    this.sumLabel = this.querySelector('[data-pa-sum-label]');
     this.addEventListener('change', this);
     this.tablist?.addEventListener('click', this);
     this.tablist?.addEventListener('keydown', this);
@@ -102,7 +102,7 @@ class ProductAddons extends HTMLElement {
   clear() {
     this.checked.forEach((c) => { c.checked = false; });
     this.refresh();
-    this.say(this.str.paStrAdded);
+    this.say(this.pick('paStrAdded'));
   }
 
   /* An add that failed part-way: the cart drawer already shows what really went in. */
@@ -129,6 +129,11 @@ class ProductAddons extends HTMLElement {
     this.live.textContent = '';
     clearTimeout(this.sayTimer);
     this.sayTimer = setTimeout(() => { this.live.textContent = text; }, 120);
+  }
+
+  /* The sold-out wording when there is one ("…Solo" on the bar), else the usual string. */
+  pick(key) {
+    return (!this.available && this.str[`${key}Solo`]) || this.str[key] || '';
   }
 
   get tabs() { return this.tablist ? [...this.tablist.querySelectorAll('[role="tab"]')] : []; }
@@ -255,9 +260,12 @@ class ProductAddons extends HTMLElement {
       box.hidden = picked === 0;
     });
 
-    const hint = n === 0 ? this.str.paStrHintIdle
-      : n === 1 ? this.str.paStrHintOne
-      : this.str.paStrHintMany.replace('{count}', n);
+    /* Sold out, the device is not part of the purchase: the copy drops "יחד עם המכשיר". */
+    if (this.subBox) this.subBox.textContent = this.pick('paStrSub');
+    if (this.sumLabel) this.sumLabel.textContent = this.pick('paStrTotal');
+    const hint = n === 0 ? this.pick('paStrHintIdle')
+      : n === 1 ? this.pick('paStrHintOne')
+      : this.pick('paStrHintMany').replace('{count}', n);
     if (this.hint) this.hint.textContent = hint;
     if (this.label) {
       this.label.textContent = n === 0 ? this.str.paStrIdle

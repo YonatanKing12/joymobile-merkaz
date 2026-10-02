@@ -1,5 +1,5 @@
 import {
-  routes, postJSON, fetchJSON, fetchSections, parseHTML, replaceContent, emit, on, announce, t, sectionIdOf, define, DialogElement
+  routes, postJSON, fetchSections, parseHTML, replaceContent, emit, on, announce, t, sectionIdOf, define, DialogElement
 } from '@theme/global';
 
 // Serialised, so responses never render out of order.
@@ -44,8 +44,6 @@ export function renderSections(sections) {
     }
   }
 }
-
-export const getCart = () => fetchJSON(`${routes.cart}.js`);
 
 export function addItems(items, { sections = sectionIds(), open = true, opener } = {}) {
   return serial(async () => {

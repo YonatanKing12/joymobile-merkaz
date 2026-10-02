@@ -231,11 +231,11 @@
       <ol class="breadcrumbs__list" role="list">
         {%- for crumb_name in crumb_name_list -%}
           <li class="breadcrumbs__item">
-            <a class="breadcrumbs__link" href="{{ crumb_url_list[forloop.index0] }}">{{ crumb_name | escape }}</a>
+            <a class="breadcrumbs__link" href="{{ crumb_url_list[forloop.index0] }}">{{ crumb_name | escape }}&lrm;</a>
           </li>
         {%- endfor -%}
         <li class="breadcrumbs__item">
-          <span class="breadcrumbs__current" aria-current="page">{{ current_title | escape }}</span>
+          <span class="breadcrumbs__current" aria-current="page">{{ current_title | escape }}&lrm;</span>
         </li>
       </ol>
     </nav>
@@ -279,8 +279,10 @@
     color: var(--color-ink);
     text-decoration: none;
   }
-  .breadcrumbs__link:hover {
-    text-decoration: underline;
+  @media (hover: hover) {
+    .breadcrumbs__link:hover {
+      text-decoration: underline;
+    }
   }
   .breadcrumbs__current {
     color: var(--color-muted);

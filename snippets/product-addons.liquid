@@ -54,7 +54,8 @@
   >
     <div class="pa__head">
       <h2 class="pa__heading">{{ 'products.addons.heading' | t }}</h2>
-      <p class="pa__sub">{{ 'products.addons.sub' | t }}</p>
+      {%- comment -%} Sold out: nothing rides with the device, so the copy says so (assets/product-addons.js keeps it in step on variant change). {%- endcomment -%}
+      <p class="pa__sub" data-pa-sub>{% if pa_variant.available %}{{ 'products.addons.sub' | t }}{% else %}{{ 'products.addons.sub_solo' | t }}{% endif %}</p>
     </div>
 
     <div class="pa__tabs" role="tablist" aria-label="{{ 'products.addons.heading' | t }}">
@@ -122,12 +123,28 @@
       data-pa-str-busy="{{ 'products.addons.cta_busy' | t | escape }}"
       data-pa-str-error="{{ 'products.addons.error' | t | escape }}"
       data-pa-str-added="{{ 'products.addons.added' | t | escape }}"
+      data-pa-str-sub="{{ 'products.addons.sub' | t | escape }}"
+      data-pa-str-total="{{ 'products.addons.total' | t | escape }}"
+      data-pa-str-sub-solo="{{ 'products.addons.sub_solo' | t | escape }}"
+      data-pa-str-total-solo="{{ 'products.addons.total_solo' | t | escape }}"
+      data-pa-str-hint-idle-solo="{{ 'products.addons.hint_idle_solo' | t | escape }}"
+      data-pa-str-hint-one-solo="{{ 'products.addons.hint_one_solo' | t | escape }}"
+      data-pa-str-hint-many-solo="{{ 'products.addons.hint_many_solo' | t | escape }}"
+      data-pa-str-added-solo="{{ 'products.addons.added_solo' | t | escape }}"
     >
-      <p class="pa__hint" data-pa-hint>{{ 'products.addons.hint_idle' | t }}</p>
+      {%- if pa_variant.available -%}
+        <p class="pa__hint" data-pa-hint>{{ 'products.addons.hint_idle' | t }}</p>
+      {%- else -%}
+        <p class="pa__hint" data-pa-hint>{{ 'products.addons.hint_idle_solo' | t }}</p>
+      {%- endif %}
       <p class="pa__sum">
-        <span class="pa__sum-label">{{ 'products.addons.total' | t }}</span>
+        <span class="pa__sum-label" data-pa-sum-label>{% if pa_variant.available %}{{ 'products.addons.total' | t }}{% else %}{{ 'products.addons.total_solo' | t }}{% endif %}</span>
         <span class="pa__sum-value" data-pa-total>
-          {{- pa_variant.price | money_without_trailing_zeros -}}
+          {%- if pa_variant.available -%}
+            {{- pa_variant.price | money_without_trailing_zeros -}}
+          {%- else -%}
+            {{- 0 | money_without_trailing_zeros -}}
+          {%- endif -%}
         </span>
       </p>
       <button class="button button--accent pa__submit" type="button" data-pa-submit disabled>
