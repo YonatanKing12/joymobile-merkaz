@@ -28,6 +28,22 @@
             "text_color": "dark"
           }
         },
+        "slide_hNxEAV": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/2.png",
+            "image_mobile": "shopify://shop_images/2_fa5ce580-1fda-4d81-8aef-fa5a77527bfb.png",
+            "alt": "aipods max 2 סאונד עוצמתי, איכות ויוקרה שאין כמוה במחירי joy",
+            "link": "shopify://collections/air-pods-max-2",
+            "video_on_mobile": false,
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
+        },
         "slide-telegram-vip": {
           "type": "slide",
           "settings": {
@@ -47,6 +63,7 @@
       },
       "block_order": [
         "slide-galaxy-s26",
+        "slide_hNxEAV",
         "slide-telegram-vip"
       ],
       "settings": {
