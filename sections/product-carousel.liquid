@@ -5,7 +5,8 @@
   products are left. Products with a photo come first. Per view: 2.2 (<768, the next card peeks in) · 3.2 (768) ·
   4 (992) · 5 (1200) · 6 (1600) · 7 (1920) · 8 (2300).
   The arrows wrap around at the ends. Cards near the top of the page (section index <= 3, first five) are not
-  lazy-loaded. The page's HTML holds the first five cards (a full strip from phones to 1599px); the rest come
+  lazy-loaded. The page's HTML holds the first five cards (a full strip from phones to 1599px; eight for a strip
+  that can be in the first viewport, a full strip at any width); the rest come
   from assets/product-carousel.js through Section Rendering when the strip nears the viewport.
 {%- endcomment -%}
 {%- liquid
@@ -23,12 +24,17 @@
     assign pc_eager = 5
   endif
 
-  # Cards printed in the page: five, enough for every viewport up to 1599px (2.2 · 3.2 · 4 · 5 per view).
+  # Cards printed in the page: five, a full view up to 1599px (2.2 · 3.2 · 4 · 5 per view). A strip that can
+  # sit in the first viewport (index 4 or less on the home page) prints eight, a full view at the widest
+  # setting too (6 · 7 · 8 per view from 1600px), so it shows no empty slots while the rest are fetched.
   # All of them when the section itself is requested (Section Rendering and the theme editor, where
   # section.index is nil) and when there is no "view all" link, the only way to the rest without JavaScript.
   assign pc_initial = pc_limit
   if section.index != blank and section.settings.show_view_all and pc_collection != blank
     assign pc_initial = 5
+    if section.index <= 4
+      assign pc_initial = 8
+    endif
   endif
 
   assign pc_count = 0

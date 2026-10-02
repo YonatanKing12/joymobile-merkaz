@@ -219,3 +219,10 @@ html.no-js .product-carousel__carousel .product-carousel__arrow {
     inset-inline-end: -1.375rem;
   }
 }
+
+/* Arrows only when the track really overflows: carousel.js keeps [data-scrollable] on the slider. Covers a
+   strip whose missing cards could not be fetched (assets/product-carousel.js), which would otherwise show
+   arrows that do nothing. The buttons are absolutely positioned, so hiding them shifts nothing. */
+.product-carousel__carousel:defined:not([data-scrollable]) .product-carousel__arrow {
+  display: none;
+}

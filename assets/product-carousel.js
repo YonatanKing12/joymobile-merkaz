@@ -4,7 +4,9 @@
  * every card, and appends the cards the page does not have yet (matched by product id, so a product that
  * sold out or came back in between is neither doubled nor skipped). The request goes out at low priority:
  * it must never compete with the hero image. Without JavaScript the strip keeps its first cards and the
- * "view all" link; if the request fails it simply stays as it is.
+ * "view all" link. A failed request (a 429 under load, say) is retried twice with a growing wait, each time
+ * only once the strip is near the viewport again; after that the strip keeps its first cards, and its
+ * arrows hide (assets/section-product-carousel.css) because the track has nothing to scroll to.
  */
 import { define, fetchSectionHTML, parseHTML } from '@theme/global';
 
@@ -20,6 +22,7 @@ class ProductCarousel extends HTMLElement {
   disconnectedCallback() {
     this.io?.disconnect();
     this.controller?.abort();
+    clearTimeout(this.retry);
   }
 
   async load() {
@@ -39,8 +42,16 @@ class ProductCarousel extends HTMLElement {
       this.removeAttribute('data-more');
       // The track keeps its size, so the carousel's ResizeObserver does not fire: re-read the slide offsets.
       this.querySelector('carousel-slider')?.measure?.();
-    } catch {
-      // Aborted (the section left the page) or failed: the strip keeps the cards it has.
+    } catch (error) {
+      // Aborted: the section left the page. Failed: try again later, at most twice.
+      if (error.name === 'AbortError' || !this.isConnected) return;
+      this.tries = (this.tries || 0) + 1;
+      if (this.tries < 3) {
+        const wait = (error.status === 429 ? 5000 : 2000) * this.tries;
+        this.retry = setTimeout(() => this.isConnected && this.io.observe(this), wait);
+      } else {
+        this.removeAttribute('data-more');
+      }
     }
   }
 }
