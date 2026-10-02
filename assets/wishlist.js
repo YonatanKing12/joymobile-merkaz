@@ -1,5 +1,5 @@
 // Storage may throw (private mode): the in-memory list keeps the page working.
-import { routes, emit, on, t, define } from '@theme/global';
+import { routes, emit, on, t, define, announce, parseHTML, strings } from '@theme/global';
 
 const KEY = 'mhm:wishlist';
 let list = [];
@@ -34,7 +34,10 @@ export function toggle(handle) {
 }
 export const remove = (handle) => has(handle) && save(list.filter((h) => h !== handle));
 
-// Constant label; aria-pressed carries the state.
+// Constant label; aria-pressed carries the state, and a polite message says what the tap did (focus may move on the
+// wishlist page, where un-hearting removes the card). Only localized strings are spoken (window.theme.strings).
+const say = (key) => strings[key] && announce(strings[key]);
+
 class WishlistButton extends HTMLElement {
   connectedCallback() {
     this.button = this.querySelector('button');
@@ -50,7 +53,7 @@ class WishlistButton extends HTMLElement {
 
   handleEvent(e) {
     e.preventDefault();
-    toggle(this.dataset.handle);
+    say(toggle(this.dataset.handle) ? 'wishlistAdded' : 'wishlistRemoved');
   }
 }
 
@@ -76,9 +79,14 @@ class WishlistGrid extends HTMLElement {
     this.render();
   }
 
-  disconnectedCallback() { this.off?.(); }
+  disconnectedCallback() {
+    this.off?.();
+    this.ctrl?.abort();
+  }
 
   async render() {
+    this.ctrl?.abort();
+    this.ctrl = new AbortController();
     const slots = list.map((handle) => {
       const slot = Object.assign(document.createElement('li'), { className: 'grid__item' });
       slot.dataset.handle = handle;
@@ -97,13 +105,20 @@ class WishlistGrid extends HTMLElement {
     this.empty();
   }
 
+  // A redirect (renamed product: Shopify drops ?view=card and answers with the whole page) or a non-HTML answer
+  // counts as gone, like a 404: the handle and its slot are dropped. Only the card element itself is inserted.
   async fill(slot) {
     const { handle } = slot.dataset;
     try {
-      const res = await fetch(`${routes.root}products/${encodeURIComponent(handle)}?view=card`);
-      if (res.status === 404) remove(handle);
+      const res = await fetch(`${routes.root}products/${encodeURIComponent(handle)}?view=card`, { signal: this.ctrl.signal });
+      if (res.status === 404 || res.redirected || (res.ok && !res.headers.get('content-type')?.includes('text/html'))) {
+        remove(handle);
+        throw new Error('gone');
+      }
       if (!res.ok) throw new Error(res.status);
-      slot.innerHTML = await res.text();
+      const card = [...parseHTML(await res.text()).children].find((el) => el.matches('.card-product'));
+      if (!card) throw new Error('no card');
+      slot.replaceChildren(card);
     } catch {
       slot.remove();
     }

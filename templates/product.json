@@ -164,10 +164,20 @@
         "padding_top": 50,
         "padding_bottom": 40
       }
+    },
+    "recently_viewed": {
+      "type": "recently-viewed",
+      "settings": {
+        "heading": "צפיתם לאחרונה",
+        "products_limit": 10,
+        "padding_top": 10,
+        "padding_bottom": 40
+      }
     }
   },
   "order": [
     "main",
-    "related"
+    "related",
+    "recently_viewed"
   ]
 }

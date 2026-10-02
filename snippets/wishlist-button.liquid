@@ -4,8 +4,9 @@
   Markup contract for `<wishlist-button>` (defined in @theme/wishlist): the element
   carries `data-handle`; the real control is the inner <button type="button"> whose
   `aria-pressed` the script sets to "true"/"false" from storage on connect and on
-  every `wishlist:changed` event. There is no live-region message: screen readers
-  announce the pressed state itself, so an extra message would be read twice.
+  every `wishlist:changed` event. After a tap the script also announces "המוצר נוסף
+  למועדפים" / "המוצר הוסר מהמועדפים" (polite live region, wishlist.button.added/removed):
+  the pressed state alone says nothing on the wishlist page, where the card disappears.
   The accessible name is constant (toggle-button pattern: the pressed state, not
   the label, says whether the product is saved). The script keeps the aria-label
   printed here and only adds the generic "הוספה/הסרה מהמועדפים" when it is missing.

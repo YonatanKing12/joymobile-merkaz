@@ -2,19 +2,28 @@
   Product card: a rounded white card with a soft image well (white-background photos blend
   into it), the badges and the wishlist heart over the image, the brand name, a two-line
   title, colour dots when the product has several colours, the Eilat price, a stock line
-  and ONE full-width "שריון באילת" button. Hover: the card lifts, the image zooms slowly
-  (off for reduced motion) and the button turns green.
+  and ONE full-width green button. Hover: the card lifts, the image zooms slowly
+  (off for reduced motion) and the button turns mint.
+
+  The title ends with an LRM (U+200E): a "+" or an inch mark closing a Latin model name
+  ("… ל-Galaxy S25+") otherwise jumps to the far left of the RTL line. Not a <bdi>: dir=auto
+  makes Latin-first titles ("Samsung Galaxy S26 FE 256GB סגול – יבואן רשמי") read Hebrew-first,
+  and an RTL isolate changes nothing.
 
   The title link stretches over the whole card, so each card is one tab stop plus the heart
   and the button, which sit above the stretched link.
-  - Single-variant product: a tiny /cart/add form inside <product-form data-mode="cart">
-    (@theme/product) — with JS it reserves through AJAX and opens the cart drawer; without JS
-    (or before product.js loads) the form posts and lands on /cart.
-  - Multi-variant product: the button is a link to the product page (label unchanged).
+  - Single-variant product: "שריון באילת", a tiny /cart/add form inside <product-form data-mode="cart">
+    (@theme/product) — with JS it adds through AJAX and opens the cart drawer, where the
+    accessories that fit the device are offered; without JS (or before product.js loads) the form
+    posts and lands on /cart. Deliberately not the product page's straight-to-checkout: a card is
+    where people browse and collect, and skipping the drawer would skip its upsell.
+  - Multi-variant product: "לבחירת דגם", a link to the product page, where the variant is chosen
+    (a different label, so "שריון באילת" always means the same thing).
   - Sold out: a disabled "אזל מהמלאי" button.
 
   Brand: the vendor name above the title (theme setting "הצגת המותג"); nothing when the vendor
-  is the store itself. A product without a photo shows its brand logo in the image well —
+  is the store itself (the store name or the theme's brand name, compared case-insensitively:
+  the house vendor is "joy mobile"). A product without a photo shows its brand logo in the image well —
   the file `brand-<vendor handle>.png` from the store's Files (Content › Files, e.g.
   brand-apple.png) — or the JOY Mobile symbol when there is no such file.
 
@@ -67,9 +76,13 @@
   # Cards: ≈250–290px in desktop strips and grids, ≈30vw on tablets, 2–2.2 per row on phones (≈44vw).
   assign card_sizes = '(min-width: 1200px) 290px, (min-width: 768px) 30vw, 44vw'
 
+  # The house vendor is the store itself, not a brand: same keys as snippets/structured-data.
   assign card_vendor = product.vendor | strip
+  assign card_vendor_key = card_vendor | downcase
+  assign card_shop_key = shop.name | strip | downcase
+  assign card_brand_key = settings.brand_name | strip | downcase
   assign card_brand_logo = nil
-  if card_vendor != blank and card_vendor != shop.name
+  if card_vendor != blank and card_vendor_key != card_shop_key and card_vendor_key != card_brand_key
     if card_image == blank
       assign card_brand_file = card_vendor | handleize | prepend: 'brand-' | append: '.png'
       assign card_brand_logo = images[card_brand_file]
@@ -160,7 +173,7 @@
     {%- endif -%}
 
     <{{ card_heading }} class="card-product__title">
-      <a class="card-product__link" href="{{ card_url }}">{{ product.title | escape }}</a>
+      <a class="card-product__link" href="{{ card_url }}">{{ product.title | escape }}&lrm;</a>
     </{{ card_heading }}>
 
     {%- if card_swatches -%}
@@ -207,9 +220,8 @@
           </product-form>
         {%- else -%}
           <a class="button card-product__button" href="{{ card_url }}">
-            {%- render 'icon', name: 'bag', size: 18, class: 'card-product__button-icon' -%}
             <span>
-              {{- 'products.card.reserve' | t -}}
+              {{- 'products.card.choose' | t -}}
               <span class="visually-hidden">: {{ product.title | escape }}</span>
             </span>
           </a>

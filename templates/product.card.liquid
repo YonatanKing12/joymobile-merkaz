@@ -2,7 +2,9 @@
   Alternate product view: /products/<handle>?view=card
   Returns only the product card markup (no layout), fetched by <wishlist-grid>
   (assets/wishlist.js) to build the wishlist page from the handles saved in
-  localStorage. Depends on snippets/card-product.liquid (built by the card agent).
+  localStorage, and by <recently-viewed> (assets/recently-viewed.js). Both insert
+  only the top-level .card-product element. Depends on snippets/card-product.liquid
+  (built by the card agent).
 {%- endcomment -%}
 {%- layout none -%}
 {%- render 'card-product', product: product, lazy: true, heading: 'h2', show_swatches: settings.card_show_swatches -%}

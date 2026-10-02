@@ -1,2 +1,3 @@
 # Theme Check runs on every file Shopify serves; the repo holds only the theme, so nothing is ignored.
 # The same check runs on GitHub for pull requests and pushes to main: .github/workflows/theme-check.yml.
+ignore: []

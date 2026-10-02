@@ -285,7 +285,7 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   --button-text: var(--color-button-accent-text);
   gap: 0.5rem;
   width: 100%;
-  min-height: 2.625rem;
+  min-height: var(--tap-target); /* 44px, on narrow phone cards too */
   padding: 0 var(--space-sm);
   border-radius: var(--radius-button);
   font-size: var(--text-md);
@@ -295,13 +295,6 @@ html.a11y-no-motion .card-product:hover .card-product__img {
 
 .card-product__button-icon {
   flex: none;
-}
-
-/* Tap target: at least 44px tall around the 42px button. */
-.card-product__button::before {
-  content: "";
-  position: absolute;
-  inset: -0.0625rem 0;
 }
 
 /* The whole card answers the pointer: its green button turns mint, navy text throughout (10.4:1). */
@@ -375,7 +368,6 @@ html.a11y-no-motion .card-product:hover .card-product__img {
   }
 
   .card-product__button {
-    min-height: 2.5rem;
     font-size: var(--text-sm);
   }
 

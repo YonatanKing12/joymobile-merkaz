@@ -98,8 +98,12 @@
         {%- if pm_count == 0 -%}
           {%- liquid
             assign pm_brand_logo = nil
+            # The house vendor ("joy mobile") is the store, not a brand: compared like snippets/card-product.
             assign pm_vendor = product.vendor | strip
-            if pm_vendor != blank and pm_vendor != shop.name
+            assign pm_vendor_key = pm_vendor | downcase
+            assign pm_shop_key = shop.name | strip | downcase
+            assign pm_brand_key = settings.brand_name | strip | downcase
+            if pm_vendor != blank and pm_vendor_key != pm_shop_key and pm_vendor_key != pm_brand_key
               assign pm_brand_file = pm_vendor | handleize | prepend: 'brand-' | append: '.png'
               assign pm_brand_logo = images[pm_brand_file]
             endif
@@ -276,7 +280,13 @@
         aria-roledescription="{{ 'products.product.media.carousel' | t }}"
         aria-label="{{ 'products.product.media.lightbox' | t: title: product.title }}"
       >
-        <div class="carousel__track product-lightbox__track" role="list" tabindex="-1">
+        {%- comment -%} Named: opening the lightbox focuses this list (assets/product.js). {%- endcomment -%}
+        <div
+          class="carousel__track product-lightbox__track"
+          role="list"
+          tabindex="-1"
+          aria-label="{{ 'products.product.media.lightbox' | t: title: product.title }}"
+        >
           {%- for pm_position in pm_positions -%}
             {%- liquid
               assign pm_index = pm_position | minus: 1
