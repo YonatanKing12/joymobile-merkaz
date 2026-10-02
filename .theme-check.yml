@@ -1,9 +1,2 @@
-# The previous theme is kept under legacy-theme/ so its VAT components can be
-# grafted into the new base. It is not part of the theme Shopify serves, so it
-# must not be linted as if it were — otherwise every snippet it references looks
-# like a missing template.
-ignore:
-  - legacy-theme/**
-  - docs/**
-  - scripts/**
-  - data/**
+# Theme Check runs on every file Shopify serves; the repo holds only the theme, so nothing is ignored.
+# The same check runs on GitHub for pull requests and pushes to main: .github/workflows/theme-check.yml.

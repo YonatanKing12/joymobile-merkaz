@@ -1,0 +1,28 @@
+# Runs what a contributor runs locally before a change reaches the live theme (which syncs from main).
+name: Theme Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  theme-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Theme Check (errors fail the run)
+        run: npx --yes @shopify/cli@3 theme check --fail-level error
+      - name: JavaScript syntax (every asset is an ES module)
+        run: for f in assets/*.js; do node --input-type=module --check < "$f" || { echo "::error file=$f::syntax error"; exit 1; }; done
+      - name: JSON validity (templates, config, locales)
+        run: |
+          for f in templates/*.json config/*.json locales/*.json sections/*.json; do
+            node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8').replace(/^\/\*[\s\S]*?\*\/\s*/, ''))" "$f" || { echo "::error file=$f::invalid JSON"; exit 1; }
+          done
