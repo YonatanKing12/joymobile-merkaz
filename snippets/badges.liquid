@@ -1,5 +1,6 @@
 {% doc %}
-  Product badges: TAX FREE, "חדש בחנות", "אחרונים במלאי" and "אזל מהמלאי".
+  Product badges: TAX FREE, "חדש בחנות", "אחרונים במלאי", "אזל מהמלאי" and, on the product
+  page, the import channel ("יבוא מקביל", "יד שנייה", "מחודש", "יבואן רשמי").
 
   Rules (ported from the previous theme and made configurable):
   - TAX FREE: same rule as the price snippet — only when the variant is not
@@ -11,14 +12,18 @@
     (default 2). Product page only: cards say it in their stock line instead.
   - New in store: the product carries one of the tags listed in
     `settings.badge_new_tags` (default "חדש,new"; exact tag, case-insensitive).
+  - Import channel: product page only, from snippets/import-channel and nothing else (it
+    alone decides "יבואן רשמי": a tag "מקביל", "יד שניה" or "מחודש" always wins over the
+    metafields, and the title suffix is never read). Theme setting `badge_show_import_channel`.
+    A channel that is only a warranty provider ("DCS") gets no badge.
   At most one status badge is shown, by priority: sold out, then last units,
   then new. Each badge type can be switched off in theme settings. Nothing is
   rendered when there is no badge. Positioning is the caller's job (card/gallery CSS).
 
   Markup classes (styled by Track F's assets/component-badges.css; baseline in
   docs/rebuild/reports/liquid-core-component-css.css): ul.badges, .badges--card | .badges--product,
-  li.badge, .badge--sold-out | .badge--low-stock | .badge--new | .badge--tax-free,
-  .badge__title, .badge__subtitle. The status badge comes first, TAX FREE last.
+  li.badge, .badge--sold-out | .badge--low-stock | .badge--new | .badge--channel | .badge--tax-free,
+  .badge__title, .badge__subtitle. The status badge comes first, then the channel, TAX FREE last.
 
   @param {product} product - The product.
   @param {variant} [variant] - The variant to evaluate (product page). Default: selected or first available variant.
@@ -41,6 +46,24 @@
   assign badge_tax_free = false
   if settings.tax_free_labels and settings.badge_show_tax_free and badge_variant.taxable == false
     assign badge_tax_free = true
+  endif
+
+  assign badge_channel = ''
+  assign badge_channel_text = ''
+  if settings.badge_show_import_channel and badge_context == 'product'
+    capture badge_channel
+      render 'import-channel', product: product, format: 'key'
+    endcapture
+    case badge_channel
+      when 'official'
+        assign badge_channel_text = 'products.product.warranty_official' | t
+      when 'parallel'
+        assign badge_channel_text = 'products.product.import_parallel' | t
+      when 'used'
+        assign badge_channel_text = 'products.product.import_used' | t
+      when 'refurbished'
+        assign badge_channel_text = 'products.product.import_refurbished' | t
+    endcase
   endif
 
   assign badge_status = ''
@@ -72,7 +95,7 @@
     endif
   endif
 -%}
-{%- if badge_tax_free or badge_status != blank -%}
+{%- if badge_tax_free or badge_status != blank or badge_channel_text != blank -%}
   <ul class="badges badges--{{ badge_context }}{% if class != blank %} {{ class }}{% endif %}" role="list" aria-label="{{ 'products.badges.group_label' | t }}">
     {%- case badge_status -%}
       {%- when 'sold-out' -%}
@@ -82,6 +105,9 @@
       {%- when 'new' -%}
         <li class="badge badge--new">{{ 'products.badges.new' | t }}</li>
     {%- endcase -%}
+    {%- if badge_channel_text != blank -%}
+      <li class="badge badge--channel badge--channel-{{ badge_channel }}">{{ badge_channel_text }}</li>
+    {%- endif -%}
     {%- if badge_tax_free -%}
       <li class="badge badge--tax-free">
         <span class="badge__title" lang="en">{{ 'products.badges.tax_free_title' | t }}</span>

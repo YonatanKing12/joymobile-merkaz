@@ -112,3 +112,10 @@
 .badges--product .badge:not(.badge--tax-free) {
   font-size: var(--text-sm);
 }
+
+/* Import channel (product page): a neutral outlined pill — information, not a promotion. */
+.badge--channel {
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-ink);
+}

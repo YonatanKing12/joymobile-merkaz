@@ -127,6 +127,8 @@
       "tax_free": "TAX FREE",
       "tax_free_note": "(מחיר אילת ללא מע״מ)",
       "with_vat": "מחיר כולל מע״מ",
+      "saving": "חוסכים {{ amount }} לעומת המחיר בארץ",
+      "saving_short": "חוסכים {{ amount }}",
       "regular": "מחיר רגיל",
       "sale": "מחיר מבצע",
       "from": "החל מ־{{ price }}",
@@ -165,6 +167,9 @@
       "sticky_error": "המוצר לא נוסף — הפרטים ליד כפתורי הקנייה",
       "warranty_label": "אחריות:",
       "warranty_official": "יבואן רשמי",
+      "import_parallel": "יבוא מקביל",
+      "import_used": "יד שנייה",
+      "import_refurbished": "מחודש",
       "warranty_months": {
         "one": "חודש אחד",
         "two": "חודשיים",

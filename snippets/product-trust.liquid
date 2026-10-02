@@ -8,8 +8,8 @@
     "נותרו N יחידות במלאי" (tracked stock at or under the threshold), "זמין בהזמנה
     מוקדמת" (overselling allowed) or "אזל מהמלאי";
   - pickup: the label, the address from the theme settings (store_street, store_city) and a note;
-  - warranty from `custom.warranty_months` / `custom.warranty_channel` /
-    `custom.warranty_official` (fallback text optional);
+  - warranty: `custom.warranty_months` and the import channel from snippets/import-channel,
+    the only place that decides "יבואן רשמי" (fallback text optional);
   - payment note;
   - `[data-swap="pickup"]`: `<pickup-availability>` pre-filled with part 'pickup' for the
     selected variant (no layout shift); @theme/product refreshes it from
@@ -51,27 +51,22 @@
   {% render 'product-trust', part: 'box', product: product, section_id: section.id, blocks: section.blocks, heading: section.settings.trust_heading %}
 {% enddoc %}
 {%- liquid
-  # Warranty text from the product metafields (lines and box).
+  # Warranty text (lines and box): the months, then the import channel (snippets/import-channel).
   assign pt_warranty = ''
+  assign pt_channel = ''
   if product != blank and part != 'pickup'
-    assign pt_mf = product.metafields.custom
-    assign pt_months = pt_mf.warranty_months.value
-    assign pt_channel = pt_mf.warranty_channel.value | strip
-    assign pt_official = pt_mf.warranty_official.value
+    assign pt_months = product.metafields.custom.warranty_months.value
     if pt_months != blank
       assign pt_warranty = 'products.product.warranty_months' | t: count: pt_months
     endif
+    capture pt_channel
+      render 'import-channel', product: product
+    endcapture
     if pt_channel != blank
       if pt_warranty != blank
         assign pt_warranty = pt_warranty | append: ' · '
       endif
       assign pt_warranty = pt_warranty | append: pt_channel
-    elsif pt_official == true
-      if pt_warranty != blank
-        assign pt_warranty = pt_warranty | append: ' · '
-      endif
-      assign pt_official_text = 'products.product.warranty_official' | t
-      assign pt_warranty = pt_warranty | append: pt_official_text
     endif
   endif
 

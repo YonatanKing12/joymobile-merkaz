@@ -10,7 +10,12 @@
   Title: "<page> | JOY Mobile אילת" — the page's own title (or the SEO title set in the
   admin) first, then the brand and the city (theme setting store_city), the words people
   search with. Tag filters and page numbers join the page part with " – ". A title that
-  already contains the brand gets no suffix. The home page, when the admin sets no home
+  already contains the brand gets no suffix. Products get the shorter "<product> | JOY
+  אילת" (the brand's first word and the city) and lose the importer suffix the POS import
+  writes after " – " ("– יבואן רשמי", "– DCS", "– סאני"), so the city stays inside Google's
+  ~60-character title cut; a suffix that states the condition ("– יד שנייה", "– מחודש") or a
+  model number ("– דגם 24023") stays, and an SEO title set in the admin is used as written.
+  Collections, pages and the rest keep the full suffix. The home page, when the admin sets no home
   page title, gets general.meta.home_title ("JOY Mobile אילת | סלולר, מחשבים
   ואלקטרוניקה ללא מע״מ"). Shopify's English titles of the cart, search and 404 pages
   give way to the Hebrew breadcrumb names.
@@ -74,6 +79,22 @@
       assign base_title = ''
   endcase
 
+  assign meta_suffix = title_suffix
+  if request.page_type == 'product'
+    assign meta_suffix = brand_name | split: ' ' | first
+    if store_city != blank
+      assign meta_suffix = meta_suffix | append: ' ' | append: store_city
+    endif
+    if product.metafields.global.title_tag.value == blank and base_title contains ' – '
+      assign meta_head = base_title | split: ' – ' | first | strip
+      assign meta_tail = base_title | remove_first: meta_head | remove_first: ' – ' | strip
+      assign meta_tail_start = meta_tail | slice: 0, 3
+      unless meta_tail contains 'יד שני' or meta_tail contains 'מחודש' or meta_tail_start == 'דגם' or meta_head == blank
+        assign base_title = meta_head
+      endunless
+    endif
+  endif
+
   assign meta_title = base_title
   if current_tags
     assign meta_tag_list = current_tags | join: ', '
@@ -103,7 +124,7 @@
     assign meta_title = title_suffix
   else
     unless meta_title contains brand_name
-      assign meta_title = meta_title | append: ' | ' | append: title_suffix
+      assign meta_title = meta_title | append: ' | ' | append: meta_suffix
     endunless
   endif
 -%}

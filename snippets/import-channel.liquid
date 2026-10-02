@@ -1,0 +1,83 @@
+{% doc %}
+  The import channel of a product, decided in this one place so the product page can't call a
+  product "יבואן רשמי" in one spot and something else in another. snippets/product-specs (the
+  warranty row), snippets/product-trust (the warranty line and trust point) and snippets/badges
+  (the channel badge of the product page) print what this returns; none of them reads the
+  channel tags or the warranty metafields on its own.
+
+  Precedence, first match wins:
+  1. Tags (exact): "יד שניה" or "יד שנייה" → used, "מחודש" → refurbished, "מקביל" → parallel.
+     Such a product is never official, whatever the metafields or the title say.
+  2. Metafields: custom.warranty_channel naming "מקביל" → parallel; custom.warranty_official
+     true → official; custom.warranty_channel naming "יבואן רשמי" → official; any other
+     custom.warranty_channel text (a warranty provider such as "DCS") → other.
+  3. Nothing: the channel is unknown and nothing is printed.
+  Not sources, on purpose: the title suffix (" – יבואן רשמי", written by the POS import; on
+  some products it contradicts the tags) and the tag "רשמי". "Official" is only ever the
+  owner's explicit metafield.
+
+  Label (default output), the words after the warranty months:
+  - from a tag: "יבוא מקביל" for parallel (used and refurbished already say so in the title and
+    the schema itemCondition), then the custom.warranty_channel text when it names a warranty
+    provider and not an import channel (no "יבוא" in it): "יבוא מקביל · DCS".
+  - from the metafields: the custom.warranty_channel text, else "יבואן רשמי" when
+    custom.warranty_official is true (the rule product-specs and product-trust had before).
+
+  @param {product} product - The product.
+  @param {string} [format] - 'label' (default) or 'key': official | parallel | used | refurbished | other, or nothing.
+
+  @example
+  {%- capture channel_label -%}{%- render 'import-channel', product: product -%}{%- endcapture -%}
+  {%- capture channel_key -%}{%- render 'import-channel', product: product, format: 'key' -%}{%- endcapture -%}
+{% enddoc %}
+{%- liquid
+  assign ic_text = product.metafields.custom.warranty_channel.value | strip
+  assign ic_official = product.metafields.custom.warranty_official.value
+
+  assign ic_key = ''
+  assign ic_from_tag = true
+  if product.tags contains 'יד שניה' or product.tags contains 'יד שנייה'
+    assign ic_key = 'used'
+  elsif product.tags contains 'מחודש'
+    assign ic_key = 'refurbished'
+  elsif product.tags contains 'מקביל'
+    assign ic_key = 'parallel'
+  else
+    assign ic_from_tag = false
+    if ic_text contains 'מקביל'
+      assign ic_key = 'parallel'
+    elsif ic_official == true
+      assign ic_key = 'official'
+    elsif ic_text contains 'יבואן רשמי'
+      assign ic_key = 'official'
+    elsif ic_text != blank
+      assign ic_key = 'other'
+    endif
+  endif
+
+  if format == 'key'
+    echo ic_key
+  else
+    assign ic_label = ''
+    if ic_from_tag
+      if ic_key == 'parallel'
+        assign ic_label = 'products.product.import_parallel' | t
+      endif
+      # A provider ("DCS") is kept; a text that names an import channel would contradict the tag.
+      if ic_text != blank
+        unless ic_text contains 'יבוא'
+          if ic_label != blank
+            assign ic_label = ic_label | append: ' · '
+          endif
+          assign ic_label = ic_label | append: ic_text
+        endunless
+      endif
+    else
+      assign ic_label = ic_text
+      if ic_label == blank and ic_key == 'official'
+        assign ic_label = 'products.product.warranty_official' | t
+      endif
+    endif
+    echo ic_label
+  endif
+-%}

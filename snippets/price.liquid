@@ -15,11 +15,18 @@
   from the variant first and then from the product. Money, number and numeric text
   metafields are supported. Nothing here multiplies or divides by a tax rate.
 
+  Saving ("חוסכים ₪X לעומת המחיר בארץ"; on cards a compact "חוסכים ₪X" chip): the stored
+  VAT-inclusive price minus the price charged — a difference of two stored amounts, never a
+  rate — printed only when that metafield holds a value, the priced variant is not taxable
+  (`taxable == false`: a taxable variant isn't cheaper by the VAT) and the difference is above
+  zero. Theme settings `price_show_saving` (product page) and `price_show_saving_card` (cards).
+  Not with "החל מ־": that amount belongs to another variant than the stored price.
+
   Markup classes (styled by Track F's assets/component-price.css; baseline in
   docs/rebuild/reports/liquid-core-component-css.css): .price, .price--card | .price--product,
   .price--on-sale, .price--sold-out, .price__main, .price__label, .price__amount,
   .price__compare, .price__tax-free, .price__note, .price__vat, .price__vat-label,
-  .price__vat-amount, .price__sold-out. The amount is not wrapped in <bdi>: in the RTL
+  .price__vat-amount, .price__saving, .price__sold-out. The amount is not wrapped in <bdi>: in the RTL
   flow "4,299 ₪" shows the shekel sign to the left of the number, as on the live site.
 
   @param {product} [product] - The product. Required when no variant is passed.
@@ -79,6 +86,7 @@
   endif
 
   assign vat_display = ''
+  assign vat_cents = 0
   assign vat_key = settings.vat_price_metafield | strip
   if vat_key contains '.'
     assign vat_namespace = vat_key | split: '.' | first | strip
@@ -89,6 +97,8 @@
     endif
     if vat_field != blank
       if vat_field.type == 'money'
+        # A money value printed as text is its amount in cents.
+        assign vat_cents = vat_field.value | append: '' | plus: 0
         assign vat_display = vat_field.value | money_without_trailing_zeros
       else
         assign vat_cents = vat_field.value | append: '' | remove: ',' | remove: '₪' | strip | times: 100 | round
@@ -96,6 +106,18 @@
           assign vat_display = vat_cents | money_without_trailing_zeros
         endif
       endif
+    endif
+  endif
+
+  assign saving_display = ''
+  if vat_cents > 0 and target.taxable == false and show_from == false
+    assign show_saving = settings.price_show_saving
+    if price_context == 'card'
+      assign show_saving = settings.price_show_saving_card
+    endif
+    assign saving_cents = vat_cents | minus: amount
+    if show_saving and saving_cents > 0
+      assign saving_display = saving_cents | money_without_trailing_zeros
     endif
   endif
 
@@ -123,6 +145,15 @@
       <span class="price__tax-free" lang="en">{{ 'products.price.tax_free' | t }}</span>
     {%- endif -%}
   </div>
+  {%- if saving_display != blank -%}
+    <p class="price__saving">
+      {%- if price_context == 'card' -%}
+        {{- 'products.price.saving_short' | t: amount: saving_display -}}
+      {%- else -%}
+        {{- 'products.price.saving' | t: amount: saving_display -}}
+      {%- endif -%}
+    </p>
+  {%- endif -%}
   {%- if is_tax_free and price_context == 'product' -%}
     <p class="price__note">{{ 'products.price.tax_free_note' | t }}</p>
   {%- endif -%}

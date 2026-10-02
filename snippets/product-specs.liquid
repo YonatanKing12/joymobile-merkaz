@@ -1,7 +1,7 @@
 {% doc %}
   Technical details table of the product page ("פרטים טכניים"), built only from data:
-  - Key facts group: `custom.spec_summary`, warranty (`custom.warranty_months` +
-    `custom.warranty_channel`, or "יבואן רשמי" from `custom.warranty_official`),
+  - Key facts group: `custom.spec_summary`, warranty (`custom.warranty_months` + the import
+    channel from snippets/import-channel, the only place that decides "יבואן רשמי"),
     `custom.sim_connectivity`, `custom.energy_rating`.
   - `custom.specs` (JSON): grouped `[{"group": "מסך", "items": [{"label": …, "value": …}]}]`
     and/or flat `[{"label": …, "value": …}]` (flat rows form one untitled group). Rows without
@@ -19,8 +19,6 @@
   assign ps_specs = ps_mf.specs.value
   assign ps_summary = ps_mf.spec_summary.value | strip
   assign ps_months = ps_mf.warranty_months.value
-  assign ps_channel = ps_mf.warranty_channel.value | strip
-  assign ps_official = ps_mf.warranty_official.value
   assign ps_sim = ps_mf.sim_connectivity.value | strip
   assign ps_energy = ps_mf.energy_rating.value | strip
 
@@ -28,17 +26,14 @@
   if ps_months != blank
     assign ps_warranty = 'products.product.warranty_months' | t: count: ps_months
   endif
+-%}
+{%- capture ps_channel -%}{%- render 'import-channel', product: product -%}{%- endcapture -%}
+{%- liquid
   if ps_channel != blank
     if ps_warranty != blank
       assign ps_warranty = ps_warranty | append: ' · '
     endif
     assign ps_warranty = ps_warranty | append: ps_channel
-  elsif ps_official == true
-    if ps_warranty != blank
-      assign ps_warranty = ps_warranty | append: ' · '
-    endif
-    assign ps_official_text = 'products.product.warranty_official' | t
-    assign ps_warranty = ps_warranty | append: ps_official_text
   endif
 -%}
 

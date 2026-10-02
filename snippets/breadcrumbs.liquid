@@ -2,11 +2,22 @@
   Breadcrumb trail for the current page, as an accessible <nav> and/or as a
   schema.org BreadcrumbList (JSON-LD). Renders nothing on the home page.
 
-  Trail: דף הבית › [collection | blog] › current page. On a product page reached
-  without a collection in the URL, the collection shown is the product's broadest
-  real department: the collection with the most products, ignoring `all`,
-  `frontpage` and catch-all collections that hold 90% or more of the catalogue
-  (e.g. "זמין לשריון באילת").
+  Trail: דף הבית › [menu parent › collection | blog] › current page.
+
+  Hierarchy: the main menu (linklists['main-menu'], the header's mega menu). A collection's
+  menu parent is the closest link above it in the menu that points somewhere else: for a
+  third-level link ("Apple" under "לפי יצרן") its group's collection ("סמארטפונים"), and when
+  the group points to the same collection, the top link; for a second-level link, the top
+  link, named as in the menu ("טאבלטים ושעונים" above "שעונים חכמים"). The catalogue
+  (/collections/all, the menu's "עוד") is never a parent. Collection pages and product
+  pages both get it; a collection that isn't in the menu has none.
+
+  On a product page reached without a collection in the URL, the collection shown is the
+  first sub-collection in menu order that holds the product (third-level links first,
+  skipping a link that repeats its group's collection, then second-level groups), so
+  "אביזרים › מגני מסך ומגני עדשה" rather than "אביזרים"; else the smallest of the product's
+  collections. Never `all`, `frontpage` or a catch-all collection that holds 90% or more of
+  the catalogue (e.g. "זמין לשריון באילת").
 
   `structured-data` with type 'breadcrumbs' calls this snippet with format 'json',
   so the visual trail and the JSON-LD always agree. The HTML format already
@@ -27,13 +38,19 @@
   assign crumb_urls = routes.root_url
   assign current_title = ''
 
+  assign crumb_menu = linklists['main-menu']
+  assign crumb_catalog_url = routes.all_products_collection_url
+  assign crumb_collection = nil
+
   case request.page_type
     when 'product'
       assign crumb_collection = collection
       if crumb_collection == blank
         assign catalogue_count = collections.all.products_count | default: 0
         assign catch_all_count = catalogue_count | times: 9 | divided_by: 10
-        assign best_count = 0
+        assign smallest_count = 0
+        # The product's real collections as "|url|" tokens, for the menu walk below.
+        assign product_urls = '|'
         for product_collection in product.collections
           if product_collection.handle == 'all' or product_collection.handle == 'frontpage'
             continue
@@ -41,22 +58,60 @@
           if catch_all_count > 0 and product_collection.products_count >= catch_all_count
             continue
           endif
-          if product_collection.products_count > best_count
+          assign product_urls = product_urls | append: product_collection.url | append: '|'
+          if smallest_count == 0 or product_collection.products_count < smallest_count
             assign crumb_collection = product_collection
-            assign best_count = product_collection.products_count
+            assign smallest_count = product_collection.products_count
           endif
         endfor
-      endif
-      if crumb_collection != blank
-        assign crumb_names = crumb_names | append: crumb_sep | append: crumb_collection.title
-        assign crumb_urls = crumb_urls | append: crumb_sep | append: crumb_collection.url
+
+        assign menu_pick = nil
+        for crumb_top in crumb_menu.links
+          for crumb_group in crumb_top.links
+            for crumb_link in crumb_group.links
+              if crumb_link.url == crumb_group.url
+                continue
+              endif
+              assign crumb_token = '|' | append: crumb_link.url | append: '|'
+              if crumb_link.type == 'collection_link' and product_urls contains crumb_token
+                assign menu_pick = crumb_link.object
+                break
+              endif
+            endfor
+            if menu_pick != nil
+              break
+            endif
+          endfor
+          if menu_pick != nil
+            break
+          endif
+        endfor
+        if menu_pick == nil
+          for crumb_top in crumb_menu.links
+            for crumb_group in crumb_top.links
+              if crumb_group.url == crumb_top.url
+                continue
+              endif
+              assign crumb_token = '|' | append: crumb_group.url | append: '|'
+              if crumb_group.type == 'collection_link' and product_urls contains crumb_token
+                assign menu_pick = crumb_group.object
+                break
+              endif
+            endfor
+            if menu_pick != nil
+              break
+            endif
+          endfor
+        endif
+        if menu_pick != nil
+          assign crumb_collection = menu_pick
+        endif
       endif
       assign current_title = product.title
 
     when 'collection'
+      assign crumb_collection = collection
       if current_tags
-        assign crumb_names = crumb_names | append: crumb_sep | append: collection.title
-        assign crumb_urls = crumb_urls | append: crumb_sep | append: collection.url
         assign current_title = current_tags | join: ', '
       else
         assign current_title = collection.title
@@ -105,6 +160,60 @@
     else
       assign current_title = page_title
   endcase
+
+  # The collection's parent in the main menu, then the collection itself (unless it is the
+  # current page: a collection page without tag filters).
+  if crumb_collection != blank
+    assign crumb_target = crumb_collection.url | split: '?' | first
+    assign crumb_parent_url = ''
+    assign crumb_parent_title = ''
+    assign crumb_found = false
+    for crumb_top in crumb_menu.links
+      if crumb_top.url == crumb_target
+        assign crumb_found = true
+        break
+      endif
+      for crumb_group in crumb_top.links
+        if crumb_group.url == crumb_target
+          assign crumb_parent_url = crumb_top.url
+          assign crumb_parent_title = crumb_top.title
+          assign crumb_found = true
+          break
+        endif
+        for crumb_link in crumb_group.links
+          if crumb_link.url == crumb_target
+            if crumb_group.url != crumb_target
+              # A group's own title is often a heading ("לפי יצרן"); the collection's title names the page.
+              assign crumb_parent_url = crumb_group.url
+              assign crumb_parent_title = crumb_group.object.title | default: crumb_group.title
+            else
+              assign crumb_parent_url = crumb_top.url
+              assign crumb_parent_title = crumb_top.title
+            endif
+            assign crumb_found = true
+            break
+          endif
+        endfor
+        if crumb_found
+          break
+        endif
+      endfor
+      if crumb_found
+        break
+      endif
+    endfor
+    if crumb_parent_url == crumb_catalog_url or crumb_parent_url == crumb_target
+      assign crumb_parent_url = ''
+    endif
+    if crumb_parent_url != blank
+      assign crumb_names = crumb_names | append: crumb_sep | append: crumb_parent_title
+      assign crumb_urls = crumb_urls | append: crumb_sep | append: crumb_parent_url
+    endif
+    if request.page_type == 'product' or current_tags
+      assign crumb_names = crumb_names | append: crumb_sep | append: crumb_collection.title
+      assign crumb_urls = crumb_urls | append: crumb_sep | append: crumb_target
+    endif
+  endif
 
   assign crumb_name_list = crumb_names | split: crumb_sep
   assign crumb_url_list = crumb_urls | split: crumb_sep

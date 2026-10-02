@@ -1,5 +1,6 @@
-/* Price (snippets/price): the amount, the "מחיר אילת" label and TAX FREE chip for VAT-exempt variants, and a
-   VAT-inclusive line when the metafield holds a value. Cards (.price--card) and the product page (.price--product). */
+/* Price (snippets/price): the amount, the "מחיר אילת" label and TAX FREE chip for VAT-exempt variants, a
+   VAT-inclusive line when the metafield holds a value, and the saving against it. Cards (.price--card) and the
+   product page (.price--product). */
 
 .price {
   display: flex;
@@ -80,6 +81,14 @@
   font-weight: 500;
 }
 
+/* Saving against the price in Israel: the accessible green, bold — the line the shopper compares with. */
+.price__saving {
+  margin: 0;
+  color: var(--color-brand-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
 .price--on-sale .price__amount {
   color: var(--color-sale);
 }
@@ -118,6 +127,17 @@
 
 .price--card .price__compare {
   font-size: var(--text-sm);
+}
+
+/* Card: a compact chip in the TAX FREE colours (navy on mint), sized to its text. */
+.price--card .price__saving {
+  padding: 0.0625rem var(--space-xs);
+  border-radius: var(--radius-pill);
+  background: var(--color-badge-taxfree-bg);
+  color: var(--color-badge-taxfree-text);
+  font-size: var(--text-2xs);
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .price--card .price__vat {

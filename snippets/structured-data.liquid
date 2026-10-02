@@ -17,10 +17,24 @@
   - 'product': Product — name, description (plain text), up to 8 images, sku, brand (the
     vendor; left out when it is the store itself, "joy mobile", or the brand name,
     compared case-insensitively), category (the product type, POS department codes such
-    as "א.מכשירים" spelled out), url, and one Offer per variant with a price above zero: price in shekels as a
-    decimal (the Eilat price actually charged), priceCurrency, availability (InStock /
-    OutOfStock), itemCondition, url with ?variant=, sku, the GTIN, the seller (the
-    Organization) and the return policy. A single-variant product also carries its GTIN.
+    as "א.מכשירים" spelled out), color (below), url, and one Offer per variant with a price above zero: price in shekels as a
+    decimal (the Eilat price actually charged), priceCurrency, priceValidUntil (30 days from
+    the render: prices follow the POS and have no end date, and a rolling date never goes
+    stale in a cached page), availability (InStock / OutOfStock), itemCondition, url with
+    ?variant=, sku, the GTIN, the seller (the Organization), the return policy, and
+    availableAtOrFrom = every branch, as a reference to its store node by the same @id
+    (<origin>/#store-<id>, snippets/branch-json; the ids are read from
+    snippets/branches-json, so a branch added there is offered here too). With the theme
+    setting schema_pickup_only (off by default: turn it on only once checkout offers no shipping) also
+    availableDeliveryMethod OnSitePickup and shippingDetails with doesNotShip to IL.
+    A single-variant product also carries its GTIN.
+    - color: the selected variant's value of the colour option (the option names snippets/swatches
+      reads), else, without a colour option, the colour words of the title in title order
+      ("שחור/אפור", "טיטניום טבעי"), from the colour vocabulary of snippets/accessory-model.
+      "כהה", "בהיר", "טבעי" and "מדברי" only count next to a colour, a colour right after "מתג"
+      is a keyboard switch, and the band names מילנז/מילנזי are not colours.
+      No ProductGroup / inProductGroupWithID: the catalogue has no stable key that joins the
+      colour siblings of one model, and a key guessed from the title would group wrong products.
     - GTIN: the variant barcode only when it is a real GS1 number — 8, 12, 13 or 14 digits
       with a valid check digit — as gtin8/gtin12/gtin13/gtin14. The store's internal codes
       ("6661", "432344") and part numbers ("MGDR4HB/A") never become GTINs.
@@ -204,7 +218,64 @@
         elsif ld_product.tags contains 'מחודש'
           assign ld_condition = 'https://schema.org/RefurbishedCondition'
         endif
+
+        assign ld_color = ''
+        assign ld_colour_options = 'צבע,גוון,צבעים,color,colour,colors' | split: ','
+        for ld_option in ld_product.options_with_values
+          assign ld_option_probe = ld_option.name | downcase | strip
+          if ld_colour_options contains ld_option_probe
+            assign ld_color = ld_first.options[forloop.index0] | strip
+            break
+          endif
+        endfor
+        if ld_color == blank
+          # Same words as am_colours in snippets/accessory-model, minus the band names מילנז/מילנזי.
+          assign ld_colour_words = 'שחור,לבן,כחול,תכלת,כתום,ורוד,אדום,ירוק,סגול,אפור,זהב,כסוף,כסף,סילבר,צהוב,חום,בורדו,ברונזה,קרם,לילך,בז׳,טבעי,מדברי,שמנת,שמפניה,מוקה,אור כוכבים,תיטניום,טיטניום,כהה,בהיר' | split: ','
+          assign ld_colour_modifiers = 'כהה,בהיר,טבעי,מדברי' | split: ','
+          assign ld_colour_core = false
+          assign ld_previous_word = ''
+          assign ld_title_words = ld_product.title | split: ' – ' | first | split: ' - ' | first | replace: 'אור כוכבים', 'אור␟כוכבים' | split: ' '
+          for ld_title_word in ld_title_words
+            if ld_previous_word != 'מתג'
+              # "שחור/אפור" is one colour combination; its parts are checked one by one.
+              assign ld_word_colours = ''
+              assign ld_word_parts = ld_title_word | split: '/'
+              for ld_word_part in ld_word_parts
+                assign ld_colour_word = ld_word_part | replace: '␟', ' '
+                if ld_colour_words contains ld_colour_word
+                  if ld_word_colours != blank
+                    assign ld_word_colours = ld_word_colours | append: '/'
+                  endif
+                  assign ld_word_colours = ld_word_colours | append: ld_colour_word
+                  unless ld_colour_modifiers contains ld_colour_word
+                    assign ld_colour_core = true
+                  endunless
+                endif
+              endfor
+              if ld_word_colours != blank
+                assign ld_color = ld_color | append: ' ' | append: ld_word_colours | strip
+              endif
+            endif
+            assign ld_previous_word = ld_title_word
+          endfor
+          if ld_colour_core == false
+            assign ld_color = ''
+          endif
+        endif
+
+        # 30 days (2,592,000 seconds) from the render.
+        assign ld_price_valid_until = 'now' | date: '%s' | plus: 2592000 | date: '%Y-%m-%d'
+        assign ld_store_type = settings.store_business_type | default: 'ElectronicsStore'
       -%}
+      {%- capture ld_branches -%}{%- render 'branches-json' -%}{%- endcapture -%}
+      {%- capture ld_stores -%}
+        {%- assign ld_branch_parts = ld_branches | split: '#store-' -%}
+        {%- for ld_branch_part in ld_branch_parts offset: 1 -%}
+          {%- assign ld_branch_id = ld_branch_part | split: '"' | first -%}
+          {%- unless forloop.first %},{% endunless -%}
+          {"@type":{{ ld_store_type | json }},"@id":{{ site_url | append: '/#store-' | append: ld_branch_id | json }}}
+        {%- endfor -%}
+      {%- endcapture -%}
       {%- capture ld_seller -%}{"@type":"Organization","@id":{{ org_id | json }},"name":{{ brand_name | json }}}{%- endcapture -%}
       {%- capture ld_description -%}{%- render 'plain-text', html: ld_product.description, limit: 5000 -%}{%- endcapture -%}
       {%- capture ld_offers -%}
@@ -250,8 +321,14 @@
               "priceCurrency": {{ ld_currency | json }},
               "availability": {% if ld_variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
               "itemCondition": {{ ld_condition | json }},
+              "priceValidUntil": {{ ld_price_valid_until | json }},
               "seller": {{ ld_seller }},
               "hasMerchantReturnPolicy": {{ return_policy_json }}
+              {%- if ld_stores != blank -%},"availableAtOrFrom": [{{ ld_stores }}]{%- endif -%}
+              {%- if settings.schema_pickup_only -%}
+                ,"availableDeliveryMethod": "https://schema.org/OnSitePickup",
+                "shippingDetails": {"@type":"OfferShippingDetails","doesNotShip":true,"shippingDestination":{"@type":"DefinedRegion","addressCountry":"IL"}}
+              {%- endif -%}
               {%- if ld_multiple -%},"name": {{ ld_product.title | append: ' – ' | append: ld_variant.title | json }}{%- endif -%}
               {%- if ld_variant.sku != blank -%},"sku": {{ ld_variant.sku | strip | json }}{%- endif -%}
               {%- if ld_gtin_key != blank -%},{{ ld_gtin_key | json }}: {{ ld_gtin | json }}{%- endif -%}
@@ -320,6 +397,7 @@
           {%- if ld_product_gtin_key != blank -%},{{ ld_product_gtin_key | json }}: {{ ld_product_gtin | json }}{%- endif -%}
           {%- if ld_brand != blank -%},"brand": { "@type": "Brand", "name": {{ ld_brand | json }} }{%- endif -%}
           {%- if ld_category != blank -%},"category": {{ ld_category | json }}{%- endif -%}
+          {%- if ld_color != blank -%},"color": {{ ld_color | json }}{%- endif -%}
           {%- if ld_offer_count > 0 -%},"offers": [{{ ld_offers }}]{%- endif -%}
         }
       {%- endcapture -%}
