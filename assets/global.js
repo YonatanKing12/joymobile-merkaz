@@ -131,8 +131,22 @@ export function onEscape(el, fn) {
   return () => el.removeEventListener('keydown', handler);
 }
 let locks = 0;
+let lockedAt = 0;
+/* iOS Safari ignores `overflow: hidden` on <html>, so with only that the page behind an open drawer
+   still scrolls under a finger -- and once it does, the fixed overlay paints at the wrong offset
+   while the address bar collapses: the drawer's header ends up above the visible area and the page
+   shows through below it. Pinning the body at minus the scroll position is the lock iOS does honour,
+   and the position is put back on release so nothing jumps. */
 export function lockScroll(lock) {
+  const was = locks;
   locks = Math.max(0, locks + (lock ? 1 : -1));
+  if (was === 0 && locks > 0) {
+    lockedAt = window.scrollY;
+    Object.assign(document.body.style, { position: 'fixed', insetInlineStart: '0', width: '100%', top: `-${lockedAt}px` });
+  } else if (was > 0 && locks === 0) {
+    Object.assign(document.body.style, { position: '', insetInlineStart: '', width: '', top: '' });
+    window.scrollTo(0, lockedAt);
+  }
   html.classList.toggle('scroll-locked', locks > 0);
   html.style.overflow = locks ? 'hidden' : '';
 }
