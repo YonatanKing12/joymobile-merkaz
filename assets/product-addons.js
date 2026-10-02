@@ -19,7 +19,7 @@
  * what the theme's "no money in JS" rule is actually protecting: a format that cannot drift from the
  * shop's. The authoritative total is still the cart drawer's, which the note under the sum says.
  */
-import { define, on, sectionIdOf } from '@theme/global';
+import { define, on, sectionIdOf, searchSection } from '@theme/global';
 import { addItems } from '@theme/cart';
 
 const SECTION = 'product-addons';
@@ -174,12 +174,8 @@ class ProductAddons extends HTMLElement {
     const ctrl = new AbortController();
     (this.controllers ||= []).push(ctrl);
 
-    const url = '/search?q=' + encodeURIComponent(panel.dataset.paQuery) +
-      '&type=product&options%5Bprefix%5D=last&section_id=' + SECTION;
     try {
-      const res = await fetch(url, { signal: ctrl.signal });
-      if (!res.ok) throw new Error(res.status);
-      const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+      const doc = await searchSection(panel.dataset.paQuery, SECTION, { signal: ctrl.signal });
       const items = [...doc.querySelectorAll('[data-pa-item]')]
         /* Never offer the phone that is already on the page. */
         .filter((li) => li.dataset.paVariant !== this.mainVariant && li.dataset.paHandle !== this.dataset.paHandle);

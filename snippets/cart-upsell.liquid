@@ -37,53 +37,35 @@
 -%}
 
 {%- if cu_anchor != nil -%}
-  {%- capture cu_model -%}{%- render 'accessory-model', product: cu_anchor -%}{%- endcapture -%}
-  {%- capture cu_watch -%}{%- render 'accessory-model', product: cu_anchor, mode: 'watch' -%}{%- endcapture -%}
+  {%- comment -%}
+    Two queries, not every group: the cart is not the place to browse a catalogue. They are the
+    first two groups of snippets/addon-groups (the same rules as the product page) that name a model
+    or a brand; a group that would ask for its word alone ("כבל", "מטען") is skipped, because it
+    would fill the row with whatever ranks first in the whole catalogue.
+  {%- endcomment -%}
+  {%- capture cu_groups -%}{%- render 'addon-groups', product: cu_anchor -%}{%- endcapture -%}
   {%- liquid
-    assign cu_model = cu_model | strip
-    assign cu_watch = cu_watch | strip
-    assign cu_type = cu_anchor.type | strip
-    assign cu_vendor = cu_anchor.vendor | strip
-    assign cu_vendor_key = cu_vendor | downcase
-    assign cu_house = shop.name | strip | downcase
-    assign cu_brand = settings.brand_name | strip | downcase
-    if cu_vendor_key == cu_house or cu_vendor_key == cu_brand
-      assign cu_vendor = ''
-    endif
-
-    # Two queries, not four groups: the cart is not the place to browse a catalogue. The first is
-    # what nearly everyone buying this kind of device adds, the second tops the row up when the
-    # first does not fill it. Each is "<group word> <model or maker>", or left out.
-    assign cu_first = ''
-    assign cu_second = ''
-    case cu_type
-      when 'מכשירים', 'טאבלטים'
-        if cu_model != blank
-          assign cu_first = 'כיסוי ' | append: cu_model
-          assign cu_second = 'מגן מסך ' | append: cu_model
-        endif
-      when 'שעונים'
-        if cu_watch != blank
-          assign cu_first = 'רצועה ' | append: cu_watch
-          assign cu_second = 'מגן מסך ' | append: cu_watch
-        endif
-      when 'אוזניות'
-        if cu_model != blank
-          assign cu_first = 'כיסוי ' | append: cu_model
-        endif
-        if cu_vendor != blank
-          assign cu_second = 'כבל ' | append: cu_vendor
-        endif
-    endcase
-    assign cu_queries = cu_first
-    if cu_second != blank
+    assign cu_queries = ''
+    assign cu_taken = 0
+    assign cu_list = cu_groups | strip | remove_first: '###' | split: '###'
+    for cu_group in cu_list
+      if cu_taken >= 2
+        break
+      endif
+      assign cu_parts = cu_group | split: '|'
+      assign cu_prefix = cu_parts[0] | append: '|' | append: cu_parts[1] | append: '|'
+      assign cu_query = cu_group | remove_first: cu_prefix | strip
+      assign cu_word = cu_parts[1] | strip
+      if cu_query == blank or cu_query == cu_word
+        continue
+      endif
       if cu_queries != blank
         assign cu_queries = cu_queries | append: '|||'
       endif
-      assign cu_queries = cu_queries | append: cu_second
-    endif
+      assign cu_queries = cu_queries | append: cu_query
+      assign cu_taken = cu_taken | plus: 1
+    endfor
   -%}
-
   {%- comment -%}
     The stylesheet and the script are loaded by the calling section, not here: this markup reaches
     the page through section rendering after a cart change, and a <script> inserted that way never

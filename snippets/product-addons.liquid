@@ -22,72 +22,12 @@
   @example
   {% render 'product-addons', product: product, variant: current_variant, section_id: section.id %}
 {% enddoc %}
-{%- liquid
-  assign pa_type = product.type | strip
-  assign pa_vendor = product.vendor | strip
-  # The shop's own name as vendor ("joy mobile" on 236 products) is not a brand: a charger query
-  # scoped to it finds nothing, so those devices get the generic charger query instead.
-  assign pa_vendor_probe = pa_vendor | downcase
-  assign pa_shop_probe = shop.name | downcase
-  if pa_vendor_probe == pa_shop_probe or pa_vendor_probe == 'joy mobile'
-    assign pa_vendor = ''
-  endif
-  assign pa_groups = ''
--%}
 {%- comment -%}
-  The model and the watch phrase come from snippets/accessory-model, which the cart's upsell renders
-  too: the rules for stripping a product title down to what an accessory title names were measured
-  against the live search, and two copies of them would drift.
+  The groups come from snippets/addon-groups (the theme setting "כללים לאביזרים משלימים", or the
+  built-in rules): "###<label>|<word>|<query>" each, in order. The cart's upsell reads the same rules.
 {%- endcomment -%}
-{%- capture pa_model -%}{%- render 'accessory-model', product: product -%}{%- endcapture -%}
-{%- capture pa_watch -%}{%- render 'accessory-model', product: product, mode: 'watch' -%}{%- endcapture -%}
+{%- capture pa_groups -%}{%- render 'addon-groups', product: product -%}{%- endcapture -%}
 {%- liquid
-  assign pa_model = pa_model | strip
-  assign pa_watch = pa_watch | strip
-
-  # Each group is "###key|label|query". A group that needs the model is left out when the title
-  # yields none (snippets/accessory-model can return blank), so no tab ever asks for a bare "כיסוי".
-  case pa_type
-    when 'מכשירים'
-      capture pa_groups
-        if pa_model != blank
-          echo '###cases|כיסויים|כיסוי ' | append: pa_model
-          echo '###screens|מגני מסך|מגן מסך ' | append: pa_model
-        endif
-        echo '###chargers|מטענים|מטען ' | append: pa_vendor
-        echo '###power|סוללות גיבוי|סוללה ניידת'
-      endcapture
-
-    when 'טאבלטים'
-      capture pa_groups
-        if pa_model != blank
-          echo '###cases|כיסויים|כיסוי ' | append: pa_model
-          echo '###screens|מגני מסך|מגן מסך ' | append: pa_model
-        endif
-        echo '###chargers|מטענים|מטען ' | append: pa_vendor
-        echo '###cables|כבלים|כבל ' | append: pa_vendor
-      endcapture
-
-    when 'שעונים'
-      capture pa_groups
-        if pa_watch != blank
-          echo '###bands|רצועות|רצועה ' | append: pa_watch
-          echo '###screens|מגני מסך|מגן מסך ' | append: pa_watch
-        endif
-        echo '###chargers|מטענים|מטען ' | append: pa_vendor
-      endcapture
-
-    when 'אוזניות'
-      capture pa_groups
-        if pa_model != blank
-          echo '###cases|כיסויים|כיסוי ' | append: pa_model
-        endif
-        echo '###chargers|מטענים|מטען ' | append: pa_vendor
-        echo '###cables|כבלים|כבל ' | append: pa_vendor
-        echo '###power|סוללות גיבוי|סוללה ניידת'
-      endcapture
-  endcase
-
   assign pa_group_list = pa_groups | strip | remove_first: '###' | split: '###'
   assign pa_uid = section_id | default: 'pa'
   assign pa_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
@@ -121,8 +61,8 @@
       {%- for pa_group in pa_group_list -%}
         {%- liquid
           assign pa_parts = pa_group | split: '|'
-          assign pa_key = pa_parts[0]
-          assign pa_label = pa_parts[1]
+          assign pa_key = 'g' | append: forloop.index
+          assign pa_label = pa_parts[0]
         -%}
         <button
           class="pa__tab"
@@ -142,8 +82,8 @@
     {%- for pa_group in pa_group_list -%}
       {%- liquid
         assign pa_parts = pa_group | split: '|'
-        assign pa_key = pa_parts[0]
-        # Everything after "key|label|" is the query, even if a title ever carries a "|" itself.
+        assign pa_key = 'g' | append: forloop.index
+        # Everything after "label|word|" is the query, even if a title ever carries a "|" itself.
         assign pa_prefix = pa_parts[0] | append: '|' | append: pa_parts[1] | append: '|'
         assign pa_query = pa_group | remove_first: pa_prefix | strip
       -%}

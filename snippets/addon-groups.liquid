@@ -1,0 +1,94 @@
+{% doc %}
+  The accessory groups that fit a device, from the theme setting "כללים לאביזרים משלימים"
+  (settings.addon_rules; theme settings › אביזרים משלימים). One rule per line (or separated by ";"):
+
+    <product type> | <tab label> | <search word> | <what follows the word>
+
+  where what follows is דגם (the model from the title, snippets/accessory-model), שעון (the watch
+  model and case size), יצרן (the brand, product.vendor) or ללא (nothing). Rules apply to products
+  whose type is exactly the first column, in the order written. An empty setting means the built-in
+  rules below, which are what the store has always used.
+
+  Echoes "###<label>|<word>|<query>" per group. A דגם / שעון group is left out when the title yields
+  no model, so no tab ever asks for a bare "כיסוי". A יצרן group with no brand (or the store itself
+  as vendor) keeps the word alone; the caller decides whether a bare word is worth asking for (the
+  product page shows generic chargers, the cart skips it).
+
+  Shared by snippets/product-addons (every group, as tabs) and snippets/cart-upsell (the first two
+  groups that name a model or a brand), so the product page and the cart never disagree.
+
+  @param {product} product - The device.
+
+  @example
+  {%- capture groups -%}{%- render 'addon-groups', product: product -%}{%- endcapture -%}
+{% enddoc %}
+{%- liquid
+  assign ag_rules = settings.addon_rules | strip
+  if ag_rules == blank
+    assign ag_rules = 'מכשירים|כיסויים|כיסוי|דגם;מכשירים|מגני מסך|מגן מסך|דגם;מכשירים|מטענים|מטען|יצרן;מכשירים|סוללות גיבוי|סוללה ניידת|ללא;טאבלטים|כיסויים|כיסוי|דגם;טאבלטים|מגני מסך|מגן מסך|דגם;טאבלטים|מטענים|מטען|יצרן;טאבלטים|כבלים|כבל|יצרן;שעונים|רצועות|רצועה|שעון;שעונים|מגני מסך|מגן מסך|שעון;שעונים|מטענים|מטען|יצרן;אוזניות|כיסויים|כיסוי|דגם;אוזניות|מטענים|מטען|יצרן;אוזניות|כבלים|כבל|יצרן;אוזניות|סוללות גיבוי|סוללה ניידת|ללא'
+  endif
+  assign ag_lines = ag_rules | newline_to_br | replace: '<br />', ';' | split: ';'
+
+  assign ag_type = product.type | strip
+  assign ag_match = false
+  for ag_line in ag_lines
+    assign ag_first = ag_line | split: '|' | first | strip
+    if ag_first == ag_type
+      assign ag_match = true
+      break
+    endif
+  endfor
+-%}
+{%- if ag_match -%}
+  {%- capture ag_model -%}{%- render 'accessory-model', product: product -%}{%- endcapture -%}
+  {%- capture ag_watch -%}{%- render 'accessory-model', product: product, mode: 'watch' -%}{%- endcapture -%}
+  {%- liquid
+    assign ag_model = ag_model | strip
+    assign ag_watch = ag_watch | strip
+    # The shop's own name as vendor ("joy mobile" on 236 products) is not a brand.
+    assign ag_vendor = product.vendor | strip
+    assign ag_vendor_key = ag_vendor | downcase
+    assign ag_house = shop.name | strip | downcase
+    assign ag_brand = settings.brand_name | strip | downcase
+    if ag_vendor_key == ag_house or ag_vendor_key == ag_brand or ag_vendor_key == 'joy mobile'
+      assign ag_vendor = ''
+    endif
+
+    for ag_line in ag_lines
+      assign ag_parts = ag_line | split: '|'
+      if ag_parts.size < 3
+        continue
+      endif
+      assign ag_rule_type = ag_parts[0] | strip
+      if ag_rule_type != ag_type
+        continue
+      endif
+      assign ag_label = ag_parts[1] | strip
+      assign ag_word = ag_parts[2] | strip
+      assign ag_kind = ag_parts[3] | strip
+      if ag_label == blank or ag_word == blank
+        continue
+      endif
+      case ag_kind
+        when 'דגם'
+          if ag_model == blank
+            continue
+          endif
+          assign ag_query = ag_word | append: ' ' | append: ag_model
+        when 'שעון'
+          if ag_watch == blank
+            continue
+          endif
+          assign ag_query = ag_word | append: ' ' | append: ag_watch
+        when 'יצרן'
+          assign ag_query = ag_word
+          if ag_vendor != blank
+            assign ag_query = ag_word | append: ' ' | append: ag_vendor
+          endif
+        else
+          assign ag_query = ag_word
+      endcase
+      echo '###' | append: ag_label | append: '|' | append: ag_word | append: '|' | append: ag_query
+    endfor
+  -%}
+{%- endif -%}

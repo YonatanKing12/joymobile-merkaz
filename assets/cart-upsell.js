@@ -11,7 +11,7 @@
  * only the first build of a query costs one. Third, the block starts hidden and is revealed only once
  * it has a tile: an upsell that comes back empty should take no space at all, least of all in a drawer.
  */
-import { define, announce } from '@theme/global';
+import { define, announce, searchSection } from '@theme/global';
 import { addItems } from '@theme/cart';
 
 const SECTION = 'cart-upsell';
@@ -20,12 +20,8 @@ const cache = new Map();
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function request(query, signal, attempt = 0) {
-  const url = '/search?q=' + encodeURIComponent(query) +
-    '&type=product&options%5Bprefix%5D=last&section_id=' + SECTION;
   try {
-    const res = await fetch(url, { signal });
-    if (!res.ok) throw new Error(res.status);
-    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+    const doc = await searchSection(query, SECTION, { signal });
     const items = [...doc.querySelectorAll('[data-cu-item]')].map((li) => ({
       handle: li.dataset.cuHandle,
       variant: li.dataset.cuVariant,

@@ -69,6 +69,15 @@ export function replaceContent(target, source) {
   return id ? refocus(target, id) : null;
 }
 export const sectionIdOf = (el) => el.dataset.sectionId || el.closest('.shopify-section')?.id.replace('shopify-section-', '');
+// The catalogue as the theme queries it: /search rendered as one section (section_id). /search/suggest
+// answers 417 to Hebrew on this store, and Shopify's search index matches a model across the whole catalogue,
+// which Liquid over a collection cannot. Used by the product add-ons and the cart upsell.
+export async function searchSection(query, sectionId, { signal } = {}) {
+  const url = `${routes.root}search?q=${encodeURIComponent(query)}&type=product&options%5Bprefix%5D=last&section_id=${sectionId}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(res.status);
+  return parseHTML(await res.text());
+}
 export function debounce(fn, ms) {
   let timer;
   return (...args) => {
