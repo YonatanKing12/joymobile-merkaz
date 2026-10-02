@@ -9,8 +9,26 @@ addEventListener('pageshow', (e) => e.persisted && document.querySelectorAll('pr
 
 // A submit button's own data-mode wins, so one form can hold both CTAs. While the 90-day VAT consent is required
 // (window.theme.cartConsent), "checkout" acts like "cart": the consent checkbox lives in the drawer / cart page.
+// The accessories ticked in "השלימו את הערכה" (<product-addons>, same section) ride along: one /cart/add call holds
+// the device and every ticked accessory, from the in-page buttons and the sticky bar alike (both submit this form).
 class ProductForm extends HTMLElement {
-  connectedCallback() { this.addEventListener('submit', this); }
+  connectedCallback() {
+    this.addEventListener('submit', this);
+    // The phone buy bar steps aside while these buttons are on screen. CSS does it with a scroll-driven
+    // animation; where that is missing (Safari before 26, Firefox) the section gets [data-actions-visible].
+    // This element is re-rendered with its buttons on every variant change, so each copy watches its own.
+    const actions = this.querySelector('.product-form__actions'), main = this.closest('.main-product');
+    if (actions && main && !CSS.supports('animation-timeline: view()')) {
+      this.io = new IntersectionObserver(([entry]) => main.toggleAttribute('data-actions-visible', entry.isIntersecting), {
+        rootMargin: '0px 0px -72px 0px',
+      });
+      this.io.observe(actions);
+    }
+  }
+
+  disconnectedCallback() { this.io?.disconnect(); }
+
+  get addons() { return (this.closest('.shopify-section') || document).querySelector('product-addons'); }
 
   async handleEvent(e) {
     e.preventDefault();
@@ -19,14 +37,22 @@ class ProductForm extends HTMLElement {
     const checkout = (btn?.dataset.mode || this.dataset.mode) === 'checkout' && !window.theme?.cartConsent;
     const data = new FormData(form), item = { id: +data.get('id'), quantity: +data.get('quantity') || 1, properties: {} };
     for (const [key, value] of data) if (key.startsWith('properties[') && value) item.properties[key.slice(11, -1)] = value;
+    const addons = this.addons, extras = addons?.selectedItems?.() || [];
     const box = this.querySelector('[data-form-error]');
     showError(box, '');
     busy(btn, true);
     try {
-      await addItems([item], { open: !checkout, opener: btn });
+      await addItems([item, ...extras], { open: !checkout, opener: btn });
+      if (extras.length) addons.clear();
       if (checkout) return location.assign(`${routes.root}checkout`);
     } catch (err) {
       showError(box, err.message);
+      // A 422 can still have added part of the request (measured: Shopify adds what stock allows), and the
+      // cart re-renders from the server either way. Show it instead of retrying, which could add twice.
+      if (extras.length) {
+        addons.fail(err.message);
+        emit('cart:open', { opener: btn });
+      }
     }
     busy(btn, false);
   }

@@ -13,8 +13,11 @@
   - `[data-form-error]` shows Shopify's message (e.g. over stock); the script announces it.
   Without JavaScript a `<noscript>` variant select (after the hidden id, so its value is the
   one the server reads) replaces the radios of the variant picker.
-  Sold out: one disabled "אזל מהמלאי" button and an optional WhatsApp "לבירור זמינות" link
-  (theme setting "מספר וואטסאפ").
+  Sold out: one disabled "אזל מהמלאי" button, an optional WhatsApp "לבירור זמינות" link
+  (theme setting "מספר וואטסאפ") and, after the product form, "עדכנו אותי כשחוזר": a contact form
+  that emails the store the product, the variant and its link.
+  The accessories ticked in "השלימו את הערכה" (snippets/product-addons) are added by these same
+  buttons, in the same request as the device (assets/product.js); the buttons show "+N" meanwhile.
   Quantity: min 1; max = stock when Shopify tracks it and overselling is off.
 
   part 'sticky' — `[data-swap="sticky"]`: a bar fixed to the bottom of phone screens with the
@@ -219,8 +222,58 @@
           </div>
         {%- endif -%}
 
-        <p class="form-message form-message--error product-form__error" id="{{ bb_error_id }}" data-form-error hidden></p>
+        <p class="form-message form-message--error product-form__error" id="{{ bb_error_id }}" data-form-error role="alert" hidden></p>
       {%- endform -%}
     </product-form>
+
+    {%- unless bb_available -%}
+      {%- comment -%}
+        Sold out: "עדכנו אותי כשחוזר". A contact form, so the request lands in the store's inbox with the
+        product, the variant and its link, and the shopper is not signed up to marketing by asking. It sits
+        after the product form because forms cannot nest.
+      {%- endcomment -%}
+      {%- liquid
+        assign bb_notify_id = 'ProductNotify-' | append: section_id
+        assign bb_notify_title = product.title
+        unless product.has_only_default_variant
+          assign bb_notify_title = bb_notify_title | append: ' / ' | append: bb_variant.title
+        endunless
+        assign bb_notify_link = request.origin | append: product.url | append: '?variant=' | append: bb_variant.id
+      -%}
+      {%- form 'contact', id: bb_notify_id, class: 'product-notify' -%}
+        <details class="product-notify__details"{% if form.posted_successfully? or form.errors %} open{% endif %}>
+          <summary class="product-notify__summary">
+            {%- render 'icon', name: 'mail', size: 20 -%}
+            <span>{{ 'products.notify.summary' | t }}</span>
+          </summary>
+          {%- if form.posted_successfully? -%}
+            <p class="form-message form-message--success product-notify__done" role="status">
+              {{- 'products.notify.success' | t -}}
+            </p>
+          {%- else -%}
+            {%- if form.errors -%}
+              <p class="form-message form-message--error" role="alert">{{ form.errors | default_errors }}</p>
+            {%- endif -%}
+            <input type="hidden" name="contact[{{ 'products.notify.field_subject' | t }}]" value="{{ 'products.notify.subject' | t }}">
+            <input type="hidden" name="contact[{{ 'products.notify.field_product' | t }}]" value="{{ bb_notify_title | escape }}">
+            <input type="hidden" name="contact[{{ 'products.notify.field_link' | t }}]" value="{{ bb_notify_link | escape }}">
+            <div class="product-notify__fields">
+              <div class="field">
+                <label class="field__label" for="{{ bb_notify_id }}-email">{{ 'products.notify.email' | t }}</label>
+                <input class="input" type="email" id="{{ bb_notify_id }}-email" name="contact[email]" autocomplete="email" required>
+              </div>
+              <div class="field">
+                <label class="field__label" for="{{ bb_notify_id }}-phone">{{ 'products.notify.phone' | t }}</label>
+                <input class="input" type="tel" id="{{ bb_notify_id }}-phone" name="contact[phone]" autocomplete="tel">
+              </div>
+            </div>
+            <button type="submit" class="button button--outline product-notify__submit">
+              <span>{{ 'products.notify.submit' | t }}</span>
+            </button>
+            <p class="product-notify__note">{{ 'products.notify.note' | t }}</p>
+          {%- endif -%}
+        </details>
+      {%- endform -%}
+    {%- endunless -%}
   </div>
 {%- endif -%}

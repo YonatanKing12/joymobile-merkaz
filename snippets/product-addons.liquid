@@ -1,28 +1,37 @@
 {% doc %}
-  "השלימו את הערכה" — the accessories that fit the phone on the page, under the gallery.
+  "השלימו את הערכה" — the accessories that fit the device on the page, rendered as the product
+  section's "addons" block, right under the buy buttons.
+
+  There is no separate add button. Ticking a tile adds it to the product's own purchase: the green
+  "שריון באילת", the black "הוסף לעגלה" and the phone sticky bar all send the device and every ticked
+  accessory in one /cart/add call (assets/product.js asks this element for selectedItems()). The
+  buttons show a "+N" badge while something is ticked. Only when the device itself is sold out does
+  the module show its own button, so a case can still be bought for a phone the shopper already has.
 
   The shell only: a pill per group and an empty panel carrying that group's search query. The tiles
   come from sections/product-addons rendered against /search, fetched by assets/product-addons.js
   when the block first comes near the viewport. A product page nobody scrolls costs nothing.
 
-  It sits inside .product__media, under the gallery, on every width — on desktop the column beside
-  the buy panel is the one with room to spare, and on phones it lands directly under the photo and
-  above the price, which is where an add-on is still part of the same decision. At the foot of the
-  page it is a second visit, not an upsell.
-
-  The model comes off the product title: the importer suffix after the dash, the capacity, the SIM
-  wording, the colour and the maker's name are removed, so
+  The model comes off the product title (snippets/accessory-model), so
   "Apple iPhone 17 Pro Max 2TB כחול – יבואן רשמי" asks for "iPhone 17 Pro Max".
 
   @param {product} product - The product on the page.
+  @param {variant} [variant] - The selected variant. Default: selected or first available.
   @param {string} section_id - The calling section's id; keeps the tab/panel ids unique.
 
   @example
-  {% render 'product-addons', product: product, section_id: section.id %}
+  {% render 'product-addons', product: product, variant: current_variant, section_id: section.id %}
 {% enddoc %}
 {%- liquid
   assign pa_type = product.type | strip
   assign pa_vendor = product.vendor | strip
+  # The shop's own name as vendor ("joy mobile" on 236 products) is not a brand: a charger query
+  # scoped to it finds nothing, so those devices get the generic charger query instead.
+  assign pa_vendor_probe = pa_vendor | downcase
+  assign pa_shop_probe = shop.name | downcase
+  if pa_vendor_probe == pa_shop_probe or pa_vendor_probe == 'joy mobile'
+    assign pa_vendor = ''
+  endif
   assign pa_groups = ''
 -%}
 {%- comment -%}
@@ -84,7 +93,7 @@
 
   assign pa_group_list = pa_groups | split: '###'
   assign pa_uid = section_id | default: 'pa'
-  assign pa_variant = product.selected_or_first_available_variant
+  assign pa_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
 -%}
 
 {%- if pa_group_list.size > 0 -%}
@@ -103,6 +112,7 @@
     data-pa-main-variant="{{ pa_variant.id }}"
     data-pa-handle="{{ product.handle }}"
     data-pa-base="{{ pa_variant.price }}"
+    data-pa-available="{{ pa_variant.available }}"
     data-pa-money="{{ shop.money_format | escape }}"
   >
     <div class="pa__head">
@@ -136,7 +146,9 @@
       {%- liquid
         assign pa_parts = pa_group | split: '|'
         assign pa_key = pa_parts[0]
-        assign pa_query = pa_parts[2] | strip
+        # Everything after "key|label|" is the query, even if a title ever carries a "|" itself.
+        assign pa_prefix = pa_parts[0] | append: '|' | append: pa_parts[1] | append: '|'
+        assign pa_query = pa_group | remove_first: pa_prefix | strip
       -%}
       <div
         class="pa__panel"
@@ -156,28 +168,36 @@
       </div>
     {%- endfor -%}
 
+    {%- comment -%}
+      The bar sums the device and what is ticked, and says what the product's buttons will do. Its
+      own button exists for one case only: the device is sold out, so there is no product button to
+      ride on (CSS shows it then, from [data-pa-standalone]).
+    {%- endcomment -%}
     <div
       class="pa__bar"
       data-pa-bar
+      data-pa-str-hint-idle="{{ 'products.addons.hint_idle' | t | escape }}"
+      data-pa-str-hint-one="{{ 'products.addons.hint_one' | t | escape }}"
+      data-pa-str-hint-many="{{ 'products.addons.hint_many' | t | escape }}"
       data-pa-str-idle="{{ 'products.addons.cta_idle' | t | escape }}"
       data-pa-str-one="{{ 'products.addons.cta_one' | t | escape }}"
       data-pa-str-many="{{ 'products.addons.cta_active' | t | escape }}"
       data-pa-str-busy="{{ 'products.addons.cta_busy' | t | escape }}"
       data-pa-str-error="{{ 'products.addons.error' | t | escape }}"
-      data-pa-str-count-one="{{ 'products.addons.count_one' | t | escape }}"
-      data-pa-str-count-many="{{ 'products.addons.count_many' | t | escape }}"
+      data-pa-str-added="{{ 'products.addons.added' | t | escape }}"
     >
+      <p class="pa__hint" data-pa-hint>{{ 'products.addons.hint_idle' | t }}</p>
       <p class="pa__sum">
         <span class="pa__sum-label">{{ 'products.addons.total' | t }}</span>
-        <span class="pa__sum-value" data-pa-total aria-live="polite">
+        <span class="pa__sum-value" data-pa-total>
           {{- pa_variant.price | money_without_trailing_zeros -}}
         </span>
-        <span class="pa__sum-note" data-pa-note>{{ 'products.addons.total_note' | t }}</span>
       </p>
       <button class="button button--accent pa__submit" type="button" data-pa-submit disabled>
         <span data-pa-submit-label>{{ 'products.addons.cta_idle' | t }}</span>
       </button>
     </div>
     <p class="pa__error" role="alert" data-pa-error hidden></p>
+    <p class="visually-hidden" role="status" aria-live="polite" data-pa-live></p>
   </product-addons>
 {%- endif -%}

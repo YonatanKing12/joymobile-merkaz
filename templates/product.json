@@ -112,6 +112,10 @@
             "heading": "תנאי רכישה",
             "content": "<p>ביטול עסקה והחזרת מוצרים לפי <a href=\"/pages/returns\">מדיניות הביטולים וההחזרות</a> ובהתאם לחוק הגנת הצרכן. תנאי השימוש המלאים ב<a href=\"/pages/terms\">תקנון האתר</a>.</p><p>לכל שאלה: 03-511-7171, וואטסאפ 053-325-5020 או joymobileltd@gmail.com.</p>"
           }
+        },
+        "addons": {
+          "type": "addons",
+          "settings": {}
         }
       },
       "block_order": [
@@ -122,6 +126,7 @@
         "buy_buttons",
         "wishlist",
         "info_lines",
+        "addons",
         "trust_warranty",
         "trust_price",
         "trust_pickup",

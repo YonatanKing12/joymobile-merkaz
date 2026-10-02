@@ -155,6 +155,19 @@
           -%}
         </div>
 
+      {%- when 'addons' -%}
+        {%- comment -%}
+          "השלימו את הערכה": ticked accessories are added by the buy buttons above, together with the
+          device (snippets/product-addons.liquid). Nothing is printed for products without accessory
+          groups, so the block leaves no gap there.
+        {%- endcomment -%}
+        {%- capture addons_html -%}
+          {%- render 'product-addons', product: product, variant: current_variant, section_id: section.id -%}
+        {%- endcapture -%}
+        {%- if addons_html != blank -%}
+          <div class="product-block product-block--addons" {{ block.shopify_attributes }}>{{ addons_html }}</div>
+        {%- endif -%}
+
       {%- when 'wishlist' -%}
         {%- if settings.wishlist_enabled -%}
           {%- liquid
@@ -347,12 +360,6 @@
         badges: section.settings.gallery_badges
       -%}
 
-      {%- comment -%}
-        The add-ons sit under the gallery, in the same column, on every width: on desktop this is the
-        column with room to spare, and on phones it lands under the photo and above the price, while
-        the customer is still deciding. At the foot of the page it would be a second visit.
-      {%- endcomment -%}
-      {%- render 'product-addons', product: product, section_id: section.id -%}
     </div>
 
     <div class="product__info">
@@ -416,9 +423,15 @@
   "tag": "section",
   "class": "section-main-product",
   "enabled_on": {
-    "templates": ["product"]
+    "templates": [
+      "product"
+    ]
   },
   "settings": [
+    {
+      "type": "paragraph",
+      "content": "הבלוקים מסודרים בארבעה אזורים קבועים, לפי הקידומת בשם: \"כותרת\" (מתחת לשם המוצר), \"קנייה\" (עמודת הקנייה), \"למה אצלנו\" (התיבה שליד עמודת הקנייה) ו\"מידע נוסף\" (הלשוניות בתחתית). גרירה משנה את הסדר בתוך אותו אזור בלבד."
+    },
     {
       "type": "header",
       "content": "גלריית תמונות"
@@ -545,7 +558,7 @@
     },
     {
       "type": "short_description",
-      "name": "תיאור קצר",
+      "name": "כותרת · תיאור קצר",
       "limit": 1,
       "settings": [
         {
@@ -577,7 +590,7 @@
     },
     {
       "type": "sku",
-      "name": "מק״ט",
+      "name": "כותרת · מק״ט",
       "limit": 1,
       "settings": [
         {
@@ -607,7 +620,7 @@
     },
     {
       "type": "variant_picker",
-      "name": "בחירת דגם",
+      "name": "קנייה · בחירת דגם",
       "limit": 1,
       "settings": [
         {
@@ -630,7 +643,7 @@
     },
     {
       "type": "price",
-      "name": "מחיר",
+      "name": "קנייה · מחיר",
       "limit": 1,
       "settings": [
         {
@@ -641,7 +654,7 @@
     },
     {
       "type": "buy_buttons",
-      "name": "כפתורי קנייה",
+      "name": "קנייה · כפתורי קנייה",
       "limit": 1,
       "settings": [
         {
@@ -678,7 +691,7 @@
     },
     {
       "type": "wishlist",
-      "name": "מועדפים",
+      "name": "קנייה · מועדפים",
       "limit": 1,
       "settings": [
         {
@@ -691,7 +704,7 @@
     },
     {
       "type": "info_lines",
-      "name": "שורות מידע",
+      "name": "קנייה · שורות מידע",
       "limit": 1,
       "settings": [
         {
@@ -757,8 +770,19 @@
       ]
     },
     {
+      "type": "addons",
+      "name": "קנייה · אביזרים משלימים",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "אביזרים שמתאימים לדגם (כיסויים, מגני מסך, מטענים…), לפי סוג המוצר: מכשירים, טאבלטים, שעונים ואוזניות. מה שהלקוח מסמן נוסף לעגלה יחד עם המכשיר בלחיצה על \"שריון באילת\" או \"הוסף לעגלה\" (גם מהסרגל התחתון בטלפון). כשהמכשיר אזל מהמלאי מופיע כפתור נפרד לאביזרים."
+        }
+      ]
+    },
+    {
       "type": "text",
-      "name": "טקסט",
+      "name": "קנייה · טקסט",
       "settings": [
         {
           "type": "richtext",
@@ -769,7 +793,7 @@
     },
     {
       "type": "custom_liquid",
-      "name": "Liquid מותאם",
+      "name": "קנייה · Liquid מותאם",
       "settings": [
         {
           "type": "liquid",
@@ -780,7 +804,7 @@
     },
     {
       "type": "trust_point",
-      "name": "סיבה לקנות אצלנו",
+      "name": "למה אצלנו · סיבה",
       "settings": [
         {
           "type": "inline_richtext",
@@ -805,7 +829,7 @@
     },
     {
       "type": "tab_description",
-      "name": "לשונית: תיאור",
+      "name": "מידע נוסף · תיאור",
       "limit": 1,
       "settings": [
         {
@@ -818,7 +842,7 @@
     },
     {
       "type": "tab_specs",
-      "name": "לשונית: פרטים טכניים",
+      "name": "מידע נוסף · פרטים טכניים",
       "limit": 1,
       "settings": [
         {
@@ -835,7 +859,7 @@
     },
     {
       "type": "tab_custom",
-      "name": "לשונית חופשית",
+      "name": "מידע נוסף · לשונית חופשית",
       "settings": [
         {
           "type": "text",

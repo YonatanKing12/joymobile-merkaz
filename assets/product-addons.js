@@ -1,4 +1,11 @@
-/* "השלימו את הערכה" — sections/product-addons.liquid.
+/* "השלימו את הערכה" — snippets/product-addons.liquid (the shell) + sections/product-addons.liquid (tiles).
+ *
+ * The product's own buttons are the add-ons' buttons. Ticked tiles ride along with the device: the
+ * product form (assets/product.js) asks this element for selectedItems() and sends the device and
+ * every ticked accessory in one /cart/add call, then calls clear(). While something is ticked the
+ * section root carries [data-pa-count] and --pa-count, which the buy buttons read for their "+N"
+ * badge — on the section root because the buttons themselves are re-rendered on every variant change.
+ * Only when the device is sold out does this element add on its own (its standalone button).
  *
  * Each panel carries a search query. The panel's tiles are the same section rendered against
  * /search for that query, so the matching happens in Shopify's search index over the whole
@@ -12,7 +19,7 @@
  * what the theme's "no money in JS" rule is actually protecting: a format that cannot drift from the
  * shop's. The authoritative total is still the cart drawer's, which the note under the sum says.
  */
-import { define, announce } from '@theme/global';
+import { define, on, sectionIdOf } from '@theme/global';
 import { addItems } from '@theme/cart';
 
 const SECTION = 'product-addons';
@@ -27,19 +34,38 @@ class ProductAddons extends HTMLElement {
     this.bar = this.querySelector('[data-pa-bar]');
     this.submit = this.querySelector('[data-pa-submit]');
     this.label = this.querySelector('[data-pa-submit-label]');
-    this.countBox = this.querySelector('[data-pa-count]');
+    this.hint = this.querySelector('[data-pa-hint]');
+    this.live = this.querySelector('[data-pa-live]');
     this.errorBox = this.querySelector('[data-pa-error]');
-    if (!this.panels.length || !this.submit) return;
+    if (!this.panels.length || !this.bar) return;
 
     this.str = this.bar.dataset;
+    this.sectionId = sectionIdOf(this);
+    this.root = this.closest('.shopify-section') || document.body;
     this.mainVariant = String(this.dataset.paMainVariant || '');
     this.base = Number(this.dataset.paBase) || 0;
+    this.available = this.dataset.paAvailable !== 'false';
     this.moneyFormat = this.dataset.paMoney || '{{amount_no_decimals_with_comma_separator}} ₪';
     this.totalBox = this.querySelector('[data-pa-total]');
     this.addEventListener('change', this);
     this.tablist?.addEventListener('click', this);
     this.tablist?.addEventListener('keydown', this);
-    this.submit.addEventListener('click', () => this.add());
+    this.onSubmit = () => this.add();
+    this.submit?.addEventListener('click', this.onSubmit);
+
+    /* The device's price and availability follow the variant picker; the quantity follows the
+       stepper. Both live outside this element, in regions the section re-renders. */
+    this.offVariant = on('variant:changed', ({ detail: { variant, sectionId } }) => {
+      if (sectionId !== this.sectionId || !variant) return;
+      this.mainVariant = String(variant.id);
+      this.base = Number(variant.price) || 0;
+      this.available = variant.available !== false;
+      this.refresh();
+    });
+    this.onQuantity = (e) => {
+      if (e.target.matches?.('input[name="quantity"]')) this.refresh();
+    };
+    this.root.addEventListener('change', this.onQuantity);
 
     /* The first panel loads when the module is near the viewport, not on page load. */
     this.observer = new IntersectionObserver((entries) => {
@@ -54,6 +80,48 @@ class ProductAddons extends HTMLElement {
   disconnectedCallback() {
     this.observer?.disconnect();
     this.controllers?.forEach((c) => c.abort());
+    this.offVariant?.();
+    this.root?.removeEventListener('change', this.onQuantity);
+    this.submit?.removeEventListener('click', this.onSubmit);
+    this.publish(0);
+  }
+
+  /* What the product form adds alongside the device. */
+  selectedItems() {
+    return this.checked.map((c) => ({ id: Number(c.closest('[data-pa-item]').dataset.paVariant), quantity: 1 }));
+  }
+
+  /* After a successful add: untick everything, so a second press adds the device alone. */
+  clear() {
+    this.checked.forEach((c) => { c.checked = false; });
+    this.refresh();
+    this.say(this.str.paStrAdded);
+  }
+
+  /* An add that failed part-way: the cart drawer already shows what really went in. */
+  fail(message) {
+    this.showError(message || this.str.paStrError);
+  }
+
+  get quantity() {
+    const input = this.root.querySelector('input[name="quantity"]');
+    return Math.max(1, Number(input?.value) || 1);
+  }
+
+  /* The badge on the buy buttons reads these from the section root, which survives the
+     re-render of the button regions. */
+  publish(n) {
+    if (!this.root) return;
+    this.root.toggleAttribute('data-pa-count', n > 0);
+    if (n > 0) this.root.style.setProperty('--pa-count', String(n));
+    else this.root.style.removeProperty('--pa-count');
+  }
+
+  say(text) {
+    if (!this.live || !text) return;
+    this.live.textContent = '';
+    clearTimeout(this.sayTimer);
+    this.sayTimer = setTimeout(() => { this.live.textContent = text; }, 120);
   }
 
   get tabs() { return this.tablist ? [...this.tablist.querySelectorAll('[role="tab"]')] : []; }
@@ -164,10 +232,14 @@ class ProductAddons extends HTMLElement {
 
   refresh() {
     const n = this.checked.length;
-    this.submit.disabled = n === 0;
+    const standalone = !this.available;
+    this.toggleAttribute('data-pa-standalone', standalone);
+    if (this.submit) this.submit.disabled = n === 0;
 
     const extras = this.checked.reduce((sum, c) => sum + (Number(c.closest('[data-pa-item]').dataset.paPrice) || 0), 0);
-    if (this.totalBox) this.totalBox.textContent = this.money(this.base + extras);
+    /* Sold out: the device is not part of the purchase, so the total is the accessories alone. */
+    const base = standalone ? 0 : this.base * this.quantity;
+    if (this.totalBox) this.totalBox.textContent = this.money(base + extras);
 
     /* Each pill carries how many of its own tiles are ticked, so a choice made in one group is still
        visible from the others. */
@@ -179,15 +251,20 @@ class ProductAddons extends HTMLElement {
       box.textContent = picked ? String(picked) : '';
       box.hidden = picked === 0;
     });
+
+    const hint = n === 0 ? this.str.paStrHintIdle
+      : n === 1 ? this.str.paStrHintOne
+      : this.str.paStrHintMany.replace('{count}', n);
+    if (this.hint) this.hint.textContent = hint;
     if (this.label) {
       this.label.textContent = n === 0 ? this.str.paStrIdle
         : n === 1 ? this.str.paStrOne
         : this.str.paStrMany.replace('{count}', n);
     }
-    if (this.countBox) {
-      this.countBox.textContent = n === 0 ? ''
-        : n === 1 ? this.str.paStrCountOne
-        : this.str.paStrCountMany.replace('{count}', n);
+    this.publish(standalone ? 0 : n);
+    if (n !== this.lastCount) {
+      if (this.lastCount !== undefined && n > 0 && !standalone) this.say(hint);
+      this.lastCount = n;
     }
     this.hideError();
   }
@@ -204,10 +281,10 @@ class ProductAddons extends HTMLElement {
     this.errorBox.textContent = '';
   }
 
+  /* The standalone button: only shown while the device is sold out. */
   async add() {
-    const picked = this.checked;
-    if (!picked.length) return;
-    const items = picked.map((c) => ({ id: Number(c.closest('[data-pa-item]').dataset.paVariant), quantity: 1 }));
+    const items = this.selectedItems();
+    if (!items.length || !this.submit) return;
 
     this.submit.disabled = true;
     this.submit.setAttribute('aria-busy', 'true');
@@ -215,9 +292,8 @@ class ProductAddons extends HTMLElement {
     this.hideError();
 
     try {
-      await addItems(items);
-      picked.forEach((c) => { c.checked = false; });
-      announce(this.str.paStrCountOne);
+      await addItems(items, { opener: this.submit });
+      this.clear();
     } catch (error) {
       this.showError(error?.message || this.str.paStrError);
     } finally {
