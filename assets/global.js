@@ -6,7 +6,7 @@ export const isRTL = true;
 export const routes = { root: '/', cart: '/cart', cart_add: '/cart/add', cart_change: '/cart/change', cart_update: '/cart/update', search: '/search', ...cfg.routes };
 routes.root = routes.root.replace(/\/?$/, '/');
 export const strings = {
-  error: 'אירעה שגיאה. נסו שוב.', added: 'המוצר נוסף לעגלה', cartUpdated: 'העגלה עודכנה', results: 'נמצאו {count} תוצאות',
+  error: 'אירעה שגיאה. נסו שוב.', added: 'המוצר נוסף לעגלה', cartUpdated: 'העגלה עודכנה',
   wishlist: 'הוספה/הסרה מהמועדפים', slide: 'שקופית {n} מתוך {total}', a11yReset: 'הגדרות הנגישות אופסו', ...cfg.strings
 };
 export const t = (key, vars = {}) => (strings[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
