@@ -140,14 +140,14 @@
     </h1>
 
     {%- if terms != blank -%}
-      {%- comment -%} {terms}: where the script puts the other query (the words come from the locale). {%- endcomment -%}
+      {%- comment -%} [[terms]]: where the script puts the other query (the words come from the locale). {%- endcomment -%}
       {%- capture terms_bdi -%}<bdi>{{ terms }}</bdi>{%- endcapture -%}
       <search-correction class="search-correction" data-lexicon="{{ 'search-lexicon.json' | asset_url }}" hidden>
         <p class="search-correction__line" data-corrected hidden>
-          {{ 'search.correction.showing_for' | t: terms: '{terms}' | replace: '{terms}', terms_bdi }}.
-          <a href="{{ routes.search_url }}" data-original>{{ 'search.correction.search_instead' | t: terms: '{terms}' }}</a>
+          {{ 'search.correction.showing_for' | t: terms: '[[terms]]' | replace: '[[terms]]', terms_bdi }}.
+          <a href="{{ routes.search_url }}" data-original>{{ 'search.correction.search_instead' | t: terms: '[[terms]]' }}</a>
         </p>
-        <p class="search-correction__line" data-suggest hidden>{{ 'search.correction.did_you_mean' | t: terms: '{terms}' }}</p>
+        <p class="search-correction__line" data-suggest hidden>{{ 'search.correction.did_you_mean' | t: terms: '[[terms]]' }}</p>
       </search-correction>
     {%- endif -%}
 

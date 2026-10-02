@@ -19,6 +19,8 @@ jobs:
           node-version: 20
       - name: Theme Check (errors fail the run)
         run: npx --yes @shopify/cli@3 theme check --fail-level error
+      - name: Liquid output tags Shopify would reject (a "}" inside {{ … }})
+        run: node .github/scripts/liquid-braces.js $(git ls-files '*.liquid')
       - name: JavaScript syntax (every asset is an ES module)
         run: for f in assets/*.js; do node --input-type=module --check < "$f" || { echo "::error file=$f::syntax error"; exit 1; }; done
       - name: JSON validity (templates, config, locales)

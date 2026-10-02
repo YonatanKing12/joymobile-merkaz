@@ -17,7 +17,7 @@
   - [data-announce]: the sentence its live region speaks (one / many results, or none);
   - [data-fix]: "מציג תוצאות עבור „iphone”" + "לחיפוש „ןפיםמק” במקום זאת", an option that
     links to the query as typed. The script searched a corrected query (wrong keyboard
-    layout, Hebrew brand name): it shows this row and puts the typed text in {terms};
+    layout, Hebrew brand name): it shows this row and puts the typed text in [[terms]];
     otherwise it removes it.
   Every [role=option] has an id for aria-activedescendant.
   Styles: assets/component-predictive-search.css (linked by the header section).
@@ -54,9 +54,9 @@
       hidden
     >
       <span class="predictive-search__fix-lead" data-fix-lead>
-        {{- 'search.correction.showing_for' | t: terms: '{terms}' | replace: '{terms}', ps_terms_bdi -}}
+        {{- 'search.correction.showing_for' | t: terms: '[[terms]]' | replace: '[[terms]]', ps_terms_bdi -}}
       </span>
-      <span class="predictive-search__fix-instead">{{ 'search.correction.search_instead' | t: terms: '{terms}' }}</span>
+      <span class="predictive-search__fix-instead">{{ 'search.correction.search_instead' | t: terms: '[[terms]]' }}</span>
     </a>
     {%- liquid
       assign ps_products = 0

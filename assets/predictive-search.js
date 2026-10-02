@@ -88,14 +88,14 @@ function correctQuery(query) {
   return q && fixed !== q ? fixed : null;
 }
 
-// Puts `node` where the Liquid `t` call left the "{terms}" placeholder (the text itself comes from the locale).
+// Puts `node` where the Liquid `t` call left the "[[terms]]" placeholder (no braces: Shopify's Liquid parser ends an output tag at the first "}", even inside a string) (the text itself comes from the locale).
 function fillTerms(el, node) {
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   for (let text = walker.nextNode(); text; text = walker.nextNode()) {
-    const at = text.data.indexOf('{terms}');
+    const at = text.data.indexOf('[[terms]]');
     if (at < 0) continue;
     const rest = text.splitText(at);
-    rest.data = rest.data.slice('{terms}'.length);
+    rest.data = rest.data.slice('[[terms]]'.length);
     text.after(node);
     return;
   }
