@@ -10,7 +10,8 @@ data/
 demo-assets/
 docs/
 legacy-theme/
-scripts/
+# Root-level tooling only: .github/scripts holds what the Theme Check workflow runs.
+/scripts/
 theme-package/
 __pycache__/
 *.pyc
