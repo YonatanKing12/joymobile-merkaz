@@ -26,6 +26,11 @@
   if request.design_mode
     assign t_count = section.blocks.size
   endif
+
+  assign t_label = section.settings.heading
+  if t_label == blank
+    assign t_label = 'accessibility.carousel.label' | t
+  endif
 -%}
 
 {%- if t_render -%}
@@ -58,7 +63,13 @@
       aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
       aria-label="{{ section.settings.heading | escape }}"
     >
-      <div class="carousel__track testimonials__track" role="list" tabindex="0">
+      {%- comment -%} The cards hold no links, so the track itself takes focus (arrow keys scroll it) and is named. {%- endcomment -%}
+      <div
+        class="carousel__track testimonials__track"
+        role="list"
+        tabindex="0"
+        aria-label="{{ 'accessibility.carousel.slides' | t: label: t_label }}"
+      >
         {%- for block in section.blocks -%}
           {%- liquid
             assign t_name = block.settings.name | strip

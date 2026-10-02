@@ -41,6 +41,19 @@
     {{ 'fonts.css' | asset_url | stylesheet_tag }}
     {% render 'css-variables' %}
     {{ 'base.css' | asset_url | stylesheet_tag }}
+    {%- comment -%}
+      The home hero's first image when it has separate desktop and mobile files: Shopify's preload Link
+      header cannot carry a media query, so sections/hero-slideshow prints a media-gated pair of
+      <link rel="preload"> between two markers. Repeated here, right after the render-blocking CSS, the
+      browser requests the right file within the first 5KB of the page instead of after the head
+      scripts and the header (~180KB in).
+    {%- endcomment -%}
+    {%- if content_for_layout contains '<!--hero-lcp-preload-->' -%}
+      {%- assign hero_preload = content_for_layout | split: '<!--hero-lcp-preload-->' -%}
+      {%- if hero_preload.size > 2 %}
+        {{ hero_preload[1] | strip }}
+      {%- endif -%}
+    {%- endif %}
 
     <script type="importmap">
       {

@@ -19,6 +19,23 @@
   endif
   assign grid_id = 'BlogGrid-' | append: section.id
   assign grid_anchor = '#' | append: grid_id
+
+  # Topics, resolved once per page: every tag of the blog that names a collection (topic_tags) and that
+  # collection's title (topic_titles, same position). The tag row, the featured article and every card
+  # read these lists instead of loading a collection per tag per article. Tags never contain commas;
+  # the titles are stored HTML-escaped, so they cannot contain "<" and print as they are.
+  assign topic_tags = ''
+  assign topic_titles = ''
+  for tag in blog.all_tags
+    assign topic_collection = collections[tag]
+    if topic_collection.title != blank
+      assign topic_title = topic_collection.title | escape
+      assign topic_tags = topic_tags | append: tag | append: ','
+      assign topic_titles = topic_titles | append: '<' | append: topic_title
+    endif
+  endfor
+  assign topic_tags = topic_tags | split: ','
+  assign topic_titles = topic_titles | remove_first: '<' | split: '<'
 -%}
 
 <div class="blog page-width">
@@ -43,6 +60,7 @@
         <input
           class="blog-search__input"
           type="search"
+          dir="auto"
           id="BlogSearch-{{ section.id }}"
           name="q"
           placeholder="{{ 'blogs.blog.search_placeholder' | t }}"
@@ -66,10 +84,18 @@
           </a>
         </li>
         {%- for tag in blog.all_tags -%}
-          {%- assign tag_collection = collections[tag] -%}
+          {%- liquid
+            assign tag_label = tag | escape
+            for topic_tag in topic_tags
+              if topic_tag == tag
+                assign tag_label = topic_titles[forloop.index0]
+                break
+              endif
+            endfor
+          -%}
           <li>
             <a class="blog-tags__link" href="{{ blog.url }}/tagged/{{ tag | handle }}"{% if current_tags contains tag %} aria-current="page"{% endif %}>
-              {{- tag_collection.title | default: tag | escape -}}
+              {{- tag_label -}}
             </a>
           </li>
         {%- endfor -%}
@@ -84,11 +110,16 @@
       {%- if section.settings.show_featured and paginate.current_page == 1 and current_tags == blank -%}
         {%- liquid
           assign featured = blog.articles.first
+          # Escaped already (topic_titles).
           assign featured_topic = ''
           for tag in featured.tags
-            assign topic_collection = collections[tag]
-            if topic_collection.title != blank
-              assign featured_topic = topic_collection.title
+            for topic_tag in topic_tags
+              if topic_tag == tag
+                assign featured_topic = topic_titles[forloop.index0]
+                break
+              endif
+            endfor
+            if featured_topic != blank
               break
             endif
           endfor
@@ -115,7 +146,7 @@
           <article class="featured-article">
             <div class="featured-article__text">
               {%- if featured_topic != blank -%}
-                <p class="featured-article__eyebrow">{{ featured_topic | escape }}</p>
+                <p class="featured-article__eyebrow">{{ featured_topic }}</p>
               {%- endif -%}
               <h3 class="featured-article__title">
                 <a class="featured-article__link" href="{{ featured.url }}">{{ featured.title | escape }}</a>
@@ -163,16 +194,21 @@
         <ul class="blog-grid" role="list">
           {%- for article in blog.articles -%}
             {%- liquid
+              # Escaped already: from topic_titles, else the blog's title.
               assign card_topic = ''
               for tag in article.tags
-                assign topic_collection = collections[tag]
-                if topic_collection.title != blank
-                  assign card_topic = topic_collection.title
+                for topic_tag in topic_tags
+                  if topic_tag == tag
+                    assign card_topic = topic_titles[forloop.index0]
+                    break
+                  endif
+                endfor
+                if card_topic != blank
                   break
                 endif
               endfor
               if card_topic == blank
-                assign card_topic = blog.title
+                assign card_topic = blog.title | escape
               endif
               assign card_excerpt = article.excerpt | replace: '<', ' <' | strip_html | split: ' ' | join: ' '
               if card_excerpt == blank
@@ -194,13 +230,13 @@
                     -%}
                   {%- else -%}
                     <div class="article-panel">
-                      <span class="article-panel__label">{{ card_topic | escape }}</span>
+                      <span class="article-panel__label">{{ card_topic }}</span>
                     </div>
                   {%- endif -%}
                 </div>
                 <div class="article-card__body">
                   {%- if article.image -%}
-                    <p class="article-card__topic">{{ card_topic | escape }}</p>
+                    <p class="article-card__topic">{{ card_topic }}</p>
                   {%- endif -%}
                   <h3 class="article-card__title">
                     <a class="article-card__link" href="{{ article.url }}">

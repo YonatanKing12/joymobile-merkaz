@@ -27,12 +27,25 @@
     endif
   endfor
 -%}
-{{ 'component-drawer.css' | asset_url | stylesheet_tag }}
-{{ 'component-cart-drawer.css' | asset_url | stylesheet_tag }}
+{%- comment -%}
+  The drawer is closed at first paint, so its stylesheets load without blocking: as print stylesheets
+  (lowest priority, after the hero and the visible sections' CSS) switched on when they arrive. The inline
+  rule is the drawer shell's own first rule (component-drawer.css): it keeps the closed drawer out of the
+  page meanwhile, with or without JavaScript, and a drawer opened in that moment appears once its styles land.
+{%- endcomment -%}
+<style>
+  .drawer { position: fixed; inset: 0; z-index: var(--z-drawer); visibility: hidden; }
+</style>
+<link rel="stylesheet" href="{{ 'component-drawer.css' | asset_url }}" media="print" onload="this.onload=null;this.media='all'">
+<link rel="stylesheet" href="{{ 'component-cart-drawer.css' | asset_url }}" media="print" onload="this.onload=null;this.media='all'">
 {%- if section.settings.show_upsell -%}
-  {{ 'component-cart-upsell.css' | asset_url | stylesheet_tag }}
+  <link rel="stylesheet" href="{{ 'component-cart-upsell.css' | asset_url }}" media="print" onload="this.onload=null;this.media='all'">
   <script type="module" src="{{ 'cart-upsell.js' | asset_url }}"></script>
 {%- endif -%}
+<noscript>
+  {{- 'component-drawer.css' | asset_url | stylesheet_tag -}}
+  {{- 'component-cart-drawer.css' | asset_url | stylesheet_tag -}}
+</noscript>
 
 <cart-drawer id="CartDrawer" class="drawer cart-drawer{% if drawer_count == 0 %} is-empty{% endif %}" data-section-id="{{ section.id }}">
   <div class="drawer__overlay" data-close></div>

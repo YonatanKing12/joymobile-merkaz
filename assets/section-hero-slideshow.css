@@ -112,6 +112,26 @@ a.hero-slideshow__cover:focus-visible::after {
   }
 }
 
+/* Optional visible page H1 under the banners (section setting "show_page_heading"): one slim brand-green line. */
+.hero-slideshow__strapline {
+  margin: var(--space-sm) 0 0;
+  color: var(--color-brand-text);
+  font-size: var(--text-md);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+  text-align: center;
+}
+
+.hero-slideshow--peek .hero-slideshow__strapline {
+  padding-inline: var(--page-gutter);
+}
+
+@media (min-width: 992px) {
+  .hero-slideshow__strapline {
+    font-size: var(--text-lg);
+  }
+}
+
 /* ---------- Optional text overlay (phones: bottom by default) ---------- */
 .hero-slideshow__content {
   position: absolute;
@@ -136,6 +156,25 @@ a.hero-slideshow__cover:focus-visible::after {
 .hero-slideshow__content--light {
   color: var(--color-background);
   text-shadow: 0 1px 3px color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+
+/* Light text gets its own backdrop, so it never depends on the photo (WCAG 1.4.3 does not count a text-shadow):
+   the overlay ink at 60% behind the text box, feathered outwards by its shadow. Worst case, over a white photo,
+   white text sits on #6a6885, 5.3:1. Painted by the box itself (no positioning), so the button's stretched link
+   still covers the whole slide; the layer clips the feather to the slide and its rounded corners. */
+.hero-slideshow__content--light {
+  overflow: hidden;
+}
+
+.hero-slideshow:not(.hero-slideshow--peek) .hero-slideshow__content--light {
+  border-radius: var(--radius-lg);
+}
+
+/* Square on purpose: the shadow's blur rounds the outline, and a radius would leave a hairline where the
+   background's and the shadow's anti-aliased edges meet. */
+.hero-slideshow__content--light .hero-slideshow__box {
+  background-color: var(--color-overlay);
+  box-shadow: 0 0 1rem 1.25rem var(--color-overlay);
 }
 
 .hero-slideshow__box {

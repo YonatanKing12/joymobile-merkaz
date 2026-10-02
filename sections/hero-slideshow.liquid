@@ -3,8 +3,11 @@
   alt text, link, optional heading / text / button overlay. Desktop (>= 768px): the slide is centred with a flat
   "peek" of its neighbours in the side gutters (measured: 30px gutters, slide = viewport - 60). Mobile: full bleed.
   <carousel-slider> (assets/carousel.js) drives arrows, dots, autoplay (paused on hover / focus / hidden tab /
-  reduced motion) and the pause toggle. The first slide is the LCP image: eager + fetchpriority=high; the rest lazy.
+  reduced motion) and the pause toggle. The first slide is the LCP image: eager + fetchpriority=high + a preload (a
+  Link header with one image; with separate desktop and mobile images a media-gated pair of <link rel=preload> that
+  layout/theme.liquid repeats in <head>); the rest lazy.
   The slide box takes the first slide's image ratio (desktop and mobile), so nothing shifts when images load.
+  The page H1 (setting "page_heading") is visually hidden unless "show_page_heading" shows it as a line under the banners.
 {%- endcomment -%}
 {%- liquid
   assign slide_count = section.blocks.size
@@ -85,7 +88,7 @@
 {%- endif -%}
 
 <div class="hero-slideshow{% if peek > 0 %} hero-slideshow--peek{% endif %}">
-  {%- if section.settings.page_heading != blank -%}
+  {%- if section.settings.page_heading != blank and section.settings.show_page_heading == false -%}
     <h1 class="visually-hidden">{{ section.settings.page_heading | escape }}</h1>
   {%- endif -%}
 
@@ -140,9 +143,10 @@
             if forloop.first and above_fold
               assign loading = 'eager'
               assign priority = 'high'
-              unless art_direction
-                assign preload = true
-              endunless
+              # One image: preload: true sends it in Shopify's Link header (and 103 Early Hint). Two images: that
+              # header cannot carry a media query and would send phones the desktop file (or the reverse), so
+              # the art-direction branch below prints one media-gated <link rel=preload> per breakpoint instead.
+              assign preload = true
             endif
           -%}
           {%- capture slide_media -%}
@@ -171,14 +175,7 @@
                   assign candidate = image_desktop | image_url: width: image_desktop.width
                   assign srcset = srcset | append: candidate | append: ' ' | append: image_desktop.width | append: 'w'
                 -%}
-                <picture>
-                  <source
-                    media="(min-width: 768px)"
-                    srcset="{{ srcset }}"
-                    sizes="{{ sizes_desktop }}"
-                    width="{{ image_desktop.width }}"
-                    height="{{ image_desktop.height }}"
-                  >
+                {%- capture image_mobile_tag -%}
                   {%- render 'image',
                     image: image_mobile,
                     widths: '390,540,750,1080,1500',
@@ -188,6 +185,39 @@
                     class: 'hero-slideshow__img',
                     alt: alt
                   -%}
+                {%- endcapture -%}
+                {%- if preload -%}
+                  {%- comment -%}
+                    The preloads reuse the exact candidates of the <img> and the <source> (the mobile srcset is read
+                    back from the rendered tag), so the browser fetches one file, never a second size. No href:
+                    a browser without imagesrcset support then skips the hint instead of fetching a wrong file.
+                    The markers let layout/theme.liquid repeat the pair at the top of <head>. (AssetPreload is
+                    off for these two lines: the image_tag preload argument it recommends cannot carry a media query.)
+                  {%- endcomment -%}
+                  {%- liquid
+                    assign mobile_srcset = ''
+                    if image_mobile_tag contains 'srcset="'
+                      assign mobile_srcset = image_mobile_tag | split: 'srcset="' | last | split: '"' | first
+                    endif
+                  -%}
+                  {%- if mobile_srcset != blank -%}
+                    {% # theme-check-disable AssetPreload %}
+                    <!--hero-lcp-preload-->
+                    <link rel="preload" as="image" imagesrcset="{{ mobile_srcset }}" imagesizes="100vw" media="(max-width: 767px)" fetchpriority="high">
+                    <link rel="preload" as="image" imagesrcset="{{ srcset }}" imagesizes="{{ sizes_desktop }}" media="(min-width: 768px)" fetchpriority="high">
+                    <!--hero-lcp-preload-->
+                    {% # theme-check-enable AssetPreload %}
+                  {%- endif -%}
+                {%- endif -%}
+                <picture>
+                  <source
+                    media="(min-width: 768px)"
+                    srcset="{{ srcset }}"
+                    sizes="{{ sizes_desktop }}"
+                    width="{{ image_desktop.width }}"
+                    height="{{ image_desktop.height }}"
+                  >
+                  {{- image_mobile_tag -}}
                 </picture>
               {%- else -%}
                 {%- render 'image',
@@ -310,6 +340,10 @@
       {%- endif -%}
     </carousel-slider>
   {%- endif -%}
+
+  {%- if section.settings.page_heading != blank and section.settings.show_page_heading -%}
+    <h1 class="hero-slideshow__strapline">{{ section.settings.page_heading | escape }}</h1>
+  {%- endif -%}
 </div>
 
 {% schema %}
@@ -331,8 +365,15 @@
     {
       "type": "text",
       "id": "page_heading",
-      "label": "כותרת H1 נסתרת לעמוד",
-      "info": "טקסט לקוראי מסך ולמנועי חיפוש. השאירו ריק אם הכותרת הראשית של העמוד מגיעה מאזור אחר."
+      "label": "כותרת H1 לעמוד",
+      "info": "מה החנות ואיפה היא, למשל \"JOY Mobile — מוצרי חשמל ואלקטרוניקה באילת\". נסתרת כברירת מחדל (לקוראי מסך ולמנועי חיפוש). השאירו ריק אם הכותרת הראשית של העמוד מגיעה מאזור אחר."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_page_heading",
+      "label": "הצגת הכותרת כשורה מתחת לבאנרים",
+      "info": "שורה דקה אחת בירוק המותג. מומלץ: גוגל נותן משקל רב יותר לכותרת שרואים מאשר לכותרת נסתרת, והטקסט שבתוך תמונות הבאנרים לא נקרא כטקסט.",
+      "default": false
     },
     {
       "type": "header",
@@ -512,6 +553,7 @@
           "type": "select",
           "id": "text_color",
           "label": "צבע הטקסט",
+          "info": "בהיר: רק כשהאזור שמאחורי הטקסט בתמונה כהה. מאחורי טקסט בהיר נוסף רקע כהה שקוף למחצה, כדי שיהיה קריא גם על תמונה בהירה.",
           "options": [
             { "value": "dark", "label": "כהה" },
             { "value": "light", "label": "בהיר" }

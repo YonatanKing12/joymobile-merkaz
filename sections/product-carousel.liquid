@@ -5,7 +5,8 @@
   products are left. Products with a photo come first. Per view: 2.2 (<768, the next card peeks in) · 3.2 (768) ·
   4 (992) · 5 (1200) · 6 (1600) · 7 (1920) · 8 (2300).
   The arrows wrap around at the ends. Cards near the top of the page (section index <= 3, first five) are not
-  lazy-loaded.
+  lazy-loaded. The page's HTML holds the first five cards (a full strip from phones to 1599px); the rest come
+  from assets/product-carousel.js through Section Rendering when the strip nears the viewport.
 {%- endcomment -%}
 {%- liquid
   assign pc_collection = section.settings.collection
@@ -15,10 +16,19 @@
   if pc_view_all_label == blank
     assign pc_view_all_label = 'home.products.view_all' | t
   endif
+  assign pc_carousel_label = pc_title | default: pc_view_all_label
 
   assign pc_eager = 0
   if section.index != blank and section.index <= 3
     assign pc_eager = 5
+  endif
+
+  # Cards printed in the page: five, enough for every viewport up to 1599px (2.2 · 3.2 · 4 · 5 per view).
+  # All of them when the section itself is requested (Section Rendering and the theme editor, where
+  # section.index is nil) and when there is no "view all" link, the only way to the rest without JavaScript.
+  assign pc_initial = pc_limit
+  if section.index != blank and section.settings.show_view_all and pc_collection != blank
+    assign pc_initial = 5
   endif
 
   assign pc_count = 0
@@ -26,7 +36,8 @@
 
 {%- comment -%}
   Two passes over the collection's first 50 products, each in the collection's order: products with a photo
-  first, then products without one, only to fill the strip (most of the catalogue has no photo yet).
+  first, then products without one, only to fill the strip (most of the catalogue has no photo yet). Every
+  card of the strip is counted (the arrows depend on the total), only the first pc_initial are printed.
 {%- endcomment -%}
 {%- capture pc_slides -%}
   {%- if pc_collection != blank -%}
@@ -46,12 +57,15 @@
         {%- endif -%}
         {%- liquid
           assign pc_count = pc_count | plus: 1
+          if pc_count > pc_initial
+            continue
+          endif
           assign pc_lazy = true
           if pc_count <= pc_eager
             assign pc_lazy = false
           endif
         -%}
-        <div class="carousel__slide product-carousel__slide" role="listitem">
+        <div class="carousel__slide product-carousel__slide" role="listitem" data-product-id="{{ card_product.id }}">
           {%- render 'card-product',
             product: card_product,
             lazy: pc_lazy,
@@ -101,8 +115,17 @@
   {{ 'section-product-carousel.css' | asset_url | stylesheet_tag }}
   <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
   <script type="module" src="{{ 'product.js' | asset_url }}"></script>
+  {%- if pc_count > pc_initial -%}
+    <script type="module" src="{{ 'product-carousel.js' | asset_url }}"></script>
+  {%- endif -%}
 
-  <div class="product-carousel">
+  <product-carousel
+    class="product-carousel"
+    data-section-id="{{ section.id }}"
+    {% if pc_count > pc_initial %}
+      data-more
+    {% endif %}
+  >
     <div class="product-carousel__inner">
       {%- if pc_title != blank or section.settings.show_view_all -%}
         <div class="product-carousel__head">
@@ -134,9 +157,19 @@
         data-autoplay="0"
         data-loop="true"
         aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
-        aria-label="{{ pc_title | default: pc_view_all_label | escape }}"
+        aria-label="{{ pc_carousel_label | escape }}"
       >
-        <div class="carousel__track product-carousel__track" role="list" tabindex="{% if pc_placeholder %}0{% else %}-1{% endif %}">
+        {%- comment -%} Focusable only with placeholders (no links inside): then it needs a name of its own. {%- endcomment -%}
+        <div
+          class="carousel__track product-carousel__track"
+          role="list"
+          {% if pc_placeholder %}
+            tabindex="0"
+            aria-label="{{ 'accessibility.carousel.slides' | t: label: pc_carousel_label }}"
+          {% else %}
+            tabindex="-1"
+          {% endif %}
+        >
           {%- if pc_placeholder -%}
             {%- for i in (1..4) -%}
               <div class="carousel__slide product-carousel__slide" role="listitem">
@@ -158,7 +191,7 @@
       </carousel-slider>
 
     </div>
-  </div>
+  </product-carousel>
 {%- endif -%}
 
 {% schema %}
@@ -186,7 +219,7 @@
       "type": "range",
       "id": "products_limit",
       "label": "מספר מוצרים",
-      "info": "10 = שני עמודים במחשב. כל כרטיס מוסיף כ-25 רכיבים לעמוד.",
+      "info": "10 = שני עמודים במחשב. חמשת הכרטיסים הראשונים נטענים עם העמוד והשאר כשהגולש מתקרב לקרוסלה, כך שמספר גבוה לא מאט את טעינת העמוד.",
       "min": 2,
       "max": 24,
       "step": 1,

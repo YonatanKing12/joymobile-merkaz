@@ -6,6 +6,7 @@
    captures and can flash empty on a fast scroll. */
 
 .product-carousel {
+  display: block; /* <product-carousel> (assets/product-carousel.js) */
   padding-block: var(--pc-pad-top, 50px) var(--pc-pad-bottom, 0px);
 }
 

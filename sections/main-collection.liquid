@@ -301,11 +301,14 @@
             {%- endif -%}
             {%- if collection.products_count > 0 -%}
               {%- liquid
-                # Photos first within the page, only in the category's own order (not a price or date order).
-                assign grid_sort = collection.sort_by | default: collection.default_sort_by
+                # Photos first within the page, only in the category's own order: no sort_by in the URL and a
+                # manual or best-selling default. An order the shopper picked (best-selling, price, name, date;
+                # collection.sort_by is set only then) is shown exactly as Shopify returns it.
                 assign grid_photos_first = false
-                if grid_sort == 'manual' or grid_sort == 'best-selling'
-                  assign grid_photos_first = true
+                if collection.sort_by == blank
+                  if collection.default_sort_by == 'manual' or collection.default_sort_by == 'best-selling'
+                    assign grid_photos_first = true
+                  endif
                 endif
               -%}
               {%- render 'product-grid',

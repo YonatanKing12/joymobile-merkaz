@@ -13,7 +13,14 @@
   if g_view_all == blank
     assign g_view_all = 'home.guides.view_all' | t
   endif
+  # Handles of real collections that are not an article's topic ('all' resolves in every store): never a topic.
   assign g_skip_tags = 'reservable-eilat,frontpage,all' | split: ','
+  # Tags already found not to name a collection: each is looked up once per render, not once per article.
+  assign g_miss_tags = ''
+  assign g_label = section.settings.heading | default: g_blog.title
+  if g_label == blank
+    assign g_label = 'accessibility.carousel.label' | t
+  endif
   assign g_articles_count = 0
   if g_blog != blank
     assign g_articles_count = g_blog.articles_count
@@ -57,9 +64,19 @@
         data-autoplay="{% if section.settings.autoplay %}{{ section.settings.autoplay_speed | times: 1000 }}{% else %}0{% endif %}"
         data-loop="{% if section.settings.autoplay %}true{% else %}false{% endif %}"
         aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
-        aria-label="{{ section.settings.heading | default: g_blog.title | escape }}"
+        aria-label="{{ g_label | escape }}"
       >
-        <div class="carousel__track guides__track" role="list" tabindex="{% if g_articles_count > 0 %}-1{% else %}0{% endif %}">
+        {%- comment -%} Focusable only while empty (theme editor, no links inside): then it needs a name of its own. {%- endcomment -%}
+        <div
+          class="carousel__track guides__track"
+          role="list"
+          {% if g_articles_count > 0 %}
+            tabindex="-1"
+          {% else %}
+            tabindex="0"
+            aria-label="{{ 'accessibility.carousel.slides' | t: label: g_label }}"
+          {% endif %}
+        >
           {%- if g_articles_count > 0 -%}
             {%- for article in g_blog.articles limit: section.settings.articles_count -%}
               {%- liquid
@@ -74,9 +91,12 @@
                   assign g_preview = article.content | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncatewords: 18
                 endif
 
+                # Topic: the first tag that names a collection. g_miss_tags is a ",tag," list (tags never
+                # contain commas), so a tag that missed for an earlier article costs no second lookup.
                 assign g_topic = nil
                 for tag in article.tags
-                  if g_skip_tags contains tag
+                  assign g_tag_token = ',' | append: tag | append: ','
+                  if g_skip_tags contains tag or g_miss_tags contains g_tag_token
                     continue
                   endif
                   assign g_candidate = collections[tag]
@@ -84,6 +104,7 @@
                     assign g_topic = g_candidate
                     break
                   endif
+                  assign g_miss_tags = g_miss_tags | append: g_tag_token
                 endfor
               -%}
               <div class="carousel__slide guides__slide" role="listitem">

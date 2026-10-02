@@ -94,7 +94,12 @@
 -%}
 {{ 'section-header.css' | asset_url | stylesheet_tag }}
 {%- if search_on -%}
-  {{ 'component-predictive-search.css' | asset_url | stylesheet_tag }}
+  {%- comment -%}
+    The suggestions panel ([data-results] hidden) and the busy spinner exist only once predictive-search.js
+    runs, so their CSS loads without blocking: a print stylesheet is fetched at the lowest priority and
+    switched on when it arrives, instead of holding the parser (and the hero below) at this point.
+  {%- endcomment -%}
+  <link rel="stylesheet" href="{{ 'component-predictive-search.css' | asset_url }}" media="print" onload="this.onload=null;this.media='all'">
   {{ 'component-price.css' | asset_url | stylesheet_tag }}
   <script type="module" src="{{ 'predictive-search.js' | asset_url }}"></script>
 {%- endif -%}

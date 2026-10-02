@@ -50,6 +50,44 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/*
+ * "Assistant Fallback": the visitor's own Arial, resized to Assistant's metrics, for the
+ * moment before Assistant arrives (font-display: swap). Plain Arial is ~10% wider, so text
+ * painted in it re-wraps when Assistant swaps in and pushes everything below it down (CLS);
+ * matched, the lines break in nearly the same places. Next after "Assistant" in
+ * --font-body-family (snippets/css-variables.liquid). Nothing is downloaded (local only).
+ *
+ * Computed, not guessed (fontTools): Assistant's variable fonts instanced at wght 400 / 700
+ * against Arial / Arial Bold (Monotype, core fonts 2.82): size-adjust = mean advance width
+ * over the store's real text (home page + blog + all 2,067 product titles, ~109k characters,
+ * Hebrew and Latin), ascent/descent-override = Assistant's hhea 1021 / 287 per 1000 ÷ size-adjust,
+ * no line gap. Checked in Chromium on the home page's and the blog's Hebrew text in a 343px
+ * column: plain Arial wraps into 15.7% more lines than Assistant, the fallback into 0.5% more.
+ * Weights 500 and below use the 400 face, 600 and above the 700 face. Devices without Arial
+ * (Android) skip the family, as before.
+ */
+@font-face {
+  font-family: "Assistant Fallback";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Arial"), local("ArialMT");
+  size-adjust: 90.28%;
+  ascent-override: 113.09%;
+  descent-override: 31.79%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Assistant Fallback";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Arial Bold"), local("Arial-BoldMT");
+  size-adjust: 91.11%;
+  ascent-override: 112.07%;
+  descent-override: 31.5%;
+  line-gap-override: 0%;
+}
+
 @font-face {
   font-family: "Rubik";
   font-style: normal;

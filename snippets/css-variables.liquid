@@ -45,7 +45,7 @@
     --color-badge-soldout-text: {{ settings.color_badge_soldout_text }};
 
     {%- # Theme setting "גופן": Assistant (brand, default) or Rubik; both self-hosted in assets/fonts.css. %}
-    --font-body-family: {% if settings.font_family == 'rubik' %}"Rubik"{% else %}"Assistant"{% endif %}, "Arial Hebrew", Arial, system-ui, sans-serif;
+    --font-body-family: {% if settings.font_family == 'rubik' %}"Rubik"{% else %}"Assistant", "Assistant Fallback"{% endif %}, "Arial Hebrew", Arial, system-ui, sans-serif;
     --font-heading-family: var(--font-body-family);
     --font-body-weight: {{ settings.type_body_weight | default: 400 }};
     --font-heading-weight: {{ settings.type_heading_weight | default: 700 }};
