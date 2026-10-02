@@ -1152,6 +1152,14 @@ html.no-js .product-wishlist {
   }
 }
 
+/* "השלימו את הערכה" moves under the gallery from 992px (inline script in sections/main-product).
+   Whichever of its two places is empty takes no room: the slot, and the buy-column block that
+   still holds the card's stylesheet and script. */
+.product__addons-slot:not(:has(product-addons)),
+.product-block--addons:not(:has(product-addons)) {
+  display: none;
+}
+
 /* From 992px: gallery and info side by side in equal columns, more air between them. */
 @media (min-width: 992px) {
   .product {

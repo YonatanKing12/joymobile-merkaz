@@ -3,9 +3,10 @@
    ticked tiles are added by the product's own buy buttons (assets/product.js); the bar's button only
    shows while the device is sold out. Sizes are in rem so the block grows with the fluid root. */
 
-/* One bordered card right under the buy buttons, so it reads as part of the purchase and not as
-   another strip of the page. The info column is the full width on phones and most of the row on
-   desktop — hence the auto-fill grid below rather than a fixed column count. */
+/* One bordered card: under the buy buttons on phones and tablets, under the gallery from 992px
+   (sections/main-product moves it), so it reads as part of the purchase and not as another strip
+   of the page. Its column width varies with the place and the screen, hence the auto-fill grid
+   below rather than a fixed column count. */
 .pa {
   display: block;
   margin-block-start: var(--space-lg);

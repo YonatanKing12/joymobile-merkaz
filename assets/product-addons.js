@@ -77,9 +77,16 @@ class ProductAddons extends HTMLElement {
     this.refresh();
   }
 
+  /* The card moves between the buy column and the space under the gallery when the window crosses
+     992px (sections/main-product), which disconnects and reconnects it. A load aborted on the way
+     must not stay 'pending', or load() would skip that panel for the rest of the visit. */
   disconnectedCallback() {
     this.observer?.disconnect();
     this.controllers?.forEach((c) => c.abort());
+    this.controllers = [];
+    this.panels?.forEach((panel) => {
+      if (panel.dataset.paLoaded === 'pending') panel.dataset.paLoaded = '';
+    });
     this.offVariant?.();
     this.root?.removeEventListener('change', this.onQuantity);
     this.submit?.removeEventListener('click', this.onSubmit);

@@ -359,7 +359,11 @@
         loop: section.settings.gallery_loop,
         badges: section.settings.gallery_badges
       -%}
-
+      {%- comment -%}
+        From 992px the "השלימו את הערכה" card sits here, under the gallery, where the column has room;
+        the script after .product moves it in. Below that it stays in the buy column (server render).
+      {%- endcomment -%}
+      <div class="product__addons-slot" data-addons-slot></div>
     </div>
 
     <div class="product__info">
@@ -412,6 +416,29 @@
       </div>
     {%- endif -%}
   </div>
+
+  {%- comment -%}
+    Desktop only: the add-ons card moves under the gallery. Inline and right after the markup, so
+    the move happens while the page is parsed, before <product-addons> is upgraded and before the
+    card is painted in its phone position. Only the element moves; its stylesheet and script stay
+    in the block wrapper. The product form finds it anywhere in the section (assets/product.js).
+  {%- endcomment -%}
+  <script>
+    (() => {
+      const root = document.currentScript.closest('.main-product');
+      const slot = root?.querySelector('[data-addons-slot]');
+      const home = root?.querySelector('.product__buy .product-block--addons');
+      const card = home?.querySelector('product-addons');
+      if (!slot || !card) return;
+      const wide = matchMedia('(min-width: 992px)');
+      const place = () => {
+        const target = wide.matches ? slot : home;
+        if (card.parentElement !== target) target.append(card);
+      };
+      place();
+      wide.addEventListener('change', place);
+    })();
+  </script>
 
   {{- sticky_html -}}
 </div>
