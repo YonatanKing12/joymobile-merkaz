@@ -1,47 +1,59 @@
 {% doc %}
-  One cart line for <cart-items> (@theme/cart), used by the cart drawer and available to the
-  cart page. Markup contract:
+  One cart line for <cart-items> (@theme/cart): the drawer's compact line (context 'drawer',
+  classes cart-line__*, assets/component-cart-drawer.css) and the cart page's table row (context
+  'page', classes cart-item__*, assets/section-main-cart.css). Both are printed here from the same
+  data and the same pieces (title, options, plan, properties, discounts, unit price, low stock,
+  stepper, remove), so the two surfaces cannot drift apart; only the arrangement and the class
+  prefix differ. Markup contract:
   - the <li> carries `data-key` (the line item key) — cart.js finds the line from any control in it;
-  - the quantity stepper is `quantity-input` with name `updates[]`, `min: 0` and the same key;
-    cart.js debounces changes into /cart/change.js and re-renders the sections;
+  - the quantity stepper is `quantity-input` with name `updates[]`, `min: 0`; cart.js debounces
+    changes into /cart/change.js and re-renders the sections. In the drawer the stepper carries the
+    key too (cart.js then marks only the stepper busy); on the page the whole row is marked;
   - the remove control is a real link to `item.url_to_remove` (works without JS) marked
     `[data-cart-remove]`, which cart.js turns into an AJAX removal;
-  - `[data-line-error]` receives inline errors (e.g. only N left in stock);
-  - the stepper input and its −/+ buttons get ids derived from the line key (stable when
-    other lines are removed), so focus returns to them after the section re-renders.
-  Private line properties (names starting with "_") are never printed.
-  The cart page prints its lines itself (sections/main-cart: table layout, form= inputs); keep the
-  two in step — same data (title, options, properties, plan, discounts, prices, low stock) and the
-  same @theme/cart contract.
+  - `[data-line-error]` (role=alert, hidden) receives inline errors (e.g. only N left in stock);
+  - data-undo-* says what an undo after a removal re-adds (withheld where it could not restore the line);
+  - the stepper input, its −/+ buttons and the remove link get ids derived from the line key
+    (stable when other lines are removed), so focus returns to them after the section re-renders.
+  Private line properties (names starting with "_") are never printed. A line without a photo shows
+  its brand logo or the JOY symbol (snippets/image, fallback 'brand').
 
   @param {line_item} item - The cart line.
   @param {number} index - 1-based position of the line (forloop.index).
-  @param {string} [context] - 'drawer' (default) or 'page'; adds a modifier class.
+  @param {string} [context] - 'drawer' (default) or 'page'.
+  @param {string} [form] - Page only: id of the cart form, for the stepper's form attribute.
 
   @example
   {% render 'cart-line', item: item, index: forloop.index, context: 'drawer' %}
+  {% render 'cart-line', item: item, index: forloop.index, context: 'page', form: cart_form_id %}
 {% enddoc %}
 {%- liquid
   assign line_context = context | default: 'drawer'
+  assign lc = 'cart-line'
+  assign line_id_prefix = 'CartDrawer-'
+  assign stepper_line = index
+  assign stepper_key = item.key
+  if line_context == 'page'
+    assign lc = 'cart-item'
+    assign line_id_prefix = 'CartPage-'
+    assign stepper_line = nil
+    assign stepper_key = nil
+  endif
+  assign stepper_class = lc | append: '__quantity'
+
   assign line_title = item.product.title | default: item.title
+  assign line_ref = item.key | handleize
+  assign qty_id = line_id_prefix | append: 'Qty-' | append: line_ref
+  assign remove_id = line_id_prefix | append: 'Remove-' | append: line_ref
 
   assign line_max = nil
   assign line_low_stock = false
   if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'deny'
-    assign line_max = item.variant.inventory_quantity
-    if line_max < item.quantity
-      assign line_max = item.quantity
-    endif
+    assign line_max = item.variant.inventory_quantity | at_least: item.quantity
     if item.variant.inventory_quantity > 0 and item.variant.inventory_quantity <= settings.badge_low_stock_threshold
       assign line_low_stock = true
     endif
   endif
-
-  assign qty_prefix = 'CartDrawer-Qty-'
-  if line_context == 'page'
-    assign qty_prefix = 'CartPage-Qty-'
-  endif
-  assign qty_id = item.key | handleize | prepend: qty_prefix
 
   assign show_options = true
   if item.product.has_only_default_variant or item.variant.title == blank
@@ -55,121 +67,244 @@
   if item.properties.size > 0 or item.selling_plan_allocation
     assign line_undoable = false
   endif
+
+  assign line_remove_label = 'cart.drawer.line.remove' | t: title: line_title
 -%}
-{%- comment -%}
-  data-undo-* is what an undo needs: once the line is gone the cart no longer holds the variant or
-  the quantity, and the section has already re-rendered by the time the bar appears.
-{%- endcomment -%}
-<li
-  class="cart-line cart-line--{{ line_context }}"
-  data-key="{{ item.key | escape }}"
-  data-line="{{ index }}"
-  {%- if line_undoable %}
-    data-undo-variant="{{ item.variant_id }}"
-    data-undo-quantity="{{ item.quantity }}"
-    data-undo-title="{{ line_title | escape }}"
-  {%- endif %}
->
-  <a class="cart-line__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+
+{%- capture line_image -%}
+  {%- if line_context == 'page' -%}
+    {%- render 'image',
+      image: item.image,
+      widths: '80,160,240',
+      sizes: '(min-width: 768px) 80px, 72px',
+      decorative: true,
+      fallback: 'brand',
+      vendor: item.vendor,
+      class: 'cart-item__image'
+    -%}
+  {%- else -%}
     {%- render 'image',
       image: item.image,
       widths: '70,140,210',
       sizes: '70px',
       loading: 'lazy',
       decorative: true,
-      placeholder: 'product-1',
+      fallback: 'brand',
+      vendor: item.vendor,
       class: 'cart-line__img'
     -%}
-  </a>
+  {%- endif -%}
+{%- endcapture -%}
 
-  <div class="cart-line__body">
-    <a class="cart-line__title" href="{{ item.url }}">{{ line_title | escape }}</a>
+{%- comment -%}
+  The title stays in the RTL flow (a <bdi> would lay the Latin-first device titles out
+  left-to-right) and ends with an invisible left-to-right mark: a title that ends in a neutral
+  after Latin ("…ל-Galaxy S25+", '…12.9"') keeps that character beside the Latin it belongs to
+  instead of having it pulled to the far end.
+{%- endcomment -%}
+{%- capture line_details -%}
+  <a class="{{ lc }}__title" href="{{ item.url }}">{{ line_title | escape }}&lrm;</a>
 
-    {%- if show_options -%}
-      <ul class="cart-line__options" role="list">
-        {%- for option in item.options_with_values -%}
-          <li>{{ option.name | escape }}: {{ option.value | escape }}</li>
-        {%- endfor -%}
-      </ul>
-    {%- endif -%}
+  {%- if show_options -%}
+    <ul class="{{ lc }}__options" role="list">
+      {%- for option in item.options_with_values -%}
+        <li>{{ option.name | escape }}: {{ option.value | escape }}</li>
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
 
-    {%- if item.properties.size > 0 -%}
-      <ul class="cart-line__options" role="list">
-        {%- for property in item.properties -%}
-          {%- assign property_first = property.first | slice: 0 -%}
-          {%- if property.last != blank and property_first != '_' -%}
-            <li>
-              {{- property.first | escape }}:
-              {% if property.last contains '/uploads/' -%}
-                <a href="{{ property.last }}" target="_blank" rel="noopener">{{ property.last | split: '/' | last | escape }}</a>
-              {%- else -%}
-                {{- property.last | escape -}}
-              {%- endif -%}
-            </li>
-          {%- endif -%}
-        {%- endfor -%}
-      </ul>
-    {%- endif -%}
+  {%- if item.selling_plan_allocation -%}
+    <p class="{{ lc }}__plan">{{ item.selling_plan_allocation.selling_plan.name | escape }}</p>
+  {%- endif -%}
 
-    {%- if item.selling_plan_allocation -%}
-      <p class="cart-line__plan">{{ item.selling_plan_allocation.selling_plan.name | escape }}</p>
-    {%- endif -%}
-
-    {%- for discount in item.line_level_discount_allocations -%}
-      <p class="cart-line__discount">
-        {%- render 'icon', name: 'tag', size: 14 -%}
-        {{ discount.discount_application.title | escape }} (−{{ discount.amount | money_without_trailing_zeros }})
-      </p>
+  {%- capture line_properties -%}
+    {%- for property in item.properties -%}
+      {%- assign property_first = property.first | slice: 0 -%}
+      {%- if property.last != blank and property_first != '_' -%}
+        <div>
+          <dt>{{ property.first | escape }}:</dt>
+          <dd>
+            {%- if property.last contains '/uploads/' -%}
+              <a href="{{ property.last | escape_once }}" target="_blank" rel="noopener">{{ property.last | split: '/' | last | escape }}</a>
+            {%- else -%}
+              {{- property.last | escape -}}
+            {%- endif -%}
+          </dd>
+        </div>
+      {%- endif -%}
     {%- endfor -%}
+  {%- endcapture -%}
+  {%- if line_properties != blank -%}
+    <dl class="{{ lc }}__properties">{{ line_properties }}</dl>
+  {%- endif -%}
+{%- endcapture -%}
 
-    {%- comment -%}
-      Stepper and price share one row: on a phone that is the difference between three lines on
-      screen and five.
-    {%- endcomment -%}
-    <div class="cart-line__controls">
-      {%- render 'quantity-input',
-        id: qty_id,
-        name: 'updates[]',
-        value: item.quantity,
-        min: 0,
-        max: line_max,
-        line: index,
-        key: item.key,
-        label: line_title,
-        class: 'cart-line__quantity'
-      -%}
+{%- capture line_discounts -%}
+  {%- if item.line_level_discount_allocations.size > 0 -%}
+    <ul class="{{ lc }}__discounts" role="list">
+      {%- for allocation in item.line_level_discount_allocations -%}
+        <li>
+          {%- render 'icon', name: 'tag', size: 14 -%}
+          <span>{{ allocation.discount_application.title | escape }} {% render 'money-signed', amount: allocation.amount %}</span>
+        </li>
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
+{%- endcapture -%}
 
-      <div class="cart-line__price">
-        {%- if item.original_line_price > item.final_line_price -%}
-          <s class="cart-line__compare">
-            <span class="visually-hidden">{{ 'cart.drawer.line.original_price' | t }}</span>
-            {{ item.original_line_price | money_without_trailing_zeros }}
-          </s>
-        {%- endif -%}
-        <span class="cart-line__amount">
-          <span class="visually-hidden">{{ 'cart.drawer.line.final_price' | t }}</span>
-          {{ item.final_line_price | money_without_trailing_zeros }}
-        </span>
-        {%- if item.quantity > 1 -%}
-          {%- assign unit_price = item.final_price | money_without_trailing_zeros -%}
-          <span class="cart-line__unit">{{ 'cart.drawer.line.unit_price' | t: price: unit_price }}</span>
-        {%- endif -%}
-      </div>
+{%- comment -%}
+  The struck unit price only on the page: in the drawer the price column sits beside the stepper,
+  already carries the struck line price, and one more amount pushes it onto a row of its own.
+{%- endcomment -%}
+{%- capture line_unit -%}
+  {%- if item.quantity > 1 -%}
+    {%- assign line_unit_price = item.final_price | money_without_trailing_zeros -%}
+    {%- if line_context == 'page' and item.original_price > item.final_price -%}
+      <s class="{{ lc }}__compare"><span class="visually-hidden">{{ 'cart.drawer.line.original_price' | t }}</span> {{ item.original_price | money_without_trailing_zeros }}</s>
+    {% endif -%}
+    {{ 'cart.drawer.line.unit_price' | t: price: line_unit_price }}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- capture line_stepper -%}
+  {%- render 'quantity-input',
+    id: qty_id,
+    name: 'updates[]',
+    value: item.quantity,
+    min: 0,
+    max: line_max,
+    form: form,
+    line: stepper_line,
+    key: stepper_key,
+    label: line_title,
+    class: stepper_class
+  -%}
+{%- endcapture -%}
+
+{%- capture line_stock -%}
+  {%- if line_low_stock -%}
+    <p class="{{ lc }}__stock">{{ 'cart.page.low_stock' | t: count: item.variant.inventory_quantity }}</p>
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- comment -%}
+  Shown and filled by cart.js after a failed change. role=alert: the stepper has already snapped
+  back, and this says why, so it is read out as soon as it appears.
+{%- endcomment -%}
+{%- capture line_error -%}
+  <p class="{{ lc }}__error form-message form-message--error" data-line-error role="alert" hidden></p>
+{%- endcapture -%}
+
+{%- comment -%}
+  data-undo-* is what an undo needs: once the line is gone the cart no longer holds the variant or
+  the quantity, and the section has already re-rendered by the time the bar appears.
+{%- endcomment -%}
+{%- if line_context == 'page' -%}
+  <li
+    class="cart-item"
+    data-key="{{ item.key | escape }}"
+    data-line="{{ index }}"
+    {%- if line_undoable %}
+      data-undo-variant="{{ item.variant_id }}"
+      data-undo-quantity="{{ item.quantity }}"
+      data-undo-title="{{ line_title | escape }}"
+    {%- endif %}
+  >
+    <div class="cart-item__media">
+      <a class="cart-item__image-link" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+        {{- line_image -}}
+      </a>
     </div>
 
-    {%- if line_low_stock -%}
-      <p class="cart-line__stock">{{ 'cart.page.low_stock' | t: count: item.variant.inventory_quantity }}</p>
-    {%- endif -%}
+    <div class="cart-item__info">
+      {{- line_details -}}
+      {%- if line_unit != blank -%}
+        <p class="cart-item__unit">{{ line_unit }}</p>
+      {%- endif -%}
+      {{- line_discounts -}}
+      {{- line_error -}}
+    </div>
 
-    <p class="cart-line__error form-message form-message--error" data-line-error hidden></p>
-  </div>
+    <div class="cart-item__qty">
+      {{- line_stepper -}}
+      {{- line_stock -}}
+    </div>
 
-  <a
-    class="cart-line__remove"
-    href="{{ item.url_to_remove }}"
-    data-cart-remove
-    aria-label="{{ 'cart.drawer.line.remove' | t: title: line_title }}"
+    <div class="cart-item__total">
+      <span class="visually-hidden">{{ 'cart.page.line_total' | t }}</span>
+      {%- if item.original_line_price > item.final_line_price -%}
+        <s class="cart-item__compare"><span class="visually-hidden">{{ 'cart.page.regular_price' | t }}</span> {{ item.original_line_price | money_without_trailing_zeros }}</s>
+      {%- endif -%}
+      <span class="cart-item__amount">{{ item.final_line_price | money_without_trailing_zeros }}</span>
+    </div>
+
+    <div class="cart-item__remove-cell">
+      <a
+        class="cart-item__remove"
+        href="{{ item.url_to_remove }}"
+        id="{{ remove_id }}"
+        data-cart-remove
+        aria-label="{{ line_remove_label }}"
+      >
+        {%- render 'icon', name: 'trash', size: 20 -%}
+      </a>
+    </div>
+  </li>
+{%- else -%}
+  <li
+    class="cart-line cart-line--{{ line_context }}"
+    data-key="{{ item.key | escape }}"
+    data-line="{{ index }}"
+    {%- if line_undoable %}
+      data-undo-variant="{{ item.variant_id }}"
+      data-undo-quantity="{{ item.quantity }}"
+      data-undo-title="{{ line_title | escape }}"
+    {%- endif %}
   >
-    {%- render 'icon', name: 'close', size: 16 -%}
-  </a>
-</li>
+    <a class="cart-line__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+      {{- line_image -}}
+    </a>
+
+    <div class="cart-line__body">
+      {{- line_details -}}
+      {{- line_discounts -}}
+
+      {%- comment -%}
+        Stepper and price share one row: on a phone that is the difference between three lines on
+        screen and five.
+      {%- endcomment -%}
+      <div class="cart-line__controls">
+        {{- line_stepper -}}
+
+        <div class="cart-line__price">
+          {%- if item.original_line_price > item.final_line_price -%}
+            <s class="cart-line__compare">
+              <span class="visually-hidden">{{ 'cart.drawer.line.original_price' | t }}</span>
+              {{ item.original_line_price | money_without_trailing_zeros }}
+            </s>
+          {%- endif -%}
+          <span class="cart-line__amount">
+            <span class="visually-hidden">{{ 'cart.drawer.line.final_price' | t }}</span>
+            {{ item.final_line_price | money_without_trailing_zeros }}
+          </span>
+          {%- if line_unit != blank -%}
+            <span class="cart-line__unit">{{ line_unit }}</span>
+          {%- endif -%}
+        </div>
+      </div>
+
+      {{- line_stock -}}
+      {{- line_error -}}
+    </div>
+
+    <a
+      class="cart-line__remove"
+      href="{{ item.url_to_remove }}"
+      id="{{ remove_id }}"
+      data-cart-remove
+      aria-label="{{ line_remove_label }}"
+    >
+      {%- render 'icon', name: 'close', size: 16 -%}
+    </a>
+  </li>
+{%- endif -%}

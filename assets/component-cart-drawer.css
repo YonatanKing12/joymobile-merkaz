@@ -136,7 +136,8 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   text-decoration: underline;
 }
 
-.cart-drawer .cart-line__options {
+.cart-drawer .cart-line__options,
+.cart-drawer .cart-line__properties {
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--space-sm);
@@ -147,8 +148,26 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   list-style: none;
 }
 
+.cart-drawer .cart-line__properties > div {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+.cart-drawer .cart-line__properties dd {
+  margin: 0;
+}
+
+.cart-drawer .cart-line__discounts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .cart-drawer .cart-line__plan,
-.cart-drawer .cart-line__discount {
+.cart-drawer .cart-line__discounts li {
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -293,6 +312,10 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   margin: 0;
 }
 
+.cart-drawer__branch {
+  margin: var(--space-sm) var(--space-md) 0;
+}
+
 .cart-drawer__conditions {
   margin: var(--space-sm) var(--space-md) 0;
   color: var(--color-muted);
@@ -381,6 +404,33 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   white-space: nowrap;
 }
 
+/* As on the cart page (.cart-summary__tax): printed only when every line is VAT-exempt. Pulled up
+   against the total it qualifies. */
+.cart-drawer__tax {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-xs);
+  margin: 0;
+  margin-block-start: calc(var(--space-sm) * -1 + 0.125rem);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+.cart-drawer__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.0625rem var(--space-xs);
+  border: 1px solid var(--color-badge-taxfree-text);
+  border-radius: var(--radius-badge);
+  background-color: var(--color-badge-taxfree-bg);
+  color: var(--color-badge-taxfree-text);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
 /* Added by @theme/cart after a re-render that changed the number. The element is replaced on every
    render, so the animation starts fresh each time and needs no cleanup. */
 .cart-drawer__total-amount.is-flashing {
@@ -437,6 +487,12 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   align-items: center;
   gap: var(--space-sm);
   padding: 0 var(--space-md) var(--space-md);
+}
+
+/* Under the sticky footer, not in it: a second full-size button there would cost the lines a row
+   of screen on every phone. */
+.cart-drawer__whatsapp {
+  align-self: stretch;
 }
 
 .cart-drawer__secondary {

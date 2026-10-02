@@ -6,7 +6,12 @@
   `fetchpriority: 'high'` and `preload: true` (adds a preload Link header).
   Widths larger than the original are dropped by Shopify automatically.
   When `image` is blank a Shopify placeholder illustration is rendered instead,
-  with the same class so the surrounding layout keeps its size.
+  with the same class so the surrounding layout keeps its size. For a product without a
+  photo pass `fallback: 'brand'` and the vendor: the brand's logo from the store's Files
+  (`brand-<vendor handle>.png`, e.g. brand-apple.png), else the JOY Mobile symbol, the same
+  chain as the product cards (snippets/card-product), instead of the generic grey drawing.
+  Both carry `image-fallback` (plus `image-fallback--brand` for a logo) so the caller can
+  tone them down.
 
   Pass an image object: `product.featured_image`, `media.preview_image`,
   `collection.image`, `article.image`, `block.settings.image`, …
@@ -21,10 +26,13 @@
   @param {string} [alt] - Alt text. Default: the image's own alt text.
   @param {boolean} [decorative] - true renders alt="" (image adds nothing for screen readers).
   @param {string} [placeholder] - placeholder_svg_tag name when image is blank. Default 'image'.
+  @param {string} [fallback] - 'brand': a blank product image becomes the brand logo or the JOY symbol (see above), not the placeholder drawing.
+  @param {string} [vendor] - The product's vendor, for `fallback: 'brand'`. The store's own name counts as no brand.
 
   @example
   {% render 'image', image: product.featured_media.preview_image, widths: '165,330,535,750', sizes: '(min-width: 992px) 25vw, 50vw', class: 'card-product__img' %}
   {% render 'image', image: section.settings.image, loading: 'eager', fetchpriority: 'high', preload: true, sizes: '100vw' %}
+  {% render 'image', image: item.image, widths: '70,140,210', sizes: '70px', fallback: 'brand', vendor: item.vendor, class: 'cart-line__img' %}
 {% enddoc %}
 {%- if image != blank -%}
   {%- liquid
@@ -50,6 +58,30 @@
   {%- else -%}
     {{- image | image_url: width: img_max | image_tag: widths: img_widths, sizes: img_sizes, loading: img_loading, fetchpriority: img_priority, alt: img_alt, class: class -}}
   {%- endif -%}
+{%- elsif fallback == 'brand' -%}
+  {%- liquid
+    assign fb_vendor = vendor | strip
+    assign fb_logo = nil
+    if fb_vendor != blank and fb_vendor != shop.name
+      assign fb_file = fb_vendor | handleize | prepend: 'brand-' | append: '.png'
+      assign fb_logo = images[fb_file]
+    endif
+    assign fb_class = 'image-fallback'
+    if class != blank
+      assign fb_class = class | append: ' ' | append: fb_class
+    endif
+    assign fb_loading = loading | default: 'lazy'
+  -%}
+  {%- if fb_logo != blank -%}
+    {%- liquid
+      assign fb_widths = widths | default: '165,330,535,750,1070,1500'
+      assign fb_sizes = sizes | default: '100vw'
+      assign fb_class = fb_class | append: ' image-fallback--brand'
+    -%}
+    {{- fb_logo | image_url: width: 750 | image_tag: widths: fb_widths, sizes: fb_sizes, loading: fb_loading, alt: '', class: fb_class -}}
+  {%- else -%}
+    <img class="{{ fb_class }}" src="{{ 'logo-joy-symbol.png' | asset_url }}" alt="" width="361" height="472" loading="{{ fb_loading }}">
+  {%- endif -%}
 {%- else -%}
   {%- liquid
     assign placeholder_name = placeholder | default: 'image'
@@ -60,3 +92,20 @@
   -%}
   {{- placeholder_name | placeholder_svg_tag: placeholder_class -}}
 {%- endif -%}
+
+{% stylesheet %}
+  /* A stand-in for a missing product photo is a mark, not a product: smaller and faint, so it does
+     not compete with the real photos beside it. Callers size the box; this only shrinks the mark. */
+  .image-fallback {
+    padding: 22%;
+    object-fit: contain;
+    opacity: 0.35;
+  }
+
+  .image-fallback--brand {
+    padding: 14%;
+    opacity: 0.6;
+    filter: grayscale(1);
+    mix-blend-mode: multiply;
+  }
+{% endstylesheet %}

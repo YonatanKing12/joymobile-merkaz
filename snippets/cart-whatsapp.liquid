@@ -1,0 +1,96 @@
+{% doc %}
+  "לשריון דרך וואטסאפ": a secondary link under the cart's checkout button that opens WhatsApp with
+  the whole cart written out for the branch: every line (quantity × title and variant, line price,
+  product link), the total, and the pickup branch when one was chosen (snippets/branch-picker). A
+  shopper who would rather not pay online, or wants a person to confirm first, can still reserve.
+  Built in Liquid on purpose: every cart change re-renders the drawer and the cart page, so the
+  message is always the current cart without a line of script. Prints nothing when the theme has no
+  WhatsApp number (snippets/whatsapp-url) or the cart is empty.
+  Product links carry utm_source=whatsapp&utm_medium=cart, so visits from the shared links show up
+  in the analytics. Item lines start with an invisible right-to-left mark and the title is followed
+  by a left-to-right one (both in the locale string): WhatsApp lays each line out right to left
+  even when the title is Latin, and a title ending "…S25+" keeps its "+".
+
+  @param {string} [class] - Extra classes on the link.
+
+  @example
+  {% render 'cart-whatsapp', class: 'cart-drawer__whatsapp' %}
+{% enddoc %}
+{%- if cart.item_count > 0 -%}
+  {%- capture cw_nl %}
+{% endcapture -%}
+  {%- capture cw_branch -%}{%- render 'branch-picker', part: 'chosen' -%}{%- endcapture -%}
+  {%- liquid
+    assign cw_branch = cw_branch | strip
+    assign cw_text = 'cart.whatsapp.intro' | t
+    for cw_item in cart.items
+      assign cw_title = cw_item.product.title | default: cw_item.title
+      assign cw_variant = ''
+      unless cw_item.product.has_only_default_variant or cw_item.variant.title == blank
+        assign cw_variant = ' (' | append: cw_item.variant.title | append: ')'
+      endunless
+      assign cw_price = cw_item.final_line_price | money_without_trailing_zeros
+      assign cw_join = '?'
+      if cw_item.url contains '?'
+        assign cw_join = '&'
+      endif
+      assign cw_url = request.origin | append: cw_item.url | append: cw_join | append: 'utm_source=whatsapp&utm_medium=cart'
+      # _html keys: t would HTML-escape the interpolated title (&quot; in the message); the text is
+      # URL-encoded as a whole by whatsapp-url.
+      assign cw_line = 'cart.whatsapp.line_html' | t: quantity: cw_item.quantity, title: cw_title, variant: cw_variant, price: cw_price
+      assign cw_text = cw_text | append: cw_nl | append: cw_nl | append: cw_line | append: cw_nl | append: cw_url
+    endfor
+    assign cw_total = cart.total_price | money_without_trailing_zeros
+    assign cw_total_line = 'cart.whatsapp.total_html' | t: total: cw_total
+    assign cw_text = cw_text | append: cw_nl | append: cw_nl | append: cw_total_line
+    if cw_branch != blank
+      assign cw_branch_line = 'cart.whatsapp.branch_html' | t: branch: cw_branch
+      assign cw_text = cw_text | append: cw_nl | append: cw_branch_line
+    endif
+  -%}
+  {%- capture cw_href -%}{%- render 'whatsapp-url', text: cw_text -%}{%- endcapture -%}
+  {%- assign cw_href = cw_href | strip -%}
+  {%- if cw_href != blank -%}
+    <a class="cart-whatsapp{% if class != blank %} {{ class }}{% endif %}" href="{{ cw_href }}" target="_blank" rel="noopener">
+      {%- render 'icon', name: 'whatsapp', size: 20 -%}
+      <span>{{ 'cart.whatsapp.label' | t }}</span>
+      <span class="visually-hidden">{{ 'general.new_window' | t }}</span>
+    </a>
+  {%- endif -%}
+{%- endif -%}
+
+{% stylesheet %}
+  /* Secondary to the green checkout button: an outlined link in WhatsApp's colour, never a second
+     filled button competing with it. */
+  .cart-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    min-height: var(--tap-target);
+    padding: var(--space-2xs) var(--space-md);
+    border: 1px solid var(--color-whatsapp);
+    border-radius: var(--radius-button);
+    background-color: var(--color-background);
+    color: var(--color-ink);
+    font-size: var(--text-md);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .cart-whatsapp .icon {
+    flex-shrink: 0;
+    color: var(--color-whatsapp);
+  }
+
+  @media (hover: hover) {
+    .cart-whatsapp:hover {
+      background-color: color-mix(in srgb, var(--color-whatsapp) 8%, var(--color-background));
+    }
+  }
+
+  .cart-whatsapp:active {
+    background-color: color-mix(in srgb, var(--color-whatsapp) 14%, var(--color-background));
+  }
+{% endstylesheet %}

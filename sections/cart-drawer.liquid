@@ -8,12 +8,24 @@
   message (theme setting), the reservation conditions (section setting), the optional
   required 90-day consent (theme setting, off by default; saved as a cart attribute on change), the order note, the total and the
   green "המשך לשריון" checkout button (a POST to /cart with `checkout`, so the note and the
-  consent are saved on the way), plus app blocks. Without JS the header cart link simply
-  opens /cart.
+  consent are saved on the way), plus app blocks. Also the pickup-branch choice after the pickup
+  message (snippets/branch-picker, only when Shopify reports two or more branches holding every
+  line) and, under the checkout area, the "לשריון דרך וואטסאפ" link (snippets/cart-whatsapp,
+  section setting). Without JS the header cart link simply opens /cart.
 {%- endcomment -%}
 {%- liquid
   assign drawer_count = cart.item_count
   assign pickup_message = settings.cart_pickup_message
+
+  # As on the cart page (sections/main-cart): the VAT-free claim under the total only when every
+  # line really is exempt.
+  assign all_tax_free = true
+  for item in cart.items
+    if item.variant.taxable
+      assign all_tax_free = false
+      break
+    endif
+  endfor
 -%}
 {{ 'component-drawer.css' | asset_url | stylesheet_tag }}
 {{ 'component-cart-drawer.css' | asset_url | stylesheet_tag }}
@@ -36,6 +48,14 @@
         {%- render 'icon', name: 'close', size: 24 -%}
       </button>
     </div>
+
+    {%- comment -%}
+      Announcements made while the drawer is open ("העגלה עודכנה", stock errors) go here, not to the
+      page-level region: VoiceOver can ignore everything outside an aria-modal dialog, live regions
+      included. @theme/global's announce() prefers this one while the dialog traps focus, and cart.js
+      keeps this very node across re-renders (a fresh region is not always listened to yet).
+    {%- endcomment -%}
+    <p class="visually-hidden" data-a11y-live role="status" aria-live="polite"></p>
 
     {%- comment -%}
       The undo bar is printed here, hidden, rather than created by the script: every cart change
@@ -78,6 +98,8 @@
             </div>
           {%- endif -%}
 
+          {%- render 'branch-picker', context: 'drawer', class: 'cart-drawer__branch' -%}
+
           {%- if section.settings.conditions != blank -%}
             <div class="cart-drawer__conditions rte">{{ section.settings.conditions }}</div>
           {%- endif -%}
@@ -89,7 +111,7 @@
                 {%- render 'icon', name: 'chevron-down', size: 16, class: 'cart-drawer__note-icon' -%}
               </summary>
               <label class="visually-hidden" for="CartDrawer-Note">{{ 'cart.drawer.note_label' | t }}</label>
-              <textarea class="textarea cart-drawer__note-field" id="CartDrawer-Note" name="note" rows="3">{{ cart.note }}</textarea>
+              <textarea class="textarea cart-drawer__note-field" id="CartDrawer-Note" name="note" rows="3">{{ cart.note | escape_once }}</textarea>
             </details>
           {%- endif -%}
 
@@ -99,7 +121,7 @@
                 {%- for discount in cart.cart_level_discount_applications -%}
                   <li>
                     {%- render 'icon', name: 'tag', size: 14 -%}
-                    {{ discount.title | escape }} (−{{ discount.total_allocated_amount | money_without_trailing_zeros }})
+                    <span>{{ discount.title | escape }} {% render 'money-signed', amount: discount.total_allocated_amount %}</span>
                   </li>
                 {%- endfor -%}
               </ul>
@@ -109,6 +131,13 @@
               <span>{{ 'cart.drawer.subtotal' | t }}</span>
               <span class="cart-drawer__total-amount" data-cart-total>{{ cart.total_price | money_without_trailing_zeros }}</span>
             </p>
+
+            {%- if all_tax_free and settings.tax_free_labels -%}
+              <p class="cart-drawer__tax">
+                <span>{{ 'cart.page.tax_free' | t }}</span>
+                <span class="cart-drawer__chip" lang="en">{{ 'products.price.tax_free' | t }}</span>
+              </p>
+            {%- endif -%}
 
             {%- if settings.cart_vat_consent_enabled and settings.cart_vat_consent_text != blank -%}
               {%- liquid
@@ -149,6 +178,9 @@
           </div>
 
           <div class="cart-drawer__extras">
+            {%- if section.settings.show_whatsapp -%}
+              {%- render 'cart-whatsapp', class: 'cart-drawer__whatsapp' -%}
+            {%- endif -%}
             <div class="cart-drawer__secondary">
               <button class="link cart-drawer__continue" type="button" data-close>{{ 'cart.drawer.continue' | t }}</button>
               {%- if section.settings.show_view_cart -%}
@@ -211,6 +243,13 @@
       "id": "show_upsell",
       "label": "אביזרים משלימים",
       "info": "אביזרים שמתאימים למכשיר שבעגלה, מתחת לרשימה.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_whatsapp",
+      "label": "שריון דרך וואטסאפ",
+      "info": "קישור מתחת לכפתור השריון שפותח וואטסאפ עם רשימת המוצרים, הסכום והסניף שנבחר. מוצג רק כשמספר הוואטסאפ מוגדר בהגדרות התבנית.",
       "default": true
     }
   ],

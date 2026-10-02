@@ -192,8 +192,14 @@
   align-self: start;
 }
 
+/* The frame is on the link, not the image, so a faint stand-in for a missing photo
+   (snippets/image, .image-fallback) does not fade the frame with it. */
 .cart-item__image-link {
   display: block;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-background);
 }
 
 .cart-item__image {
@@ -202,9 +208,6 @@
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-background);
 }
 
 .cart-item__info {
@@ -241,7 +244,7 @@
 .cart-item__options,
 .cart-item__properties,
 .cart-item__discounts,
-.cart-item__meta,
+.cart-item__plan,
 .cart-item__unit {
   color: var(--color-muted);
   font-size: var(--text-sm);

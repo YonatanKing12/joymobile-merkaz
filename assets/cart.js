@@ -49,10 +49,15 @@ export const getCart = () => fetchJSON(`${routes.cart}.js`);
 
 export function addItems(items, { sections = sectionIds(), open = true, opener } = {}) {
   return serial(async () => {
-    const res = await postJSON(`${routes.cart_add}.js`, { items, sections, sections_url: location.pathname }).catch((err) => {
-      fetchSections(location.pathname, sections).then(renderSections, () => {}); // a 422 may have added the stock left
+    let res;
+    try {
+      res = await postJSON(`${routes.cart_add}.js`, { items, sections, sections_url: location.pathname });
+    } catch (err) {
+      // A 422 may still have added the stock that was left, so repaint from the server. Awaited inside
+      // the task: run after it, this GET could land on top of a change queued behind the failed add.
+      await fetchSections(location.pathname, sections).then(renderSections, () => {});
       throw err;
-    });
+    }
     renderSections(res.sections);
     announce(t('added'));
     emit('cart:updated', { items: res.items, source: 'add' }); // /cart/add.js returns the added lines, not the cart
@@ -73,14 +78,18 @@ export function changeLine({ key, line, quantity }) {
   });
 }
 
-const update = (body, source) => serial(async () => {
-  const cart = await postJSON(`${routes.cart_update}.js`, body);
+// `render`: also re-render the cart sections, for a value the Liquid prints elsewhere (the pickup
+// branch goes into the WhatsApp message). Off for the note and the consents, which nothing else shows.
+const update = (body, source, render = false) => serial(async () => {
+  const cart = await postJSON(`${routes.cart_update}.js`, render ? { ...body, sections: sectionIds(), sections_url: location.pathname } : body);
+  if (render) renderSections(cart.sections);
   emit('cart:updated', { cart, source });
   return cart;
 });
 export const updateNote = (note) => update({ note }, 'note');
-// Cart attributes, e.g. the consent checkboxes ('' removes one): saved on change, so a re-render keeps the tick.
-export const updateAttributes = (attributes) => update({ attributes }, 'attributes');
+// Cart attributes, e.g. the consent checkboxes or the pickup branch ('' removes one): saved on change,
+// so a re-render keeps the choice.
+export const updateAttributes = (attributes, { render = false } = {}) => update({ attributes }, 'attributes', render);
 
 // Only an undo that puts the line back as it was is worth offering, so the line says whether it can
 // be: the markup prints data-undo-* for plain lines and withholds it from lines carrying properties
@@ -108,7 +117,9 @@ function showUndo(root) {
   // while the region is still hidden is not one.
   bar.hidden = false;
   const title = bar.querySelector('[data-cart-undo-title]');
-  if (title) title.textContent = pendingUndo.title;
+  // A trailing left-to-right mark, as after the titles in the lines (snippets/cart-line): a title
+  // ending "…S25+" keeps its "+" by the Latin instead of having it jump to the far end.
+  if (title) title.textContent = pendingUndo.title && `${pendingUndo.title}\u200e`;
   clearTimeout(undoTimer);
   undoTimer = setTimeout(clearUndo, pendingUndo.expires - Date.now());
 }
@@ -143,8 +154,12 @@ class CartDrawer extends DialogElement {
   render(next) {
     const hadFocus = this.contains(document.activeElement);
     const before = this.querySelector('[data-cart-total]')?.textContent;
+    const live = this.querySelector('[data-a11y-live]');
     this.className = next.className;
     const refocused = replaceContent(this, next);
+    // Keep the live region the screen reader already knows: a region that has just been inserted is
+    // often not listened to yet, and the "cart updated" message is written right after this render.
+    if (live) this.querySelector('[data-a11y-live]')?.replaceWith(live);
     if (!refocused && hadFocus && this.isOpen) (this.querySelector('[role="dialog"]') || this).focus();
     showUndo(this);
     // The total is the one number a shopper checks after every tap, and it sits far from the control
@@ -171,8 +186,10 @@ class CartItems extends HTMLElement {
         this.update(line, 0);
       }
     } else if (el.name === 'note') updateNote(el.value).catch((err) => announce(err.message));
-    else if (el.type === 'checkbox' && el.name.startsWith('attributes[')) {
-      updateAttributes({ [el.name.slice(11, -1)]: el.checked ? el.value : '' }).catch((err) => announce(err.message));
+    else if ((el.type === 'checkbox' || el.type === 'radio') && el.name.startsWith('attributes[')) {
+      // A radio fires change only when it becomes the checked one, so its value is the choice.
+      const value = el.type === 'checkbox' && !el.checked ? '' : el.value;
+      updateAttributes({ [el.name.slice(11, -1)]: value }, { render: !!el.closest('[data-cart-render]') }).catch((err) => announce(err.message));
     } else if (line && el.tagName === 'INPUT') {
       if (el.value === '') return (el.value = el.defaultValue);
       const { key } = line.dataset;
@@ -193,11 +210,16 @@ class CartItems extends HTMLElement {
     } catch (err) {
       if (quantity === 0) clearUndo(); // the line is still there
       if (input) input.value = input.defaultValue;
-      document.querySelectorAll(`[data-key="${CSS.escape(key)}"] [data-line-error]`).forEach((box) => {
-        box.textContent = err.message;
+      // The boxes are role=alert, so the message is read from the line itself. Shown empty first and
+      // filled a moment later: an alert announces a change to its content, and text that arrives
+      // together with the unhiding is not reliably one (nor is the same text written twice).
+      const boxes = document.querySelectorAll(`[data-key="${CSS.escape(key)}"] [data-line-error]`);
+      boxes.forEach((box) => {
+        box.textContent = '';
         box.hidden = false;
+        setTimeout(() => (box.textContent = err.message), 100);
       });
-      announce(err.message);
+      if (!boxes.length) announce(err.message);
     }
     line.classList.remove('is-loading');
     this.removeAttribute('aria-busy');

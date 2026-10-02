@@ -1,0 +1,25 @@
+{% doc %}
+  A signed money amount, e.g. a discount: "−150 ₪". In the RTL flow a bare "−" before the number is
+  a neutral character and lands on the far side of it ("150−"), so the sign and the digits are
+  isolated left-to-right in a <bdi>. The currency decoration stays outside, in the page's own flow,
+  so the shekel sign sits on the same side as in every unsigned amount beside it (price, subtotal,
+  total): "₪ −150" under "₪ 4,299". When the formatted amount does not contain the cart currency's
+  symbol (another money format), the whole amount goes into the <bdi> instead.
+
+  @param {number} amount - The amount in the currency's subunit, positive (e.g. discount.amount).
+  @param {string} [sign] - The sign to print. Default "−" (U+2212 minus).
+
+  @example
+  {% render 'money-signed', amount: discount.total_allocated_amount %}
+{% enddoc -%}
+{%- liquid
+  assign ms_sign = sign | default: '−'
+  assign ms_money = amount | money_without_trailing_zeros
+  assign ms_number = ms_money | remove: cart.currency.symbol | strip
+  assign ms_before = ms_money | split: ms_number | first
+  assign ms_after = ms_money | remove_first: ms_number
+  if ms_before != blank
+    assign ms_after = ms_after | remove_first: ms_before
+  endif
+-%}
+{{ ms_before }}<bdi dir="ltr">{{ ms_sign }}{{ ms_number }}</bdi>{{ ms_after }}

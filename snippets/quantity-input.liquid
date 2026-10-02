@@ -16,7 +16,7 @@
   @param {number} [max] - Maximum (e.g. inventory when overselling is denied).
   @param {number} [step] - Step. Default 1.
   @param {string} [form] - id of the form the input belongs to (HTML form attribute).
-  @param {string} [label] - Accessible name of the input. Default "כמות".
+  @param {string} [label] - What is being counted (e.g. the product title): names the input "כמות: …" and the buttons "הפחתת/הגדלת הכמות של …", so a cart with several lines does not offer several identical "+" buttons. Default: the generic "כמות" / "הפחתת הכמות" / "הגדלת הכמות".
   @param {number} [line] - Cart line index (1-based), exposed as data-line (informational: @theme/cart addresses lines by key).
   @param {string} [key] - Cart line item key, exposed as data-key. @theme/cart takes the key from the closest [data-key], so the line container must carry it too (it holds the remove link and [data-line-error]).
   @param {boolean} [disabled] - Disable the whole control (e.g. sold out).
@@ -35,13 +35,17 @@
   assign qty_step = step | default: 1
   assign qty_name = name | default: 'quantity'
   assign qty_label = 'general.quantity.label' | t
+  assign qty_decrease = 'general.quantity.decrease' | t
+  assign qty_increase = 'general.quantity.increase' | t
   if label != blank
     assign qty_label = 'general.quantity.label_for' | t: title: label
+    assign qty_decrease = 'general.quantity.decrease_for' | t: title: label
+    assign qty_increase = 'general.quantity.increase_for' | t: title: label
   endif
 -%}
 <quantity-input class="quantity{% if class != blank %} {{ class }}{% endif %}"{% if line %} data-line="{{ line }}"{% endif %}{% if key != blank %} data-key="{{ key | escape }}"{% endif %}>
   <button class="quantity__button" type="button" name="minus"{% if id != blank %} id="{{ id | escape }}-minus"{% endif %}{% if disabled %} disabled{% endif %}>
-    <span class="visually-hidden">{{ 'general.quantity.decrease' | t }}</span>
+    <span class="visually-hidden">{{ qty_decrease }}</span>
     {%- render 'icon', name: 'minus', size: 16 -%}
   </button>
   <input
@@ -59,7 +63,7 @@
     {% if disabled %}disabled{% endif %}
   >
   <button class="quantity__button" type="button" name="plus"{% if id != blank %} id="{{ id | escape }}-plus"{% endif %}{% if disabled %} disabled{% endif %}>
-    <span class="visually-hidden">{{ 'general.quantity.increase' | t }}</span>
+    <span class="visually-hidden">{{ qty_increase }}</span>
     {%- render 'icon', name: 'plus', size: 16 -%}
   </button>
 </quantity-input>

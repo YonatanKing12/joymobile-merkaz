@@ -5,18 +5,18 @@
   removals and the note through the Ajax API and re-renders this section by id
   (bundled section rendering), so every price and label below always comes from Liquid.
 
-  Contract with @theme/cart: each line is an element with data-key (the line item key)
-  holding the quantity <input> (the first input of the line), a [data-cart-remove]
-  link (no-JS fallback: item.url_to_remove) and a hidden [data-line-error] for 422
-  messages. Controls carry stable ids so focus survives the re-render.
-  The drawer's lines (snippets/cart-line) print the same data with the same rules — keep them in step.
+  The lines are snippets/cart-line (context 'page'), the same snippet as the drawer's lines, which
+  also holds the contract with @theme/cart (data-key, the stepper, [data-cart-remove],
+  [data-line-error], stable ids so focus survives the re-render).
 
   Look: the Konimbo order page (#fcfcfc boxes with 1px #ccc borders, the centred
   pickup notice) rebuilt as a cart: lines, quantity stepper, remove, totals, the
-  pickup-in-Eilat / pay-online-or-at-the-branch message, reservation conditions
-  (plain text by default; an optional required checkbox that stays on this page,
-  because Shopify checkout on the Basic plan cannot enforce it), note, checkout
-  button "המשך לשריון" and @app blocks.
+  pickup-in-Eilat / pay-online-or-at-the-branch message, the pickup-branch choice
+  (snippets/branch-picker, only when Shopify reports two or more branches holding every
+  line), reservation conditions (plain text by default; an optional required checkbox that
+  stays on this page, because Shopify checkout on the Basic plan cannot enforce it), note,
+  checkout button "המשך לשריון", the "לשריון דרך וואטסאפ" link (snippets/cart-whatsapp)
+  and @app blocks.
 {%- endcomment -%}
 {{ 'section-main-cart.css' | asset_url | stylesheet_tag }}
 {%- if section.settings.show_upsell -%}
@@ -129,151 +129,7 @@
 
               <ul class="cart-table__lines" role="list" aria-label="{{ 'cart.page.lines_label' | t }}">
                 {%- for item in cart.items -%}
-                  {%- liquid
-                    assign line_ref = item.key | handle
-                    assign line_id = section.id | append: '-' | append: line_ref
-                    assign line_title = item.product.title | default: item.title
-
-                    assign qty_max = ''
-                    assign show_low_stock = false
-                    if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'deny'
-                      assign qty_max = item.variant.inventory_quantity | at_least: item.quantity
-                      if item.variant.inventory_quantity > 0 and item.variant.inventory_quantity <= settings.badge_low_stock_threshold
-                        assign show_low_stock = true
-                      endif
-                    endif
-                  -%}
-                  {%- liquid
-                    # See snippets/cart-line: undo re-adds the variant and quantity only, so it is
-                    # offered only where that is the whole line.
-                    assign line_undoable = true
-                    if item.properties.size > 0 or item.selling_plan_allocation
-                      assign line_undoable = false
-                    endif
-                  -%}
-                  <li
-                    class="cart-item"
-                    data-key="{{ item.key | escape }}"
-                    {%- if line_undoable %}
-                      data-undo-variant="{{ item.variant_id }}"
-                      data-undo-quantity="{{ item.quantity }}"
-                      data-undo-title="{{ line_title | escape }}"
-                    {%- endif %}
-                  >
-                    <div class="cart-item__media">
-                      <a class="cart-item__image-link" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
-                        {%- render 'image',
-                          image: item.image,
-                          widths: '80,160,240',
-                          sizes: '(min-width: 768px) 80px, 72px',
-                          class: 'cart-item__image',
-                          decorative: true,
-                          placeholder: 'product-1'
-                        -%}
-                      </a>
-                    </div>
-
-                    <div class="cart-item__info">
-                      <a class="cart-item__title" href="{{ item.url }}">{{ line_title | escape }}</a>
-
-                      {%- unless item.product.has_only_default_variant or item.variant.title == blank -%}
-                        <ul class="cart-item__options" role="list">
-                          {%- for option in item.options_with_values -%}
-                            <li>{{ option.name | escape }}: {{ option.value | escape }}</li>
-                          {%- endfor -%}
-                        </ul>
-                      {%- endunless -%}
-
-                      {%- if item.selling_plan_allocation -%}
-                        <p class="cart-item__meta">{{ item.selling_plan_allocation.selling_plan.name | escape }}</p>
-                      {%- endif -%}
-
-                      {%- capture line_properties -%}
-                        {%- for property in item.properties -%}
-                          {%- assign property_first_char = property.first | slice: 0 -%}
-                          {%- if property.last != blank and property_first_char != '_' -%}
-                            <div>
-                              <dt>{{ property.first | escape }}:</dt>
-                              <dd>
-                                {%- if property.last contains '/uploads/' -%}
-                                  <a href="{{ property.last }}" target="_blank" rel="noopener">{{ property.last | split: '/' | last | escape }}</a>
-                                {%- else -%}
-                                  {{- property.last | escape -}}
-                                {%- endif -%}
-                              </dd>
-                            </div>
-                          {%- endif -%}
-                        {%- endfor -%}
-                      {%- endcapture -%}
-                      {%- if line_properties != blank -%}
-                        <dl class="cart-item__properties">{{ line_properties }}</dl>
-                      {%- endif -%}
-
-                      {%- if item.quantity > 1 -%}
-                        {%- assign line_unit_price = item.final_price | money_without_trailing_zeros -%}
-                        <p class="cart-item__unit">
-                          {%- if item.original_price > item.final_price -%}
-                            <s class="cart-item__compare"><span class="visually-hidden">{{ 'cart.page.regular_price' | t }}</span> {{ item.original_price | money_without_trailing_zeros }}</s>
-                          {% endif -%}
-                          {{ 'cart.page.unit_price' | t: price: line_unit_price }}
-                        </p>
-                      {%- endif -%}
-
-                      {%- if item.line_level_discount_allocations.size > 0 -%}
-                        <ul class="cart-item__discounts" role="list">
-                          {%- for allocation in item.line_level_discount_allocations -%}
-                            <li>
-                              {%- render 'icon', name: 'tag', size: 14 -%}
-                              <span>{{ allocation.discount_application.title | escape }} <bdi dir="ltr">−{{ allocation.amount | money_without_trailing_zeros }}</bdi></span>
-                            </li>
-                          {%- endfor -%}
-                        </ul>
-                      {%- endif -%}
-
-                      <p class="cart-item__error form-message form-message--error" data-line-error hidden></p>
-                    </div>
-
-                    <div class="cart-item__qty">
-                      {%- liquid
-                        # Key-based id: the snippet derives the −/+ button ids from it, so focus
-                        # survives the re-render after every change (keyboard users stay on "+").
-                        assign qty_input_id = 'CartQty-' | append: line_id
-                      -%}
-                      {%- render 'quantity-input',
-                        id: qty_input_id,
-                        name: 'updates[]',
-                        value: item.quantity,
-                        min: 0,
-                        max: qty_max,
-                        form: cart_form_id,
-                        label: line_title,
-                        class: 'cart-item__quantity'
-                      -%}
-                      {%- if show_low_stock -%}
-                        <p class="cart-item__stock">{{ 'cart.page.low_stock' | t: count: item.variant.inventory_quantity }}</p>
-                      {%- endif -%}
-                    </div>
-
-                    <div class="cart-item__total">
-                      <span class="visually-hidden">{{ 'cart.page.line_total' | t }}</span>
-                      {%- if item.original_line_price > item.final_line_price -%}
-                        <s class="cart-item__compare"><span class="visually-hidden">{{ 'cart.page.regular_price' | t }}</span> {{ item.original_line_price | money_without_trailing_zeros }}</s>
-                      {%- endif -%}
-                      <span class="cart-item__amount">{{ item.final_line_price | money_without_trailing_zeros }}</span>
-                    </div>
-
-                    <div class="cart-item__remove-cell">
-                      <a
-                        class="cart-item__remove"
-                        href="{{ item.url_to_remove }}"
-                        id="CartRemove-{{ line_id }}"
-                        data-cart-remove
-                        aria-label="{{ 'cart.page.remove' | t: title: line_title }}"
-                      >
-                        {%- render 'icon', name: 'trash', size: 20 -%}
-                      </a>
-                    </div>
-                  </li>
+                  {%- render 'cart-line', item: item, index: forloop.index, context: 'page', form: cart_form_id -%}
                 {%- endfor -%}
               </ul>
             </div>
@@ -301,7 +157,7 @@
                   id="CartNote-{{ section.id }}"
                   rows="3"
                   placeholder="{{ 'cart.page.note_placeholder' | t }}"
-                >{{ cart.note | escape }}</textarea>
+                >{{ cart.note | escape_once }}</textarea>
               </div>
             {%- endif -%}
           </form>
@@ -324,7 +180,7 @@
                     {%- render 'icon', name: 'tag', size: 16 -%}
                     <span>{{ discount.title | escape }}</span>
                   </dt>
-                  <dd><bdi dir="ltr">−{{ discount.total_allocated_amount | money_without_trailing_zeros }}</bdi></dd>
+                  <dd>{% render 'money-signed', amount: discount.total_allocated_amount %}</dd>
                 </div>
               {%- endfor -%}
             {%- endif -%}
@@ -354,6 +210,8 @@
               </div>
             </div>
           {%- endif -%}
+
+          {%- render 'branch-picker', context: 'page', form: cart_form_id, class: 'cart-summary__branch' -%}
 
           {%- if condition_count > 0 -%}
             <div class="cart-conditions">
@@ -444,6 +302,10 @@
           {%- if section.settings.show_payment_icons -%}
             {%- render 'payment-icons', class: 'cart-summary__payments' -%}
           {%- endif -%}
+
+          {%- if section.settings.show_whatsapp -%}
+            {%- render 'cart-whatsapp', class: 'cart-summary__whatsapp' -%}
+          {%- endif -%}
         </section>
       </div>
     {%- else -%}
@@ -514,6 +376,13 @@
       "type": "checkbox",
       "id": "show_payment_icons",
       "label": "סמלי אמצעי התשלום",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_whatsapp",
+      "label": "שריון דרך וואטסאפ",
+      "info": "קישור מתחת לכפתור השריון שפותח וואטסאפ עם רשימת המוצרים, הסכום והסניף שנבחר. מוצג רק כשמספר הוואטסאפ מוגדר בהגדרות התבנית.",
       "default": true
     },
     {

@@ -20,7 +20,9 @@
       "label": "כמות",
       "label_for": "כמות: {{ title }}",
       "decrease": "הפחתת הכמות",
-      "increase": "הגדלת הכמות"
+      "increase": "הגדלת הכמות",
+      "decrease_for": "הפחתת הכמות של {{ title }}",
+      "increase_for": "הגדלת הכמות של {{ title }}"
     },
     "swatches": {
       "label": "צבעים זמינים: {{ count }}",
@@ -454,6 +456,20 @@
       "empty_note": "כל המחירים באתר הם מחירי אילת — ללא מע״מ, לאיסוף עצמי מהסניף.",
       "empty_cta": "המשך בקניות",
       "empty_links": "מחלקות באתר"
+    },
+    "branch": {
+      "attribute": "סניף לאיסוף",
+      "legend": "באיזה סניף נוח לכם לאסוף?",
+      "optional": "(לא חובה)",
+      "hint": "כל המוצרים שבעגלה זמינים לאיסוף בסניפים האלה.",
+      "none": "ללא העדפה"
+    },
+    "whatsapp": {
+      "label": "לשריון דרך וואטסאפ",
+      "intro": "היי, אשמח לשריין לאיסוף מהסניף:",
+      "line_html": "\u200f{{ quantity }} × {{ title }}\u200e{{ variant }} · {{ price }}",
+      "total_html": "סה״כ: {{ total }}",
+      "branch_html": "סניף לאיסוף: {{ branch }}"
     }
   },
   "search": {

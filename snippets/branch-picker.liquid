@@ -1,0 +1,210 @@
+{% doc %}
+  Pickup-branch choice in the cart (drawer and cart page). One radio per branch where every line of
+  the cart can be picked up now, from the lines' `variant.store_availabilities` (Shopify locations
+  with local pickup enabled that hold stock of the variant), each with Shopify's own pickup time,
+  plus "no preference". The choice is the cart attribute "סניף לאיסוף" (cart.branch.attribute),
+  saved by @theme/cart on change (`[data-cart-render]`: the sections are re-rendered after the
+  save, so the WhatsApp message picks the branch up) and posted again with the checkout form; it
+  reaches the order like the consent attributes do.
+
+  Informational only: nothing is required and checkout is never blocked. Prints nothing when fewer
+  than two branches qualify (one branch is no choice), which is also what a store gets while its
+  branches are not Shopify locations with local pickup (Settings › Shipping and delivery › Local
+  pickup). Shopify fills store_availabilities only for a product's first available variant, so a
+  line holding another variant of a multi-variant product counts as "no branch" and the block
+  stays hidden rather than promise a branch it could not check. Lines that need no shipping (a
+  gift card) are left out of the check.
+
+  part 'chosen' prints only the name of the chosen branch, and only while it still has every line
+  (for the WhatsApp message, snippets/cart-whatsapp); nothing else, no whitespace.
+
+  @param {string} [context] - 'drawer' (default) or 'page': the ids of the radios.
+  @param {string} [form] - id of the form the radios belong to (the cart page's summary sits outside its form).
+  @param {string} [class] - Extra classes on the fieldset.
+  @param {string} [part] - 'picker' (default) or 'chosen'.
+
+  @example
+  {% render 'branch-picker', context: 'drawer', class: 'cart-drawer__branch' %}
+  {%- capture branch -%}{% render 'branch-picker', part: 'chosen' %}{%- endcapture -%}
+{% enddoc -%}
+{%- liquid
+  assign bp_key = 'cart.branch.attribute' | t
+  assign bp_chosen = cart.attributes[bp_key] | strip | escape_once
+
+  # Location ids every counted line can be picked up from, as ",id,id,". The first counted line's
+  # availabilities also supply the names and pickup times printed below.
+  assign bp_ids = nil
+  assign bp_first = nil
+  for bp_item in cart.items
+    unless bp_item.requires_shipping
+      continue
+    endunless
+    assign bp_ready = bp_item.variant.store_availabilities | where: 'pick_up_enabled', true | where: 'available', true
+    assign bp_line_ids = ','
+    for bp_sa in bp_ready
+      assign bp_line_ids = bp_line_ids | append: bp_sa.location.id | append: ','
+    endfor
+    if bp_ids == nil
+      assign bp_ids = bp_line_ids
+      assign bp_first = bp_ready
+    else
+      assign bp_keep = ','
+      assign bp_list = bp_ids | split: ','
+      for bp_id in bp_list
+        assign bp_probe = ',' | append: bp_id | append: ','
+        if bp_line_ids contains bp_probe
+          assign bp_keep = bp_keep | append: bp_id | append: ','
+        endif
+      endfor
+      assign bp_ids = bp_keep
+    endif
+  endfor
+
+  assign bp_count = 0
+  assign bp_chosen_name = ''
+  for bp_sa in bp_first
+    assign bp_probe = ',' | append: bp_sa.location.id | append: ','
+    if bp_ids contains bp_probe
+      assign bp_count = bp_count | plus: 1
+      assign bp_name = bp_sa.location.name | escape
+      if bp_chosen != blank and bp_name == bp_chosen
+        assign bp_chosen_name = bp_sa.location.name
+      endif
+    endif
+  endfor
+-%}
+{%- if part == 'chosen' -%}
+  {{- bp_chosen_name -}}
+{%- elsif bp_count > 1 -%}
+  {%- liquid
+    assign bp_prefix = 'CartDrawer-Branch-'
+    if context == 'page'
+      assign bp_prefix = 'CartPage-Branch-'
+    endif
+    assign bp_hint_id = bp_prefix | append: 'hint'
+  -%}
+  <fieldset class="branch-picker{% if class != blank %} {{ class }}{% endif %}" data-cart-render aria-describedby="{{ bp_hint_id }}">
+    <legend class="branch-picker__legend">
+      {{- 'cart.branch.legend' | t }}
+      <span class="branch-picker__optional">{{ 'cart.branch.optional' | t }}</span>
+    </legend>
+    <p class="branch-picker__hint" id="{{ bp_hint_id }}">{{ 'cart.branch.hint' | t }}</p>
+    <div class="branch-picker__options">
+      {%- for bp_sa in bp_first -%}
+        {%- assign bp_probe = ',' | append: bp_sa.location.id | append: ',' -%}
+        {%- if bp_ids contains bp_probe -%}
+          <label class="branch-picker__option">
+            <input
+              type="radio"
+              name="attributes[{{ bp_key }}]"
+              id="{{ bp_prefix }}{{ bp_sa.location.id }}"
+              value="{{ bp_sa.location.name | escape }}"
+              {% if form != blank %}form="{{ form | escape }}"{% endif %}
+              {% if bp_chosen_name != blank and bp_sa.location.name == bp_chosen_name %}checked{% endif %}
+            >
+            <span class="branch-picker__text">
+              <span class="branch-picker__name">{{ bp_sa.location.name | escape }}</span>
+              {%- if bp_sa.pick_up_time != blank -%}
+                <span class="branch-picker__time">{{ bp_sa.pick_up_time | escape }}</span>
+              {%- endif -%}
+            </span>
+          </label>
+        {%- endif -%}
+      {%- endfor -%}
+      <label class="branch-picker__option">
+        <input
+          type="radio"
+          name="attributes[{{ bp_key }}]"
+          id="{{ bp_prefix }}none"
+          value=""
+          {% if form != blank %}form="{{ form | escape }}"{% endif %}
+          {% if bp_chosen_name == blank %}checked{% endif %}
+        >
+        <span class="branch-picker__text">
+          <span class="branch-picker__name">{{ 'cart.branch.none' | t }}</span>
+        </span>
+      </label>
+    </div>
+  </fieldset>
+{%- endif -%}
+
+{% stylesheet %}
+  .branch-picker {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .branch-picker__legend {
+    padding: 0;
+    color: var(--color-ink);
+    font-size: var(--text-md);
+    font-weight: 700;
+  }
+
+  .branch-picker__optional {
+    color: var(--color-muted);
+    font-weight: 400;
+  }
+
+  .branch-picker__hint {
+    margin: var(--space-2xs) 0 var(--space-xs);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  .branch-picker__options {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+
+  .branch-picker__option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-height: var(--tap-target);
+    padding: var(--space-2xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-background);
+    cursor: pointer;
+  }
+
+  .branch-picker__option:has(input:checked) {
+    border-color: var(--color-brand);
+    background-color: var(--color-hover-bg);
+  }
+
+  .branch-picker__option:has(input:focus-visible) {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .branch-picker__option input {
+    flex-shrink: 0;
+    margin: 0;
+  }
+
+  .branch-picker__option input:focus-visible {
+    outline: 0;
+  }
+
+  .branch-picker__text {
+    display: grid;
+    min-width: 0;
+  }
+
+  .branch-picker__name {
+    color: var(--color-ink);
+    font-size: var(--text-md);
+    font-weight: 500;
+    line-height: var(--leading-snug);
+  }
+
+  .branch-picker__time {
+    color: var(--color-muted);
+    font-size: var(--text-xs);
+  }
+{% endstylesheet %}
