@@ -8,7 +8,8 @@
   (its summary is the ☰/✕ toggle, the panel is the summary's next sibling); every top-level
   item with children is a nested <details> whose panel starts with a [data-back] button.
   Opening a level slides its panel over the drawer and traps focus in it; "back" (or Escape)
-  returns focus to the item. [data-close] (the overlay) closes the drawer.
+  returns focus to the item. [data-close] (the overlay) closes the drawer. While open, the
+  <menu-drawer> is a modal dialog for screen readers, named by data-dialog-label.
   The third menu level is listed inside the second-level panel: each group title is a row
   (a link to the group) followed by its links — as the old accordion showed them, one tap
   fewer, and half the DOM of a third drill-down. Chevrons are CSS, not inline SVG.
@@ -48,7 +49,7 @@
     assign wishlist_url = settings.wishlist_page.url
   endif
 -%}
-<menu-drawer class="menu-drawer" data-desktop="992">
+<menu-drawer class="menu-drawer" data-desktop="992" data-dialog-label="{{ 'header.menu.open' | t }}">
   <details class="menu-drawer__details" id="{{ drawer_prefix }}">
     <summary class="header__icon menu-drawer__toggle" aria-label="{{ 'header.menu.open' | t }}" aria-expanded="false">
       {%- render 'icon', name: 'menu', size: 26, class: 'menu-drawer__toggle-icon menu-drawer__toggle-icon--open' -%}

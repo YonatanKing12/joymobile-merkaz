@@ -414,7 +414,7 @@ sticky-header {
   top: 100%;
   inset-inline: 0;
   z-index: 2;
-  max-height: calc(100dvh - var(--header-height, 3.75rem) - var(--header-offset, 0px));
+  max-height: calc(var(--vv-height, 100dvh) - var(--header-height, 3.75rem) - var(--header-offset, 0px)); /* above the keyboard: @theme/predictive-search */
   padding-inline: var(--safe-inline-start) var(--safe-inline-end);
   overflow-y: auto;
   overscroll-behavior: contain;

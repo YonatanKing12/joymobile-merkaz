@@ -484,7 +484,12 @@
       "no_results": "לא נמצאו תוצאות עבור „{{ terms }}”",
       "no_results_hint": "נסו מילה אחרת או שם דגם, או בחרו חיפוש פופולרי:",
       "trending": "חיפושים פופולריים",
-      "sold_out": "אזל מהמלאי"
+      "sold_out": "אזל מהמלאי",
+      "results_count": {
+        "one": "נמצאה תוצאה אחת",
+        "two": "נמצאו שתי תוצאות",
+        "other": "נמצאו {{ count }} תוצאות"
+      }
     },
     "page": {
       "title": "תוצאות חיפוש",
@@ -508,6 +513,11 @@
       "popular_searches": "חיפושים פופולריים",
       "popular_collections": "קטגוריות פופולריות",
       "all_products": "לכל המוצרים"
+    },
+    "correction": {
+      "showing_for": "מציג תוצאות עבור „{{ terms }}”",
+      "search_instead": "לחיפוש „{{ terms }}” במקום זאת",
+      "did_you_mean": "האם התכוונת ל„{{ terms }}”?"
     }
   },
   "a11y_panel": {

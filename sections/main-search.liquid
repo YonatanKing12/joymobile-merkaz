@@ -13,8 +13,12 @@
   States: no query yet (form + popular searches + popular categories), no results
   (message + the same suggestions), filters without matches (inside the results, with
   "ניקוי כל הסינונים").
+  Under the title, <search-correction> (@theme/predictive-search) offers the other query when
+  the search was corrected (wrong keyboard layout, a Hebrew brand name: ?typed= holds what was
+  typed) or would have been ("האם התכוונת ל…"). Links only, never a redirect.
   Styles: section-main-collection.css (shared results layout), component-facets.css,
-  section-main-search.css; cards: Track F's component CSS.
+  section-main-search.css, component-predictive-search.css (the correction line); cards: Track F's
+  component CSS.
 {%- endcomment -%}
 {{ 'component-card.css' | asset_url | stylesheet_tag }}
 {{ 'component-price.css' | asset_url | stylesheet_tag }}
@@ -24,7 +28,9 @@
 {{ 'component-facets.css' | asset_url | stylesheet_tag }}
 {{ 'section-main-collection.css' | asset_url | stylesheet_tag }}
 {{ 'section-main-search.css' | asset_url | stylesheet_tag }}
+{{ 'component-predictive-search.css' | asset_url | stylesheet_tag }}
 <script type="module" src="{{ 'facets.js' | asset_url }}"></script>
+<script type="module" src="{{ 'predictive-search.js' | asset_url }}"></script>
 <script type="module" src="{{ 'product.js' | asset_url }}"></script>
 
 {%- liquid
@@ -133,6 +139,18 @@
       {%- endif -%}
     </h1>
 
+    {%- if terms != blank -%}
+      {%- comment -%} {terms}: where the script puts the other query (the words come from the locale). {%- endcomment -%}
+      {%- capture terms_bdi -%}<bdi>{{ terms }}</bdi>{%- endcapture -%}
+      <search-correction class="search-correction" data-lexicon="{{ 'search-lexicon.json' | asset_url }}" hidden>
+        <p class="search-correction__line" data-corrected hidden>
+          {{ 'search.correction.showing_for' | t: terms: '{terms}' | replace: '{terms}', terms_bdi }}.
+          <a href="{{ routes.search_url }}" data-original>{{ 'search.correction.search_instead' | t: terms: '{terms}' }}</a>
+        </p>
+        <p class="search-correction__line" data-suggest hidden>{{ 'search.correction.did_you_mean' | t: terms: '{terms}' }}</p>
+      </search-correction>
+    {%- endif -%}
+
     {%- comment -%}
       The old results page has no search box of its own (the header's field holds the terms), so the
       form shows only when there is nothing to list: no query yet, or no results.
@@ -143,9 +161,10 @@
       <input
         class="input search-page__input"
         type="search"
+        dir="auto"
         id="SearchPageInput-{{ sid }}"
         name="q"
-        value="{{ terms }}"
+        value="{{ terms | escape_once }}"
         placeholder="{{ 'search.page.placeholder' | t }}"
         autocomplete="off"
         autocorrect="off"

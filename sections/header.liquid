@@ -85,8 +85,11 @@
   endif
 
   assign search_on = settings.predictive_search_enabled
-  # search.terms is already HTML-escaped by Shopify: print it as is (escaping again shows מע&quot;מ).
+  # search.terms comes HTML-escaped from Shopify: escape_once leaves that as is (escape would show מע&quot;מ)
+  # and still escapes the value if it ever arrives raw (?q= is reflected on every page).
   assign search_terms = search.terms | default: ''
+  # Catalogue words for the wrong-keyboard-layout fix in @theme/predictive-search, fetched on the first focus.
+  assign search_lexicon = 'search-lexicon.json' | asset_url
   assign trending = settings.search_trending | split: ','
 -%}
 {{ 'section-header.css' | asset_url | stylesheet_tag }}
@@ -147,18 +150,23 @@
           -%}
         </div>
 
-        <menu-drawer class="header__search-drawer search-drawer desktop-hide" data-desktop="992">
+        <menu-drawer
+          class="header__search-drawer search-drawer desktop-hide"
+          data-desktop="992"
+          data-dialog-label="{{ 'header.search.label' | t }}"
+        >
           <details class="search-drawer__details" id="SearchDrawer">
             <summary class="header__icon search-drawer__toggle" aria-label="{{ 'header.search.open' | t }}" aria-expanded="false">
               {%- render 'icon', name: 'search', size: 26 -%}
             </summary>
             <div class="search-drawer__panel">
-              <predictive-search class="search-form search-form--mobile">
+              <predictive-search class="search-form search-form--mobile" data-lexicon="{{ search_lexicon }}">
               <form class="search-form__form" action="{{ routes.search_url }}" method="get" role="search">
                 <label class="visually-hidden" for="HeaderSearch-Mobile">{{ 'header.search.label' | t }}</label>
                 <input
                   class="search-form__input"
                   type="search"
+                  dir="auto"
                   id="HeaderSearch-Mobile"
                   name="q"
                   {% if search_on %}
@@ -168,7 +176,7 @@
                     aria-controls="PredictiveSearch-Mobile"
                     autocomplete="off"
                   {% endif %}
-                  value="{{ search_terms }}"
+                  value="{{ search_terms | escape_once }}"
                   placeholder="{{ 'header.search.placeholder' | t }}"
                   enterkeyhint="search"
                   autocorrect="off"
@@ -186,6 +194,9 @@
                   <div class="predictive-search" id="PredictiveSearch-Mobile" role="listbox" aria-label="{{ 'search.predictive.label' | t }}" data-results hidden></div>
                 {%- endif -%}
               </form>
+              {%- if search_on -%}
+                <p class="visually-hidden" role="status" data-status></p>
+              {%- endif -%}
               </predictive-search>
               {%- if settings.search_trending != blank -%}
                 <div class="search-drawer__trending">
@@ -293,12 +304,13 @@
         </div>
 
         <div class="header__search below-desktop-hide">
-          <predictive-search class="search-form search-form--desktop">
+          <predictive-search class="search-form search-form--desktop" data-lexicon="{{ search_lexicon }}">
           <form class="search-form__form" action="{{ routes.search_url }}" method="get" role="search">
             <label class="visually-hidden" for="HeaderSearch-Desktop">{{ 'header.search.label' | t }}</label>
             <input
               class="search-form__input"
               type="search"
+              dir="auto"
               id="HeaderSearch-Desktop"
               name="q"
               {% if search_on %}
@@ -308,7 +320,7 @@
                 aria-controls="PredictiveSearch-Desktop"
                 autocomplete="off"
               {% endif %}
-              value="{{ search_terms }}"
+              value="{{ search_terms | escape_once }}"
               placeholder="{{ 'header.search.placeholder' | t }}"
               enterkeyhint="search"
               spellcheck="false"
@@ -321,6 +333,9 @@
               <div class="predictive-search" id="PredictiveSearch-Desktop" role="listbox" aria-label="{{ 'search.predictive.label' | t }}" data-results hidden></div>
             {%- endif -%}
           </form>
+          {%- if search_on -%}
+            <p class="visually-hidden" role="status" data-status></p>
+          {%- endif -%}
           </predictive-search>
         </div>
 

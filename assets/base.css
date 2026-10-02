@@ -652,6 +652,15 @@ quantity-input.quantity {
   text-align: start;
 }
 
+/* Search fields are dir="auto": a Latin query ("galaxy s25+", 'ipad 11"') is laid out by its own first letter, so its
+   "+" or '"' stays at its end (plaintext bidi), while the field stays RTL: placeholder, padding and alignment do not
+   flip, empty or not (Chrome makes an empty dir="auto" field LTR). text-align: right is a deliberate physical value. */
+input[type="search"][dir="auto"] {
+  direction: rtl;
+  unicode-bidi: plaintext;
+  text-align: right;
+}
+
 .input::placeholder,
 .textarea::placeholder {
   color: var(--color-muted);

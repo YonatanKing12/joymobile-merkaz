@@ -120,7 +120,10 @@ class MenuDrawer extends HTMLElement {
     if (!panel || d.open === !!d.trapped) return;
     d.trapped = d.open;
     summary.setAttribute('aria-expanded', d.open);
-    if (root) lockScroll(d.open);
+    if (root) {
+      lockScroll(d.open);
+      this.dialog(d.open);
+    }
     if (d.open) return trapFocus(root ? d : panel, focusables(panel)[0]);
     if (root) {
       d.querySelectorAll('details[open]').forEach((level) => {
@@ -129,6 +132,16 @@ class MenuDrawer extends HTMLElement {
       });
     }
     releaseFocus(root || this.details.open ? summary : null, root ? d : panel);
+  }
+
+  // While open, also modal for screen readers (a VoiceOver/TalkBack swipe would otherwise leave the menu for the page
+  // behind it), as facets.js does for the filter drawer. The dialog is this element, not the panel: the summary (✕)
+  // that closes it sits outside the panel and must stay reachable.
+  dialog(open) {
+    if (!open) return ['role', 'aria-modal', 'aria-label'].forEach((name) => this.removeAttribute(name));
+    this.setAttribute('role', 'dialog');
+    this.setAttribute('aria-modal', 'true');
+    this.setAttribute('aria-label', this.dataset.dialogLabel || summaryOf(this.details).getAttribute('aria-label') || '');
   }
 }
 

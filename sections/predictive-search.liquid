@@ -12,7 +12,13 @@
   - "מאמרים ועמודים": up to 3 articles/pages as text rows;
   - "כל התוצאות (N)": an option marked [data-all] (not counted as a result).
   No results: a disabled option with the message, then the theme's popular searches as
-  options (also [data-all], so the announced result count stays 0).
+  options (also [data-all]).
+  Before them, two things the script takes out or fills in before showing the list:
+  - [data-announce]: the sentence its live region speaks (one / many results, or none);
+  - [data-fix]: "מציג תוצאות עבור „iphone”" + "לחיפוש „ןפיםמק” במקום זאת", an option that
+    links to the query as typed. The script searched a corrected query (wrong keyboard
+    layout, Hebrew brand name): it shows this row and puts the typed text in {terms};
+    otherwise it removes it.
   Every [role=option] has an id for aria-activedescendant.
   Styles: assets/component-predictive-search.css (linked by the header section).
 {%- endcomment -%}
@@ -29,6 +35,29 @@
 -%}
 {%- if search.performed and ps_terms != blank -%}
   {%- paginate search.results by 24 -%}
+    <span hidden data-announce>
+      {%- if search.results_count > 0 -%}
+        {{- 'search.predictive.results_count' | t: count: search.results_count -}}
+      {%- else -%}
+        {{- 'search.predictive.no_results' | t: terms: ps_terms -}}
+      {%- endif -%}
+    </span>
+    {%- capture ps_terms_bdi -%}<bdi>{{ ps_terms }}</bdi>{%- endcapture -%}
+    <a
+      class="predictive-search__item predictive-search__fix"
+      href="{{ ps_all_url }}"
+      role="option"
+      id="PredictiveSearchOption-fix"
+      aria-selected="false"
+      tabindex="-1"
+      data-fix
+      hidden
+    >
+      <span class="predictive-search__fix-lead" data-fix-lead>
+        {{- 'search.correction.showing_for' | t: terms: '{terms}' | replace: '{terms}', ps_terms_bdi -}}
+      </span>
+      <span class="predictive-search__fix-instead">{{ 'search.correction.search_instead' | t: terms: '{terms}' }}</span>
+    </a>
     {%- liquid
       assign ps_products = 0
       assign ps_content = 0
@@ -69,11 +98,17 @@
                   loading: 'lazy',
                   decorative: true,
                   placeholder: 'product-1',
+                  fallback: 'brand',
+                  vendor: item.vendor,
                   class: 'predictive-search__img'
                 -%}
               </span>
               <span class="predictive-search__body">
-                <span class="predictive-search__title">{{ item.title | escape | highlight: ps_terms }}</span>
+                {%- comment -%}
+                  &lrm; after the title: a title ending in a Latin model name with a neutral ("ל-Galaxy S25+",
+                  '12.9"') keeps that "+" or '"' beside the name instead of at the far end of the RTL line.
+                {%- endcomment -%}
+                <span class="predictive-search__title">{{ item.title | escape | highlight: ps_terms }}&lrm;</span>
                 {%- if ps_show_price -%}
                   {%- render 'price', product: item, context: 'card', class: 'predictive-search__price' -%}
                 {%- elsif item.available == false -%}
@@ -126,6 +161,7 @@
         aria-selected="false"
         tabindex="-1"
         data-all
+        data-all-results
       >
         <span>{{ 'search.predictive.view_all' | t: count: search.results_count }}</span>
         {%- render 'icon', name: 'arrow-left', size: 16 -%}

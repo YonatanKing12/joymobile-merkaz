@@ -24,15 +24,39 @@
   text-align: start;
 }
 
-/* Phones: full width under the search bar, down to the bottom of the screen. */
+/* Phones: full width under the search bar, down to the bottom of the visible screen: above the keyboard when it is
+   open (--vv-height, published by @theme/predictive-search from visualViewport; 100dvh without it). */
 .search-form--mobile .predictive-search {
   inset-inline: -1px;
   width: auto;
   max-width: none;
   margin-block-start: 0;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  max-height: calc(100dvh - var(--header-height, 3.75rem) - var(--header-offset, 0px) - var(--tap-target) - 2px);
+  max-height: calc(var(--vv-height, 100dvh) - var(--header-height, 3.75rem) - var(--header-offset, 0px) - var(--tap-target) - 2px);
   box-shadow: 0 6px 12px color-mix(in srgb, var(--color-ink) 18%, transparent);
+}
+
+/* The query was corrected (wrong keyboard layout, a Hebrew brand name): "מציג תוצאות עבור „iphone”" and, as the
+   option's action, "לחיפוש „ןפיםמק” במקום זאת". */
+.predictive-search__fix {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.125rem;
+  min-height: var(--tap-target);
+  margin-block-end: 0.25rem;
+}
+
+.predictive-search__fix-lead {
+  color: var(--color-ink);
+  font-size: var(--text-md);
+}
+
+.predictive-search__fix-instead {
+  color: var(--color-brand-text);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .predictive-search__group + .predictive-search__group {
@@ -247,4 +271,29 @@ predictive-search[aria-busy="true"] .search-form__submit::after {
   border-inline-end-color: transparent;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+/* Results page (sections/main-search, <search-correction>): "האם התכוונת ל„iphone”?" or
+   "מציג תוצאות עבור „iphone”. לחיפוש „ןפיםמק” במקום זאת", on a line of its own under the title. */
+.search-correction {
+  inline-size: 100%;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+}
+
+.search-correction__line {
+  margin: 0;
+}
+
+.search-correction a {
+  color: var(--color-brand-text);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+@media (max-width: 767px) {
+  .search-correction {
+    text-align: center; /* as the title above it */
+  }
 }
