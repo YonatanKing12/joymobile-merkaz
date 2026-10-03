@@ -59,16 +59,34 @@
             "text_position_mobile": "bottom",
             "text_color": "dark"
           }
+        },
+        "slide_KAWt9g": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/950cfe59db3370b20abab7f264c2b92f.png",
+            "image_mobile": "shopify://shop_images/180.png",
+            "alt": "לרכישה טאבלטים למתוח את גבול היצירתיות, להספיק יותר, ליהנות יותר!ובמחירי JOY",
+            "link": "shopify://collections/tablets",
+            "video_on_mobile": false,
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
         }
       },
       "block_order": [
         "slide-galaxy-s26",
         "slide_hNxEAV",
-        "slide-telegram-vip"
+        "slide-telegram-vip",
+        "slide_KAWt9g"
       ],
       "settings": {
         "label": "באנרים ראשיים",
         "page_heading": "JOY Mobile — מוצרי חשמל, מחשבים ואלקטרוניקה באילת",
+        "show_page_heading": false,
         "autoplay": true,
         "autoplay_speed": 6,
         "show_arrows": true,
