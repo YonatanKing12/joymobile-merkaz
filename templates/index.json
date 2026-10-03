@@ -28,6 +28,22 @@
             "text_color": "dark"
           }
         },
+        "slide_rJ7Ppd": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/d5f4714bbc2efc64c81d7b8dc2fbde25.png",
+            "image_mobile": "shopify://shop_images/5f53654f3c6e57dcc3672f0e4c5395b7.png",
+            "alt": "רחפני dji עכשיו בחנויות ובאתר במחירי joy",
+            "link": "shopify://collections/drones-dji",
+            "video_on_mobile": false,
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
+        },
         "slide_hNxEAV": {
           "type": "slide",
           "settings": {
@@ -79,6 +95,7 @@
       },
       "block_order": [
         "slide-galaxy-s26",
+        "slide_rJ7Ppd",
         "slide_hNxEAV",
         "slide-telegram-vip",
         "slide_KAWt9g"
