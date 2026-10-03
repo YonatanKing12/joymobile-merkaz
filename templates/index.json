@@ -12,6 +12,22 @@
     "hero": {
       "type": "hero-slideshow",
       "blocks": {
+        "slide_6A4MiP": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/c7085f4be235a40a571049a5aa712e7f.png",
+            "image_mobile": "shopify://shop_images/3dbd9205b7a539680f3978eb47d36fe1.png",
+            "alt": "מגוון שואבים שוטפים החל מ890₪ לרכישה",
+            "link": "shopify://collections/vacuums",
+            "video_on_mobile": false,
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
+        },
         "slide-galaxy-s26": {
           "type": "slide",
           "settings": {
@@ -94,6 +110,7 @@
         }
       },
       "block_order": [
+        "slide_6A4MiP",
         "slide-galaxy-s26",
         "slide_rJ7Ppd",
         "slide_hNxEAV",
