@@ -124,7 +124,7 @@
         "autoplay": true,
         "autoplay_speed": 6,
         "show_arrows": true,
-        "show_dots": true,
+        "show_dots": false,
         "peek": false,
         "padding_top": 30,
         "padding_top_mobile": 14,
