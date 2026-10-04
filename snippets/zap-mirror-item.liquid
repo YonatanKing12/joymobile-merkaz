@@ -1,18 +1,21 @@
 {%- comment -%}
   One Zap mirror category (and its collection children), Zap's WordPress
   markup. Collections past 250 products get one extra entry per feed page.
+  A mega-menu column that repeats its parent collection is flattened into it.
 {%- endcomment -%}
 {%- assign c = link.object -%}
-{%- assign pages = c.products_count | plus: 249 | divided_by: 250 | at_least: 1 -%}
-{%- for p in (1..pages) %}
+{%- assign kids = link.links | where: 'type', 'collection_link' -%}
+{%- if c.id == parent_id -%}
+  {%- for k in kids -%}{% render 'zap-mirror-item', link: k, parent_id: c.id %}{%- endfor -%}
+{%- else -%}
+  {%- assign pages = c.products_count | plus: 249 | divided_by: 250 | at_least: 1 -%}
+  {%- for p in (1..pages) %}
 	<li class="cat-item cat-item-{{ c.id }}"><a href="{{ shop.url }}{{ c.url }}?view=zapomatic{% if p > 1 %}&amp;page={{ p }}{% endif %}" title="לצפיה בכל המוצרים תחת קטגוריית {{ c.title | escape }}">{{ c.title | escape }}{% if p > 1 %} {{ p }}{% endif %}</a>
-{%- if forloop.first -%}
-  {%- assign kids = link.links | where: 'type', 'collection_link' -%}
-  {%- if kids.size > 0 %}
+    {%- if forloop.first and kids.size > 0 %}
 <ul class='children'>
-    {%- for k in kids -%}{% render 'zap-mirror-item', link: k %}{%- endfor %}
+      {%- for k in kids -%}{% render 'zap-mirror-item', link: k, parent_id: c.id %}{%- endfor %}
 </ul>
-  {%- endif -%}
-{%- endif %}
+    {%- endif %}
 </li>
-{%- endfor -%}
+  {%- endfor -%}
+{%- endif -%}
