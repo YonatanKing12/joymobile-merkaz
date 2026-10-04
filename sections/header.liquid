@@ -87,7 +87,10 @@
   assign search_on = settings.predictive_search_enabled
   # search.terms comes HTML-escaped from Shopify: escape_once leaves that as is (escape would show מע&quot;מ)
   # and still escapes the value if it ever arrives raw (?q= is reflected on every page).
-  assign search_terms = search.terms | default: ''
+  # snippets/search-query: the words of a per-field query (the results page's q).
+  capture search_terms
+    render 'search-query', terms: search.terms, format: 'display'
+  endcapture
   # Catalogue words for the wrong-keyboard-layout fix in @theme/predictive-search, fetched on the first focus.
   assign search_lexicon = 'search-lexicon.json' | asset_url
   assign trending = settings.search_trending | split: ','

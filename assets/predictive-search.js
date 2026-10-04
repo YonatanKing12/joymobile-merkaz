@@ -79,6 +79,28 @@ function fixLayout(token, othersKnown) {
 const synonym = (token) =>
   lexicon.synonyms.get(token) || (/^[לה]/.test(token) && lexicon.synonyms.get(token.slice(1))) || token;
 
+/* The store's search pads every query with loosely related products (Shopify's semantic search, which cannot be
+   turned off): "ipad" lists 923 products, 70 of which have iPad in them. Searches are sent per field so they match the
+   words only; snippets/search-query builds the same query for links, and the results page falls back to the plain
+   query when nothing matches. A query that already names fields is left alone. */
+const FIELDS = ['title', 'vendor', 'product_type', 'tag', 'variants.sku'];
+function strictQuery(text) {
+  if (text.includes(':')) return text;
+  const words = text.replace(/[()"*\\]/g, ' ').split(/\s+/).filter((w) => w && !/^(AND|OR|NOT)$/.test(w));
+  return words.map((w) => `(${FIELDS.map((f) => `${f}:${w}*`).join(' OR ')})`).join(' AND ') || text;
+}
+
+// Search forms outside <predictive-search> (the results page's own box) send the same query.
+document.addEventListener('submit', (e) => {
+  const form = e.target;
+  if (e.defaultPrevented || !(form instanceof HTMLFormElement) || !form.hasAttribute('data-strict-search')) return;
+  const params = new URLSearchParams(new FormData(form)), typed = (params.get('q') || '').trim();
+  if (!typed) return;
+  e.preventDefault();
+  params.set('q', strictQuery(typed));
+  location.assign(`${form.action}?${params}`);
+});
+
 // The query to search instead of `query`, or null (also while the lexicon is not loaded).
 function correctQuery(query) {
   if (!lexicon?.words.length) return null;
@@ -162,15 +184,15 @@ class PredictiveSearch extends HTMLElement {
     else if (target === this.input) this.onKey(e);
   }
 
-  // Enter searches what the suggestions showed: the corrected query, with the typed one in `typed` so the results page
-  // offers it back (<search-correction> in sections/main-search).
+  // Enter searches what the suggestions showed, word for word (strictQuery): the corrected query, with the typed one in
+  // `typed` so the results page offers it back (<search-correction> in sections/main-search).
   onSubmit(e) {
     const form = e.target, typed = this.query, fixed = correctQuery(typed);
-    if (!fixed || !(form instanceof HTMLFormElement)) return;
+    if (!typed || !(form instanceof HTMLFormElement)) return;
     e.preventDefault();
     const params = new URLSearchParams(new FormData(form));
-    params.set('q', fixed);
-    params.set('typed', typed);
+    params.set('q', strictQuery(fixed || typed));
+    if (fixed) params.set('typed', typed);
     location.assign(`${form.action}?${params}`);
   }
 
@@ -300,7 +322,8 @@ class PredictiveSearch extends HTMLElement {
 class SearchCorrection extends HTMLElement {
   connectedCallback() {
     const params = new URLSearchParams(location.search);
-    const query = (params.get('q') || '').trim(), typed = (params.get('typed') || '').trim();
+    // data-query: the words of the query (q holds the per-field form of them, see strictQuery).
+    const query = (this.dataset.query || params.get('q') || '').trim(), typed = (params.get('typed') || '').trim();
     if (!query) return;
     if (typed && typed !== query) return this.show('[data-corrected]', '[data-original]', bdi(typed), this.url(typed, true));
     if (params.has('exact')) return; // the shopper chose the query as typed
@@ -316,7 +339,7 @@ class SearchCorrection extends HTMLElement {
   url(term, exact) {
     const params = new URLSearchParams(location.search);
     ['page', 'typed', 'exact'].forEach((key) => params.delete(key));
-    params.set('q', term);
+    params.set('q', strictQuery(term));
     if (exact) params.set('exact', '1');
     return `${location.pathname}?${params}`;
   }

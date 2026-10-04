@@ -23,12 +23,13 @@
   Styles: assets/component-predictive-search.css (linked by the header section).
 {%- endcomment -%}
 {%- liquid
-  # search.terms arrives HTML-escaped (מע"מ → מע&quot;מ): printed as is, and decoded before
-  # url_encode so the "all results" link searches the real query (same rule as main-search).
+  # search.terms arrives HTML-escaped (מע"מ → מע&quot;מ): printed as is; snippets/search-query decodes it
+  # for the "all results" link, which searches the words field by field like the header's Enter.
   assign ps_terms = search.terms | strip
-  assign ps_terms_raw = ps_terms | replace: '&quot;', '"' | replace: '&#39;', "'" | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&amp;', '&'
-  assign ps_query = ps_terms_raw | url_encode
-  assign ps_all_url = routes.search_url | append: '?q=' | append: ps_query | append: '&options%5Bprefix%5D=last'
+  capture ps_strict
+    render 'search-query', terms: ps_terms, format: 'strict'
+  endcapture
+  assign ps_all_url = routes.search_url | append: '?q=' | append: ps_strict | append: '&options%5Bprefix%5D=last'
   assign ps_show_price = settings.predictive_search_show_price
   assign ps_product_limit = 6
   assign ps_content_limit = 3
@@ -186,7 +187,7 @@
             {%- if clean_term != blank -%}
               <a
                 class="predictive-search__chip"
-                href="{{ routes.search_url }}?q={{ clean_term | url_encode }}&amp;options%5Bprefix%5D=last"
+                href="{{ routes.search_url }}?q={% render 'search-query', terms: clean_term, format: 'strict' %}&amp;options%5Bprefix%5D=last"
                 role="option"
                 id="PredictiveSearchOption-trending-{{ forloop.index }}"
                 aria-selected="false"

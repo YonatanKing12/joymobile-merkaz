@@ -73,7 +73,10 @@
     when 'search'
       assign base_title = 'general.breadcrumbs.search' | t
       if search.terms != blank
-        assign base_title = base_title | append: ': ' | append: search.terms
+        capture search_shown
+          render 'search-query', terms: search.terms, format: 'display'
+        endcapture
+        assign base_title = base_title | append: ': ' | append: search_shown
       endif
     when 'password'
       assign base_title = ''

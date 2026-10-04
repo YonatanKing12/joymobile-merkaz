@@ -38,6 +38,11 @@
   assign bar_prefix = 'Bar-' | append: sid
   assign grid_id = 'ProductGrid-' | append: sid
   assign terms = search.terms | strip
+  capture shown_terms
+    render 'search-query', terms: terms, format: 'display'
+  endcapture
+  assign shown_raw = shown_terms | replace: '&quot;', '"' | replace: '&#39;', "'" | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&amp;', '&'
+  assign shown_param = shown_raw | url_encode
   assign terms_raw = terms | replace: '&quot;', '"' | replace: '&#39;', "'" | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&amp;', '&'
   assign terms_param = terms_raw | url_encode
 
@@ -91,7 +96,7 @@
             {%- continue -%}
           {%- endif -%}
           <li>
-            <a class="search-suggestions__chip" href="{{ routes.search_url }}?q={{ trend_term | url_encode }}&amp;options%5Bprefix%5D=last">
+            <a class="search-suggestions__chip" href="{{ routes.search_url }}?q={% render 'search-query', terms: trend_term, format: 'strict' %}&amp;options%5Bprefix%5D=last">
               {%- render 'icon', name: 'search', size: 14, class: 'search-suggestions__icon' -%}
               {{- trend_term | escape -}}
             </a>
@@ -133,7 +138,7 @@
     <h1 class="search-page__title">
       {%- if terms != blank -%}
         {{- 'search.page.title' | t }}
-        <span class="search-page__terms">{{ 'search.page.title_terms' | t: terms: terms }}</span>
+        <span class="search-page__terms">{{ 'search.page.title_terms' | t: terms: shown_terms }}</span>
       {%- else -%}
         {{- 'search.page.title_empty' | t -}}
       {%- endif -%}
@@ -141,8 +146,8 @@
 
     {%- if terms != blank -%}
       {%- comment -%} [[terms]]: where the script puts the other query (the words come from the locale). {%- endcomment -%}
-      {%- capture terms_bdi -%}<bdi>{{ terms }}</bdi>{%- endcapture -%}
-      <search-correction class="search-correction" data-lexicon="{{ 'search-lexicon.json' | asset_url }}" hidden>
+      {%- capture terms_bdi -%}<bdi>{{ shown_terms }}</bdi>{%- endcapture -%}
+      <search-correction class="search-correction" data-lexicon="{{ 'search-lexicon.json' | asset_url }}" data-query="{{ shown_raw | escape }}" hidden>
         <p class="search-correction__line" data-corrected hidden>
           {{ 'search.correction.showing_for' | t: terms: '[[terms]]' | replace: '[[terms]]', terms_bdi }}.
           <a href="{{ routes.search_url }}" data-original>{{ 'search.correction.search_instead' | t: terms: '[[terms]]' }}</a>
@@ -156,7 +161,7 @@
       form shows only when there is nothing to list: no query yet, or no results.
     {%- endcomment -%}
     {%- if terms == blank or search.results_count == 0 -%}
-    <form class="search-page__form" action="{{ routes.search_url }}" method="get" role="search">
+    <form class="search-page__form" action="{{ routes.search_url }}" method="get" role="search" data-strict-search>
       <label class="visually-hidden" for="SearchPageInput-{{ sid }}">{{ 'search.page.label' | t }}</label>
       <input
         class="input search-page__input"
@@ -164,7 +169,7 @@
         dir="auto"
         id="SearchPageInput-{{ sid }}"
         name="q"
-        value="{{ terms | escape_once }}"
+        value="{{ shown_terms | escape_once }}"
         placeholder="{{ 'search.page.placeholder' | t }}"
         autocomplete="off"
         autocorrect="off"
@@ -192,7 +197,21 @@
   {%- elsif search.results_count == 0 and active_count == 0 -%}
     <div class="search-empty search-empty--no-results">
       {%- render 'icon', name: 'search', size: 44, class: 'search-empty__icon' -%}
-      <h2 class="search-empty__title">{{ 'search.page.no_results.title' | t: terms: terms }}</h2>
+      {%- if terms contains 'title:' -%}
+        {%- comment -%}
+          Nothing has every word (a typo, a word only the description has): search the store's way instead,
+          which also finds near matches. `exact` keeps the correction line quiet there; a plain query never
+          comes back here, so this cannot loop.
+        {%- endcomment -%}
+        {%- liquid
+          assign loose_url = routes.search_url | append: '?q=' | append: shown_param | append: '&options%5Bprefix%5D=last&exact=1'
+          if type_param != blank
+            assign loose_url = loose_url | append: '&type=' | append: type_encoded
+          endif
+        -%}
+        <script>location.replace({{ loose_url | json }});</script>
+      {%- endif -%}
+      <h2 class="search-empty__title">{{ 'search.page.no_results.title' | t: terms: shown_terms }}</h2>
       <p class="search-empty__text">{{ 'search.page.no_results.text' | t }}</p>
       <div class="search-suggestions">{{ suggestions }}</div>
     </div>

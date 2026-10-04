@@ -1,0 +1,49 @@
+{%- comment -%}
+  The store's search pads every query with loosely related products (Shopify's semantic search, which
+  cannot be turned off): "ipad" lists 923 products, 70 of which have iPad in them, so a price sort opens
+  on unrelated screen protectors. A query written per field matches the words only:
+    (title:w* OR vendor:w* OR product_type:w* OR tag:w* OR variants.sku:w*) AND …
+  The same query is built by strictQuery() in assets/predictive-search.js for typed searches.
+
+  @param {string} terms - What to convert, HTML-escaped like search.terms.
+  @param {string} format - 'strict': the field query for the words, URL-encoded (a query that already
+    names fields is kept). 'display': the words of a field query, HTML-escaped (other text as is).
+{%- endcomment -%}
+{%- liquid
+  if format == 'display'
+    if terms contains 'title:'
+      assign sq_parts = terms | split: 'title:'
+      assign sq_words = ''
+      for sq_part in sq_parts offset: 1
+        assign sq_word = sq_part | split: '*' | first | strip
+        assign sq_words = sq_words | append: ' ' | append: sq_word
+      endfor
+      echo sq_words | strip
+    else
+      echo terms
+    endif
+  else
+    assign sq_raw = terms | replace: '&quot;', '"' | replace: '&#39;', "'" | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&amp;', '&' | strip
+    if sq_raw contains ':'
+      echo sq_raw | url_encode
+    else
+      assign sq_clean = sq_raw | replace: '(', ' ' | replace: ')', ' ' | replace: '"', ' ' | replace: '*', ' ' | replace: '\', ' '
+      assign sq_words = sq_clean | split: ' '
+      assign sq_query = ''
+      for sq_word in sq_words
+        if sq_word == blank or sq_word == 'AND' or sq_word == 'OR' or sq_word == 'NOT'
+          continue
+        endif
+        assign sq_group = '(title:@* OR vendor:@* OR product_type:@* OR tag:@* OR variants.sku:@*)' | replace: '@', sq_word
+        if sq_query != blank
+          assign sq_query = sq_query | append: ' AND '
+        endif
+        assign sq_query = sq_query | append: sq_group
+      endfor
+      if sq_query == blank
+        assign sq_query = sq_raw
+      endif
+      echo sq_query | url_encode
+    endif
+  endif
+-%}
