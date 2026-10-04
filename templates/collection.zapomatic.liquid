@@ -1,0 +1,39 @@
+{%- layout none -%}
+{%- comment -%}
+  Zap (zapomatic) product feed for one collection, 250 products per page
+  (?page=N). Only in-stock products with a price are listed. Pickup only,
+  so shipping is 0. Linked from templates/list-collections.zapomatic-mirror.liquid.
+  The XML is echoed as strings: the theme's HTML parser rejects these tags.
+{%- endcomment -%}
+{%- liquid
+  assign zap_shipping = '0'
+  assign zap_delivery_days = '1'
+  echo '<?xml version="1.0" encoding="UTF-8"?>'
+  assign zap_date = 'now' | date: '%d/%m/%Y'
+  assign zap_time = 'now' | date: '%H:%M:%S'
+  echo '<STORE URL="' | append: shop.url | append: '" DATE="' | append: zap_date | append: '" TIME="' | append: zap_time | append: '"><PRODUCTS>'
+  paginate collection.products by 250
+    for product in collection.products
+      assign v = product.selected_or_first_available_variant
+      unless product.available and v.price > 0
+        continue
+      endunless
+      assign zap_details = product.description | strip_html | replace: '&nbsp;', ' ' | strip_newlines | strip | truncate: 300 | escape
+      assign zap_name = product.title | escape
+      assign zap_sku = v.sku | escape
+      assign zap_vendor = product.vendor | escape
+      assign zap_price = v.price | money_without_currency | remove: ','
+      assign zap_image = ''
+      if product.featured_image
+        assign zap_image = product.featured_image | image_url: width: 1000 | prepend: 'https:'
+      endif
+      echo '<PRODUCT NUM="' | append: product.id | append: '"><PRODUCT_URL>' | append: shop.url | append: product.url | append: '</PRODUCT_URL>'
+      echo '<PRODUCT_NAME>' | append: zap_name | append: '</PRODUCT_NAME><PRODUCTCODE>' | append: product.id | append: '</PRODUCTCODE><MODEL></MODEL>'
+      echo '<DETAILS>' | append: zap_details | append: '</DETAILS><CATALOG_NUMBER>' | append: zap_sku | append: '</CATALOG_NUMBER>'
+      echo '<CURRENCY>ILS</CURRENCY><PRICE>' | append: zap_price | append: '</PRICE><SHIPMENT_COST>' | append: zap_shipping | append: '</SHIPMENT_COST>'
+      echo '<DELIVERY_TIME>' | append: zap_delivery_days | append: '</DELIVERY_TIME><MANUFACTURER>' | append: zap_vendor | append: '</MANUFACTURER>'
+      echo '<WARRANTY></WARRANTY><WARRANTYBY></WARRANTYBY><IMAGE>' | append: zap_image | append: '</IMAGE><TAX>1</TAX></PRODUCT>'
+    endfor
+  endpaginate
+  echo '</PRODUCTS></STORE>'
+-%}

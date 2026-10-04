@@ -1,0 +1,22 @@
+{%- layout none -%}
+{%- comment -%}
+  Zap (zapomatic) mirror index: the main menu's collection tree, one link per
+  collection page. Served at /collections?view=zapomatic-mirror; the store
+  redirect /zapomatic-mirror points here. Each link opens the XML feed
+  rendered by templates/collection.zapomatic.liquid.
+{%- endcomment -%}
+{%- assign zap_menu = linklists['main-menu'] -%}
+<!DOCTYPE html>
+<html dir="rtl" lang="he-IL">
+<head>
+	<meta charset="UTF-8" />
+	<title>zapomatic mirror - {{ shop.name | escape }}</title>
+</head>
+<body>
+    <ul class="zap-mirror-page">
+{%- for l1 in zap_menu.links -%}
+  {%- if l1.type == 'collection_link' -%}{% render 'zap-mirror-item', link: l1 %}{%- endif -%}
+{%- endfor %}
+</ul>
+</body>
+</html>
