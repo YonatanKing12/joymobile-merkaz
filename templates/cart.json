@@ -6,7 +6,7 @@
         "notice": {
           "type": "notice",
           "settings": {
-            "text": "<p><strong>חשוב לדעת:</strong> ההזמנות באתר הן לשריון ואיסוף עצמי מסניפי JOY Mobile באילת, במחירי אילת ללא מע״מ. כל הפרטים ב<a href=\"/pages/shipping\">עמוד השריון והאיסוף</a>.</p>"
+            "text": "<p><strong>חשוב לדעת:</strong> ההזמנות באתר הן לשריון ואיסוף עצמי מסניף JOY Mobile. כל המחירים כוללים מע״מ. כל הפרטים ב<a href=\"/pages/shipping\">עמוד השריון והאיסוף</a>.</p>"
           }
         },
         "condition-ready": {

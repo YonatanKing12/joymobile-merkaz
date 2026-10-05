@@ -28,7 +28,7 @@
         "message-galaxy": {
           "type": "message",
           "settings": {
-            "text": "סדרת IPHONE 18 PRO & PRO MAX זמינה לשריון באילת!",
+            "text": "סדרת IPHONE 18 PRO & PRO MAX זמינה לשריון!",
             "link": "shopify://collections/phones-apple"
           }
         }
@@ -50,7 +50,7 @@
         "show_account": true,
         "show_whatsapp": true,
         "show_branches": true,
-        "branches_label": "סניפים באילת",
+        "branches_label": "הסניפים שלנו",
         "branches_link": "",
         "sticky": true
       }

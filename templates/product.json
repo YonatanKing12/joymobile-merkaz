@@ -77,7 +77,7 @@
         "trust_price": {
           "type": "trust_point",
           "settings": {
-            "text": "<strong>מחירי אילת</strong> — ללא מע״מ, באיסוף עצמי מהחנות",
+            "text": "<strong>מחיר כולל מע״מ</strong> — באיסוף עצמי מהחנות",
             "use_warranty": false,
             "tax_free_only": true
           }
@@ -85,7 +85,7 @@
         "trust_pickup": {
           "type": "trust_point",
           "settings": {
-            "text": "שריון באתר ואיסוף עצמי מהחנות באילת",
+            "text": "שריון באתר ואיסוף עצמי מהחנות",
             "use_warranty": false
           }
         },
@@ -111,8 +111,8 @@
         "tab_pickup": {
           "type": "tab_custom",
           "settings": {
-            "heading": "איסוף באילת",
-            "content": "<p>ההזמנות באתר הן לשריון ואיסוף עצמי מסניפי JOY Mobile באילת, במחירי אילת ללא מע״מ.</p><p>האיסוף מתבצע על ידי הרוכש/ת, בהצגת תעודה מזהה.</p><p>ההזמנה ממתינה לאיסוף בסניף עד 21 ימי עסקים. <a href=\"/pages/branches\">הסניפים ושעות הפתיחה</a> · <a href=\"/pages/shipping\">שריון, איסוף ומשלוחים</a>.</p>"
+            "heading": "איסוף מהסניף",
+            "content": "<p>ההזמנות באתר הן לשריון ואיסוף עצמי מסניף JOY Mobile. כל המחירים כוללים מע״מ.</p><p>האיסוף מתבצע על ידי הרוכש/ת, בהצגת תעודה מזהה.</p><p>ההזמנה ממתינה לאיסוף בסניף עד 21 ימי עסקים. <a href=\"/pages/branches\">הסניפים ושעות הפתיחה</a> · <a href=\"/pages/shipping\">שריון, איסוף ומשלוחים</a>.</p>"
           }
         },
         "tab_terms": {
