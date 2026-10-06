@@ -23,6 +23,7 @@
   @param {string} [branches_label] - Text of that row. Default: the locale string header.branches.
   @param {string} [whatsapp_url] - wa.me link; blank hides the row.
   @param {boolean} [show_account] - Account row (only when customer accounts are enabled).
+  @param {string} [site_switch] - Rendered snippets/site-switch (drawer variant), shown above the categories.
   @param {string} [id_prefix] - Prefix for element ids. Default 'MenuDrawer'.
 
   @example
@@ -55,6 +56,9 @@
       {%- render 'icon', name: 'close', size: 24, class: 'menu-drawer__toggle-icon menu-drawer__toggle-icon--close' -%}
     </summary>
     <div class="menu-drawer__panel" id="{{ drawer_prefix }}-Panel">
+      {%- if site_switch != blank -%}
+        <div class="menu-drawer__site-switch">{{ site_switch }}</div>
+      {%- endif -%}
       <nav aria-label="{{ 'header.menu.label' | t }}">
         <ul class="menu-drawer__list" role="list">
           {%- for link in menu.links -%}

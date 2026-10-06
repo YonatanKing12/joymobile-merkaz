@@ -33,6 +33,17 @@
     assign branches_label = 'header.branches' | t
   endif
 
+  assign site_switch = ''
+  assign site_switch_drawer = ''
+  if section.settings.site_switch_url != blank
+    capture site_switch
+      render 'site-switch', url: section.settings.site_switch_url, here: section.settings.site_switch_here, there: section.settings.site_switch_there, first: section.settings.site_switch_first, keep_page: section.settings.site_switch_keep_page
+    endcapture
+    capture site_switch_drawer
+      render 'site-switch', url: section.settings.site_switch_url, here: section.settings.site_switch_here, there: section.settings.site_switch_there, first: section.settings.site_switch_first, keep_page: section.settings.site_switch_keep_page, hint: section.settings.site_switch_hint, variant: 'drawer'
+    endcapture
+  endif
+
   assign show_account = false
   if section.settings.show_account and shop.customer_accounts_enabled
     assign show_account = true
@@ -156,6 +167,7 @@
             branches_label: branches_label,
             whatsapp_url: whatsapp_url,
             show_account: show_account,
+            site_switch: site_switch_drawer,
             id_prefix: 'MenuDrawer'
           -%}
         </div>
@@ -304,6 +316,10 @@
           {%- endif -%}
         {%- endif -%}
 
+        {%- if site_switch != blank -%}
+          <div class="header__site-switch below-desktop-hide">{{ site_switch }}</div>
+        {%- endif -%}
+
         {%- if branches_url != blank -%}
           <a class="header__branches below-desktop-hide" href="{{ branches_url }}">
             <span>{{ branches_label | escape }}</span>
@@ -446,6 +462,56 @@
       "id": "branches_link",
       "label": "קישור כפתור הסניפים",
       "info": "אם ריק: עמוד הסניפים מהגדרות התבנית, ואם גם הוא ריק — /pages/contact#branches."
+    },
+    {
+      "type": "header",
+      "content": "מתג בין האתרים"
+    },
+    {
+      "type": "paragraph",
+      "content": "מתג \"אילת | מרכז\" בכותרת במחשב ובראש תפריט המובייל. מוצג רק כשיש כתובת לאתר השני."
+    },
+    {
+      "type": "url",
+      "id": "site_switch_url",
+      "label": "כתובת האתר השני",
+      "info": "למשל https://www.joymobile.co.il (הדומיין הראשי של האתר השני)."
+    },
+    {
+      "type": "text",
+      "id": "site_switch_here",
+      "label": "שם האתר הזה",
+      "default": "אילת"
+    },
+    {
+      "type": "text",
+      "id": "site_switch_there",
+      "label": "שם האתר השני",
+      "default": "מרכז"
+    },
+    {
+      "type": "select",
+      "id": "site_switch_first",
+      "label": "מה מופיע ראשון",
+      "info": "כדאי שהסדר יהיה זהה בשני האתרים: באחד \"האתר הזה\" ובשני \"האתר השני\".",
+      "options": [
+        { "value": "here", "label": "האתר הזה" },
+        { "value": "there", "label": "האתר השני" }
+      ],
+      "default": "here"
+    },
+    {
+      "type": "checkbox",
+      "id": "site_switch_keep_page",
+      "label": "מעבר לאותו עמוד באתר השני",
+      "info": "מוצר, קטגוריה, עמוד תוכן וחיפוש נפתחים באותו עמוד באתר השני. בשאר העמודים: דף הבית.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "site_switch_hint",
+      "label": "שורת הסבר בתפריט המובייל",
+      "default": "אילת: פטור ממע\"מ · מרכז: משלוח עד הבית"
     },
     {
       "type": "header",

@@ -339,6 +339,9 @@
       "trending": "חיפושים פופולריים"
     },
     "branches": "הסניפים שלנו",
+    "site_switch": {
+      "label": "מעבר בין אתרי JOY Mobile"
+    },
     "account": {
       "guest": "שלום אורח",
       "login": "הרשמה - התחברות",

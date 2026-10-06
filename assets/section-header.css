@@ -1235,3 +1235,133 @@ predictive-search[aria-busy="true"] .search-form__submit::after {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+
+/* ---------- Site switch (snippets/site-switch): "אילת | מרכז" ----------
+   A pill with two equal options and a filled thumb under this site's option (data-here = its position).
+   Hovering, focusing or tapping the other option slides the thumb to it (RTL: toward the inline-end is
+   translateX(-100%)) and swaps the two text colours. Header variant: mint ring on the navy row; drawer
+   variant: full width on the white panel, with an optional hint line under it. */
+.site-switch__track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  isolation: isolate;
+}
+
+.site-switch__track::before {
+  content: "";
+  position: absolute;
+  inset-block: 3px;
+  inset-inline-start: 3px;
+  z-index: -1;
+  width: calc(50% - 3px);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  transition: transform 0.35s var(--ease-in-out);
+}
+
+.site-switch__track[data-here="2"]::before,
+.site-switch__track[data-here="1"]:has(.site-switch__opt--there:is(:hover, :focus-visible, :active))::before {
+  transform: translateX(-100%);
+}
+
+.site-switch__track[data-here="2"]:has(.site-switch__opt--there:is(:hover, :focus-visible, :active))::before {
+  transform: none;
+}
+
+[dir="ltr"] .site-switch__track[data-here="2"]::before,
+[dir="ltr"] .site-switch__track[data-here="1"]:has(.site-switch__opt--there:is(:hover, :focus-visible, :active))::before {
+  transform: translateX(100%);
+}
+
+.site-switch__opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3125rem;
+  min-height: 2rem;
+  padding-inline: 0.875rem;
+  border-radius: var(--radius-pill);
+  color: var(--color-header-text);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.35s var(--ease-in-out);
+}
+
+.site-switch__opt--here,
+.site-switch__track:has(.site-switch__opt--there:is(:hover, :focus-visible, :active)) .site-switch__opt--there {
+  color: var(--color-on-accent);
+}
+
+.site-switch__track:has(.site-switch__opt--there:is(:hover, :focus-visible, :active)) .site-switch__opt--here {
+  color: var(--color-header-text);
+}
+
+.site-switch__opt--there:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.site-switch__icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-switch__track::before,
+  .site-switch__opt {
+    transition: none;
+  }
+}
+
+@media (min-width: 992px) {
+  .header__site-switch {
+    margin-inline-end: 1.5rem;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .header__site-switch .site-switch__opt {
+    padding-inline: 0.625rem;
+  }
+}
+
+/* Drawer: the first thing in the mobile menu, full width on white. */
+.menu-drawer__site-switch {
+  padding: 0.75rem 1rem;
+  border-block-end: 1px solid var(--header-rule);
+}
+
+.site-switch--drawer .site-switch__track {
+  border-color: var(--color-border-strong);
+}
+
+.site-switch--drawer .site-switch__opt {
+  min-height: 2.5rem;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+
+.site-switch--drawer .site-switch__opt--here,
+.site-switch--drawer .site-switch__track:has(.site-switch__opt--there:is(:hover, :focus-visible, :active)) .site-switch__opt--there {
+  color: var(--color-on-accent);
+}
+
+.site-switch--drawer .site-switch__track:has(.site-switch__opt--there:is(:hover, :focus-visible, :active)) .site-switch__opt--here {
+  color: var(--color-ink);
+}
+
+.site-switch__hint {
+  margin: 0.5rem 0 0;
+  color: color-mix(in srgb, var(--color-ink) 70%, transparent);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  text-align: center;
+}

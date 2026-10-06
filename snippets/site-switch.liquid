@@ -1,0 +1,71 @@
+{% doc %}
+  Switch between the two JOY Mobile sites (JOY Eilat, duty free with pickup, and JOY Merkaz, VAT included
+  with delivery): a two-option toggle with this site's option filled. The other option links to the same
+  page on the other site where the pages match (home, product, collection, page, search), else its home.
+  Both sites show the options in the same order (setting "first"), so the toggle reads the same on either.
+  A pin marks this site's option; the filled thumb under it slides to the other option on hover, focus
+  and tap, before the next page loads. Styles: assets/section-header.css.
+
+  @param {string} url - The other site's address, e.g. https://joymobile-merkaz.co.il. Blank renders nothing.
+  @param {string} here - This site's label, e.g. "אילת".
+  @param {string} there - The other site's label, e.g. "מרכז".
+  @param {string} [first] - 'here' (default) or 'there': which option comes first.
+  @param {string} [hint] - A short line under the toggle in the drawer variant.
+  @param {boolean} [keep_page] - Link to the same page on the other site. Default true.
+  @param {string} [variant] - 'header' (default) or 'drawer'.
+
+  @example
+  {% render 'site-switch', url: section.settings.site_switch_url, here: 'אילת', there: 'מרכז', variant: 'drawer' %}
+{% enddoc %}
+{%- liquid
+  assign ss_base = url | strip
+  assign ss_last = ss_base | slice: -1
+  if ss_last == '/'
+    assign ss_len = ss_base.size | minus: 1
+    assign ss_base = ss_base | slice: 0, ss_len
+  endif
+
+  assign ss_href = ss_base | append: '/'
+  if keep_page != false
+    case template.name
+      when 'product', 'collection', 'page', 'list-collections', 'blog', 'article'
+        assign ss_href = ss_base | append: request.path
+      when 'search'
+        if search.terms != blank
+          assign ss_q = search.terms | url_param_escape
+          assign ss_href = ss_base | append: routes.search_url | append: '?q=' | append: ss_q
+        endif
+    endcase
+  endif
+
+  assign ss_variant = variant | default: 'header'
+  assign ss_first_is_here = true
+  if first == 'there'
+    assign ss_first_is_here = false
+  endif
+-%}
+{%- if ss_base != blank -%}
+{%- capture ss_here -%}
+  <span class="site-switch__opt site-switch__opt--here" aria-current="true">
+    {%- render 'icon', name: 'location', size: 14, class: 'site-switch__icon' -%}
+    <span>{{ here | escape }}</span>
+  </span>
+{%- endcapture -%}
+{%- capture ss_there -%}
+  <a class="site-switch__opt site-switch__opt--there" href="{{ ss_href }}">
+    <span>{{ there | escape }}</span>
+  </a>
+{%- endcapture -%}
+<nav class="site-switch site-switch--{{ ss_variant }}" aria-label="{{ 'header.site_switch.label' | t }}">
+  <div class="site-switch__track" data-here="{% if ss_first_is_here %}1{% else %}2{% endif %}">
+    {%- if ss_first_is_here -%}
+      {{- ss_here -}}{{- ss_there -}}
+    {%- else -%}
+      {{- ss_there -}}{{- ss_here -}}
+    {%- endif -%}
+  </div>
+  {%- if ss_variant == 'drawer' and hint != blank -%}
+    <p class="site-switch__hint">{{ hint | escape }}</p>
+  {%- endif -%}
+</nav>
+{%- endif -%}
