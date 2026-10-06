@@ -23,7 +23,7 @@
   - from the metafields: the custom.warranty_channel text, else "יבואן רשמי" when
     custom.warranty_official is true (the rule product-specs and product-trust had before).
 
-  @param {product} product - The product.
+  @param {product} product - The product (its selected or first available variant is read first).
   @param {string} [format] - 'label' (default) or 'key': official | parallel | used | refurbished | other, or nothing.
 
   @example
@@ -31,16 +31,29 @@
   {%- capture channel_key -%}{%- render 'import-channel', product: product, format: 'key' -%}{%- endcapture -%}
 {% enddoc %}
 {%- liquid
-  assign ic_text = product.metafields.custom.warranty_channel.value | strip
-  assign ic_official = product.metafields.custom.warranty_official.value
+  # A merged product (one page, several import channels as variants) keeps the channel and the
+  # warranty on each variant: custom.channel_tag ("מקביל", "רשמי", "מחודש", "יד שניה") and the
+  # same warranty metafields. The selected variant's values win; a product without them uses
+  # its own tags and metafields as before.
+  assign ic_variant = product.selected_or_first_available_variant
+  assign ic_vtag = ic_variant.metafields.custom.channel_tag.value | strip
+  assign ic_text = ic_variant.metafields.custom.warranty_channel.value | default: product.metafields.custom.warranty_channel.value | strip
+  assign ic_official = ic_variant.metafields.custom.warranty_official.value
+  if ic_official == nil
+    assign ic_official = product.metafields.custom.warranty_official.value
+  endif
+  assign ic_tags = product.tags
+  if ic_vtag != blank
+    assign ic_tags = ic_vtag | split: ','
+  endif
 
   assign ic_key = ''
   assign ic_from_tag = true
-  if product.tags contains 'יד שניה' or product.tags contains 'יד שנייה'
+  if ic_tags contains 'יד שניה' or ic_tags contains 'יד שנייה'
     assign ic_key = 'used'
-  elsif product.tags contains 'מחודש'
+  elsif ic_tags contains 'מחודש'
     assign ic_key = 'refurbished'
-  elsif product.tags contains 'מקביל'
+  elsif ic_tags contains 'מקביל'
     assign ic_key = 'parallel'
   else
     assign ic_from_tag = false

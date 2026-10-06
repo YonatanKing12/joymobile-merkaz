@@ -55,7 +55,7 @@
   assign pt_warranty = ''
   assign pt_channel = ''
   if product != blank and part != 'pickup'
-    assign pt_months = product.metafields.custom.warranty_months.value
+    assign pt_months = product.selected_or_first_available_variant.metafields.custom.warranty_months.value | default: product.metafields.custom.warranty_months.value
     if pt_months != blank
       assign pt_warranty = 'products.product.warranty_months' | t: count: pt_months
     endif

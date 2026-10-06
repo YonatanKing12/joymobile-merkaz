@@ -18,7 +18,7 @@
   assign ps_mf = product.metafields.custom
   assign ps_specs = ps_mf.specs.value
   assign ps_summary = ps_mf.spec_summary.value | strip
-  assign ps_months = ps_mf.warranty_months.value
+  assign ps_months = product.selected_or_first_available_variant.metafields.custom.warranty_months.value | default: ps_mf.warranty_months.value
   assign ps_sim = ps_mf.sim_connectivity.value | strip
   assign ps_energy = ps_mf.energy_rating.value | strip
 
