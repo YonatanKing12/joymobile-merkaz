@@ -1,0 +1,108 @@
+{% doc %}
+  Per-section look ("עיצוב הסקשן" in every section's settings): background, text, heading, accent and
+  button colours, text size, heading and body fonts, corner radius. Each setting left empty keeps the
+  theme's look (theme settings › צבעים / טיפוגרפיה), so nothing changes until the owner picks a value.
+
+  How it works: the section's wrapper (#shopify-section-<id>) gets the theme's own tokens redefined
+  (--color-ink, --color-button-bg, --text-*, --font-*-family, --radius-*), so every component inside
+  that is built on tokens follows without knowing about this snippet. It also gets --ss-* variables
+  (--ss-bg, --ss-text, --ss-heading, --ss-accent) for the few places a section paints its own surface
+  or text without a token; those places read them as var(--ss-bg, <their default>).
+
+  The settings that go with it are the same in every section: the "עיצוב הסקשן" group, ids ss_*.
+
+  @param {object} section - The section (its settings.ss_*).
+
+  @example
+  {% render 'section-style', section: section %}
+{% enddoc %}
+{%- liquid
+  assign ss = section.settings
+  assign ss_id = '#shopify-section-' | append: section.id
+  assign ss_scale = ss.ss_text_scale | default: 100 | divided_by: 100.0
+-%}
+{%- capture ss_vars -%}
+  {%- if ss.ss_background != blank -%}
+    --ss-bg: {{ ss.ss_background }};
+    background: var(--ss-bg);
+  {%- endif -%}
+  {%- if ss.ss_text_color != blank and ss.ss_text_color.alpha > 0 -%}
+    --ss-text: {{ ss.ss_text_color }};
+    --color-ink: {{ ss.ss_text_color }};
+    --color-text: {{ ss.ss_text_color }};
+    --color-muted: {{ ss.ss_text_color | color_modify: 'alpha', 0.72 }};
+    color: var(--ss-text);
+  {%- endif -%}
+  {%- if ss.ss_heading_color != blank and ss.ss_heading_color.alpha > 0 -%}
+    --ss-heading: {{ ss.ss_heading_color }};
+  {%- endif -%}
+  {%- if ss.ss_accent_color != blank and ss.ss_accent_color.alpha > 0 -%}
+    --ss-accent: {{ ss.ss_accent_color }};
+    --color-brand: {{ ss.ss_accent_color }};
+    --color-brand-text: {{ ss.ss_accent_color }};
+    --color-accent: {{ ss.ss_accent_color }};
+  {%- endif -%}
+  {%- if ss.ss_button_bg != blank and ss.ss_button_bg.alpha > 0 -%}
+    --color-button-bg: {{ ss.ss_button_bg }};
+    --color-button-accent-bg: {{ ss.ss_button_bg }};
+  {%- endif -%}
+  {%- if ss.ss_button_text != blank and ss.ss_button_text.alpha > 0 -%}
+    --color-button-text: {{ ss.ss_button_text }};
+    --color-button-accent-text: {{ ss.ss_button_text }};
+  {%- endif -%}
+  {%- if ss_scale != 1 -%}
+    --text-2xs: calc(0.6875rem * {{ ss_scale }});
+    --text-xs: calc(0.75rem * {{ ss_scale }});
+    --text-sm: calc(0.8125rem * {{ ss_scale }});
+    --text-md: calc(0.875rem * {{ ss_scale }});
+    --text-lg: calc(0.9375rem * {{ ss_scale }});
+    --text-body: calc(1rem * {{ ss_scale }});
+    --text-xl: calc(1.125rem * {{ ss_scale }});
+    --text-2xl: calc(1.25rem * {{ ss_scale }});
+    --text-3xl: calc(1.5rem * {{ ss_scale }});
+    --text-4xl: calc(1.875rem * {{ ss_scale }});
+    --text-5xl: calc(2.5rem * {{ ss_scale }});
+  {%- endif -%}
+  {%- if ss.ss_custom_heading_font and ss.ss_heading_font != blank -%}
+    --font-heading-family: {{ ss.ss_heading_font.family }}, {{ ss.ss_heading_font.fallback_families }};
+    --font-heading-weight: {{ ss.ss_heading_font.weight }};
+  {%- endif -%}
+  {%- if ss.ss_custom_body_font and ss.ss_body_font != blank -%}
+    --font-body-family: {{ ss.ss_body_font.family }}, {{ ss.ss_body_font.fallback_families }};
+    --font-body-weight: {{ ss.ss_body_font.weight }};
+    font-family: var(--font-body-family);
+    font-weight: var(--font-body-weight);
+  {%- endif -%}
+  {%- case ss.ss_radius -%}
+    {%- when 'square' -%}
+      --radius-button: 0px; --radius-input: 0px; --radius-card: 0px; --radius-badge: 0px;
+    {%- when 'soft' -%}
+      --radius-button: 8px; --radius-input: 8px; --radius-card: 8px; --radius-badge: 6px;
+    {%- when 'round' -%}
+      --radius-button: 16px; --radius-input: 12px; --radius-card: 20px; --radius-badge: 10px;
+    {%- when 'pill' -%}
+      --radius-button: 999px; --radius-input: 999px; --radius-card: 24px; --radius-badge: 999px;
+  {%- endcase -%}
+{%- endcapture -%}
+{%- assign ss_vars = ss_vars | strip -%}
+{%- if ss_vars != blank -%}
+  {%- style -%}
+    {%- if ss.ss_custom_heading_font and ss.ss_heading_font != blank -%}
+      {{ ss.ss_heading_font | font_face: font_display: 'swap' }}
+      {%- assign ss_heading_bold = ss.ss_heading_font | font_modify: 'weight', 'bold' -%}
+      {{ ss_heading_bold | font_face: font_display: 'swap' }}
+    {%- endif -%}
+    {%- if ss.ss_custom_body_font and ss.ss_body_font != blank -%}
+      {{ ss.ss_body_font | font_face: font_display: 'swap' }}
+      {%- assign ss_body_bold = ss.ss_body_font | font_modify: 'weight', 'bold' -%}
+      {{ ss_body_bold | font_face: font_display: 'swap' }}
+    {%- endif -%}
+    {{ ss_id }} { {{ ss_vars }} }
+    {%- if ss.ss_heading_color != blank and ss.ss_heading_color.alpha > 0 %}
+      {{ ss_id }} :is(h1, h2, h3, h4, h5, h6) { color: var(--ss-heading); }
+    {%- endif %}
+    {%- if ss.ss_custom_body_font and ss.ss_body_font != blank %}
+      {{ ss_id }} :is(button, input, select, textarea) { font-family: inherit; }
+    {%- endif %}
+  {%- endstyle -%}
+{%- endif -%}

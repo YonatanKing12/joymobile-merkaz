@@ -7,6 +7,7 @@
   without pagination, so no paginate tag is needed here.
   Styles: assets/section-list-collections.css.
 {%- endcomment -%}
+{%- render 'section-style', section: section -%}
 {{ 'section-list-collections.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
@@ -113,7 +114,9 @@
   "tag": "section",
   "class": "section-list-collections",
   "enabled_on": {
-    "templates": ["list-collections"]
+    "templates": [
+      "list-collections"
+    ]
   },
   "settings": [
     {
@@ -133,8 +136,14 @@
       "id": "source",
       "label": "אילו קטגוריות",
       "options": [
-        { "value": "all", "label": "כל הקטגוריות" },
-        { "value": "selected", "label": "רשימה נבחרת" }
+        {
+          "value": "all",
+          "label": "כל הקטגוריות"
+        },
+        {
+          "value": "selected",
+          "label": "רשימה נבחרת"
+        }
       ],
       "default": "all"
     },
@@ -150,10 +159,22 @@
       "id": "sort",
       "label": "סדר (כל הקטגוריות)",
       "options": [
-        { "value": "products_high", "label": "הכי הרבה מוצרים קודם" },
-        { "value": "products_low", "label": "הכי מעט מוצרים קודם" },
-        { "value": "alphabetical", "label": "לפי שם" },
-        { "value": "date_reversed", "label": "החדשות קודם" }
+        {
+          "value": "products_high",
+          "label": "הכי הרבה מוצרים קודם"
+        },
+        {
+          "value": "products_low",
+          "label": "הכי מעט מוצרים קודם"
+        },
+        {
+          "value": "alphabetical",
+          "label": "לפי שם"
+        },
+        {
+          "value": "date_reversed",
+          "label": "החדשות קודם"
+        }
       ],
       "default": "products_high"
     },
@@ -181,9 +202,18 @@
       "id": "columns_desktop",
       "label": "עמודות במחשב",
       "options": [
-        { "value": "4", "label": "4" },
-        { "value": "5", "label": "5" },
-        { "value": "6", "label": "6" }
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        },
+        {
+          "value": "6",
+          "label": "6"
+        }
       ],
       "default": "5"
     },
@@ -192,9 +222,18 @@
       "id": "columns_mobile",
       "label": "עמודות במובייל",
       "options": [
-        { "value": "1", "label": "1" },
-        { "value": "2", "label": "2" },
-        { "value": "3", "label": "3" }
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        }
       ],
       "default": "2"
     },
@@ -217,6 +256,111 @@
       "step": 2,
       "unit": "px",
       "default": 40
+    },
+    {
+      "type": "header",
+      "content": "עיצוב הסקשן"
+    },
+    {
+      "type": "paragraph",
+      "content": "כל מה שנשאר ריק לוקח את העיצוב הכללי של האתר (הגדרות התבנית › צבעים, טיפוגרפיה)."
+    },
+    {
+      "type": "color_background",
+      "id": "ss_background",
+      "label": "רקע",
+      "info": "צבע אחיד או מעבר צבעים (גרדיאנט)."
+    },
+    {
+      "type": "color",
+      "id": "ss_text_color",
+      "label": "צבע טקסט"
+    },
+    {
+      "type": "color",
+      "id": "ss_heading_color",
+      "label": "צבע כותרות"
+    },
+    {
+      "type": "color",
+      "id": "ss_accent_color",
+      "label": "צבע הדגשה",
+      "info": "קישורים, אייקונים ופרטים צבעוניים."
+    },
+    {
+      "type": "color",
+      "id": "ss_button_bg",
+      "label": "צבע כפתורים"
+    },
+    {
+      "type": "color",
+      "id": "ss_button_text",
+      "label": "צבע טקסט בכפתורים"
+    },
+    {
+      "type": "range",
+      "id": "ss_text_scale",
+      "label": "גודל טקסט",
+      "min": 80,
+      "max": 130,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "select",
+      "id": "ss_radius",
+      "label": "פינות של כפתורים וכרטיסים",
+      "options": [
+        {
+          "value": "theme",
+          "label": "כמו בשאר האתר"
+        },
+        {
+          "value": "square",
+          "label": "ישרות"
+        },
+        {
+          "value": "soft",
+          "label": "מעוגלות מעט"
+        },
+        {
+          "value": "round",
+          "label": "מעוגלות"
+        },
+        {
+          "value": "pill",
+          "label": "עגולות לגמרי"
+        }
+      ],
+      "default": "theme"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_heading_font",
+      "label": "פונט אחר לכותרות",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_heading_font",
+      "label": "פונט כותרות",
+      "info": "לעברית: Assistant, Heebo, Rubik, Noto Sans Hebrew, Frank Ruhl Libre.",
+      "default": "assistant_n7",
+      "visible_if": "{{ section.settings.ss_custom_heading_font }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_body_font",
+      "label": "פונט אחר לטקסט",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_body_font",
+      "label": "פונט טקסט",
+      "default": "assistant_n4",
+      "visible_if": "{{ section.settings.ss_custom_body_font }}"
     }
   ]
 }

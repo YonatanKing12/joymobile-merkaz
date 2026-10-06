@@ -9,6 +9,7 @@
   The slide box takes the first slide's image ratio (desktop and mobile), so nothing shifts when images load.
   The page H1 (setting "page_heading") is visually hidden unless "show_page_heading" shows it as a line under the banners.
 {%- endcomment -%}
+{%- render 'section-style', section: section -%}
 {%- liquid
   assign slide_count = section.blocks.size
   assign first_slide = section.blocks.first
@@ -354,7 +355,9 @@
   "class": "section-hero-slideshow",
   "max_blocks": 8,
   "disabled_on": {
-    "groups": ["*"]
+    "groups": [
+      "*"
+    ]
   },
   "settings": [
     {
@@ -458,6 +461,111 @@
       "step": 2,
       "unit": "px",
       "default": 0
+    },
+    {
+      "type": "header",
+      "content": "עיצוב הסקשן"
+    },
+    {
+      "type": "paragraph",
+      "content": "כל מה שנשאר ריק לוקח את העיצוב הכללי של האתר (הגדרות התבנית › צבעים, טיפוגרפיה)."
+    },
+    {
+      "type": "color_background",
+      "id": "ss_background",
+      "label": "רקע",
+      "info": "צבע אחיד או מעבר צבעים (גרדיאנט)."
+    },
+    {
+      "type": "color",
+      "id": "ss_text_color",
+      "label": "צבע טקסט"
+    },
+    {
+      "type": "color",
+      "id": "ss_heading_color",
+      "label": "צבע כותרות"
+    },
+    {
+      "type": "color",
+      "id": "ss_accent_color",
+      "label": "צבע הדגשה",
+      "info": "קישורים, אייקונים ופרטים צבעוניים."
+    },
+    {
+      "type": "color",
+      "id": "ss_button_bg",
+      "label": "צבע כפתורים"
+    },
+    {
+      "type": "color",
+      "id": "ss_button_text",
+      "label": "צבע טקסט בכפתורים"
+    },
+    {
+      "type": "range",
+      "id": "ss_text_scale",
+      "label": "גודל טקסט",
+      "min": 80,
+      "max": 130,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "select",
+      "id": "ss_radius",
+      "label": "פינות של כפתורים וכרטיסים",
+      "options": [
+        {
+          "value": "theme",
+          "label": "כמו בשאר האתר"
+        },
+        {
+          "value": "square",
+          "label": "ישרות"
+        },
+        {
+          "value": "soft",
+          "label": "מעוגלות מעט"
+        },
+        {
+          "value": "round",
+          "label": "מעוגלות"
+        },
+        {
+          "value": "pill",
+          "label": "עגולות לגמרי"
+        }
+      ],
+      "default": "theme"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_heading_font",
+      "label": "פונט אחר לכותרות",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_heading_font",
+      "label": "פונט כותרות",
+      "info": "לעברית: Assistant, Heebo, Rubik, Noto Sans Hebrew, Frank Ruhl Libre.",
+      "default": "assistant_n7",
+      "visible_if": "{{ section.settings.ss_custom_heading_font }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_body_font",
+      "label": "פונט אחר לטקסט",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_body_font",
+      "label": "פונט טקסט",
+      "default": "assistant_n4",
+      "visible_if": "{{ section.settings.ss_custom_body_font }}"
     }
   ],
   "blocks": [
@@ -540,9 +648,18 @@
           "id": "text_position",
           "label": "מיקום הטקסט (מחשב)",
           "options": [
-            { "value": "start", "label": "ימין" },
-            { "value": "center", "label": "מרכז" },
-            { "value": "end", "label": "שמאל" }
+            {
+              "value": "start",
+              "label": "ימין"
+            },
+            {
+              "value": "center",
+              "label": "מרכז"
+            },
+            {
+              "value": "end",
+              "label": "שמאל"
+            }
           ],
           "default": "start"
         },
@@ -551,9 +668,18 @@
           "id": "text_position_mobile",
           "label": "מיקום הטקסט (מובייל)",
           "options": [
-            { "value": "top", "label": "למעלה" },
-            { "value": "center", "label": "באמצע" },
-            { "value": "bottom", "label": "למטה" }
+            {
+              "value": "top",
+              "label": "למעלה"
+            },
+            {
+              "value": "center",
+              "label": "באמצע"
+            },
+            {
+              "value": "bottom",
+              "label": "למטה"
+            }
           ],
           "default": "bottom"
         },
@@ -563,8 +689,14 @@
           "label": "צבע הטקסט",
           "info": "בהיר: רק כשהאזור שמאחורי הטקסט בתמונה כהה. מאחורי טקסט בהיר נוסף רקע כהה שקוף למחצה, כדי שיהיה קריא גם על תמונה בהירה.",
           "options": [
-            { "value": "dark", "label": "כהה" },
-            { "value": "light", "label": "בהיר" }
+            {
+              "value": "dark",
+              "label": "כהה"
+            },
+            {
+              "value": "light",
+              "label": "בהיר"
+            }
           ],
           "default": "dark"
         }

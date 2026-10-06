@@ -13,6 +13,7 @@
   theme's predictive search uses the same route for the same reason: /search/suggest answers 417 to
   Hebrew on this store.
 {%- endcomment -%}
+{%- render 'section-style', section: section -%}
 {%- if search.performed and search.terms != blank -%}
 
   {%- comment -%}
@@ -127,6 +128,112 @@
   "name": "תוספות למוצר (תוצאות)",
   "tag": "div",
   "class": "section-product-addons-results",
-  "settings": []
+  "settings": [
+    {
+      "type": "header",
+      "content": "עיצוב הסקשן"
+    },
+    {
+      "type": "paragraph",
+      "content": "כל מה שנשאר ריק לוקח את העיצוב הכללי של האתר (הגדרות התבנית › צבעים, טיפוגרפיה)."
+    },
+    {
+      "type": "color_background",
+      "id": "ss_background",
+      "label": "רקע",
+      "info": "צבע אחיד או מעבר צבעים (גרדיאנט)."
+    },
+    {
+      "type": "color",
+      "id": "ss_text_color",
+      "label": "צבע טקסט"
+    },
+    {
+      "type": "color",
+      "id": "ss_heading_color",
+      "label": "צבע כותרות"
+    },
+    {
+      "type": "color",
+      "id": "ss_accent_color",
+      "label": "צבע הדגשה",
+      "info": "קישורים, אייקונים ופרטים צבעוניים."
+    },
+    {
+      "type": "color",
+      "id": "ss_button_bg",
+      "label": "צבע כפתורים"
+    },
+    {
+      "type": "color",
+      "id": "ss_button_text",
+      "label": "צבע טקסט בכפתורים"
+    },
+    {
+      "type": "range",
+      "id": "ss_text_scale",
+      "label": "גודל טקסט",
+      "min": 80,
+      "max": 130,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "select",
+      "id": "ss_radius",
+      "label": "פינות של כפתורים וכרטיסים",
+      "options": [
+        {
+          "value": "theme",
+          "label": "כמו בשאר האתר"
+        },
+        {
+          "value": "square",
+          "label": "ישרות"
+        },
+        {
+          "value": "soft",
+          "label": "מעוגלות מעט"
+        },
+        {
+          "value": "round",
+          "label": "מעוגלות"
+        },
+        {
+          "value": "pill",
+          "label": "עגולות לגמרי"
+        }
+      ],
+      "default": "theme"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_heading_font",
+      "label": "פונט אחר לכותרות",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_heading_font",
+      "label": "פונט כותרות",
+      "info": "לעברית: Assistant, Heebo, Rubik, Noto Sans Hebrew, Frank Ruhl Libre.",
+      "default": "assistant_n7",
+      "visible_if": "{{ section.settings.ss_custom_heading_font }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_body_font",
+      "label": "פונט אחר לטקסט",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_body_font",
+      "label": "פונט טקסט",
+      "default": "assistant_n4",
+      "visible_if": "{{ section.settings.ss_custom_body_font }}"
+    }
+  ]
 }
 {% endschema %}
