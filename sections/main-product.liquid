@@ -319,10 +319,26 @@
   {%- endif -%}
 {%- endcapture -%}
 
+{%- liquid
+  # Corner shape of the buy buttons (the buy_buttons block's setting); 'theme' keeps the theme's button radius.
+  assign pdp_button_radius = ''
+  assign pdp_buy_block = section.blocks | where: 'type', 'buy_buttons' | first
+  case pdp_buy_block.settings.button_shape
+    when 'square'
+      assign pdp_button_radius = '0px'
+    when 'rounded'
+      assign pdp_button_radius = '14px'
+    when 'pill'
+      assign pdp_button_radius = '999px'
+  endcase
+-%}
 {%- style -%}
   #shopify-section-{{ section.id }} {
     --pdp-pad-top: {{ section.settings.padding_top }}px;
     --pdp-pad-bottom: {{ section.settings.padding_bottom }}px;
+    {%- if pdp_button_radius != blank %}
+    --pdp-button-radius: {{ pdp_button_radius }};
+    {%- endif %}
   }
 {%- endstyle -%}
 
@@ -701,6 +717,19 @@
           "id": "show_cart",
           "label": "כפתור \"הוסף לעגלה\"",
           "default": true
+        },
+        {
+          "type": "select",
+          "id": "button_shape",
+          "label": "צורת הכפתורים",
+          "options": [
+            { "value": "theme", "label": "לפי הגדרות התמה" },
+            { "value": "square", "label": "מרובעים" },
+            { "value": "rounded", "label": "מעוגלים" },
+            { "value": "pill", "label": "עגולים לגמרי" }
+          ],
+          "default": "theme",
+          "info": "חל על כפתורי הקנייה בדף המוצר ובסרגל הקנייה הצף."
         },
         {
           "type": "checkbox",

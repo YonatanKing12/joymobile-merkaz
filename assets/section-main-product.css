@@ -1187,3 +1187,8 @@ html.no-js .product-wishlist {
 .main-product.page-width {
   max-width: calc(100rem + 2 * var(--page-gutter));
 }
+
+/* Buy buttons' corner shape, from the buy_buttons block (sections/main-product): unset keeps --radius-button. */
+#MainContent :is(.product-form .product-form__button, .product-sticky .product-sticky__button) {
+  border-radius: var(--pdp-button-radius, var(--radius-button));
+}
