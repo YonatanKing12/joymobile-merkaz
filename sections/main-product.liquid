@@ -8,7 +8,7 @@
     buy column (variant picker, price, buttons, wishlist, info lines, text, Liquid, apps) and, from
     992px beside it, the "למה לקוחות קונים אצלנו" box (trust_point blocks + image + WhatsApp).
   - "מידע נוסף": description / specs / free tabs as an exclusive <details> group, an accordion at
-    every width (the first panel starts open).
+    every width; all panels start closed, and "קרא עוד" / "פרטים טכניים נוספים" open their panel.
   - Mobile: a fixed buy bar that slides in once the in-page buttons scroll away.
   Variant changes: @theme/product re-renders this section (?variant=…&section_id=…) and swaps the
   [data-swap] regions: price, sku, availability, pickup, badges, buttons, sticky, option-N.
@@ -242,9 +242,9 @@
   {%- endif -%}
 {%- endcapture -%}
 
-{%- comment -%} "מידע נוסף": one exclusive <details> group; the first panel starts open. {%- endcomment -%}
+{%- comment -%} "מידע נוסף": one exclusive <details> group; every panel starts closed. {%- endcomment -%}
 {%- capture details_html -%}
-  {%- assign details_open = true -%}
+  {%- assign details_open = false -%}
   {%- assign details_group = 'ProductInfo-' | append: section.id -%}
   {%- for block in section.blocks -%}
     {%- liquid
@@ -434,6 +434,27 @@
         <h2 class="visually-hidden">{{ 'products.product.details_heading' | t }}</h2>
         <div class="product-details">{{ details_html }}</div>
       </div>
+      {%- comment -%}
+        The panels start closed: a link to one ("קרא עוד", "פרטים טכניים נוספים", or a #hash in the
+        URL) opens it before the browser scrolls there. Delegated, so links in swapped regions work.
+      {%- endcomment -%}
+      <script>
+        (() => {
+          const root = document.currentScript.closest('.main-product');
+          const open = (hash) => {
+            let id = '';
+            try { id = decodeURIComponent((hash || '').slice(1)); } catch { return; }
+            if (!id || !root) return;
+            const panel = root.querySelector(`details.product-details__item#${CSS.escape(id)}`);
+            if (panel) panel.open = true;
+          };
+          root?.addEventListener('click', (event) => {
+            const link = event.target.closest('a[href^="#"]');
+            if (link) open(link.getAttribute('href'));
+          });
+          open(location.hash);
+        })();
+      </script>
     {%- endif -%}
   </div>
 
