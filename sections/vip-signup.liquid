@@ -2,7 +2,8 @@
   VIP / newsletter signup ("הישארו מעודכנים"). Shopify customer form (POST /contact, form_type=customer):
   it creates or updates a customer WITH email-marketing consent, so the visitor must actively tick an
   (unchecked, required) consent box first. Fields: first name + email; phone is optional and off by default
-  (`contact[phone]` is not documented for this form). Tags from the section settings are added to the customer.
+  (`contact[phone]` is not documented for this form, so the number is also added as a `phone:…` tag on
+  submit, where the customer list shows it). Tags from the section settings are added to the customer.
   After the redirect the section shows a success message or Shopify's errors (`form.errors`).
   Measured @1440: full-bleed band (the old one had 15px white gutters), padding 80px 20px (25px 15px < 1200),
   background image cover, title 60px/72px 700, subtitle 21px, one 1200px row of four 284×50 cells (name · phone ·
@@ -174,6 +175,18 @@
           </fieldset>
         {%- endif -%}
       {%- endform -%}
+      {%- if section.settings.show_phone -%}
+        <script>
+          document.getElementById({{ v_form_id | json }})?.addEventListener('submit', (event) => {
+            const form = event.currentTarget;
+            const tags = form.querySelector('[name="contact[tags]"]');
+            const phone = form.querySelector('[name="contact[phone]"]')?.value.replace(/[^\d+]/g, '');
+            if (!tags || !phone) return;
+            const kept = tags.value.split(',').map((tag) => tag.trim()).filter((tag) => tag && !tag.startsWith('phone:'));
+            tags.value = [...kept, `phone:${phone}`].join(', ');
+          });
+        </script>
+      {%- endif -%}
     </div>
   </div>
 </div>

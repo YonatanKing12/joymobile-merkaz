@@ -104,7 +104,13 @@
   opacity: 1;
 }
 
-/* Emails and phone numbers are typed left-to-right, still aligned with the RTL form. */
+/* Emails and phone numbers are typed left-to-right, still aligned with the RTL form. Empty, they keep the
+   Hebrew placeholder right-to-left: browsers lay tel and email fields out left-to-right on their own. */
+.vip-signup__input:is([type="email"], [type="tel"]):placeholder-shown {
+  direction: rtl;
+  text-align: start;
+}
+
 .vip-signup__input:is([type="email"], [type="tel"]):not(:placeholder-shown) {
   direction: ltr;
   text-align: end;
