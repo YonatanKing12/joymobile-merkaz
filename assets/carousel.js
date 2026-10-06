@@ -79,9 +79,12 @@ class CarouselSlider extends HTMLElement {
   measure() {
     const { track } = this, box = track.getBoundingClientRect(), x = this.x;
     this.rtl = getComputedStyle(track).direction === 'rtl';
+    // Rects are in screen pixels, scrollLeft in the track's own: they differ under CSS zoom
+    // (the product page's "גודל העמוד במחשב").
+    const scale = box.width / track.offsetWidth || 1;
     const starts = this.slides.map((slide) => {
       const r = slide.getBoundingClientRect();
-      return (this.rtl ? box.right - r.right : r.left - box.left) + x;
+      return (this.rtl ? box.right - r.right : r.left - box.left) / scale + x;
     });
     this.offsets = starts.map((s) => s - starts[0]);
     this.width = track.clientWidth;

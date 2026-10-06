@@ -339,6 +339,9 @@
     {%- if pdp_button_radius != blank %}
     --pdp-button-radius: {{ pdp_button_radius }};
     {%- endif %}
+    {%- if section.settings.desktop_scale != blank and section.settings.desktop_scale != '100' %}
+    --pdp-scale: {{ section.settings.desktop_scale | divided_by: 100.0 }};
+    {%- endif %}
   }
 {%- endstyle -%}
 
@@ -353,7 +356,7 @@
 <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
 <script type="module" src="{{ 'product.js' | asset_url }}"></script>
 
-<div class="main-product page-width{% if brand_logo != nil %} main-product--brand{% endif %}" data-section-id="{{ section.id }}">
+<div class="main-product page-width{% if brand_logo != nil %} main-product--brand{% endif %}{% if section.settings.desktop_scale != blank and section.settings.desktop_scale != '100' %} main-product--scaled{% endif %}" data-section-id="{{ section.id }}">
   {%- if section.settings.show_breadcrumbs -%}
     {%- render 'breadcrumbs', class: 'main-product__breadcrumbs' -%}
   {%- else -%}
@@ -474,6 +477,18 @@
     {
       "type": "paragraph",
       "content": "הבלוקים מסודרים בארבעה אזורים קבועים, לפי הקידומת בשם: \"כותרת\" (מתחת לשם המוצר), \"קנייה\" (עמודת הקנייה), \"למה אצלנו\" (התיבה שליד עמודת הקנייה) ו\"מידע נוסף\" (הלשוניות בתחתית). גרירה משנה את הסדר בתוך אותו אזור בלבד."
+    },
+    {
+      "type": "select",
+      "id": "desktop_scale",
+      "label": "גודל העמוד במחשב",
+      "info": "מקטין את כל עמוד המוצר (תמונות, טקסטים, כפתורים) במסכים מ-992 פיקסלים, כמו זום בדפדפן. בטלפון העמוד נשאר בגודל מלא.",
+      "options": [
+        { "value": "100", "label": "רגיל (100%)" },
+        { "value": "90", "label": "קטן ב-10%" },
+        { "value": "80", "label": "קטן ב-20%" }
+      ],
+      "default": "100"
     },
     {
       "type": "header",

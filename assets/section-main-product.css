@@ -1192,3 +1192,14 @@ html.no-js .product-wishlist {
 #MainContent :is(.product-form .product-form__button, .product-sticky .product-sticky__button) {
   border-radius: var(--pdp-button-radius, var(--radius-button));
 }
+
+/* "גודל העמוד במחשב" (section setting desktop_scale): the whole product section at 90% or 80% from 992px,
+   like the browser's own zoom. The page-width cap is divided by the same factor, so the section keeps the
+   page's width on screen and only its contents get smaller. Phones keep full size (inputs under 16px would
+   make iOS zoom on focus). */
+@media (min-width: 992px) {
+  .main-product--scaled {
+    zoom: var(--pdp-scale, 1);
+    max-width: calc((var(--page-width) + 2 * var(--page-gutter)) / var(--pdp-scale, 1));
+  }
+}
