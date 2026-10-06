@@ -91,12 +91,17 @@ class VariantPicker extends HTMLElement {
     if (variant) this.select(variant);
   }
 
-  // Mark values leading to a missing or sold-out variant.
+  // Mark values with no available variant, given the values chosen in the options before them (the
+  // way Shopify's own option availability works): the first option is marked only when that value is
+  // sold out in every combination, the second only within the chosen first value, and so on. A value is
+  // never marked for not matching a later option, which would strike out most of a 3-option product.
   mark(options) {
     const names = this.names;
     this.querySelectorAll('input[type="radio"], option').forEach((el) => {
       const i = names.indexOf((el.closest('select') || el).name);
-      if (i > -1) el.toggleAttribute('data-unavailable', !this.find(options.with(i, el.value))?.available);
+      if (i < 0) return;
+      const ok = this.variants.some((v) => v.available && v.options[i] === el.value && options.slice(0, i).every((o, j) => v.options[j] === o));
+      el.toggleAttribute('data-unavailable', !ok);
     });
   }
 
