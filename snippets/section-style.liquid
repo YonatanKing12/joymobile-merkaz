@@ -92,6 +92,13 @@
   {%- endcase -%}
 {%- endcapture -%}
 {%- assign ss_vars = ss_vars | strip -%}
+{%- comment -%} "הצגה": the whole section only on computers (768px and up) or only on phones. {%- endcomment -%}
+{%- case ss.ss_visibility -%}
+  {%- when 'desktop' -%}
+    {%- style -%}@media (max-width: 767px) { {{ ss_id }} { display: none !important; } }{%- endstyle -%}
+  {%- when 'mobile' -%}
+    {%- style -%}@media (min-width: 768px) { {{ ss_id }} { display: none !important; } }{%- endstyle -%}
+{%- endcase -%}
 {%- if ss_vars != blank -%}
   {%- style -%}
     {%- if ss.ss_custom_heading_font and ss.ss_heading_font != blank -%}

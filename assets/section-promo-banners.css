@@ -130,3 +130,16 @@ a.promo-banners__item:focus-visible {
 .promo-banners--full {
   padding-inline: var(--pb-gap, 16px);
 }
+
+/* Per banner "איפה להציג": phone up to 767px, computer from 768px. */
+@media (max-width: 767px) {
+  .promo-banners__item--desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .promo-banners__item--mobile {
+    display: none;
+  }
+}

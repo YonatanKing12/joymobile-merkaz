@@ -6,10 +6,15 @@
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
 {%- liquid
+  # pb_count: banners in the desktop row (a phone-only banner does not take a column there).
   assign pb_count = 0
+  assign pb_any = false
   for block in section.blocks
-    if block.settings.image != blank or request.design_mode
-      assign pb_count = pb_count | plus: 1
+    if block.settings.image != blank or block.settings.image_mobile != blank or request.design_mode
+      assign pb_any = true
+      if block.settings.show_on != 'mobile'
+        assign pb_count = pb_count | plus: 1
+      endif
     endif
   endfor
 
@@ -54,14 +59,14 @@
   endcase
 -%}
 
-{%- if pb_count > 0 -%}
+{%- if pb_any -%}
   {%- style -%}
     #shopify-section-{{ section.id }} {
       --pb-pad-top: {{ section.settings.padding_top }}px;
       --pb-pad-bottom: {{ section.settings.padding_bottom }}px;
       --pb-gap: {{ section.settings.gap }}px;
       --pb-radius: {{ section.settings.radius }}px;
-      --pb-cols: {{ pb_count }};
+      --pb-cols: {{ pb_count | at_least: 1 }};
       {%- if section.settings.same_height %}
       --pb-ratio: {{ pb_ratio }};
       {%- endif %}
@@ -88,7 +93,7 @@
     <div class="promo-banners__row promo-banners__row--mobile-{{ section.settings.mobile_layout }}{% if section.settings.same_height %} promo-banners__row--even{% endif %}">
       {%- for block in section.blocks -%}
         {%- liquid
-          assign pb_image = block.settings.image
+          assign pb_image = block.settings.image | default: block.settings.image_mobile
           if pb_image == blank and request.design_mode == false
             continue
           endif
@@ -100,7 +105,7 @@
           endif
         -%}
         <{{ pb_tag }}
-          class="promo-banners__item"
+          class="promo-banners__item promo-banners__item--{{ block.settings.show_on | default: 'all' }}"
           {% if pb_tag == 'a' %}
             href="{{ block.settings.link }}"
             {% if pb_alt == blank and block.settings.label == blank %}
@@ -183,14 +188,38 @@
       "label": "גודל הבאנר במחשב",
       "info": "כל באנר ממלא את המסגרת והתמונה נחתכת אליה. \"לפי התמונה\" = בלי חיתוך.",
       "options": [
-        { "value": "image", "label": "לפי התמונה" },
-        { "value": "5 / 1", "label": "נמוך מאוד (5:1)" },
-        { "value": "4 / 1", "label": "נמוך (4:1)" },
-        { "value": "3 / 1", "label": "בינוני (3:1)" },
-        { "value": "2 / 1", "label": "גבוה (2:1)" },
-        { "value": "3 / 2", "label": "כרטיס (3:2)" },
-        { "value": "1 / 1", "label": "ריבוע (1:1)" },
-        { "value": "custom", "label": "גובה קבוע בפיקסלים" }
+        {
+          "value": "image",
+          "label": "לפי התמונה"
+        },
+        {
+          "value": "5 / 1",
+          "label": "נמוך מאוד (5:1)"
+        },
+        {
+          "value": "4 / 1",
+          "label": "נמוך (4:1)"
+        },
+        {
+          "value": "3 / 1",
+          "label": "בינוני (3:1)"
+        },
+        {
+          "value": "2 / 1",
+          "label": "גבוה (2:1)"
+        },
+        {
+          "value": "3 / 2",
+          "label": "כרטיס (3:2)"
+        },
+        {
+          "value": "1 / 1",
+          "label": "ריבוע (1:1)"
+        },
+        {
+          "value": "custom",
+          "label": "גובה קבוע בפיקסלים"
+        }
       ],
       "default": "image"
     },
@@ -210,14 +239,38 @@
       "id": "banner_size_mobile",
       "label": "גודל הבאנר בטלפון",
       "options": [
-        { "value": "same", "label": "כמו במחשב" },
-        { "value": "image", "label": "לפי התמונה" },
-        { "value": "3 / 1", "label": "נמוך (3:1)" },
-        { "value": "2 / 1", "label": "בינוני (2:1)" },
-        { "value": "3 / 2", "label": "כרטיס (3:2)" },
-        { "value": "1 / 1", "label": "ריבוע (1:1)" },
-        { "value": "4 / 5", "label": "לאורך (4:5)" },
-        { "value": "custom", "label": "גובה קבוע בפיקסלים" }
+        {
+          "value": "same",
+          "label": "כמו במחשב"
+        },
+        {
+          "value": "image",
+          "label": "לפי התמונה"
+        },
+        {
+          "value": "3 / 1",
+          "label": "נמוך (3:1)"
+        },
+        {
+          "value": "2 / 1",
+          "label": "בינוני (2:1)"
+        },
+        {
+          "value": "3 / 2",
+          "label": "כרטיס (3:2)"
+        },
+        {
+          "value": "1 / 1",
+          "label": "ריבוע (1:1)"
+        },
+        {
+          "value": "4 / 5",
+          "label": "לאורך (4:5)"
+        },
+        {
+          "value": "custom",
+          "label": "גובה קבוע בפיקסלים"
+        }
       ],
       "default": "same"
     },
@@ -237,11 +290,26 @@
       "id": "image_position",
       "label": "איזה חלק של התמונה נשאר כשהיא נחתכת",
       "options": [
-        { "value": "center", "label": "מרכז" },
-        { "value": "top", "label": "למעלה" },
-        { "value": "bottom", "label": "למטה" },
-        { "value": "right", "label": "ימין" },
-        { "value": "left", "label": "שמאל" }
+        {
+          "value": "center",
+          "label": "מרכז"
+        },
+        {
+          "value": "top",
+          "label": "למעלה"
+        },
+        {
+          "value": "bottom",
+          "label": "למטה"
+        },
+        {
+          "value": "right",
+          "label": "ימין"
+        },
+        {
+          "value": "left",
+          "label": "שמאל"
+        }
       ],
       "default": "center"
     },
@@ -322,6 +390,26 @@
     {
       "type": "paragraph",
       "content": "כל מה שנשאר ריק לוקח את העיצוב הכללי של האתר (הגדרות התבנית › צבעים, טיפוגרפיה)."
+    },
+    {
+      "type": "select",
+      "id": "ss_visibility",
+      "label": "איפה להציג את הסקשן",
+      "options": [
+        {
+          "value": "all",
+          "label": "במחשב ובטלפון"
+        },
+        {
+          "value": "desktop",
+          "label": "רק במחשב"
+        },
+        {
+          "value": "mobile",
+          "label": "רק בטלפון"
+        }
+      ],
+      "default": "all"
     },
     {
       "type": "color_background",
@@ -435,7 +523,8 @@
         {
           "type": "image_picker",
           "id": "image_mobile",
-          "label": "תמונה לטלפון (לא חובה)"
+          "label": "תמונה לטלפון (לא חובה)",
+          "info": "מוצגת במקום התמונה הראשית במסכים עד 767 פיקסלים. מומלץ תמונה לאורך או ריבועית."
         },
         {
           "type": "url",
@@ -453,6 +542,26 @@
           "id": "label",
           "label": "תווית על הבאנר (לא חובה)",
           "info": "כפתור קטן בפינת הבאנר, למשל \"לקנייה\"."
+        },
+        {
+          "type": "select",
+          "id": "show_on",
+          "label": "איפה להציג את הבאנר",
+          "options": [
+            {
+              "value": "all",
+              "label": "במחשב ובטלפון"
+            },
+            {
+              "value": "desktop",
+              "label": "רק במחשב"
+            },
+            {
+              "value": "mobile",
+              "label": "רק בטלפון"
+            }
+          ],
+          "default": "all"
         }
       ]
     }
