@@ -52,6 +52,12 @@
         "show_branches": true,
         "branches_label": "הסניפים שלנו",
         "branches_link": "",
+        "site_switch_url": "",
+        "site_switch_here": "מרכז",
+        "site_switch_there": "אילת",
+        "site_switch_first": "there",
+        "site_switch_keep_page": true,
+        "site_switch_hint": "אילת: פטור ממע\"מ · מרכז: משלוח עד הבית",
         "sticky": true
       }
     }
