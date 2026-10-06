@@ -181,15 +181,17 @@
               </span>
             </li>
           {%- endif -%}
-          {%- if pt_warranty_line != blank -%}
-            <li class="product-lines__item">
-              {%- render 'icon', name: 'shield', size: 20, class: 'product-lines__icon' -%}
-              <span class="product-lines__text">
-                <strong class="product-lines__label">{{ 'products.product.warranty_label' | t }}</strong>
-                <span data-swap="warranty-line">{{ pt_warranty_line | escape }}</span>
-              </span>
-            </li>
-          {%- endif -%}
+          {%- comment -%}
+            Always printed (hidden when empty) so a variant change can swap it in or out: a merged
+            product's variants differ in channel, and some have no warranty line at all.
+          {%- endcomment -%}
+          <li class="product-lines__item" data-swap="warranty-line"{% if pt_warranty_line == blank %} hidden{% endif %}>
+            {%- render 'icon', name: 'shield', size: 20, class: 'product-lines__icon' -%}
+            <span class="product-lines__text">
+              <strong class="product-lines__label">{{ 'products.product.warranty_label' | t }}</strong>
+              <span>{{ pt_warranty_line | escape }}</span>
+            </span>
+          </li>
           {%- if payment_text != blank -%}
             <li class="product-lines__item">
               {%- render 'icon', name: 'credit-card', size: 20, class: 'product-lines__icon' -%}
@@ -234,9 +236,11 @@
             endif
           endif
         -%}
-        {%- if pt_text != blank -%}
-          {%- comment -%} The warranty item follows the variant (a merged product's variants differ in channel). {%- endcomment -%}
-          <li class="product-trust__item"{% if pt_block.settings.use_warranty %} data-swap="warranty-{{ pt_block.id }}"{% endif %} {{ pt_block.shopify_attributes }}>{{ pt_text }}</li>
+        {%- comment -%} The warranty item follows the variant: always printed, hidden when empty. {%- endcomment -%}
+        {%- if pt_block.settings.use_warranty -%}
+          <li class="product-trust__item" data-swap="warranty-{{ pt_block.id }}"{% if pt_text == blank %} hidden{% endif %} {{ pt_block.shopify_attributes }}>{{ pt_text }}</li>
+        {%- elsif pt_text != blank -%}
+          <li class="product-trust__item" {{ pt_block.shopify_attributes }}>{{ pt_text }}</li>
         {%- endif -%}
       {%- endfor -%}
     {%- endcapture -%}
