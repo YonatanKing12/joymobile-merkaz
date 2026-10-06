@@ -727,7 +727,7 @@ html.no-js .product-wishlist {
   color: var(--color-whatsapp);
 }
 
-/* ---------- "מידע נוסף": accordion by default ---------- */
+/* ---------- "מידע נוסף": an accordion at every width ---------- */
 .product-details {
   border-block-start: 1px solid var(--color-border-strong);
 }
@@ -831,58 +831,9 @@ html.no-js .product-wishlist {
   }
 }
 
-/* Tabs from 768px where <details> can be laid out (::details-content): summaries become the
-   tab bar, the open panel spans the row below; a click on the open tab does not close it. */
 @media (min-width: 768px) {
-  @supports selector(::details-content) {
-    .product-details {
-      display: flex;
-      flex-wrap: wrap;
-      column-gap: 0.625rem;
-      border: 0;
-    }
-
-    .product-details__item {
-      display: contents;
-    }
-
-    /* Pill tabs on the palette's light; the open one navy with white text. The open tab takes the
-       button colours (same navy/white by default): ink/background flipped to white on white when the
-       section's text colour is set light. */
-    .product-details__summary {
-      order: 0;
-      justify-content: center;
-      min-height: 2.75rem;
-      margin-block-start: 0.3125rem;
-      padding: 0 1.5rem;
-      border-radius: var(--radius-pill);
-      background-color: var(--color-surface-soft);
-    }
-
-    @media (hover: hover) {
-      .product-details__summary:hover {
-        background-color: var(--color-hover-bg);
-      }
-    }
-
-    .product-details__item[open] > .product-details__summary {
-      background-color: var(--color-button-bg);
-      color: var(--color-button-text);
-      pointer-events: none;
-    }
-
-    .product-details__icon {
-      display: none;
-    }
-
-    .product-details__item::details-content {
-      order: 1;
-      flex-basis: 100%;
-    }
-
-    .product-details__panel {
-      padding-block: var(--space-md) var(--space-lg);
-    }
+  .product-details__panel {
+    padding-block: var(--space-sm) var(--space-lg);
   }
 }
 
