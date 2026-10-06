@@ -108,8 +108,8 @@
     {%- if ss.ss_heading_color != blank and ss.ss_heading_color.alpha > 0 %}
       {{ ss_id }} :is(h1, h2, h3, h4, h5, h6):not(:is({{ ss_surfaces }}) *) { color: var(--ss-heading); }
     {%- endif %}
+    {%- comment -%} Zero specificity: a surface's own colour rules still win; only what it inherits is reset. {%- endcomment %}
     {%- if ss.ss_text_color != blank and ss.ss_text_color.alpha > 0 %}
-      {%- comment -%} Zero specificity: a surface's own colour rules still win; only the inherited colour is reset. {%- endcomment %}
       :where({{ ss_id }}) :where({{ ss_surfaces }}) {
         --color-ink: {{ settings.color_ink }};
         --color-text: {{ settings.color_text }};
@@ -117,6 +117,14 @@
         --header-field-text: {{ settings.color_ink }};
         --ss-text: initial;
         color: var(--color-text);
+      }
+    {%- endif %}
+    {%- if ss.ss_accent_color != blank and ss.ss_accent_color.alpha > 0 %}
+      :where({{ ss_id }}) :where({{ ss_surfaces }}) {
+        --color-brand: {{ settings.color_brand }};
+        --color-brand-text: {{ settings.color_brand_text }};
+        --color-accent: #56d2aa;
+        --ss-accent: initial;
       }
     {%- endif %}
     {%- if ss.ss_custom_body_font and ss.ss_body_font != blank %}
