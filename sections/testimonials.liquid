@@ -44,6 +44,10 @@
       --t-scroll-md: {% if t_count > 2 %}grid{% else %}none{% endif %};
       --t-scroll-lg: {% if t_count > 3 %}grid{% else %}none{% endif %};
       --t-scroll-xl: {% if t_count > 4 %}grid{% else %}none{% endif %};
+      {%- comment -%} "פינות" in עיצוב הסקשן: the cards take the section's --radius-card; left on "theme" they keep their own 16px. {%- endcomment -%}
+      {%- if section.settings.ss_radius != blank and section.settings.ss_radius != 'theme' %}
+      --t-card-radius: var(--radius-card);
+      {%- endif %}
     }
   {%- endstyle -%}
 

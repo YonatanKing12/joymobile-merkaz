@@ -111,8 +111,9 @@
   background-color: var(--color-surface-soft);
 }
 
+/* A <p>, so the section's heading colour (--ss-heading) is applied here by hand. */
 .faq__cta-heading {
-  color: var(--color-ink);
+  color: var(--ss-heading, var(--color-ink));
   font-size: var(--text-xl);
   font-weight: 700;
 }

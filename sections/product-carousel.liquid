@@ -166,8 +166,9 @@
     <script type="module" src="{{ 'product-carousel.js' | asset_url }}"></script>
   {%- endif -%}
 
+  {%- comment -%} Either background ("צבע רקע" or the "עיצוב הסקשן" one) makes the strip a band with room under the cards. {%- endcomment -%}
   <product-carousel
-    class="product-carousel{% if section.settings.background != blank and section.settings.background.alpha > 0 %} product-carousel--bg{% endif %}"
+    class="product-carousel{% if section.settings.background != blank and section.settings.background.alpha > 0 %} product-carousel--bg{% elsif section.settings.ss_background != blank %} product-carousel--bg{% endif %}"
     data-section-id="{{ section.id }}"
     {% if pc_count > pc_initial %}
       data-more

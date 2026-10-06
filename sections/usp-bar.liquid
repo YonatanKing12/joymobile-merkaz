@@ -9,6 +9,12 @@
     --usp-pad-top: {{ section.settings.padding_top }}px;
     --usp-pad-bottom: {{ section.settings.padding_bottom }}px;
   }
+  {%- comment -%} Only with the section's own heading font: otherwise the titles keep the body font they inherit. {%- endcomment -%}
+  {%- if section.settings.ss_custom_heading_font and section.settings.ss_heading_font != blank %}
+  #shopify-section-{{ section.id }} .usp-bar__title {
+    font-family: var(--font-heading-family);
+  }
+  {%- endif %}
 {%- endstyle -%}
 
 {{ 'section-usp-bar.css' | asset_url | stylesheet_tag }}

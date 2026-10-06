@@ -14,8 +14,9 @@ sticky-header {
   --header-field-text: var(--color-ink);
   --header-shadow: 0 2px 4px color-mix(in srgb, var(--color-ink) 25%, transparent);
   --header-rule: var(--color-border-strong);
-  background-color: var(--color-header-bg);
-  color: var(--color-header-text);
+  /* "עיצוב הסקשן" (snippets/section-style): its background and text colours replace the header row's. */
+  background: var(--ss-bg, var(--color-header-bg));
+  color: var(--ss-text, var(--color-header-text));
 }
 
 .header summary {
@@ -74,7 +75,7 @@ sticky-header {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-header-text);
+  color: var(--ss-text, var(--color-header-text));
   cursor: pointer;
   text-decoration: none;
 }
@@ -120,7 +121,7 @@ sticky-header {
   gap: var(--space-xs);
   min-height: var(--tap-target);
   max-width: 100%;
-  color: var(--color-header-text);
+  color: var(--ss-heading, var(--ss-text, var(--color-header-text))); /* the store name is the row's title */
   text-decoration: none;
 }
 
@@ -204,7 +205,7 @@ sticky-header {
   display: inline-flex;
   align-items: center;
   gap: 0.9375rem;
-  color: var(--color-header-text);
+  color: var(--ss-text, var(--color-header-text));
   text-decoration: none;
 }
 
@@ -268,7 +269,7 @@ sticky-header {
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-pill);
   background-color: transparent;
-  color: var(--color-header-text);
+  color: var(--ss-text, var(--color-header-text));
   font-size: var(--text-lg);
   font-weight: 500;
   line-height: 1;
@@ -891,7 +892,7 @@ html.a11y-no-motion .menu-drawer__submenu {
    hidden while the list is empty. */
 .header__wishlist {
   position: relative;
-  color: var(--color-header-text);
+  color: var(--ss-text, var(--color-header-text));
 }
 
 @media (min-width: 992px) {
@@ -938,9 +939,10 @@ html.a11y-no-motion .menu-drawer__submenu {
    bold. That is past the 18.66px bold where the standard treats text as large and 3:1 is the bar, and
    3.38:1 clears it. The focus ring and the tab indicator follow the text colour. */
 .header__nav {
-  --color-focus: var(--color-nav-text);
-  background-color: var(--color-nav-bg);
-  color: var(--color-nav-text);
+  /* The nav bar is part of the header section: "עיצוב הסקשן" recolours it with the row. */
+  --color-focus: var(--ss-text, var(--color-nav-text));
+  background: var(--ss-bg, var(--color-nav-bg));
+  color: var(--ss-text, var(--color-nav-text));
 }
 
 .mega-menu {
@@ -970,7 +972,7 @@ html.a11y-no-motion .menu-drawer__submenu {
   align-items: center;
   height: 100%;
   color: inherit;
-  font-size: 1.1875rem; /* 19px: large text, so white clears 3:1 on the logo green */
+  font-size: calc(var(--text-body) * 1.1875); /* 19px: large text, so white clears 3:1 on the logo green; scales with the section's text size */
   font-weight: 800;
   text-decoration: none;
   white-space: nowrap;
@@ -985,7 +987,7 @@ html.a11y-no-motion .menu-drawer__submenu {
   inset-inline: 0.125rem;
   bottom: 0;
   height: 3px;
-  background-color: var(--color-nav-text);
+  background-color: var(--ss-text, var(--color-nav-text));
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
@@ -1285,7 +1287,7 @@ predictive-search[aria-busy="true"] .search-form__submit::after {
   min-height: 2rem;
   padding-inline: 0.875rem;
   border-radius: var(--radius-pill);
-  color: var(--color-header-text);
+  color: var(--ss-text, var(--color-header-text));
   font-size: var(--text-lg);
   font-weight: 600;
   line-height: 1;
@@ -1300,7 +1302,7 @@ predictive-search[aria-busy="true"] .search-form__submit::after {
 }
 
 .site-switch__track:has(.site-switch__opt--there:is(:hover, :focus-visible, :active)) .site-switch__opt--here {
-  color: var(--color-header-text);
+  color: var(--ss-text, var(--color-header-text));
 }
 
 .site-switch__opt--there:focus-visible {

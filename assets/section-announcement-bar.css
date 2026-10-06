@@ -18,8 +18,9 @@
   position: relative;
   z-index: calc(var(--z-floating) + 2);
   height: var(--announcement-bar-height);
-  background-color: var(--color-header-bg);
-  color: var(--color-header-text);
+  /* "עיצוב הסקשן" (snippets/section-style): its background and text colours replace the strip's. */
+  background: var(--ss-bg, var(--color-header-bg));
+  color: var(--ss-text, var(--color-header-text));
   font-size: var(--text-xs);
   font-weight: 400;
   line-height: var(--announcement-bar-height);
@@ -85,7 +86,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: var(--color-header-text);
+  color: var(--ss-text, var(--color-header-text));
   opacity: 0.7;
   cursor: pointer;
 }
@@ -208,7 +209,7 @@
   place-items: center;
   width: 1.75rem;
   height: 100%;
-  color: var(--color-header-text);
+  color: var(--ss-text, var(--color-header-text));
 }
 
 .announcement-bar__marquee-toggle:focus-visible + .announcement-bar__marquee-pause {

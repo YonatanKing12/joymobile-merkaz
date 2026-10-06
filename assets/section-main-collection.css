@@ -10,8 +10,9 @@
 
 .collection,
 .search-page {
-  --listing-title-size: 1.3125rem; /* 21px, measured on mobile */
-  --listing-toolbar-size: 1.0625rem; /* 17px, measured sort row */
+  /* Sizes as multiples of --text-body (1rem) so the section's "גודל טקסט" setting scales them. */
+  --listing-title-size: calc(var(--text-body) * 1.3125); /* 21px, measured on mobile */
+  --listing-toolbar-size: calc(var(--text-body) * 1.0625); /* 17px, measured sort row */
   --facets-width: 185px; /* measured sidebar content width at 1440 */
   padding-block: calc(var(--collection-pad-top, 30px) / 2) var(--collection-pad-bottom, 40px);
 }
@@ -19,7 +20,7 @@
 @media (min-width: 992px) {
   .collection,
   .search-page {
-    --listing-title-size: 1.375rem; /* 22px */
+    --listing-title-size: calc(var(--text-body) * 1.375); /* 22px */
     padding-block-start: var(--collection-pad-top, 30px);
   }
 }

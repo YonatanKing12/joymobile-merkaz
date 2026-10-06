@@ -105,7 +105,7 @@ wishlist-grid[aria-busy="true"] .wishlist-page__loading {
 }
 
 .wishlist-page__empty-title {
-  color: var(--color-ink);
+  color: var(--ss-heading, var(--color-ink)); /* a <p> styled as a title: the section's heading colour */
   font-size: var(--text-2xl);
   font-weight: 700;
 }

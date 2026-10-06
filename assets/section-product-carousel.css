@@ -10,9 +10,11 @@
   padding-block: var(--pc-pad-top, 50px) var(--pc-pad-bottom, 0px);
 }
 
-/* Background colour from the section settings: a full-width band, with room under the cards. */
+/* Background colour from the section settings: a full-width band, with room under the cards. The
+   "עיצוב הסקשן" background (--ss-bg, snippets/section-style; may be a gradient) wins over the older
+   "צבע רקע" setting when both are set, so the newer control is the one the owner sees. */
 .product-carousel--bg {
-  background: var(--pc-bg);
+  background: var(--ss-bg, var(--pc-bg));
   padding-block-end: max(var(--pc-pad-bottom, 0px), var(--space-xl));
   margin-block-start: var(--pc-pad-top, 50px);
   padding-block-start: var(--space-xl);

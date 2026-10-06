@@ -247,11 +247,13 @@
   text-decoration: none;
 }
 
+/* Filled with the "black button" pair (navy/white, the same values by default) rather than ink on
+   background: the section's text colour redefines --color-ink and would fill the pill with its own text colour. */
 @media (hover: hover) {
   .guides__view-all:hover {
-    border-color: var(--color-ink);
-    background-color: var(--color-ink);
-    color: var(--color-background);
+    border-color: var(--color-button-bg);
+    background-color: var(--color-button-bg);
+    color: var(--color-button-text);
   }
 }
 
@@ -297,8 +299,9 @@ html.no-js .guides__carousel .guides__arrow {
     font-size: var(--text-2xl);
   }
 
+  /* 22px as a multiple of --text-body, so the section's text size setting scales it. */
   .guides__panel-topic {
-    font-size: 1.375rem;
+    font-size: calc(var(--text-body) * 1.375);
   }
 
   .guides__summary,

@@ -17,7 +17,9 @@
   padding-block: var(--vip-pad-top, 20px) var(--vip-pad-bottom, 0px);
 }
 
-/* A rounded band inside the page width (full bleed before the refresh). */
+/* A rounded band inside the page width (full bleed before the refresh). The "עיצוב הסקשן" background and
+   text colour (--ss-bg / --ss-text, snippets/section-style; the background may be a gradient) win over the
+   older "צבע רקע" / "צבע טקסט" settings when set, so the newer controls are the ones the owner sees. */
 .vip-signup {
   position: relative;
   isolation: isolate;
@@ -27,8 +29,8 @@
   margin-inline: auto;
   padding: 28px 16px;
   border-radius: var(--radius-xl);
-  background-color: var(--vip-bg, var(--color-surface));
-  color: var(--vip-text-mobile, var(--color-ink));
+  background: var(--ss-bg, var(--vip-bg, var(--color-surface)));
+  color: var(--ss-text, var(--vip-text-mobile, var(--color-ink)));
 }
 
 .vip-signup__media {
@@ -53,9 +55,10 @@
   text-align: center;
 }
 
+/* Literal sizes are multiples of --text-body (1rem), so the section's text size setting scales them. */
 .vip-signup__title {
   color: inherit;
-  font-size: 1.75rem;
+  font-size: calc(var(--text-body) * 1.75);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -83,6 +86,8 @@
   gap: 15px;
 }
 
+/* --vip-field-ink is the theme's navy (printed by the section): the white fields keep it when the section's
+   text colour, which redefines --color-ink, is a light one for a dark band. */
 .vip-signup__input {
   display: block;
   width: 100%;
@@ -91,7 +96,7 @@
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-input);
   background-color: var(--color-background);
-  color: var(--color-ink);
+  color: var(--vip-field-ink, var(--color-ink));
   font-family: var(--font-body-family);
   font-size: max(16px, var(--text-lg)); /* >= 16px: no zoom on focus in iOS */
   font-weight: 500;
@@ -99,7 +104,7 @@
 }
 
 .vip-signup__input::placeholder {
-  color: var(--color-muted);
+  color: var(--vip-field-muted, var(--color-muted));
   font-weight: 500;
   opacity: 1;
 }
@@ -118,13 +123,13 @@
 
 @media (hover: hover) {
   .vip-signup__input:hover {
-    border-color: var(--color-ink);
+    border-color: var(--vip-field-ink, var(--color-ink));
   }
 }
 
 .vip-signup__input:focus-visible {
-  border-color: var(--color-ink);
-  outline: 2px solid var(--color-ink);
+  border-color: var(--vip-field-ink, var(--color-ink));
+  outline: 2px solid var(--vip-field-ink, var(--color-ink));
   outline-offset: 0;
 }
 
@@ -140,7 +145,7 @@
   background-color: var(--color-button-bg);
   color: var(--color-button-text);
   font-family: var(--font-body-family);
-  font-size: 1.1875rem;
+  font-size: calc(var(--text-body) * 1.1875);
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -164,7 +169,7 @@
   margin: 10px 0 3px;
   padding-block-start: 15px;
   font-size: var(--text-body);
-  line-height: 24px;
+  line-height: calc(var(--text-body) * 1.5); /* 24px, and grows with the section's text size */
   text-align: start;
 }
 
@@ -199,7 +204,7 @@
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   background-color: color-mix(in srgb, var(--color-background) 92%, transparent);
-  color: var(--color-ink);
+  color: var(--vip-field-ink, var(--color-ink));
   font-size: var(--text-body);
   font-weight: 500;
   text-align: start;
@@ -220,17 +225,17 @@
 
 @media (min-width: 768px) {
   .vip-signup {
-    color: var(--vip-text, var(--color-ink));
+    color: var(--ss-text, var(--vip-text, var(--color-ink)));
   }
 
   .vip-signup__title {
     margin-block-start: 8px;
-    font-size: 2.75rem;
+    font-size: calc(var(--text-body) * 2.75);
     line-height: 1.2;
   }
 
   .vip-signup__subtitle {
-    font-size: 1.3125rem;
+    font-size: calc(var(--text-body) * 1.3125);
   }
 
   /* 4 × 284 + 3 × 16 = 1184: the old row (4 × 25% of 1200, 8px cell padding). */

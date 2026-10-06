@@ -27,6 +27,9 @@
     --vip-bg: {{ section.settings.background_color }};
     --vip-text: {{ section.settings.text_color }};
     --vip-text-mobile: {{ section.settings.text_color_mobile }};
+    {%- # The theme's navy and grey for the white fields: the section's own text colour may be light (dark band). %}
+    --vip-field-ink: {{ settings.color_ink }};
+    --vip-field-muted: {{ settings.color_muted }};
     --vip-pad-top: {{ section.settings.padding_top }}px;
     --vip-pad-bottom: {{ section.settings.padding_bottom }}px;
   }

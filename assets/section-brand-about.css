@@ -16,7 +16,9 @@
   margin-inline: auto;
   padding-block: 35px;
   border-radius: var(--radius-xl);
-  background-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  /* The panel is what the owner sees as the section: the section's background (--ss-bg,
+     snippets/section-style; may be a gradient) paints it when set. */
+  background: var(--ss-bg, color-mix(in srgb, var(--color-surface) 90%, transparent));
 }
 
 .brand-about__inner {

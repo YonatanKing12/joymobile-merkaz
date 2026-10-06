@@ -59,7 +59,8 @@
   padding: var(--space-lg) var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  background-color: var(--color-background);
+  /* The page colour, so it follows the section's own background ("רקע", --ss-bg) and its text colour stays readable. */
+  background: var(--ss-bg, var(--color-background));
 }
 
 @media (min-width: 992px) {
@@ -204,8 +205,10 @@
   min-height: var(--tap-target);
   padding-inline: var(--space-lg);
   border-radius: var(--radius-pill);
-  background-color: var(--color-ink);
-  color: var(--color-background);
+  /* The button tokens (same navy/white as ink/background by default), so a section text colour
+     cannot turn it white on white and the section's button colours apply. */
+  background-color: var(--color-button-bg);
+  color: var(--color-button-text);
   font-size: var(--text-md);
   font-weight: 700;
   transition:

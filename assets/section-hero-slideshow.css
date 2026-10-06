@@ -308,8 +308,9 @@ html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
     max-width: min(40rem, 70%);
   }
 
+  /* 22px, on the body-size token so the section's text size setting scales it too. */
   .hero-slideshow__heading {
-    font-size: 1.375rem;
+    font-size: calc(var(--text-body) * 1.375);
   }
 
   .hero-slideshow__text {
@@ -391,7 +392,7 @@ html.no-js .hero-slideshow__carousel .hero-slideshow__arrow {
   }
 
   .hero-slideshow__heading {
-    font-size: 2rem;
+    font-size: calc(var(--text-body) * 2);
   }
 
   .hero-slideshow__text {

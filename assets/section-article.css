@@ -112,8 +112,9 @@
 }
 
 @media (min-width: 768px) {
+  /* 38px as a multiple of --text-body, so the section's text size setting scales it. */
   .article__title {
-    font-size: 2.375rem;
+    font-size: calc(var(--text-body) * 2.375);
   }
 
   .article-share {

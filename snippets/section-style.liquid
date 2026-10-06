@@ -17,6 +17,10 @@
   {% render 'section-style', section: section %}
 {% enddoc %}
 {%- liquid
+  # Light surfaces inside sections (cards, fields, panels, drawers, arrows) that keep their own background.
+  # With a section text colour set, they keep the theme's text colours, so light text on a dark section
+  # background never lands on a white card.
+  assign ss_surfaces = 'input, select, textarea, .input, .textarea, .card-product, .badge--channel, .drawer__panel, .facets, .sort-by__options, .active-filters__chip, .predictive-search, .product-media__arrow, .variant-picker__value, .cu-card, .cart-drawer__notice, .cart-drawer__undo, .mega-menu__panel, .menu-drawer__panel, .search-drawer__panel, .search-form--desktop, .search-form--mobile .search-form__form, .hero-slideshow__arrow, .hero-slideshow__pause, .usp-bar__tile, .brand-logos__tile, .promo-banners__label, .product-carousel__arrow, .product-carousel__notice, .related-products__arrow, .related-products__notice, .testimonials__arrow, .testimonials__card, .pa, .pa__tab, .pa-card__label, .product-details__summary, .product-specs__title, .product-sticky, .product-trust, .collection-card, .list-collections__empty, .collection-empty, .collection__subnav-link, .collection__description--bottom, .load-more__bar, .search-empty, .search-suggestions__chip, .cart-table, .cart-summary, .cart-notice, .main-cart__undo, .faq__cta, .contact__info-col, .contact-form__errors, .contact-form__status, .pickup-fact, .branch__map, .article-card, .article-cta, .article-share__link, .blog-search, .guides__card, .guides__arrow, .guides__notice, .vip-signup__input, .prose blockquote, .wishlist-page__nojs'
   assign ss = section.settings
   assign ss_id = '#shopify-section-' | append: section.id
   assign ss_scale = ss.ss_text_scale | default: 100 | divided_by: 100.0
@@ -70,6 +74,9 @@
   {%- if ss.ss_custom_body_font and ss.ss_body_font != blank -%}
     --font-body-family: {{ ss.ss_body_font.family }}, {{ ss.ss_body_font.fallback_families }};
     --font-body-weight: {{ ss.ss_body_font.weight }};
+    {%- unless ss.ss_custom_heading_font %}
+    --font-heading-family: var(--font-body-family);
+    {%- endunless %}
     font-family: var(--font-body-family);
     font-weight: var(--font-body-weight);
   {%- endif -%}
@@ -99,7 +106,18 @@
     {%- endif -%}
     {{ ss_id }} { {{ ss_vars }} }
     {%- if ss.ss_heading_color != blank and ss.ss_heading_color.alpha > 0 %}
-      {{ ss_id }} :is(h1, h2, h3, h4, h5, h6) { color: var(--ss-heading); }
+      {{ ss_id }} :is(h1, h2, h3, h4, h5, h6):not(:is({{ ss_surfaces }}) *) { color: var(--ss-heading); }
+    {%- endif %}
+    {%- if ss.ss_text_color != blank and ss.ss_text_color.alpha > 0 %}
+      {%- comment -%} Zero specificity: a surface's own colour rules still win; only the inherited colour is reset. {%- endcomment %}
+      :where({{ ss_id }}) :where({{ ss_surfaces }}) {
+        --color-ink: {{ settings.color_ink }};
+        --color-text: {{ settings.color_text }};
+        --color-muted: {{ settings.color_muted }};
+        --header-field-text: {{ settings.color_ink }};
+        --ss-text: initial;
+        color: var(--color-text);
+      }
     {%- endif %}
     {%- if ss.ss_custom_body_font and ss.ss_body_font != blank %}
       {{ ss_id }} :is(button, input, select, textarea) { font-family: inherit; }

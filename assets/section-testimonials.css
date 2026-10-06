@@ -45,7 +45,7 @@
   padding: 9px 20px 0;
   overflow: hidden;
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  border-radius: var(--t-card-radius, var(--radius-lg)); /* --t-card-radius: the section's corner setting */
   background-color: var(--color-background);
   color: var(--color-ink);
   text-align: center;

@@ -19,7 +19,8 @@
   margin-inline: auto;
   border: 1px solid color-mix(in srgb, var(--color-ink) 10%, var(--color-background));
   border-radius: var(--radius-lg);
-  background-color: var(--color-background);
+  /* The section's wrapper has no height (the card is fixed), so "עיצוב הסקשן"'s background is painted here. */
+  background: var(--ss-bg, var(--color-background));
   box-shadow: var(--shadow-lg);
   color: var(--color-ink);
   animation: cookie-banner-in var(--duration-base) var(--ease-out);

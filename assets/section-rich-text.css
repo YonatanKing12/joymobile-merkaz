@@ -6,12 +6,13 @@
   padding-block: var(--rich-text-pad-top, 40px) var(--rich-text-pad-bottom, 40px);
 }
 
+/* The light panel gives way to the section's own background ("רקע", --ss-bg) when one is set. */
 .rich-text--surface {
-  background-color: var(--color-surface);
+  background: var(--ss-bg, var(--color-surface));
 }
 
 .rich-text--surface-alt {
-  background-color: var(--color-surface-alt);
+  background: var(--ss-bg, var(--color-surface-alt));
 }
 
 .rich-text__inner {
@@ -55,8 +56,9 @@
 }
 
 @media (min-width: 992px) {
+  /* 25px, as a multiple of --text-body so the section's text size scales it. */
   .rich-text__heading--medium {
-    font-size: 1.5625rem;
+    font-size: calc(var(--text-body) * 1.5625);
   }
 
   .rich-text__heading--large {

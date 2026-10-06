@@ -156,9 +156,9 @@
 }
 
 .blog-tags__link[aria-current="page"] {
-  border-color: var(--color-ink);
-  background-color: var(--color-ink);
-  color: var(--color-background);
+  border-color: var(--color-button-bg);
+  background-color: var(--color-button-bg);
+  color: var(--color-button-text);
 }
 
 /* ---------- "Latest" row + featured article ---------- */
@@ -222,10 +222,13 @@
 }
 
 /* A navy panel beside the photo: white text (19.6:1), a mint eyebrow (10.4:1) and a mint-outlined
-   "read" call that fills mint (navy text) when the panel is hovered — the header's branches button. */
+   "read" call that fills mint (navy text) when the panel is hovered — the header's branches button.
+   Navy/white is the "black button" pair (same values by default), not ink/background: the section's
+   text colour (snippets/section-style) redefines --color-ink, which would paint the panel in the
+   text's own colour; the section's button colours recolour it instead. */
 .featured-article {
-  --featured-bg: var(--color-ink);
-  --featured-text: var(--color-background);
+  --featured-bg: var(--color-button-bg);
+  --featured-text: var(--color-button-text);
   position: relative;
   display: grid;
   overflow: hidden;
@@ -255,8 +258,10 @@
   line-height: 1.2;
 }
 
+/* The panel's colour, not the h3's: the section's heading colour (section-style) is meant for the page
+   background and would vanish on the panel. */
 .featured-article__link {
-  color: inherit;
+  color: var(--featured-text);
   text-decoration: none;
 }
 
@@ -569,8 +574,9 @@
     min-height: 11.75rem;
   }
 
+  /* 17px as a multiple of --text-body, so the section's text size setting scales it. */
   .article-card__title {
-    font-size: 1.0625rem;
+    font-size: calc(var(--text-body) * 1.0625);
   }
 
   .article-card__excerpt {

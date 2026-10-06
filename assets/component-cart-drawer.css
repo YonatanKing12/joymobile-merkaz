@@ -1,8 +1,11 @@
 /* Cart drawer (sections/cart-drawer + snippets/cart-line). Sticky summary (total, consent, checkout);
    44px targets; .is-loading / aria-busy states from cart.js. Line styles are scoped to the drawer. */
 
+/* The section's own background ("רקע", --ss-bg from snippets/section-style) paints the panel: the
+   section wrapper has no height of its own, the drawer is fixed. */
 .cart-drawer__panel {
   width: min(26.25rem, 100vw);
+  background: var(--ss-bg, var(--color-background));
 }
 
 @media (max-width: 479px) {
@@ -369,6 +372,8 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   flex-direction: column;
   gap: var(--space-sm);
   margin-block-start: auto;
+  /* Opaque over the scrolling lines, in the panel's colour. */
+  background: var(--ss-bg, var(--color-background));
   box-shadow: 0 -6px 12px color-mix(in srgb, var(--color-ink) 6%, transparent);
 }
 

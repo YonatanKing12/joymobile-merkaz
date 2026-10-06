@@ -68,7 +68,10 @@
   min-width: 0;
 }
 
+/* The tile's bold line is the section's title text (a span, not an h*): it takes the section's heading colour
+   when set (the heading font: usp-bar.liquid), and otherwise inherits as before. */
 .usp-bar__title {
+  color: var(--ss-heading, inherit);
   font-size: var(--text-md);
   font-weight: 800;
   line-height: 1.25;

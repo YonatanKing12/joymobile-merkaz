@@ -62,10 +62,12 @@ html:has(main :focus-visible) {
   margin-block-end: var(--space-sm);
 }
 
+/* Title, price and spec-group sizes are multiples of --text-body (1rem by default), so the section's
+   "גודל טקסט" setting scales them with the rest of the text. */
 .product__title {
   margin: 0;
   color: var(--color-ink);
-  font-size: 1.375rem;
+  font-size: calc(var(--text-body) * 1.375);
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: -0.01em;
@@ -129,7 +131,7 @@ html:has(main :focus-visible) {
   }
 
   .product__title {
-    font-size: 1.75rem;
+    font-size: calc(var(--text-body) * 1.75);
     line-height: 1.2;
     text-align: start;
   }
@@ -295,7 +297,7 @@ html:has(main :focus-visible) {
 }
 
 .product__price .price--product .price__amount {
-  --price-amount-size: 2rem;
+  --price-amount-size: calc(var(--text-body) * 2);
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -844,7 +846,9 @@ html.no-js .product-wishlist {
       display: contents;
     }
 
-    /* Pill tabs on the palette's light; the open one navy with white text. */
+    /* Pill tabs on the palette's light; the open one navy with white text. The open tab takes the
+       button colours (same navy/white by default): ink/background flipped to white on white when the
+       section's text colour is set light. */
     .product-details__summary {
       order: 0;
       justify-content: center;
@@ -862,8 +866,8 @@ html.no-js .product-wishlist {
     }
 
     .product-details__item[open] > .product-details__summary {
-      background-color: var(--color-ink);
-      color: var(--color-background);
+      background-color: var(--color-button-bg);
+      color: var(--color-button-text);
       pointer-events: none;
     }
 
@@ -899,7 +903,7 @@ html.no-js .product-wishlist {
   border-radius: var(--radius-md);
   background-color: var(--color-surface-alt);
   color: var(--color-ink);
-  font-size: 1.0625rem;
+  font-size: calc(var(--text-body) * 1.0625);
   font-weight: 900;
   line-height: 2.5rem;
 }

@@ -6,9 +6,11 @@
 .footer {
   --color-focus: var(--color-focus-on-dark);
   --footer-accent: var(--color-accent);
-  --footer-divider: color-mix(in srgb, var(--color-footer-text) 22%, transparent);
-  background-color: var(--color-footer-bg);
-  color: var(--color-footer-text);
+  /* "עיצוב הסקשן" (snippets/section-style): its background and text colours replace the footer's. */
+  --footer-text: var(--ss-text, var(--color-footer-text));
+  --footer-divider: color-mix(in srgb, var(--footer-text) 22%, transparent);
+  background: var(--ss-bg, var(--color-footer-bg));
+  color: var(--footer-text);
   font-size: var(--text-lg);
   line-height: 1.375rem;
 }
@@ -36,8 +38,8 @@
 .footer__accordion-toggle {
   position: relative;
   margin: 0 0 0.9375rem;
-  color: var(--footer-accent);
-  font-family: var(--font-body-family);
+  color: var(--ss-heading, var(--footer-accent));
+  font-family: var(--font-heading-family); /* the body font unless the section picks a heading font */
   font-size: var(--text-body);
   font-weight: 700;
   line-height: 3.25rem;
@@ -67,7 +69,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 1.375rem;
-  color: var(--color-footer-text);
+  color: var(--footer-text);
   text-decoration: none;
   overflow-wrap: anywhere;
 }
@@ -210,7 +212,7 @@
 
 .footer__text {
   margin-block-start: var(--space-sm);
-  color: var(--color-footer-text);
+  color: var(--footer-text);
   line-height: 1.375rem;
 }
 
@@ -242,7 +244,7 @@
 
 .footer__subheading {
   margin: 0 0 var(--space-xs);
-  color: var(--footer-accent);
+  color: var(--ss-heading, var(--footer-accent));
   font-size: var(--text-body);
   font-weight: 700;
 }
@@ -304,7 +306,8 @@
 
 .footer__copyright {
   margin: 0;
-  color: color-mix(in srgb, var(--color-footer-text) 80%, var(--color-footer-bg));
+  /* Not mixed with --ss-bg: it may be a gradient, so a section text colour is used as is. */
+  color: var(--ss-text, color-mix(in srgb, var(--color-footer-text) 80%, var(--color-footer-bg)));
   font-size: var(--text-sm);
 }
 

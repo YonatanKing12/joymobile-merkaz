@@ -29,9 +29,10 @@
   text-align: center;
 }
 
+/* 5rem, twice the largest size token, so the section's text size scales it too. */
 .not-found__code {
   color: var(--color-brand);
-  font-size: 5rem;
+  font-size: calc(var(--text-5xl) * 2);
   font-weight: 900;
   line-height: 1;
 }
