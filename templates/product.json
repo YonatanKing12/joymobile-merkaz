@@ -58,13 +58,13 @@
           "settings": {
             "show_stock": true,
             "low_stock_threshold": 5,
-            "pickup_label": "איסוף עצמי מהחנות:",
-            "show_address": true,
-            "pickup_note": "באיסוף מציגים תעודה מזהה · המוצר ממתין עד 21 ימי עסקים",
+            "pickup_label": "משלוח עד הבית:",
+            "show_address": false,
+            "pickup_note": "עד 7 ימי עסקים · חינם בהזמנה מעל 3,000 ₪",
             "show_warranty": true,
             "warranty_fallback": "",
-            "payment_text": "תשלום מאובטח באתר או בסניף",
-            "show_pickup_availability": true
+            "payment_text": "תשלום מאובטח באתר",
+            "show_pickup_availability": false
           }
         },
         "trust_warranty": {
@@ -77,7 +77,7 @@
         "trust_price": {
           "type": "trust_point",
           "settings": {
-            "text": "<strong>מחיר כולל מע״מ</strong> — באיסוף עצמי מהחנות",
+            "text": "<strong>מחיר כולל מע״מ</strong> — משלוח עד הבית",
             "use_warranty": false,
             "tax_free_only": true
           }
@@ -85,7 +85,7 @@
         "trust_pickup": {
           "type": "trust_point",
           "settings": {
-            "text": "שריון באתר ואיסוף עצמי מהחנות",
+            "text": "משלוח עד הבית תוך 7 ימי עסקים",
             "use_warranty": false
           }
         },
@@ -111,8 +111,8 @@
         "tab_pickup": {
           "type": "tab_custom",
           "settings": {
-            "heading": "איסוף מהסניף",
-            "content": "<p>ההזמנות באתר הן לשריון ואיסוף עצמי מסניף JOY Mobile. כל המחירים כוללים מע״מ.</p><p>האיסוף מתבצע על ידי הרוכש/ת, בהצגת תעודה מזהה.</p><p>ההזמנה ממתינה לאיסוף בסניף עד 21 ימי עסקים. <a href=\"/pages/branches\">הסניפים ושעות הפתיחה</a> · <a href=\"/pages/shipping\">שריון, איסוף ומשלוחים</a>.</p>"
+            "heading": "משלוח",
+            "content": "<p>ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪. כל המחירים כוללים מע״מ.</p><p>כל הפרטים ב<a href=\"/pages/shipping\">עמוד המשלוחים</a>.</p>"
           }
         },
         "tab_terms": {

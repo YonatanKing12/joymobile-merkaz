@@ -6,28 +6,28 @@
         "notice": {
           "type": "notice",
           "settings": {
-            "text": "<p><strong>חשוב לדעת:</strong> ההזמנות באתר הן לשריון ואיסוף עצמי מסניף JOY Mobile. כל המחירים כוללים מע״מ. כל הפרטים ב<a href=\"/pages/shipping\">עמוד השריון והאיסוף</a>.</p>"
+            "text": "<p><strong>חשוב לדעת:</strong> ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪. כל המחירים כוללים מע״מ. כל הפרטים ב<a href=\"/pages/shipping\">עמוד המשלוחים</a>.</p>"
           }
         },
         "condition-ready": {
           "type": "condition",
           "settings": {
             "icon": "clock",
-            "text": "כשההזמנה מחכה לכם בסניף תקבלו הודעה, ואז אפשר לבוא לאסוף."
+            "text": "כשההזמנה יוצאת למשלוח תקבלו הודעה עם פרטי המעקב."
           }
         },
         "condition-id": {
           "type": "condition",
           "settings": {
             "icon": "account",
-            "text": "האיסוף מתבצע על ידי הרוכש/ת בלבד, בהצגת תעודה מזהה."
+            "text": "המשלוח מגיע עד הבית תוך 7 ימי עסקים."
           }
         },
         "condition-hold": {
           "type": "condition",
           "settings": {
             "icon": "store",
-            "text": "ההזמנה ממתינה לאיסוף בסניף עד 21 ימי עסקים."
+            "text": "משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪."
           }
         }
       },
@@ -39,13 +39,13 @@
       ],
       "settings": {
         "show_breadcrumbs": true,
-        "checkout_label": "המשך לשריון",
-        "checkout_note": "בשלב הבא ממלאים פרטים ובוחרים איך לשלם: באתר, בתשלום מאובטח, או בסניף בעת האיסוף.",
+        "checkout_label": "המשך לתשלום",
+        "checkout_note": "בשלב הבא ממלאים כתובת למשלוח ומשלמים בתשלום מאובטח.",
         "show_payment_icons": true,
         "show_dynamic_checkout": false,
-        "conditions_heading": "תנאי השריון והאיסוף",
+        "conditions_heading": "משלוח והזמנה",
         "require_consent": false,
-        "consent_label": "קראתי ואני מאשר/ת את תנאי השריון והאיסוף",
+        "consent_label": "קראתי ואני מאשר/ת את תנאי הרכישה והמשלוח",
         "empty_menu": "main-menu"
       }
     }
