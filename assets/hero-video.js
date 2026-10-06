@@ -37,7 +37,7 @@ function stop(video) {
 function setup(carousel) {
   const videos = [...carousel.querySelectorAll('[data-hero-video]')];
   if (!videos.length) return;
-  const slides = [...carousel.querySelectorAll('.carousel__slide')];
+  const slides = [...carousel.querySelectorAll('.carousel__slide:not(.carousel__slide--clone)')];
   let inView = false;
 
   const sync = () => {

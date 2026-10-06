@@ -1,4 +1,9 @@
 // Slides per view come from CSS (--per-view); JS only reads geometry and scrolls.
+// data-infinite="true" (one slide per view, the hero): copies of the last slides go before the first and
+// copies of the first after the last, so a swipe or an arrow keeps going in either direction; when the
+// scroll settles on a copy it jumps, without animation, to the real slide it copies. `index` and the
+// carousel:change event always name the real slide. Not in the theme editor (block selection needs the
+// real slides only).
 import { define, prefersReducedMotion, t } from '@theme/global';
 
 const DOC_EVENTS = ['visibilitychange', 'shopify:block:select', 'shopify:block:deselect'];
@@ -11,9 +16,11 @@ class CarouselSlider extends HTMLElement {
     this.next = this.querySelector('.carousel__btn--next');
     this.dots = this.querySelector('.carousel__dots');
     this.delay = +this.dataset.autoplay || 0;
-    Object.assign(this, { index: 0, offsets: [0], perView: 1, pages: 1 });
+    Object.assign(this, { index: 0, pos: 0, head: 0, count: 0, offsets: [0], perView: 1, pages: 1 });
+    if (this.dataset.infinite === 'true' && !window.Shopify?.designMode) this.cloneEnds();
     ['click', 'keydown', 'pointerenter', 'pointerleave', 'focusin', 'focusout'].forEach((type) => this.addEventListener(type, this));
     this.track.addEventListener('scroll', this, { passive: true });
+    if (this.head) this.track.addEventListener('scrollend', this);
     DOC_EVENTS.forEach((type) => document.addEventListener(type, this));
     (this.ro = new ResizeObserver(() => this.measure())).observe(this.track);
     if (this.delay) {
@@ -30,6 +37,7 @@ class CarouselSlider extends HTMLElement {
     this.ro?.disconnect();
     this.io?.disconnect();
     clearTimeout(this.timer);
+    clearTimeout(this.settle);
     cancelAnimationFrame(this.raf);
     this.raf = 0;
   }
@@ -38,6 +46,35 @@ class CarouselSlider extends HTMLElement {
   get x() { return Math.abs(this.track.scrollLeft); } // RTL scrollLeft runs 0 → negative
   get max() { return this.track.scrollWidth - this.track.clientWidth; }
   get loop() { return this.dataset.loop === 'true'; }
+
+  cloneEnds() {
+    const real = this.slides, n = real.length;
+    if (n < 2) return;
+    const k = Math.min(n, 2);
+    const copy = (slide) => {
+      const clone = slide.cloneNode(true);
+      clone.classList.add('carousel__slide--clone');
+      clone.setAttribute('aria-hidden', 'true');
+      clone.inert = true;
+      clone.removeAttribute('id');
+      clone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+      clone.querySelectorAll('[data-hero-video], video').forEach((el) => el.remove()); // the image stays as the poster
+      clone.querySelectorAll('img').forEach((img) => {
+        img.loading = 'lazy';
+        img.removeAttribute('fetchpriority');
+      });
+      return clone;
+    };
+    this.track.prepend(...real.slice(-k).map(copy));
+    this.track.append(...real.slice(0, k).map(copy));
+    Object.assign(this, { head: k, count: n });
+  }
+
+  // Settled on a copy: show the real slide in its place.
+  normalize() {
+    if (!this.head || !this.placed || (this.pos >= this.head && this.pos < this.head + this.count)) return;
+    this.goTo(this.head + this.index, true);
+  }
 
   measure() {
     const { track } = this, box = track.getBoundingClientRect(), x = this.x;
@@ -49,7 +86,7 @@ class CarouselSlider extends HTMLElement {
     this.offsets = starts.map((s) => s - starts[0]);
     this.width = track.clientWidth;
     this.perView = Math.max(1, Math.round(this.width / (this.offsets[1] || this.width || 1)));
-    this.pages = Math.max(1, Math.ceil((starts.length - this.perView) / this.perView) + 1);
+    this.pages = this.head ? this.count : Math.max(1, Math.ceil((starts.length - this.perView) / this.perView) + 1);
     if (this.dots && this.dotCount !== this.pages) {
       this.dotCount = this.pages;
       this.dots.replaceChildren(...Array.from({ length: this.pages }, (_, i) => {
@@ -60,17 +97,24 @@ class CarouselSlider extends HTMLElement {
       }));
       this.dots.hidden = this.pages < 2;
     }
+    if (this.head && !this.placed && this.width) {
+      this.placed = true;
+      this.goTo(this.head, true);
+    }
     this.update();
   }
 
   update() {
+    if (this.head && !this.placed) return; // not measured yet: the offsets are not the slides'
     const x = this.x, max = this.max;
     let index = 0;
     this.offsets.forEach((o, i) => Math.abs(o - x) < Math.abs(this.offsets[index] - x) && (index = i));
-    const page = x > max - 2 ? this.pages - 1 : Math.min(this.pages - 1, Math.round(index / this.perView));
+    this.pos = index;
+    if (this.head) index = (((index - this.head) % this.count) + this.count) % this.count;
+    const page = this.head ? index : x > max - 2 ? this.pages - 1 : Math.min(this.pages - 1, Math.round(index / this.perView));
     this.toggleAttribute('data-scrollable', max > 2); // CSS hook; same 2px tolerance as the ends
-    this.prev?.setAttribute('aria-disabled', !this.loop && x < 2);
-    this.next?.setAttribute('aria-disabled', !this.loop && x > max - 2);
+    this.prev?.setAttribute('aria-disabled', !this.loop && !this.head && x < 2);
+    this.next?.setAttribute('aria-disabled', !this.loop && !this.head && x > max - 2);
     [...(this.dots?.children || [])].forEach((dot, i) => dot.setAttribute('aria-current', i === page));
     if (index === this.index && page === this.page) return;
     Object.assign(this, { index, page });
@@ -82,11 +126,15 @@ class CarouselSlider extends HTMLElement {
     this.target = Math.max(0, Math.min(i, this.offsets.length - 1));
     this.movedAt = performance.now();
     const left = this.offsets[this.target] * (this.rtl ? -1 : 1);
-    this.track.scrollTo({ left, behavior: instant || prefersReducedMotion() ? 'auto' : 'smooth' });
+    this.track.scrollTo({ left, behavior: instant || prefersReducedMotion() ? 'instant' : 'smooth' });
   }
 
   // dir 1 = next = toward inline-end (leftwards in RTL)
   step(dir, wrap = this.loop) {
+    if (this.head) {
+      const from = performance.now() - this.movedAt < 600 ? this.target : this.pos;
+      return this.goTo(from + dir);
+    }
     const end = this.x > this.max - 2;
     if (dir > 0 && end) return wrap && this.goTo(0);
     if (dir < 0 && this.x < 2) return wrap && this.goTo(this.offsets.length - 1);
@@ -109,6 +157,14 @@ class CarouselSlider extends HTMLElement {
         this.raf = 0;
         this.update();
       });
+      // Browsers without scrollend: the scroll is taken as settled after a short pause.
+      if (this.head && !('onscrollend' in window)) {
+        clearTimeout(this.settle);
+        this.settle = setTimeout(() => this.normalize(), 160);
+      }
+    } else if (type === 'scrollend') {
+      this.update();
+      this.normalize();
     } else if (type === 'click') this.onClick(target.closest('button'));
     else if (type === 'keydown') this.onKey(e);
     else if (type.startsWith('pointer')) this.hover = type === 'pointerenter';
@@ -124,7 +180,7 @@ class CarouselSlider extends HTMLElement {
   onClick(btn) {
     if (!btn || btn.closest('carousel-slider') !== this) return;
     if (btn === this.prev || btn === this.next) this.step(btn === this.next ? 1 : -1);
-    else if (btn.parentElement === this.dots) this.goTo(btn.dataset.page * this.perView);
+    else if (btn.parentElement === this.dots) this.goTo(this.head + btn.dataset.page * this.perView);
     else if (btn.matches('.carousel__pause')) btn.setAttribute('aria-pressed', (this.paused = !this.paused));
   }
 

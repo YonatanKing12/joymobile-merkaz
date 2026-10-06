@@ -98,6 +98,7 @@
       class="hero-slideshow__carousel carousel--dots-light"
       data-autoplay="{{ autoplay_ms }}"
       data-loop="true"
+      data-infinite="{{ section.settings.infinite }}"
       aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
       aria-label="{{ carousel_label | escape }}"
     >
@@ -378,6 +379,13 @@
     {
       "type": "header",
       "content": "תנועה וניווט"
+    },
+    {
+      "type": "checkbox",
+      "id": "infinite",
+      "label": "גלילה אינסופית",
+      "info": "אפשר להמשיך לגלול ימינה ושמאלה בלי סוף: אחרי הבאנר האחרון בא הראשון ולפני הראשון בא האחרון.",
+      "default": true
     },
     {
       "type": "checkbox",
