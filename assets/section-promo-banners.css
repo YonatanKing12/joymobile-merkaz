@@ -45,6 +45,7 @@
 
 .promo-banners__img {
   object-fit: cover;
+  object-position: var(--pb-focus, center);
   transition: transform 0.5s ease;
 }
 
@@ -123,4 +124,9 @@ a.promo-banners__item:focus-visible {
   .promo-banners__row:not(.promo-banners__row--even) {
     align-items: start;
   }
+}
+
+/* "רוחב מלא": edge to edge, with the page gutter only on phones' swipe row. */
+.promo-banners--full {
+  padding-inline: var(--pb-gap, 16px);
 }

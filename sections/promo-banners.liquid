@@ -29,6 +29,29 @@
 
   assign pb_first = section.blocks | where: 'type', 'banner' | first
   assign pb_ratio = pb_first.settings.image.aspect_ratio | default: 2
+
+  # "גודל הבאנר": a fixed box (ratio or height) that every banner fills, the image cropped to it
+  # (object-fit: cover, from the "מיקום התמונה" point). 'image' keeps the image's own shape.
+  assign pb_box = ''
+  case section.settings.banner_size
+    when 'custom'
+      assign pb_box = 'aspect-ratio: auto; height: ' | append: section.settings.banner_height | append: 'px;'
+    when 'image'
+      assign pb_box = ''
+    else
+      assign pb_box = 'aspect-ratio: ' | append: section.settings.banner_size | append: ';'
+  endcase
+  assign pb_box_mobile = ''
+  case section.settings.banner_size_mobile
+    when 'same'
+      assign pb_box_mobile = pb_box
+    when 'custom'
+      assign pb_box_mobile = 'aspect-ratio: auto; height: ' | append: section.settings.banner_height_mobile | append: 'px;'
+    when 'image'
+      assign pb_box_mobile = ''
+    else
+      assign pb_box_mobile = 'aspect-ratio: ' | append: section.settings.banner_size_mobile | append: ';'
+  endcase
 -%}
 
 {%- if pb_count > 0 -%}
@@ -42,12 +65,23 @@
       {%- if section.settings.same_height %}
       --pb-ratio: {{ pb_ratio }};
       {%- endif %}
+      --pb-focus: {{ section.settings.image_position | default: 'center' }};
     }
+    {%- if pb_box != blank %}
+    @media (min-width: 768px) {
+      #shopify-section-{{ section.id }} .promo-banners__item { {{ pb_box }} }
+    }
+    {%- endif %}
+    {%- if pb_box_mobile != blank %}
+    @media (max-width: 767px) {
+      #shopify-section-{{ section.id }} .promo-banners__item { {{ pb_box_mobile }} }
+    }
+    {%- endif %}
   {%- endstyle -%}
 
   {{ 'section-promo-banners.css' | asset_url | stylesheet_tag }}
 
-  <div class="promo-banners page-width">
+  <div class="promo-banners{% if section.settings.full_width %} promo-banners--full{% else %} page-width{% endif %}">
     {%- if section.settings.heading != blank -%}
       <h2 class="promo-banners__heading">{{ section.settings.heading | escape }}</h2>
     {%- endif -%}
@@ -140,11 +174,90 @@
       "label": "כותרת (לא חובה)"
     },
     {
+      "type": "header",
+      "content": "גודל הבאנרים"
+    },
+    {
+      "type": "select",
+      "id": "banner_size",
+      "label": "גודל הבאנר במחשב",
+      "info": "כל באנר ממלא את המסגרת והתמונה נחתכת אליה. \"לפי התמונה\" = בלי חיתוך.",
+      "options": [
+        { "value": "image", "label": "לפי התמונה" },
+        { "value": "5 / 1", "label": "נמוך מאוד (5:1)" },
+        { "value": "4 / 1", "label": "נמוך (4:1)" },
+        { "value": "3 / 1", "label": "בינוני (3:1)" },
+        { "value": "2 / 1", "label": "גבוה (2:1)" },
+        { "value": "3 / 2", "label": "כרטיס (3:2)" },
+        { "value": "1 / 1", "label": "ריבוע (1:1)" },
+        { "value": "custom", "label": "גובה קבוע בפיקסלים" }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "range",
+      "id": "banner_height",
+      "label": "גובה במחשב",
+      "min": 100,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "default": 200,
+      "visible_if": "{{ section.settings.banner_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "banner_size_mobile",
+      "label": "גודל הבאנר בטלפון",
+      "options": [
+        { "value": "same", "label": "כמו במחשב" },
+        { "value": "image", "label": "לפי התמונה" },
+        { "value": "3 / 1", "label": "נמוך (3:1)" },
+        { "value": "2 / 1", "label": "בינוני (2:1)" },
+        { "value": "3 / 2", "label": "כרטיס (3:2)" },
+        { "value": "1 / 1", "label": "ריבוע (1:1)" },
+        { "value": "4 / 5", "label": "לאורך (4:5)" },
+        { "value": "custom", "label": "גובה קבוע בפיקסלים" }
+      ],
+      "default": "same"
+    },
+    {
+      "type": "range",
+      "id": "banner_height_mobile",
+      "label": "גובה בטלפון",
+      "min": 80,
+      "max": 500,
+      "step": 10,
+      "unit": "px",
+      "default": 160,
+      "visible_if": "{{ section.settings.banner_size_mobile == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "איזה חלק של התמונה נשאר כשהיא נחתכת",
+      "options": [
+        { "value": "center", "label": "מרכז" },
+        { "value": "top", "label": "למעלה" },
+        { "value": "bottom", "label": "למטה" },
+        { "value": "right", "label": "ימין" },
+        { "value": "left", "label": "שמאל" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "רוחב מלא של המסך",
+      "default": false
+    },
+    {
       "type": "checkbox",
       "id": "same_height",
       "label": "גובה אחיד",
-      "info": "כל הבאנרים בשורה באותו גובה, לפי היחס של הראשון. כבוי = כל תמונה ביחס שלה.",
-      "default": true
+      "info": "כשהגודל הוא \"לפי התמונה\": כל הבאנרים בשורה באותו גובה, לפי היחס של הראשון. כבוי = כל תמונה ביחס שלה.",
+      "default": true,
+      "visible_if": "{{ section.settings.banner_size == 'image' }}"
     },
     {
       "type": "select",
