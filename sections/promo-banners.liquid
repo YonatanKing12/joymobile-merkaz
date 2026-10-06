@@ -1,0 +1,242 @@
+{%- comment -%}
+  Promo banners: one to three promotional images side by side (stacked on phones, or a swipe row), each a
+  single link. Meant for the home page between product strips. Every banner keeps its image's own ratio;
+  with "same height" the row takes the first banner's ratio and the others are cropped to it (object-fit).
+  Banners without an image show a placeholder in the theme editor only.
+{%- endcomment -%}
+{%- liquid
+  assign pb_count = 0
+  for block in section.blocks
+    if block.settings.image != blank or request.design_mode
+      assign pb_count = pb_count | plus: 1
+    endif
+  endfor
+
+  assign pb_loading = 'lazy'
+  if section.index != blank and section.index <= 2
+    assign pb_loading = 'eager'
+  endif
+
+  case pb_count
+    when 1
+      assign pb_sizes = '(min-width: 1360px) 1320px, calc(100vw - 30px)'
+    when 2
+      assign pb_sizes = '(min-width: 1360px) 652px, (min-width: 768px) calc(50vw - 23px), calc(100vw - 30px)'
+    else
+      assign pb_sizes = '(min-width: 1360px) 430px, (min-width: 768px) calc(33vw - 20px), calc(100vw - 30px)'
+  endcase
+
+  assign pb_first = section.blocks | where: 'type', 'banner' | first
+  assign pb_ratio = pb_first.settings.image.aspect_ratio | default: 2
+-%}
+
+{%- if pb_count > 0 -%}
+  {%- style -%}
+    #shopify-section-{{ section.id }} {
+      --pb-pad-top: {{ section.settings.padding_top }}px;
+      --pb-pad-bottom: {{ section.settings.padding_bottom }}px;
+      --pb-gap: {{ section.settings.gap }}px;
+      --pb-radius: {{ section.settings.radius }}px;
+      --pb-cols: {{ pb_count }};
+      {%- if section.settings.same_height %}
+      --pb-ratio: {{ pb_ratio }};
+      {%- endif %}
+    }
+  {%- endstyle -%}
+
+  {{ 'section-promo-banners.css' | asset_url | stylesheet_tag }}
+
+  <div class="promo-banners page-width">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="promo-banners__heading">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+    <div class="promo-banners__row promo-banners__row--mobile-{{ section.settings.mobile_layout }}{% if section.settings.same_height %} promo-banners__row--even{% endif %}">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign pb_image = block.settings.image
+          if pb_image == blank and request.design_mode == false
+            continue
+          endif
+          assign pb_image_mobile = block.settings.image_mobile
+          assign pb_alt = block.settings.alt | default: pb_image.alt | strip
+          assign pb_tag = 'div'
+          if block.settings.link != blank
+            assign pb_tag = 'a'
+          endif
+        -%}
+        <{{ pb_tag }}
+          class="promo-banners__item"
+          {% if pb_tag == 'a' %}
+            href="{{ block.settings.link }}"
+            {% if pb_alt == blank and block.settings.label == blank %}
+              aria-label="{{ 'home.banner.link_label' | t }}"
+            {% endif %}
+          {% endif %}
+          {{ block.shopify_attributes }}
+          {% if pb_image != blank %}
+            style="--pb-item-ratio: {{ pb_image.aspect_ratio }};{% if pb_image_mobile != blank %} --pb-item-ratio-mobile: {{ pb_image_mobile.aspect_ratio }};{% endif %}"
+          {% endif %}
+        >
+          {%- if pb_image == blank -%}
+            {{- 'image' | placeholder_svg_tag: 'promo-banners__placeholder' -}}
+          {%- elsif pb_image_mobile != blank -%}
+            <picture>
+              <source
+                media="(min-width: 768px)"
+                srcset="{%- for w in (1..4) -%}{%- assign pw = w | times: 400 -%}{%- if pw < pb_image.width -%}{{ pb_image | image_url: width: pw }} {{ pw }}w, {% endif -%}{%- endfor -%}{{ pb_image | image_url: width: pb_image.width }} {{ pb_image.width }}w"
+                sizes="{{ pb_sizes }}"
+                width="{{ pb_image.width }}"
+                height="{{ pb_image.height }}"
+              >
+              {%- render 'image',
+                image: pb_image_mobile,
+                widths: '390,540,750,1080',
+                sizes: 'calc(100vw - 30px)',
+                loading: pb_loading,
+                class: 'promo-banners__img',
+                alt: pb_alt
+              -%}
+            </picture>
+          {%- else -%}
+            {%- render 'image',
+              image: pb_image,
+              widths: '390,540,750,1080,1500',
+              sizes: pb_sizes,
+              loading: pb_loading,
+              class: 'promo-banners__img',
+              alt: pb_alt
+            -%}
+          {%- endif -%}
+          {%- if block.settings.label != blank -%}
+            <span class="promo-banners__label">{{ block.settings.label | escape }}</span>
+          {%- endif -%}
+        </{{ pb_tag }}>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "באנרים פרסומיים",
+  "tag": "section",
+  "class": "section-promo-banners",
+  "disabled_on": {
+    "groups": ["header", "aside"]
+  },
+  "max_blocks": 3,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "עד שלושה באנרים זה לצד זה, כל אחד עם תמונה וקישור משלו. מתאים בין קרוסלות המוצרים בדף הבית."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת (לא חובה)"
+    },
+    {
+      "type": "checkbox",
+      "id": "same_height",
+      "label": "גובה אחיד",
+      "info": "כל הבאנרים בשורה באותו גובה, לפי היחס של הראשון. כבוי = כל תמונה ביחס שלה.",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "בטלפון",
+      "options": [
+        { "value": "stack", "label": "אחד מתחת לשני" },
+        { "value": "swipe", "label": "שורה עם החלקה" }
+      ],
+      "default": "stack"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "רווח בין הבאנרים",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "radius",
+      "label": "עיגול פינות",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 44
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "banner",
+      "name": "באנר",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "תמונה",
+          "info": "לשני באנרים בשורה: 1300×650 פיקסלים (2:1). לשלושה: 900×600 (3:2)."
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "תמונה לטלפון (לא חובה)"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור"
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "תיאור התמונה (לנגישות)",
+          "info": "מה כתוב או מוצג בבאנר, למשל \"מבצע אוזניות עד 30% הנחה\"."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "תווית על הבאנר (לא חובה)",
+          "info": "כפתור קטן בפינת הבאנר, למשל \"לקנייה\"."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "באנרים פרסומיים",
+      "blocks": [
+        { "type": "banner" },
+        { "type": "banner" }
+      ]
+    }
+  ]
+}
+{% endschema %}

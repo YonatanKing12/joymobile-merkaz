@@ -278,6 +278,22 @@
         "padding_bottom": 0
       }
     },
+    "promo-banners": {
+      "type": "promo-banners",
+      "blocks": {
+        "banner-1": { "type": "banner", "settings": {} },
+        "banner-2": { "type": "banner", "settings": {} }
+      },
+      "block_order": ["banner-1", "banner-2"],
+      "settings": {
+        "same_height": true,
+        "mobile_layout": "stack",
+        "gap": 16,
+        "radius": 16,
+        "padding_top": 44,
+        "padding_bottom": 0
+      }
+    },
     "products-tablets": {
       "type": "product-carousel",
       "settings": {
@@ -460,6 +476,7 @@
     "usp",
     "categories",
     "products-smartphones",
+    "promo-banners",
     "products-tablets",
     "products-vacuums",
     "products-audio",
