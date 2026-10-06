@@ -10,6 +10,14 @@
   padding-block: var(--pc-pad-top, 50px) var(--pc-pad-bottom, 0px);
 }
 
+/* Background colour from the section settings: a full-width band, with room under the cards. */
+.product-carousel--bg {
+  background: var(--pc-bg);
+  padding-block-end: max(var(--pc-pad-bottom, 0px), var(--space-xl));
+  margin-block-start: var(--pc-pad-top, 50px);
+  padding-block-start: var(--space-xl);
+}
+
 .product-carousel__inner {
   position: relative;
   width: 100%;
@@ -31,7 +39,7 @@
 .product-carousel__title {
   margin: 0;
   color: var(--color-ink);
-  font-size: var(--text-2xl);
+  font-size: var(--pc-title-size, var(--text-2xl));
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.01em;

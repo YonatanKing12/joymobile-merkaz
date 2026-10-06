@@ -269,6 +269,7 @@
       "settings": {
         "title": "סמארטפונים",
         "collection": "smartphones",
+        "first_collection": "iphone-17-18",
         "products_limit": 10,
         "hide_sold_out": true,
         "show_view_all": true,

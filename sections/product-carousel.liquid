@@ -41,48 +41,79 @@
 -%}
 
 {%- comment -%}
-  Two passes over the collection's first 50 products, each in the collection's order: products with a photo
-  first, then products without one, only to fill the strip (most of the catalogue has no photo yet). Every
-  card of the strip is counted (the arrows depend on the total), only the first pc_initial are printed.
+  Five passes, each in its source's order: the pinned products (as picked), then the "show first" collection,
+  then the main collection, the last two with products that have a photo first and the rest only to fill the
+  strip (most of the catalogue has no photo yet). A product already in the strip is not repeated
+  (pc_seen holds ",id," for each). Every card of the strip is counted (the arrows depend on the total), only
+  the first pc_initial are printed.
 {%- endcomment -%}
+{%- liquid
+  assign pc_pinned = section.settings.pinned_products
+  assign pc_first = section.settings.first_collection
+  assign pc_seen = ','
+-%}
 {%- capture pc_slides -%}
-  {%- if pc_collection != blank -%}
-    {%- for pc_pass in (1..2) -%}
-      {%- for card_product in pc_collection.products -%}
-        {%- if pc_count >= pc_limit -%}
-          {%- break -%}
-        {%- endif -%}
-        {%- if section.settings.hide_sold_out and card_product.available == false -%}
-          {%- continue -%}
-        {%- endif -%}
-        {%- if pc_pass == 1 and card_product.featured_media == blank -%}
-          {%- continue -%}
-        {%- endif -%}
-        {%- if pc_pass == 2 and card_product.featured_media != blank -%}
-          {%- continue -%}
-        {%- endif -%}
-        {%- liquid
-          assign pc_count = pc_count | plus: 1
-          if pc_count > pc_initial
+  {%- for pc_pass in (1..5) -%}
+    {%- liquid
+      assign pc_source = nil
+      case pc_pass
+        when 1
+          assign pc_source = pc_pinned
+        when 2, 3
+          assign pc_source = pc_first.products
+        else
+          assign pc_source = pc_collection.products
+      endcase
+      assign pc_photo_pass = pc_pass | modulo: 2
+    -%}
+    {%- if pc_source == blank -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- for card_product in pc_source -%}
+      {%- if pc_count >= pc_limit -%}
+        {%- break -%}
+      {%- endif -%}
+      {%- liquid
+        assign pc_key = ',' | append: card_product.id | append: ','
+        if pc_seen contains pc_key
+          continue
+        endif
+        if section.settings.hide_sold_out and card_product.available == false
+          continue
+        endif
+        if section.settings.photos_only and card_product.featured_media == blank
+          continue
+        endif
+        # Passes 2 and 4 take products with a photo, 3 and 5 the rest; pass 1 keeps the picked order.
+        if pc_pass > 1
+          if pc_photo_pass == 0 and card_product.featured_media == blank
             continue
           endif
-          assign pc_lazy = true
-          if pc_count <= pc_eager
-            assign pc_lazy = false
+          if pc_photo_pass == 1 and card_product.featured_media != blank
+            continue
           endif
+        endif
+        assign pc_seen = pc_seen | append: card_product.id | append: ','
+        assign pc_count = pc_count | plus: 1
+        if pc_count > pc_initial
+          continue
+        endif
+        assign pc_lazy = true
+        if pc_count <= pc_eager
+          assign pc_lazy = false
+        endif
+      -%}
+      <div class="carousel__slide product-carousel__slide" role="listitem" data-product-id="{{ card_product.id }}">
+        {%- render 'card-product',
+          product: card_product,
+          lazy: pc_lazy,
+          heading: 'h3',
+          section_id: section.id,
+          show_swatches: settings.card_show_swatches
         -%}
-        <div class="carousel__slide product-carousel__slide" role="listitem" data-product-id="{{ card_product.id }}">
-          {%- render 'card-product',
-            product: card_product,
-            lazy: pc_lazy,
-            heading: 'h3',
-            section_id: section.id,
-            show_swatches: settings.card_show_swatches
-          -%}
-        </div>
-      {%- endfor -%}
+      </div>
     {%- endfor -%}
-  {%- endif -%}
+  {%- endfor -%}
 {%- endcapture -%}
 
 {%- liquid
@@ -103,6 +134,15 @@
     #shopify-section-{{ section.id }} {
       --pc-pad-top: {{ section.settings.padding_top }}px;
       --pc-pad-bottom: {{ section.settings.padding_bottom }}px;
+      {%- if section.settings.background != blank and section.settings.background.alpha > 0 %}
+      --pc-bg: {{ section.settings.background }};
+      {%- endif %}
+      {%- case section.settings.title_size -%}
+        {%- when 'small' %}
+      --pc-title-size: var(--text-xl);
+        {%- when 'large' %}
+      --pc-title-size: var(--text-3xl);
+      {%- endcase %}
       --pc-scroll-md: {% if pc_count > 3 %}grid{% else %}none{% endif %};
       --pc-scroll-lg: {% if pc_count > 4 %}grid{% else %}none{% endif %};
       --pc-scroll-xl: {% if pc_count > 5 %}grid{% else %}none{% endif %};
@@ -126,7 +166,7 @@
   {%- endif -%}
 
   <product-carousel
-    class="product-carousel"
+    class="product-carousel{% if section.settings.background != blank and section.settings.background.alpha > 0 %} product-carousel--bg{% endif %}"
     data-section-id="{{ section.id }}"
     {% if pc_count > pc_initial %}
       data-more
@@ -222,6 +262,19 @@
       "label": "קטגוריה"
     },
     {
+      "type": "product_list",
+      "id": "pinned_products",
+      "label": "מוצרים מוצמדים ראשונים",
+      "info": "מוצגים בתחילת הקרוסלה לפי הסדר שנבחר, לפני כל השאר.",
+      "limit": 12
+    },
+    {
+      "type": "collection",
+      "id": "first_collection",
+      "label": "קטגוריה שמוצגת ראשונה",
+      "info": "המוצרים שלה באים מיד אחרי המוצרים המוצמדים ולפני הקטגוריה הראשית. למשל קטגוריית אייפון 17 ו-18 בקרוסלת הסמארטפונים. מוצר שמופיע בשתיהן מוצג פעם אחת."
+    },
+    {
       "type": "range",
       "id": "products_limit",
       "label": "מספר מוצרים",
@@ -237,6 +290,34 @@
       "label": "הסתרת מוצרים שאזלו מהמלאי",
       "info": "כשנשארים פחות משני מוצרים זמינים הקרוסלה לא מוצגת.",
       "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "photos_only",
+      "label": "רק מוצרים עם תמונה",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "עיצוב"
+    },
+    {
+      "type": "select",
+      "id": "title_size",
+      "label": "גודל הכותרת",
+      "options": [
+        { "value": "small", "label": "קטן" },
+        { "value": "medium", "label": "רגיל" },
+        { "value": "large", "label": "גדול" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "צבע רקע",
+      "info": "ריק = רקע העמוד.",
+      "alpha": true
     },
     {
       "type": "checkbox",
