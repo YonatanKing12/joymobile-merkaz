@@ -1,0 +1,65 @@
+{% doc %}
+  The products whose address differs between the two JOY Mobile sites, for the site switch
+  (snippets/site-switch.liquid): one "this-site-handle other-site-handle" pair per line, per site,
+  matched by SKU. Every other product has the same handle on both sites. Prints the other site's
+  handle, or nothing.
+
+  @param {string} handle - This site's product handle.
+{% enddoc %}
+{%- if shop.permanent_domain == 'x511g0-rj.myshopify.com' -%}
+{%- capture ssm_pairs %}
+apple-iphone-18-pro-max-256gb-esim-תכלת-dcs apple-iphone-18-pro-max
+apple-iphone-18-pro-max-512gb-esim-כסוף-dcs apple-iphone-18-pro-max
+apple-iphone-18-pro-max-512gb-esim-שחור-dcs apple-iphone-18-pro-max
+apple-iphone-18-pro-max-512gb-בורדו-dcs apple-iphone-18-pro-max
+infinix-hot-60-pro infinix-hot-60-pro-plus
+infinix-note-50-pro-5g infinix-note-50-pro-plus-5g
+iphone18pro-512gb-dcs-195951417806 apple-iphone-18-pro
+samsung-galaxy-s26-1 samsung-galaxy-s26-plus
+samsung-galaxy-s26-256gb-סגול-יבואן-רשמי samsung-galaxy-s26-plus
+samsung-galaxy-s26-512gb-תכלת-יבואן-רשמי samsung-galaxy-s26-plus
+xiaomi-redmi-note-14-pro-nfc-5g xiaomi-redmi-note-14-pro-plus-nfc-5g
+xiaomi-redmi-note-14-pro-nfc-5g-1 xiaomi-redmi-note-14-pro-nfc-5g
+דיסק-און-קי-xo-dk04-4 דיסק-און-קי-xo-dk04-4-ב-1
+כבל-apple כבל-apple-usb-c-ל-usb-c
+כיסוי-otterbox-defender-pro-ל-galaxy-s26-1 כיסוי-otterbox-defender-pro-ל-galaxy-s26-plus
+כיסוי-otterbox-react-ל-galaxy-s23-1 כיסוי-otterbox-react-ל-galaxy-s23-plus
+כיסוי-otterbox-react-ל-galaxy-s24-1 כיסוי-otterbox-react-ל-galaxy-s24-plus
+כיסוי-otterbox-react-ל-galaxy-s26-1 כיסוי-otterbox-react-ל-galaxy-s26-plus
+כיסוי-otterbox-symmetry-ל-galaxy-s26-1 כיסוי-otterbox-symmetry-ל-galaxy-s26-plus
+כיסוי-puregear-ל-galaxy-s24 כיסוי-puregear-ל-galaxy-s24-plus
+כיסוי-puregear-ל-galaxy-s25 כיסוי-puregear-ל-galaxy-s25-plus
+מגן-זכוכית-מלאה-לעדשות-ninthpro-ל-iphone-13-13-mini מגן-זכוכית-לעדשות-ninthpro-ל-iphone-13-13-mini
+מטען-קיר-energy-pd-25w-לבן-c מטען-קיר-energy-pd-25w-c
+{% endcapture -%}
+{%- else -%}
+{%- capture ssm_pairs %}
+infinix-hot-60-pro-plus infinix-hot-60-pro
+infinix-note-50-pro-plus-5g infinix-note-50-pro-5g
+iphone17promax-512gb-e-sim-326600000700 apple-iphone-17-pro-max
+samsung-galaxy-s26-plus samsung-galaxy-s26-1
+xiaomi-redmi-note-14-pro-nfc-5g xiaomi-redmi-note-14-pro-nfc-5g-1
+xiaomi-redmi-note-14-pro-plus-nfc-5g xiaomi-redmi-note-14-pro-nfc-5g
+דיסק-און-קי-xo-dk04-4-ב-1 דיסק-און-קי-xo-dk04-4
+כבל-apple-usb-c-ל-usb-c כבל-apple
+כיסוי-otterbox-defender-pro-ל-galaxy-s26-plus כיסוי-otterbox-defender-pro-ל-galaxy-s26-1
+כיסוי-otterbox-react-ל-galaxy-s23-plus כיסוי-otterbox-react-ל-galaxy-s23-1
+כיסוי-otterbox-react-ל-galaxy-s24-plus כיסוי-otterbox-react-ל-galaxy-s24-1
+כיסוי-otterbox-react-ל-galaxy-s26-plus כיסוי-otterbox-react-ל-galaxy-s26-1
+כיסוי-otterbox-symmetry-ל-galaxy-s26-plus כיסוי-otterbox-symmetry-ל-galaxy-s26-1
+כיסוי-puregear-ל-galaxy-s24-plus כיסוי-puregear-ל-galaxy-s24
+כיסוי-puregear-ל-galaxy-s25-plus כיסוי-puregear-ל-galaxy-s25
+מגן-זכוכית-לעדשות-ninthpro-ל-iphone-13-13-mini מגן-זכוכית-מלאה-לעדשות-ninthpro-ל-iphone-13-13-mini
+מטען-קיר-energy-pd-25w-c מטען-קיר-energy-pd-25w-לבן-c
+{% endcapture -%}
+{%- endif -%}
+{%- liquid
+  assign ssm_lines = ssm_pairs | newline_to_br | split: '<br />'
+  for ssm_line in ssm_lines
+    assign ssm_pair = ssm_line | strip | split: ' '
+    if ssm_pair[0] == handle and ssm_pair[1] != blank
+      echo ssm_pair[1]
+      break
+    endif
+  endfor
+-%}

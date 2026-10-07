@@ -1,7 +1,9 @@
 {% doc %}
   Switch between the two JOY Mobile sites (JOY Eilat, duty free with pickup, and JOY Merkaz, VAT included
   with delivery): a two-option toggle with this site's option filled. The other option links to the same
-  page on the other site where the pages match (home, product, collection, page, search), else its home.
+  page on the other site where the pages match (home, product, collection, page, search, cart), else its
+  home; a product whose handle differs there goes by snippets/site-switch-map. On a kept page
+  assets/site-switch.js carries the filters/sort, the chosen variant (by SKU) and the scroll position.
   Both sites show the options in the same order (setting "first"), so the toggle reads the same on either.
   A pin marks this site's option; the filled thumb under it slides to the other option on hover, focus
   and tap, before the next page loads. Styles: assets/section-header.css.
@@ -26,12 +28,42 @@
   endif
 
   assign ss_href = ss_base | append: '/'
+  assign ss_keep = false
+  assign ss_skus = ''
   if keep_page != false
     case template.name
-      when 'product', 'collection', 'page', 'list-collections', 'blog', 'article'
+      when 'index'
+        assign ss_keep = true
+      when 'product'
+        assign ss_keep = true
+        capture ss_other_handle
+          render 'site-switch-map', handle: product.handle
+        endcapture
+        assign ss_other_handle = ss_other_handle | strip
+        if ss_other_handle != blank
+          assign ss_href = ss_base | append: '/products/' | append: ss_other_handle
+        else
+          assign ss_href = ss_base | append: request.path
+        endif
+        capture ss_skus
+          echo '{'
+          assign ss_sep = ''
+          for ss_v in product.variants
+            if ss_v.sku != blank
+              assign ss_k = ss_v.id | append: '' | json
+              assign ss_val = ss_v.sku | json
+              echo ss_sep | append: ss_k | append: ':' | append: ss_val
+              assign ss_sep = ','
+            endif
+          endfor
+          echo '}'
+        endcapture
+      when 'collection', 'page', 'list-collections', 'blog', 'article', 'cart'
+        assign ss_keep = true
         assign ss_href = ss_base | append: request.path
       when 'search'
         if search.terms != blank
+          assign ss_keep = true
           assign ss_q = search.terms | url_param_escape
           assign ss_href = ss_base | append: routes.search_url | append: '?q=' | append: ss_q
         endif
@@ -52,10 +84,20 @@
   </span>
 {%- endcapture -%}
 {%- capture ss_there -%}
-  <a class="site-switch__opt site-switch__opt--there" href="{{ ss_href }}">
+  <a
+    class="site-switch__opt site-switch__opt--there"
+    href="{{ ss_href }}"
+    {% if ss_keep %}
+      data-keep data-href="{{ ss_href }}"
+    {% endif %}
+    {% if ss_skus != blank %}
+      data-skus="{{ ss_skus | escape }}"
+    {% endif %}
+  >
     <span>{{ there | escape }}</span>
   </a>
 {%- endcapture -%}
+<script type="module" src="{{ 'site-switch.js' | asset_url }}"></script>
 <nav class="site-switch site-switch--{{ ss_variant }}" aria-label="{{ 'header.site_switch.label' | t }}">
   <div class="site-switch__track" data-here="{% if ss_first_is_here %}1{% else %}2{% endif %}">
     {%- if ss_first_is_here -%}
