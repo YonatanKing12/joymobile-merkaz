@@ -19,7 +19,20 @@
         "accept_label": "אישור",
         "decline_label": "רק עוגיות חיוניות",
         "audience": "all",
-        "renew_days": "365"
+        "renew_days": "365",
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "announcement-bar": {
@@ -29,7 +42,7 @@
           "type": "message",
           "settings": {
             "text": "סדרת IPHONE 18 PRO & PRO MAX זמינה להזמנה!",
-            "link": "shopify://collections/phones-apple"
+            "link": "shopify://collections/iphone-18-pro-pro-max"
           }
         }
       },
@@ -39,7 +52,20 @@
       "settings": {
         "mode": "slide",
         "autoplay_seconds": 5,
-        "marquee_seconds": 14
+        "marquee_seconds": 14,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "header": {
@@ -58,7 +84,20 @@
         "site_switch_first": "there",
         "site_switch_keep_page": true,
         "site_switch_hint": "אילת: פטור ממע\"מ · ארצי: משלוח עד הבית",
-        "sticky": true
+        "sticky": true,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     }
   },

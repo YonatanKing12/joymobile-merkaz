@@ -43,6 +43,7 @@
             "show_quantity": true,
             "show_checkout": true,
             "show_cart": true,
+            "button_shape": "pill",
             "soldout_whatsapp": true,
             "soldout_whatsapp_label": "לבירור זמינות בוואטסאפ"
           }
@@ -67,11 +68,16 @@
             "show_pickup_availability": false
           }
         },
+        "addons": {
+          "type": "addons",
+          "settings": {}
+        },
         "trust_warranty": {
           "type": "trust_point",
           "settings": {
             "text": "",
-            "use_warranty": true
+            "use_warranty": true,
+            "tax_free_only": false
           }
         },
         "trust_price": {
@@ -86,14 +92,16 @@
           "type": "trust_point",
           "settings": {
             "text": "משלוח עד הבית תוך 7 ימי עסקים",
-            "use_warranty": false
+            "use_warranty": false,
+            "tax_free_only": false
           }
         },
         "trust_service": {
           "type": "trust_point",
           "settings": {
             "text": "קנייה מאובטחת ושירות לקוחות אישי",
-            "use_warranty": false
+            "use_warranty": false,
+            "tax_free_only": false
           }
         },
         "tab_description": {
@@ -112,19 +120,17 @@
           "type": "tab_custom",
           "settings": {
             "heading": "משלוח",
-            "content": "<p>ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪. כל המחירים כוללים מע״מ.</p><p>כל הפרטים ב<a href=\"/pages/shipping\">עמוד המשלוחים</a>.</p>"
+            "content": "<p>ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪. כל המחירים כוללים מע״מ.</p><p>כל הפרטים ב<a href=\"/pages/shipping\">עמוד המשלוחים</a>.</p>",
+            "page": ""
           }
         },
         "tab_terms": {
           "type": "tab_custom",
           "settings": {
             "heading": "תנאי רכישה",
-            "content": "<p>ביטול עסקה והחזרת מוצרים לפי <a href=\"/pages/returns\">מדיניות הביטולים וההחזרות</a> ובהתאם לחוק הגנת הצרכן. תנאי השימוש המלאים ב<a href=\"/pages/terms\">תקנון האתר</a>.</p><p>לכל שאלה: 03-511-7171, וואטסאפ 053-325-5020 או joymobileltd@gmail.com.</p>"
+            "content": "<p>ביטול עסקה והחזרת מוצרים לפי <a href=\"/pages/returns\">מדיניות הביטולים וההחזרות</a> ובהתאם לחוק הגנת הצרכן. תנאי השימוש המלאים ב<a href=\"/pages/terms\">תקנון האתר</a>.</p><p>לכל שאלה: 03-511-7171, וואטסאפ 053-325-5020 או joymobileltd@gmail.com.</p>",
+            "page": ""
           }
-        },
-        "addons": {
-          "type": "addons",
-          "settings": {}
         }
       },
       "block_order": [
@@ -146,6 +152,7 @@
         "tab_terms"
       ],
       "settings": {
+        "desktop_scale": "100",
         "gallery_zoom": true,
         "gallery_thumbnails": true,
         "gallery_loop": true,
@@ -158,7 +165,20 @@
         "trust_whatsapp_label": "שאלו אותנו בוואטסאפ",
         "sticky_bar": true,
         "padding_top": 28,
-        "padding_bottom": 40
+        "padding_bottom": 40,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "related": {
@@ -170,8 +190,22 @@
         "hide_sold_out": true,
         "products_limit": 12,
         "exclude_handles": "all,frontpage,promoted,reservable-eilat",
+        "fallback_collection": "",
         "padding_top": 50,
-        "padding_bottom": 40
+        "padding_bottom": 40,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "recently_viewed": {
@@ -180,7 +214,20 @@
         "heading": "צפיתם לאחרונה",
         "products_limit": 10,
         "padding_top": 10,
-        "padding_bottom": 40
+        "padding_bottom": 40,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     }
   },

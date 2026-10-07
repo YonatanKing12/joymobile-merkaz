@@ -121,6 +121,7 @@
         "label": "באנרים ראשיים",
         "page_heading": "JOY Mobile — מוצרי חשמל, מחשבים ואלקטרוניקה",
         "show_page_heading": false,
+        "infinite": true,
         "autoplay": true,
         "autoplay_speed": 6,
         "show_arrows": true,
@@ -128,7 +129,20 @@
         "peek": false,
         "padding_top": 30,
         "padding_top_mobile": 14,
-        "padding_bottom": 0
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "usp": {
@@ -180,7 +194,20 @@
       "settings": {
         "heading": "למה לקנות ב-JOY Mobile",
         "padding_top": 16,
-        "padding_bottom": 6
+        "padding_bottom": 16,
+        "ss_visibility": "all",
+        "ss_background": "linear-gradient(0deg, rgba(228, 247, 249, 0), rgba(228, 247, 249, 0) 100%)",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "categories": {
@@ -261,7 +288,20 @@
         "autoplay": false,
         "autoplay_speed": 5,
         "padding_top": 5,
-        "padding_bottom": 30
+        "padding_bottom": 27,
+        "ss_visibility": "all",
+        "ss_background": "linear-gradient(89deg, rgba(224, 255, 242, 1), rgba(224, 254, 241, 1) 100%)",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "products-smartphones": {
@@ -269,29 +309,86 @@
       "settings": {
         "title": "סמארטפונים",
         "collection": "smartphones",
+        "pinned_products": [],
         "first_collection": "iphone-17-18",
         "products_limit": 10,
         "hide_sold_out": true,
+        "photos_only": false,
+        "title_size": "medium",
+        "background": "",
         "show_view_all": true,
         "view_all_label": "לכל הסמארטפונים",
-        "padding_top": 44,
-        "padding_bottom": 0
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "linear-gradient(0deg, rgba(228, 247, 249, 0), rgba(228, 247, 249, 0) 100%)",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "promo-banners": {
       "type": "promo-banners",
       "blocks": {
-        "banner-1": { "type": "banner", "settings": {} },
-        "banner-2": { "type": "banner", "settings": {} }
+        "banner-1": {
+          "type": "banner",
+          "settings": {
+            "link": "",
+            "alt": "",
+            "label": "",
+            "show_on": "all"
+          }
+        },
+        "banner-2": {
+          "type": "banner",
+          "settings": {
+            "link": "",
+            "alt": "",
+            "label": "",
+            "show_on": "all"
+          }
+        }
       },
-      "block_order": ["banner-1", "banner-2"],
+      "block_order": [
+        "banner-1",
+        "banner-2"
+      ],
+      "disabled": true,
       "settings": {
+        "heading": "",
+        "banner_size": "image",
+        "banner_height": 200,
+        "banner_size_mobile": "same",
+        "banner_height_mobile": 160,
+        "image_position": "center",
+        "full_width": false,
         "same_height": true,
         "mobile_layout": "stack",
         "gap": 16,
         "radius": 16,
         "padding_top": 44,
-        "padding_bottom": 0
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "products-tablets": {
@@ -299,12 +396,30 @@
       "settings": {
         "title": "טאבלטים",
         "collection": "tablets",
+        "pinned_products": [],
+        "first_collection": "",
         "products_limit": 10,
         "hide_sold_out": true,
+        "photos_only": false,
+        "title_size": "medium",
+        "background": "#e0fff2",
         "show_view_all": true,
         "view_all_label": "לכל הטאבלטים",
         "padding_top": 44,
-        "padding_bottom": 0
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "products-vacuums": {
@@ -312,12 +427,30 @@
       "settings": {
         "title": "שואבי אבק",
         "collection": "vacuums",
+        "pinned_products": [],
+        "first_collection": "",
         "products_limit": 10,
         "hide_sold_out": true,
+        "photos_only": false,
+        "title_size": "medium",
+        "background": "",
         "show_view_all": true,
         "view_all_label": "לכל שואבי האבק",
         "padding_top": 44,
-        "padding_bottom": 0
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "products-audio": {
@@ -325,12 +458,30 @@
       "settings": {
         "title": "שמע ואוזניות",
         "collection": "audio",
+        "pinned_products": [],
+        "first_collection": "",
         "products_limit": 10,
         "hide_sold_out": true,
+        "photos_only": false,
+        "title_size": "medium",
+        "background": "#e0fff2",
         "show_view_all": true,
         "view_all_label": "לכל מוצרי השמע",
         "padding_top": 44,
-        "padding_bottom": 0
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "products-computers": {
@@ -338,12 +489,30 @@
       "settings": {
         "title": "מחשבים וגיימינג",
         "collection": "computers-gaming",
+        "pinned_products": [],
+        "first_collection": "",
         "products_limit": 10,
         "hide_sold_out": true,
+        "photos_only": false,
+        "title_size": "medium",
+        "background": "",
         "show_view_all": true,
         "view_all_label": "לכל המחשבים והגיימינג",
         "padding_top": 44,
-        "padding_bottom": 50
+        "padding_bottom": 50,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "brands": {
@@ -427,7 +596,20 @@
       "settings": {
         "heading": "המותגים המובילים",
         "padding_top": 44,
-        "padding_bottom": 24
+        "padding_bottom": 24,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "about": {
@@ -440,7 +622,20 @@
         "button_label": "עוד עלינו",
         "button_link": "shopify://pages/about",
         "padding_top": 0,
-        "padding_bottom": 20
+        "padding_bottom": 20,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "guides": {
@@ -455,7 +650,20 @@
         "autoplay": false,
         "autoplay_speed": 5,
         "padding_top": 0,
-        "padding_bottom": 0
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     },
     "testimonials": {
@@ -467,7 +675,20 @@
         "autoplay": false,
         "autoplay_speed": 6,
         "padding_top": 30,
-        "padding_bottom": 20
+        "padding_bottom": 20,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
       }
     }
   },

@@ -1,5 +1,15 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "current": {
+    "brand_name": "JOY Mobile",
     "logo_width": 190,
     "logo_width_mobile": 130,
     "color_brand": "#309d7a",
@@ -14,6 +24,8 @@
     "color_border": "#e1e1e7",
     "color_header_bg": "#060433",
     "color_header_text": "#ffffff",
+    "color_nav_bg": "#3b9c79",
+    "color_nav_text": "#ffffff",
     "color_footer_bg": "#060433",
     "color_footer_text": "#ffffff",
     "color_button_bg": "#060433",
@@ -30,6 +42,7 @@
     "color_badge_low_text": "#ffffff",
     "color_badge_soldout_bg": "#55557a",
     "color_badge_soldout_text": "#ffffff",
+    "font_family": "assistant",
     "type_body_weight": "400",
     "type_heading_weight": "700",
     "type_mobile_boost": false,
@@ -47,7 +60,6 @@
     "card_show_secondary_image": false,
     "card_show_swatches": true,
     "card_swatch_limit": 5,
-    "badge_show_tax_free": true,
     "badge_show_new": true,
     "badge_new_tags": "חדש,new",
     "badge_show_low_stock": true,
@@ -55,44 +67,42 @@
     "badge_show_sold_out": true,
     "tax_free_labels": false,
     "price_show_label": false,
+    "badge_show_tax_free": true,
     "price_show_compare": true,
     "price_show_from": false,
+    "vat_price_metafield": "",
     "cart_type": "drawer",
     "cart_note_enabled": true,
     "cart_pickup_message": "משלוח עד הבית תוך 7 ימי עסקים · חינם בהזמנה מעל 3,000 ₪",
-    "schema_pickup_only": false,
     "cart_vat_consent_enabled": false,
     "cart_vat_consent_text": "אני מאשר/ת שלא רכשתי באילת מוצר אחר מאותה קטגוריה ב-90 הימים שקדמו להזמנה — זהו תנאי של הפטור ממע״מ.",
     "store_street": "",
     "store_city": "",
+    "store_zip": "",
+    "store_hours": "א׳–ה׳ 10:00–23:00\nו׳ 10:00–14:00\nמוצאי שבת: משעתיים אחרי צאת השבת עד 23:00",
     "store_business_type": "ElectronicsStore",
     "contact_phone": "03-511-7171",
     "contact_email": "joymobileltd@gmail.com",
     "contact_whatsapp": "972533255020",
     "contact_whatsapp_message": "היי, הגעתי מהאתר ורציתי לשאול על מוצר",
-    "a11y_panel_enabled": true,
-    "wishlist_enabled": true,
-    "floating_wishlist_enabled": false,
-    "floating_whatsapp_enabled": false,
-    "predictive_search_enabled": true,
-    "predictive_search_show_price": true,
-    "search_trending": "אייפון, סמסונג, אוזניות, מחשב נייד, שעון חכם, טאבלט, מטען, רחפן",
-    "wishlist_page": "wishlist",
-    "branches_page": "branches",
-    "a11y_statement_page": "accessibility",
     "social_facebook_link": "https://www.facebook.com/JoyMobileEilat",
     "social_instagram_link": "https://www.instagram.com/joymobileeilat/",
     "social_telegram_link": "https://t.me/JoyMobile1",
     "social_tiktok_link": "",
     "social_youtube_link": "",
-    "store_zip": "",
-    "store_hours": "א׳–ה׳ 10:00–23:00\nו׳ 10:00–14:00\nמוצאי שבת: משעתיים אחרי צאת השבת עד 23:00",
-    "vat_price_metafield": "",
-    "color_nav_bg": "#3b9c79",
-    "color_nav_text": "#ffffff",
+    "branches_page": "branches",
+    "a11y_panel_enabled": true,
+    "a11y_statement_page": "accessibility",
+    "wishlist_enabled": true,
+    "wishlist_page": "wishlist",
+    "floating_wishlist_enabled": false,
+    "floating_whatsapp_enabled": false,
     "floating_back_to_top_enabled": true,
-    "brand_name": "JOY Mobile",
-    "font_family": "assistant"
+    "predictive_search_enabled": true,
+    "predictive_search_show_price": true,
+    "search_trending": "אייפון, סמסונג, אוזניות, מחשב נייד, שעון חכם, טאבלט, מטען, רחפן",
+    "content_for_index": [],
+    "schema_pickup_only": false
   },
   "presets": {
     "JOY Mobile": {
@@ -156,7 +166,6 @@
       "cart_type": "drawer",
       "cart_note_enabled": true,
       "cart_pickup_message": "משלוח עד הבית תוך 7 ימי עסקים · חינם בהזמנה מעל 3,000 ₪",
-    "schema_pickup_only": false,
       "cart_vat_consent_enabled": false,
       "cart_vat_consent_text": "אני מאשר/ת שלא רכשתי באילת מוצר אחר מאותה קטגוריה ב-90 הימים שקדמו להזמנה — זהו תנאי של הפטור ממע״מ.",
       "store_street": "",
@@ -188,7 +197,8 @@
       "color_nav_text": "#ffffff",
       "floating_back_to_top_enabled": true,
       "brand_name": "JOY Mobile",
-      "font_family": "assistant"
+      "font_family": "assistant",
+      "schema_pickup_only": false
     }
   }
 }
