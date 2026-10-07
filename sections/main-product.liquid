@@ -345,6 +345,14 @@
     {%- endif %}
     {%- if section.settings.desktop_scale != blank and section.settings.desktop_scale != '100' %}
     --pdp-scale: {{ section.settings.desktop_scale | divided_by: 100.0 }};
+    {%- case section.settings.desktop_scale_text -%}
+      {%- when 'zoom' %}
+    --pdp-text: var(--pdp-scale);
+      {%- when '90' %}
+    --pdp-text: 0.9;
+      {%- else %}
+    --pdp-text: 1;
+    {%- endcase -%}
     {%- endif %}
   }
 {%- endstyle -%}
@@ -544,6 +552,27 @@
         }
       ],
       "default": "100"
+    },
+    {
+      "type": "select",
+      "id": "desktop_scale_text",
+      "label": "גודל הטקסט כשהעמוד מוקטן",
+      "info": "רלוונטי רק כשהעמוד מוקטן במחשב. \"גודל מלא\" מקטין את התמונות, הכפתורים והמרווחים ומשאיר את הטקסט בגודל הרגיל.",
+      "options": [
+        {
+          "value": "full",
+          "label": "גודל מלא"
+        },
+        {
+          "value": "90",
+          "label": "קטן ב-10%"
+        },
+        {
+          "value": "zoom",
+          "label": "קטן יחד עם העמוד"
+        }
+      ],
+      "default": "full"
     },
     {
       "type": "header",

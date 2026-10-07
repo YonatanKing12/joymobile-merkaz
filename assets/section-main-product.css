@@ -1169,10 +1169,27 @@ html.no-js .product-wishlist {
 /* "גודל העמוד במחשב" (section setting desktop_scale): the whole product section at 90% or 80% from 992px,
    like the browser's own zoom. The page-width cap is divided by the same factor, so the section keeps the
    page's width on screen and only its contents get smaller. Phones keep full size (inputs under 16px would
-   make iOS zoom on focus). */
+   make iOS zoom on focus).
+   "גודל הטקסט כשהעמוד מוקטן" (desktop_scale_text) then sets the text apart from the zoom: every size on the
+   page comes from the --text-* tokens or the inherited 1rem, so dividing those by the zoom and multiplying by
+   --pdp-text (1, 0.9, or the zoom itself) gives text at that share of its normal size while images, buttons
+   and spacing stay zoomed. Still in rem, so the root's fluid size and the a11y text steps carry through. */
 @media (min-width: 992px) {
   .main-product--scaled {
+    --pdp-text-factor: calc(var(--pdp-text, var(--pdp-scale, 1)) / var(--pdp-scale, 1));
+    --text-2xs: calc(0.6875rem * var(--pdp-text-factor));
+    --text-xs: calc(0.75rem * var(--pdp-text-factor));
+    --text-sm: calc(0.8125rem * var(--pdp-text-factor));
+    --text-md: calc(0.875rem * var(--pdp-text-factor));
+    --text-lg: calc(0.9375rem * var(--pdp-text-factor));
+    --text-body: calc(1rem * var(--pdp-text-factor));
+    --text-xl: calc(1.125rem * var(--pdp-text-factor));
+    --text-2xl: calc(1.25rem * var(--pdp-text-factor));
+    --text-3xl: calc(1.5rem * var(--pdp-text-factor));
+    --text-4xl: calc(1.875rem * var(--pdp-text-factor));
+    --text-5xl: calc(2.5rem * var(--pdp-text-factor));
     zoom: var(--pdp-scale, 1);
     max-width: calc((var(--page-width) + 2 * var(--page-gutter)) / var(--pdp-scale, 1));
+    font-size: var(--text-body);
   }
 }

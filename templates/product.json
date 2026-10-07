@@ -152,7 +152,8 @@
         "tab_terms"
       ],
       "settings": {
-        "desktop_scale": "100",
+        "desktop_scale": "80",
+        "desktop_scale_text": "full",
         "gallery_zoom": true,
         "gallery_thumbnails": true,
         "gallery_loop": true,
