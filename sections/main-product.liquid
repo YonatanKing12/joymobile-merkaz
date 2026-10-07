@@ -7,8 +7,8 @@
     summary (brand logo, short description + "קרא עוד", מק"ט + "פרטים טכניים נוספים"),
     buy column (variant picker, price, buttons, wishlist, info lines, text, Liquid, apps) and, from
     the "למה לקוחות קונים אצלנו" box (trust_point blocks + image + WhatsApp) under it. From 992px the
-    trust box and "השלימו את הערכה" trade places: the trust box goes under the gallery and the add-ons
-    card takes the trust box's place under the buy column (inline script after .product).
+    info lines (stock, pickup, warranty, payment) and the trust box move under the gallery together,
+    and "השלימו את הערכה" takes their place under the buy column (inline script after .product).
   - "מידע נוסף": description / specs / free tabs as an exclusive <details> group, an accordion at
     every width; all panels start closed, and "קרא עוד" / "פרטים טכניים נוספים" open their panel.
   - Mobile: a fixed buy bar that slides in once the in-page buttons scroll away.
@@ -382,8 +382,8 @@
         badges: section.settings.gallery_badges
       -%}
       {%- comment -%}
-        From 992px the "למה לקוחות קונים אצלנו" box sits here, under the gallery; the script after
-        .product moves it in. Below that it stays under the buy column (server render).
+        From 992px the info lines and the "למה לקוחות קונים אצלנו" box sit here, under the gallery;
+        the script after .product moves them in. Below that they stay in the buy column (server render).
       {%- endcomment -%}
       <div class="product__addons-slot" data-addons-slot></div>
     </div>
@@ -461,8 +461,9 @@
   </div>
 
   {%- comment -%}
-    Desktop only: the trust box and the add-ons card trade places. The trust box moves under the
-    gallery and the add-ons card takes its place, last in the info column under the buy column.
+    Desktop only: the info lines (stock, pickup, warranty, payment) and the trust box move under the
+    gallery, in that order, and the add-ons card takes their place, last in the info column. A
+    comment marker keeps the info lines' spot in the buy column for the way back below 992px.
     Inline and right after the markup, so the move happens while the page is parsed, before
     <product-addons> is upgraded and before either is painted in its phone position. Only the
     elements move; the card's stylesheet and script stay in its block wrapper. Variant re-renders
@@ -477,14 +478,19 @@
       const aside = panels?.querySelector('.product__aside');
       const home = root?.querySelector('.product__buy .product-block--addons');
       const card = home?.querySelector('product-addons');
-      if (!slot || !panels || (!aside && !card)) return;
+      const lines = root?.querySelector('.product__buy .product-block--lines');
+      const mark = lines && document.createComment('product-block--lines');
+      lines?.before(mark);
+      if (!slot || !panels || (!aside && !card && !lines)) return;
       const wide = matchMedia('(min-width: 992px)');
       const place = () => {
         if (wide.matches) {
+          if (lines && lines.parentElement !== slot) slot.prepend(lines);
           if (aside && aside.parentElement !== slot) slot.append(aside);
           if (card && card.parentElement !== panels) panels.append(card);
         } else {
           if (card && card.parentElement !== home) home.append(card);
+          if (lines && lines.parentElement === slot) mark.after(lines);
           if (aside && aside.parentElement !== panels) panels.append(aside);
         }
       };
