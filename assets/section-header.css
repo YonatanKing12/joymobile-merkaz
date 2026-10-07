@@ -861,7 +861,11 @@ html.a11y-no-motion .menu-drawer__submenu {
     /* RTL: the first area is the rightmost, so the controls are named first and the logo last, which
        keeps the row as it has always read — logo on the left, controls on the right. */
     grid-template-areas: "actions search logo";
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    /* The controls track never drops below its content (minmax(max-content, 1fr)): since the
+       אילת/ארצי switch joined the row, the controls outgrew an equal half below about 2200px and slid
+       under the search field (142px of overlap at 1500). The search stays on the true midpoint
+       whenever there is room for it and gives way leftward when there is not. */
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr);
   }
 
   .header__search {
