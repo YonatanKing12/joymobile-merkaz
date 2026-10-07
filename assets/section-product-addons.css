@@ -428,10 +428,12 @@ product-addons:has([data-pa-check]:checked) .pa__hint {
 }
 
 /* The final price moves to the page's own price by the buy buttons (assets/product-addons.js,
-   paintPrice). From 992px the card sits right above that price, so its own total row would repeat
-   it; on phones the card is further down the page and keeps the row. */
+   paintPrice). From 992px the card sits right above that price and those buttons, so its whole bottom
+   row (divider, hint, total) would only repeat them and goes. Not while the device is sold out: then
+   the row holds the button that adds the accessories on their own. Errors and the live region sit
+   outside the row and still show. On phones the card is further down the page and keeps the row. */
 @media (min-width: 992px) {
-  .product__buy > product-addons .pa__sum {
+  .product__buy > product-addons:not([data-pa-standalone]) .pa__bar {
     display: none;
   }
 }
