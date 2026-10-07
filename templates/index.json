@@ -217,6 +217,7 @@
           "type": "circle",
           "settings": {
             "collection": "smartphones",
+            "image": "shopify://shop_images/01-smartphones-1024.png",
             "label": "סמארטפונים"
           }
         },
@@ -224,6 +225,7 @@
           "type": "circle",
           "settings": {
             "collection": "tablets",
+            "image": "shopify://shop_images/02-tablets-1024.png",
             "label": "טאבלטים"
           }
         },
@@ -231,6 +233,7 @@
           "type": "circle",
           "settings": {
             "collection": "smartwatches",
+            "image": "shopify://shop_images/03-smartwatches-1024.png",
             "label": "שעונים חכמים"
           }
         },
@@ -238,6 +241,7 @@
           "type": "circle",
           "settings": {
             "collection": "vacuums",
+            "image": "shopify://shop_images/04-vacuums-1024_74ab66a7-44b3-4351-9b1f-49a62a909ef7.png",
             "label": "שואבי אבק"
           }
         },
@@ -245,6 +249,7 @@
           "type": "circle",
           "settings": {
             "collection": "computers-gaming",
+            "image": "shopify://shop_images/05-computers-1024.png",
             "label": "מחשבים"
           }
         },
@@ -252,6 +257,7 @@
           "type": "circle",
           "settings": {
             "collection": "gaming-consoles",
+            "image": "shopify://shop_images/06-consoles-gaming-1024.png",
             "label": "קונסולות וגיימינג"
           }
         },
@@ -259,6 +265,7 @@
           "type": "circle",
           "settings": {
             "collection": "appliances",
+            "image": "shopify://shop_images/07-appliances-1024.png",
             "label": "מוצרי חשמל"
           }
         },
@@ -266,6 +273,7 @@
           "type": "circle",
           "settings": {
             "collection": "audio",
+            "image": "shopify://shop_images/exec-1ff75f9d-4bb8-475e-a078-7ee45fa4f049.png",
             "label": "שמע ואוזניות"
           }
         }
@@ -341,6 +349,7 @@
         "banner-1": {
           "type": "banner",
           "settings": {
+            "image": "shopify://shop_images/JoyCarePlus_phone_protection_banner.png",
             "link": "",
             "alt": "",
             "label": "",
@@ -350,6 +359,7 @@
         "banner-2": {
           "type": "banner",
           "settings": {
+            "image": "shopify://shop_images/Golden_Joy_perfume_collection.png",
             "link": "",
             "alt": "",
             "label": "",
