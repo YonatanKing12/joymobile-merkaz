@@ -67,6 +67,16 @@ class ProductAddons extends HTMLElement {
     };
     this.root.addEventListener('change', this.onQuantity);
 
+    /* The page's own price (the large one by the buy buttons) shows the final price: device plus the
+       ticked accessories, with a "כולל N אביזרים" line under it. Variant changes replace the price
+       region after variant:changed has fired, so a childList observer on its live wrapper paints the
+       new copy too. Only childList, so painting the amount does not re-trigger it. */
+    this.priceLive = this.root.querySelector('.product__price-live');
+    if (this.priceLive) {
+      this.priceObserver = new MutationObserver(() => this.paintPrice());
+      this.priceObserver.observe(this.priceLive, { childList: true });
+    }
+
     /* The first panel loads when the module is near the viewport, not on page load. */
     this.observer = new IntersectionObserver((entries) => {
       if (!entries.some((e) => e.isIntersecting)) return;
@@ -89,6 +99,7 @@ class ProductAddons extends HTMLElement {
     });
     this.offVariant?.();
     this.root?.removeEventListener('change', this.onQuantity);
+    this.priceObserver?.disconnect();
     this.submit?.removeEventListener('click', this.onSubmit);
     this.publish(0);
   }
@@ -238,6 +249,31 @@ class ProductAddons extends HTMLElement {
     }));
   }
 
+  /* The main price: the final total while accessories are ticked and the device is for sale, else the
+     server-rendered price as it was (its markup is kept on the element and put back). Compare-at,
+     saving and VAT lines describe the device alone, so they step aside while the total shows. */
+  paintPrice() {
+    const block = this.priceLive?.closest('.product__price');
+    const amount = this.priceLive?.querySelector('.price__amount');
+    if (!block || !amount) return;
+    const on = this.available && this.priceCount > 0;
+    if (amount.dataset.paHtml === undefined) amount.dataset.paHtml = amount.innerHTML;
+    if (on) amount.textContent = this.money(this.priceTotal);
+    else if (amount.innerHTML !== amount.dataset.paHtml) amount.innerHTML = amount.dataset.paHtml;
+    block.classList.toggle('product__price--addons', on);
+    let note = block.querySelector('.product__price-addons');
+    if (!note) {
+      note = document.createElement('p');
+      note.className = 'product__price-addons';
+      block.append(note);
+    }
+    note.hidden = !on;
+    if (on) {
+      const tpl = this.priceCount === 1 ? this.str.paStrPriceOne : this.str.paStrPriceMany;
+      note.textContent = (tpl || '').replace('{count}', this.priceCount);
+    }
+  }
+
   refresh() {
     const n = this.checked.length;
     const standalone = !this.available;
@@ -248,6 +284,9 @@ class ProductAddons extends HTMLElement {
     /* Sold out: the device is not part of the purchase, so the total is the accessories alone. */
     const base = standalone ? 0 : this.base * this.quantity;
     if (this.totalBox) this.totalBox.textContent = this.money(base + extras);
+    this.priceTotal = base + extras;
+    this.priceCount = n;
+    this.paintPrice();
 
     /* Each pill carries how many of its own tiles are ticked, so a choice made in one group is still
        visible from the others. */

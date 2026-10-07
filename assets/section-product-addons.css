@@ -426,3 +426,32 @@ product-addons:has([data-pa-check]:checked) .pa__hint {
     scroll-behavior: auto;
   }
 }
+
+/* The final price moves to the page's own price by the buy buttons (assets/product-addons.js,
+   paintPrice). From 992px the card sits right above that price, so its own total row would repeat
+   it; on phones the card is further down the page and keeps the row. */
+@media (min-width: 992px) {
+  .product__buy > product-addons .pa__sum {
+    display: none;
+  }
+}
+
+.product__price--addons :is(.price__compare, .price__saving, .price__vat, .price__note) {
+  display: none;
+}
+
+/* In the 1200+ one-row layout the price block is a centred flex row; the note goes under the amount. */
+.product__price--addons {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.product__price-addons {
+  margin: 0.125rem 0 0;
+  color: var(--color-brand-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap; /* the price block is only as wide as its amount in the one-row price + buttons layout */
+}
