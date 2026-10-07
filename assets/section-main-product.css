@@ -1124,8 +1124,9 @@ html.no-js .product-wishlist {
 /* From 992px the info lines and the trust box move under the gallery and "השלימו את הערכה" takes
    their place under the buy column (inline script in sections/main-product). Under the gallery they
    stack with the buy column's gap, below the thumbnails. An empty place takes no room: the gallery
-   slot, and the buy-column block that still holds the card's stylesheet and script. The card in the
-   panels grid takes the grid's gap instead of its own top margin, which would double it. */
+   slot, and the buy-column block that still holds the card's stylesheet and script. Above the price
+   row the card keeps a little air below it; in the panels grid (no price or buttons block) it takes
+   the grid's gap instead of its own top margin, which would double it. */
 .product__addons-slot {
   display: flex;
   flex-direction: column;
@@ -1140,6 +1141,10 @@ html.no-js .product-wishlist {
 
 .product__panels > product-addons {
   margin-block-start: 0;
+}
+
+.product__buy > product-addons {
+  margin-block-end: var(--space-sm);
 }
 
 /* From 992px: gallery and info side by side in equal columns, more air between them. */

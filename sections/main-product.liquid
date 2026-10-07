@@ -8,7 +8,8 @@
     buy column (variant picker, price, buttons, wishlist, info lines, text, Liquid, apps) and, from
     the "למה לקוחות קונים אצלנו" box (trust_point blocks + image + WhatsApp) under it. From 992px the
     info lines (stock, pickup, warranty, payment) and the trust box move under the gallery together,
-    and "השלימו את הערכה" takes their place under the buy column (inline script after .product).
+    and "השלימו את הערכה" moves up between the variant picker and the price row, so the price and the
+    buttons come after it (inline script after .product).
   - "מידע נוסף": description / specs / free tabs as an exclusive <details> group, an accordion at
     every width; all panels start closed, and "קרא עוד" / "פרטים טכניים נוספים" open their panel.
   - Mobile: a fixed buy bar that slides in once the in-page buttons scroll away.
@@ -462,8 +463,10 @@
 
   {%- comment -%}
     Desktop only: the info lines (stock, pickup, warranty, payment) and the trust box move under the
-    gallery, in that order, and the add-ons card takes their place, last in the info column. A
-    comment marker keeps the info lines' spot in the buy column for the way back below 992px.
+    gallery, in that order, and the add-ons card goes just before the price block (or the buttons
+    when there is no price block), so the price row and the buttons follow it. The card stays a child
+    of the buy column, so the one-row price + buttons layout (price followed by buttons) is untouched.
+    A comment marker keeps the info lines' spot in the buy column for the way back below 992px.
     Inline and right after the markup, so the move happens while the page is parsed, before
     <product-addons> is upgraded and before either is painted in its phone position. Only the
     elements move; the card's stylesheet and script stay in its block wrapper. Variant re-renders
@@ -478,6 +481,8 @@
       const aside = panels?.querySelector('.product__aside');
       const home = root?.querySelector('.product__buy .product-block--addons');
       const card = home?.querySelector('product-addons');
+      const buy = root?.querySelector('.product__buy');
+      const anchor = buy?.querySelector(':scope > .product-block--price, :scope > .product-block--buy');
       const lines = root?.querySelector('.product__buy .product-block--lines');
       const mark = lines && document.createComment('product-block--lines');
       lines?.before(mark);
@@ -487,7 +492,8 @@
         if (wide.matches) {
           if (lines && lines.parentElement !== slot) slot.prepend(lines);
           if (aside && aside.parentElement !== slot) slot.append(aside);
-          if (card && card.parentElement !== panels) panels.append(card);
+          if (card && anchor && card.nextElementSibling !== anchor) anchor.before(card);
+          if (card && !anchor && card.parentElement !== panels) panels.append(card);
         } else {
           if (card && card.parentElement !== home) home.append(card);
           if (lines && lines.parentElement === slot) mark.after(lines);
