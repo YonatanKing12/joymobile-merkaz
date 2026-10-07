@@ -6,7 +6,9 @@
   - Info column, in block order within each area:
     summary (brand logo, short description + "קרא עוד", מק"ט + "פרטים טכניים נוספים"),
     buy column (variant picker, price, buttons, wishlist, info lines, text, Liquid, apps) and, from
-    992px beside it, the "למה לקוחות קונים אצלנו" box (trust_point blocks + image + WhatsApp).
+    the "למה לקוחות קונים אצלנו" box (trust_point blocks + image + WhatsApp) under it. From 992px the
+    trust box and "השלימו את הערכה" trade places: the trust box goes under the gallery and the add-ons
+    card takes the trust box's place under the buy column (inline script after .product).
   - "מידע נוסף": description / specs / free tabs as an exclusive <details> group, an accordion at
     every width; all panels start closed, and "קרא עוד" / "פרטים טכניים נוספים" open their panel.
   - Mobile: a fixed buy bar that slides in once the in-page buttons scroll away.
@@ -380,8 +382,8 @@
         badges: section.settings.gallery_badges
       -%}
       {%- comment -%}
-        From 992px the "השלימו את הערכה" card sits here, under the gallery, where the column has room;
-        the script after .product moves it in. Below that it stays in the buy column (server render).
+        From 992px the "למה לקוחות קונים אצלנו" box sits here, under the gallery; the script after
+        .product moves it in. Below that it stays under the buy column (server render).
       {%- endcomment -%}
       <div class="product__addons-slot" data-addons-slot></div>
     </div>
@@ -459,22 +461,32 @@
   </div>
 
   {%- comment -%}
-    Desktop only: the add-ons card moves under the gallery. Inline and right after the markup, so
-    the move happens while the page is parsed, before <product-addons> is upgraded and before the
-    card is painted in its phone position. Only the element moves; its stylesheet and script stay
-    in the block wrapper. The product form finds it anywhere in the section (assets/product.js).
+    Desktop only: the trust box and the add-ons card trade places. The trust box moves under the
+    gallery and the add-ons card takes its place, last in the info column under the buy column.
+    Inline and right after the markup, so the move happens while the page is parsed, before
+    <product-addons> is upgraded and before either is painted in its phone position. Only the
+    elements move; the card's stylesheet and script stay in its block wrapper. Variant re-renders
+    swap [data-swap] regions by name anywhere in the section, and the product form finds the card
+    anywhere in it too (assets/product.js).
   {%- endcomment -%}
   <script>
     (() => {
       const root = document.currentScript.closest('.main-product');
       const slot = root?.querySelector('[data-addons-slot]');
+      const panels = root?.querySelector('.product__panels');
+      const aside = panels?.querySelector('.product__aside');
       const home = root?.querySelector('.product__buy .product-block--addons');
       const card = home?.querySelector('product-addons');
-      if (!slot || !card) return;
+      if (!slot || !panels || (!aside && !card)) return;
       const wide = matchMedia('(min-width: 992px)');
       const place = () => {
-        const target = wide.matches ? slot : home;
-        if (card.parentElement !== target) target.append(card);
+        if (wide.matches) {
+          if (aside && aside.parentElement !== slot) slot.append(aside);
+          if (card && card.parentElement !== panels) panels.append(card);
+        } else {
+          if (card && card.parentElement !== home) home.append(card);
+          if (aside && aside.parentElement !== panels) panels.append(aside);
+        }
       };
       place();
       wide.addEventListener('change', place);
