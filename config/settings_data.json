@@ -92,6 +92,7 @@
     "social_tiktok_link": "",
     "social_youtube_link": "",
     "branches_page": "branches",
+    "schema_pickup_only": false,
     "a11y_panel_enabled": true,
     "a11y_statement_page": "accessibility",
     "wishlist_enabled": true,
@@ -103,7 +104,13 @@
     "predictive_search_show_price": true,
     "search_trending": "אייפון, סמסונג, אוזניות, מחשב נייד, שעון חכם, טאבלט, מטען, רחפן",
     "content_for_index": [],
-    "schema_pickup_only": false
+    "blocks": {
+      "7313114205116804392": {
+        "type": "shopify://apps/propel-replays/blocks/app-embed/64fbaaa3-2d4a-49f3-aba7-86e92e44999f",
+        "disabled": false,
+        "settings": {}
+      }
+    }
   },
   "presets": {
     "JOY Mobile": {
