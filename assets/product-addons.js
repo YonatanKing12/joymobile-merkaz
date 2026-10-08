@@ -11,8 +11,10 @@
  * /search for that query, so the matching happens in Shopify's search index over the whole
  * catalogue instead of in Liquid over a collection the page cannot filter.
  *
- * Nothing is fetched until a panel is first shown: the opening panel loads when the module scrolls
- * into view, the rest when their pill is pressed. A product page that nobody scrolls costs nothing.
+ * Nothing is fetched until the module nears the viewport; then every group loads, one after another.
+ * What fits differs per device and changes as stock comes and goes, so the card shapes itself to the
+ * answer: a group that comes back empty loses its pill, the first group with tiles opens, and a
+ * device with nothing to offer in any group shows no card at all. A page nobody scrolls costs nothing.
  *
  * Every price on a tile is server-rendered. The running total has to add numbers, so it cannot be,
  * and it is printed with the shop's own money_format string handed over in data-pa-money — which is
@@ -77,11 +79,11 @@ class ProductAddons extends HTMLElement {
       this.priceObserver.observe(this.priceLive, { childList: true });
     }
 
-    /* The first panel loads when the module is near the viewport, not on page load. */
+    /* The groups load when the module is near the viewport, not on page load. */
     this.observer = new IntersectionObserver((entries) => {
       if (!entries.some((e) => e.isIntersecting)) return;
       this.observer.disconnect();
-      this.load(this.panels.find((p) => !p.hidden) || this.panels[0]);
+      this.loadAll();
     }, { rootMargin: '300px' });
     this.observer.observe(this);
     this.refresh();
@@ -147,7 +149,9 @@ class ProductAddons extends HTMLElement {
     return (!this.available && this.str[`${key}Solo`]) || this.str[key] || '';
   }
 
-  get tabs() { return this.tablist ? [...this.tablist.querySelectorAll('[role="tab"]')] : []; }
+  get allTabs() { return this.tablist ? [...this.tablist.querySelectorAll('[role="tab"]')] : []; }
+  /* The pills a shopper can reach: a group with nothing for this device is gone from the row. */
+  get tabs() { return this.allTabs.filter((tab) => !tab.hidden); }
   get checked() { return [...this.querySelectorAll('[data-pa-check]')].filter((c) => c.checked); }
 
   handleEvent(e) {
@@ -172,7 +176,7 @@ class ProductAddons extends HTMLElement {
   }
 
   activate(tab, focus) {
-    this.tabs.forEach((other) => {
+    this.allTabs.forEach((other) => {
       const on = other === tab;
       other.setAttribute('aria-selected', on ? 'true' : 'false');
       other.tabIndex = on ? 0 : -1;
@@ -209,6 +213,7 @@ class ProductAddons extends HTMLElement {
       list.innerHTML = '';
       items.forEach((li) => list.appendChild(li));
       panel.dataset.paLoaded = 'true';
+      panel.dataset.paCount = String(items.length);
       if (!items.length) {
         list.hidden = true;
         if (empty) empty.hidden = false;
@@ -225,7 +230,47 @@ class ProductAddons extends HTMLElement {
       list.hidden = true;
       if (empty) empty.hidden = false;
     }
+    this.prune();
     this.refresh();
+  }
+
+  /* Every group, one request at a time: the search endpoint answers a burst with empty sets (see
+     load), and a group that wrongly came back empty would now lose its pill, not just show a note. */
+  async loadAll() {
+    for (const panel of this.panels) {
+      if (!this.isConnected) return;
+      await this.load(panel);
+      /* A pill press (or prune opening the next group) may have started this one already. */
+      while (panel.dataset.paLoaded === 'pending' && this.isConnected) {
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    }
+  }
+
+  /* Shape the card to what this device actually has. A group whose search came back empty loses its
+     pill; if the open group is one of them, the first group that has tiles (or has not answered yet)
+     opens instead. When every group has answered and none has a tile, the whole card goes. A group
+     whose request failed keeps its pill and its note, so pressing it tries again. */
+  prune() {
+    const panelOf = (tab) => document.getElementById(tab.getAttribute('aria-controls'));
+    const isEmpty = (panel) => panel?.dataset.paLoaded === 'true' && panel.dataset.paCount === '0';
+    this.allTabs.forEach((tab) => {
+      if (!isEmpty(panelOf(tab))) return;
+      tab.hidden = true;
+      panelOf(tab).hidden = true;
+      if (tab.getAttribute('aria-selected') === 'true') {
+        tab.setAttribute('aria-selected', 'false');
+        tab.tabIndex = -1;
+      }
+    });
+    const visible = this.tabs;
+    if (visible.length && !visible.some((tab) => tab.getAttribute('aria-selected') === 'true')) {
+      const filled = visible.find((tab) => Number(panelOf(tab)?.dataset.paCount) > 0);
+      this.activate(filled || visible[0], false);
+    }
+    const done = this.panels.every((panel) => panel.dataset.paLoaded === 'true');
+    this.hidden = done && !visible.length;
+    if (this.hidden) this.checked.forEach((c) => { c.checked = false; });
   }
 
   /* The shop's money_format, filled in. Only the four amount tokens Shopify defines are handled,
