@@ -95,6 +95,17 @@ class ProductAddons extends HTMLElement {
       this.loadAll();
     }, { rootMargin: '300px' });
     this.observer.observe(this);
+
+    /* Carousel layout: the swipe hint shows only while the row is wider than the card, so four cards
+       that all fit on a wide screen don't ask for a swipe. A hidden panel's row measures 0 and the
+       observer fires again when its pill shows it or the window resizes. */
+    this.rowObserver = new ResizeObserver((entries) => {
+      entries.forEach((entry) => this.fitSwipe(entry.target.closest('[data-pa-panel]')));
+    });
+    this.panels.forEach((panel) => {
+      const list = panel.querySelector('[data-pa-list]');
+      if (list) this.rowObserver.observe(list);
+    });
     this.refresh();
   }
 
@@ -103,6 +114,7 @@ class ProductAddons extends HTMLElement {
      must not stay 'pending', or load() would skip that panel for the rest of the visit. */
   disconnectedCallback() {
     this.observer?.disconnect();
+    this.rowObserver?.disconnect();
     this.controllers?.forEach((c) => c.abort());
     this.controllers = [];
     this.panels?.forEach((panel) => {
@@ -201,6 +213,16 @@ class ProductAddons extends HTMLElement {
     if (panel) this.load(panel);
   }
 
+  /* Carousel layout: "4 אפשרויות · החליקו לעוד" under a row of cards that does not fit its width. */
+  fitSwipe(panel) {
+    const swipe = panel?.querySelector('[data-pa-swipe]');
+    const list = panel?.querySelector('[data-pa-list]');
+    if (!swipe || !list) return;
+    const count = Number(panel.dataset.paCount) || 0;
+    swipe.textContent = (this.str.paStrSwipe || '').replace('{count}', count);
+    swipe.hidden = count < 2 || list.scrollWidth <= list.clientWidth + 1;
+  }
+
   /* One retry on an empty answer. The search endpoint returns an empty result set under a burst of
      requests — measured: the same four queries came back 0, then 4 on every one of four later
      rounds. Without the retry a single blip would leave "no accessories" on a group that has four,
@@ -227,12 +249,7 @@ class ProductAddons extends HTMLElement {
       items.forEach((li) => list.appendChild(li));
       panel.dataset.paLoaded = 'true';
       panel.dataset.paCount = String(items.length);
-      /* Carousel layout: "4 אפשרויות · החליקו לעוד" under a row that has more than one card. */
-      const swipe = panel.querySelector('[data-pa-swipe]');
-      if (swipe) {
-        swipe.textContent = (this.str.paStrSwipe || '').replace('{count}', items.length);
-        swipe.hidden = items.length < 2;
-      }
+      this.fitSwipe(panel);
       if (!items.length) {
         list.hidden = true;
         if (empty) empty.hidden = false;
