@@ -30,11 +30,21 @@
         assign cw_variant = ' (' | append: cw_item.variant.title | append: ')'
       endunless
       assign cw_price = cw_item.final_line_price | money_without_trailing_zeros
+      assign cw_path = cw_item.url
+      # A deposit line (snippets/cart-line) names the device it reserves and links to it.
+      if settings.deposit_product != blank and cw_item.product.id == settings.deposit_product.id and cw_item.properties['_full_price'] != blank
+        assign cw_title = 'deposit.line_title' | t: product: cw_item.properties['_title']
+        assign cw_variant = ''
+        if cw_item.properties['_variant_title'] != blank
+          assign cw_variant = ' (' | append: cw_item.properties['_variant_title'] | append: ')'
+        endif
+        assign cw_path = cw_item.properties['_url'] | default: cw_item.url
+      endif
       assign cw_join = '?'
-      if cw_item.url contains '?'
+      if cw_path contains '?'
         assign cw_join = '&'
       endif
-      assign cw_url = request.origin | append: cw_item.url | append: cw_join | append: 'utm_source=whatsapp&utm_medium=cart'
+      assign cw_url = request.origin | append: cw_path | append: cw_join | append: 'utm_source=whatsapp&utm_medium=cart'
       # _html keys: t would HTML-escape the interpolated title (&quot; in the message); the text is
       # URL-encoded as a whole by whatsapp-url.
       assign cw_line = 'cart.whatsapp.line_html' | t: quantity: cw_item.quantity, title: cw_title, variant: cw_variant, price: cw_price

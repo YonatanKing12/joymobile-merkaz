@@ -726,6 +726,21 @@
       "created_ascending": "ישנים"
     }
   },
+  "deposit": {
+    "legend": "איך תרצו לשלם?",
+    "full_title": "תשלום מלא באתר",
+    "full_note": "משלמים הכל עכשיו ואוספים מהסניף",
+    "title": "שריון במקדמה",
+    "note": "את היתרה, {{ balance }}, משלמים בסניף באיסוף",
+    "property_product": "מוצר",
+    "property_full_price": "מחיר מלא",
+    "property_balance": "יתרה לתשלום בסניף",
+    "line_title": "מקדמה לשריון: {{ product }}",
+    "chip": "מקדמה",
+    "pay_now": "לתשלום עכשיו",
+    "balance_total": "יתרה לתשלום בסניף באיסוף",
+    "not_for_sale": "המקדמה נוספת לעגלה מדף המוצר שרוצים לשריין, באפשרות \"שריון במקדמה\"."
+  },
   "pickup": {
     "available_at": "זמין לאיסוף: {{ location }}",
     "unavailable_at": "לא זמין כרגע לאיסוף: {{ location }}"

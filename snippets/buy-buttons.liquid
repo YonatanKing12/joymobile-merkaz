@@ -19,6 +19,14 @@
   The accessories ticked in "השלימו את הערכה" (snippets/product-addons) are added by these same
   buttons, in the same request as the device (assets/product.js); the buttons show "+N" meanwhile.
   Quantity: min 1; max = stock when Shopify tracks it and overselling is off.
+  Pay in full or reserve with a deposit (theme settings › עגלה › מקדמה לשריון): on a variant that costs
+  at least the threshold, two options above the buttons, "תשלום מלא באתר" (checked) and "שריון
+  במקדמה". With the deposit the same buttons add the deposit product instead of the device, one per
+  unit, carrying the device in its properties: shown ones (product, full price, balance at the branch,
+  printed at checkout and on the order) and private ones (_title, _variant_title, _variant_id, _sku,
+  _full_price in agorot, _handle, _url, _image) for the cart (snippets/cart-line). <deposit-choice> (@theme/product) keeps
+  the choice through the re-render of a variant change. Without JavaScript the device is added at its
+  full price. The deposit product's own page prints a note instead of buttons.
 
   part 'sticky' — `[data-swap="sticky"]`: a bar fixed to the bottom of phone screens with the
   same two CTAs, submitting the same form through `form="…"` (so it uses the chosen
@@ -74,7 +82,13 @@
   assign bb_available = bb_variant.available
 -%}
 
-{%- if bb_part == 'sticky' -%}
+{%- if settings.deposit_product != blank and product.id == settings.deposit_product.id -%}
+  {%- unless bb_part == 'sticky' -%}
+    <div class="product-buy" data-swap="buttons">
+      <p class="product-buy__note">{{ 'deposit.not_for_sale' | t }}</p>
+    </div>
+  {%- endunless -%}
+{%- elsif bb_part == 'sticky' -%}
   {%- if bb_available -%}
     <div class="product-sticky" data-swap="sticky" role="region" aria-label="{{ 'products.product.sticky_label' | t }}">
       <div class="product-sticky__inner">
@@ -137,6 +151,15 @@
     endif
 
     assign bb_qty_id = 'ProductQuantity-' | append: section_id
+
+    assign bb_deposit = nil
+    if settings.deposit_product != blank and bb_available
+      assign bb_deposit_variant = settings.deposit_product.selected_or_first_available_variant
+      assign bb_deposit_min = settings.deposit_min_price | default: 0 | times: 100
+      if bb_deposit_variant.available and bb_variant.price >= bb_deposit_min and bb_variant.price > bb_deposit_variant.price
+        assign bb_deposit = bb_deposit_variant
+      endif
+    endif
   -%}
   <div class="product-buy" data-swap="buttons">
     <product-form class="product-form" data-mode="cart" data-section-id="{{ section_id }}">
@@ -169,6 +192,60 @@
         {%- endunless -%}
 
         {%- if bb_available -%}
+          {%- if bb_deposit -%}
+            {%- liquid
+              assign bb_dep_name = product.title
+              unless product.has_only_default_variant
+                assign bb_dep_name = bb_dep_name | append: ' · ' | append: bb_variant.title
+              endunless
+              assign bb_dep_full = bb_variant.price | money_without_trailing_zeros
+              assign bb_dep_balance = bb_variant.price | minus: bb_deposit.price | money_without_trailing_zeros
+              assign bb_dep_image = bb_variant.featured_image | default: product.featured_image
+              assign bb_dep_image_url = ''
+              if bb_dep_image
+                assign bb_dep_image_url = bb_dep_image | image_url: width: 240
+              endif
+              assign bb_dep_key_product = 'deposit.property_product' | t
+              assign bb_dep_key_full = 'deposit.property_full_price' | t
+              assign bb_dep_key_balance = 'deposit.property_balance' | t
+            -%}
+            <deposit-choice class="deposit-choice" data-variant="{{ bb_deposit.id }}">
+              <fieldset class="deposit-choice__set">
+                <legend class="deposit-choice__legend">{{ 'deposit.legend' | t }}</legend>
+                <label class="deposit-choice__option">
+                  <input class="deposit-choice__radio" type="radio" name="pay_mode" value="full" checked>
+                  <span class="deposit-choice__text">
+                    <span class="deposit-choice__title">{{ 'deposit.full_title' | t }}</span>
+                    <span class="deposit-choice__note">{{ 'deposit.full_note' | t }}</span>
+                  </span>
+                  <span class="deposit-choice__price">{{ bb_dep_full }}</span>
+                </label>
+                <label class="deposit-choice__option">
+                  <input class="deposit-choice__radio" type="radio" name="pay_mode" value="deposit">
+                  <span class="deposit-choice__text">
+                    <span class="deposit-choice__title">{{ 'deposit.title' | t }}</span>
+                    <span class="deposit-choice__note">{{ 'deposit.note' | t: balance: bb_dep_balance }}</span>
+                  </span>
+                  <span class="deposit-choice__price">{{ bb_deposit.price | money_without_trailing_zeros }}</span>
+                </label>
+              </fieldset>
+              <script type="application/json" data-deposit-properties>
+                {
+                  {{ bb_dep_key_product | json }}: {{ bb_dep_name | json }},
+                  {{ bb_dep_key_full | json }}: {{ bb_dep_full | json }},
+                  {{ bb_dep_key_balance | json }}: {{ bb_dep_balance | json }},
+                  "_title": {{ product.title | json }},
+                  "_variant_title": {% if product.has_only_default_variant %}""{% else %}{{ bb_variant.title | json }}{% endif %},
+                  "_variant_id": "{{ bb_variant.id }}",
+                  "_sku": {{ bb_variant.sku | default: '' | json }},
+                  "_full_price": "{{ bb_variant.price }}",
+                  "_handle": {{ product.handle | json }},
+                  "_url": {{ bb_variant.url | json }},
+                  "_image": {{ bb_dep_image_url | json }}
+                }
+              </script>
+            </deposit-choice>
+          {%- endif -%}
           <div class="product-form__actions">
             {%- if bb_show_qty -%}
               {%- render 'quantity-input',

@@ -15,6 +15,9 @@
   - data-undo-* says what an undo after a removal re-adds (withheld where it could not restore the line);
   - the stepper input, its −/+ buttons and the remove link get ids derived from the line key
     (stable when other lines are removed), so focus returns to them after the section re-renders.
+  A deposit line (the theme's deposit product, snippets/buy-buttons) stands for the device it reserves:
+  the device's title, photo and page from its private properties, a "מקדמה" chip, the full price and the
+  balance left to pay at the branch instead of the property list.
   Private line properties (names starting with "_") are never printed. A line without a photo shows
   its brand logo or the JOY symbol (snippets/image, fallback 'brand').
 
@@ -42,6 +45,18 @@
   assign stepper_class = lc | append: '__quantity'
 
   assign line_title = item.product.title | default: item.title
+  assign line_url = item.url
+
+  # Balance = the full price of every unit less what the line costs now.
+  assign line_deposit = false
+  if settings.deposit_product != blank and item.product.id == settings.deposit_product.id and item.properties['_full_price'] != blank
+    assign line_deposit = true
+    assign line_dep_device = item.properties['_title'] | default: item.properties['_handle']
+    assign line_title = 'deposit.line_title' | t: product: line_dep_device
+    assign line_url = item.properties['_url'] | default: item.url
+    assign line_dep_full = item.properties['_full_price'] | plus: 0 | times: item.quantity
+    assign line_dep_balance = line_dep_full | minus: item.final_line_price | at_least: 0
+  endif
   assign line_ref = item.key | handleize
   assign qty_id = line_id_prefix | append: 'Qty-' | append: line_ref
   assign remove_id = line_id_prefix | append: 'Remove-' | append: line_ref
@@ -72,7 +87,16 @@
 -%}
 
 {%- capture line_image -%}
-  {%- if line_context == 'page' -%}
+  {%- if line_deposit and item.properties['_image'] != blank -%}
+    <img
+      src="{{ item.properties['_image'] | escape }}"
+      alt=""
+      width="240"
+      height="240"
+      loading="lazy"
+      class="{% if line_context == 'page' %}cart-item__image{% else %}cart-line__img{% endif %}"
+    >
+  {%- elsif line_context == 'page' -%}
     {%- render 'image',
       image: item.image,
       widths: '80,160,240',
@@ -103,7 +127,17 @@
   instead of having it pulled to the far end.
 {%- endcomment -%}
 {%- capture line_details -%}
-  <a class="{{ lc }}__title" href="{{ item.url }}">{{ line_title | escape }}&lrm;</a>
+  <a class="{{ lc }}__title" href="{{ line_url }}">{{ line_title | escape }}&lrm;</a>
+  {%- if line_deposit %}
+    <span class="deposit-chip">{{ 'deposit.chip' | t }}</span>
+    <ul class="{{ lc }}__options" role="list">
+      {%- if item.properties['_variant_title'] != blank -%}
+        <li>{{ item.properties['_variant_title'] | escape }}</li>
+      {%- endif -%}
+      <li>{{ 'deposit.property_full_price' | t }}: {{ line_dep_full | money_without_trailing_zeros }}</li>
+      <li class="deposit-balance">{{ 'deposit.property_balance' | t }}: {{ line_dep_balance | money_without_trailing_zeros }}</li>
+    </ul>
+  {%- endif -%}
 
   {%- if show_options -%}
     <ul class="{{ lc }}__options" role="list">
@@ -134,7 +168,7 @@
       {%- endif -%}
     {%- endfor -%}
   {%- endcapture -%}
-  {%- if line_properties != blank -%}
+  {%- if line_properties != blank and line_deposit == false -%}
     <dl class="{{ lc }}__properties">{{ line_properties }}</dl>
   {%- endif -%}
 {%- endcapture -%}
@@ -211,7 +245,7 @@
     {%- endif %}
   >
     <div class="cart-item__media">
-      <a class="cart-item__image-link" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+      <a class="cart-item__image-link" href="{{ line_url }}" tabindex="-1" aria-hidden="true">
         {{- line_image -}}
       </a>
     </div>
@@ -261,7 +295,7 @@
       data-undo-title="{{ line_title | escape }}"
     {%- endif %}
   >
-    <a class="cart-line__media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+    <a class="cart-line__media" href="{{ line_url }}" tabindex="-1" aria-hidden="true">
       {{- line_image -}}
     </a>
 

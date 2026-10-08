@@ -746,3 +746,32 @@ cart-items[aria-busy="true"] .cart-summary__row--total dd {
   gap: var(--space-2xs);
   min-height: 2.5rem;
 }
+
+/* Deposit lines (snippets/cart-line): the chip beside the device's title and the balance due at the branch. */
+.deposit-chip {
+  display: inline-block;
+  margin-inline-start: var(--space-2xs);
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background-color: var(--color-badge-taxfree-bg, #fcda7e);
+  color: var(--color-badge-taxfree-text, var(--color-ink));
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.6;
+  vertical-align: middle;
+}
+
+.deposit-balance {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.cart-summary__row--balance {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.cart-summary__row--balance dd {
+  color: var(--color-ink);
+  font-weight: 700;
+}

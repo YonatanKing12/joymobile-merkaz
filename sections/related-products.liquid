@@ -69,6 +69,9 @@
             if rp_hide_sold_out and rp_product.available == false
               continue
             endif
+            if rp_product.id == settings.deposit_product.id
+              continue
+            endif
             if section.settings.same_type and rp_type != blank and rp_product.type != product.type
               continue
             endif
@@ -97,6 +100,9 @@
         if rp_hide_sold_out and rp_product.available == false
           continue
         endif
+        if rp_product.id == settings.deposit_product.id
+          continue
+        endif
         assign rp_seen = rp_seen | append: rp_product.handle | append: ','
         assign rp_count = rp_count | plus: 1
       -%}
@@ -117,6 +123,9 @@
           continue
         endif
         if rp_hide_sold_out and rp_product.available == false
+          continue
+        endif
+        if rp_product.id == settings.deposit_product.id
           continue
         endif
         assign rp_seen = rp_seen | append: rp_product.handle | append: ','

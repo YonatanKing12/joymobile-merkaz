@@ -694,6 +694,26 @@
         "label": "סמלי אשראי נוספים",
         "info": "מופרדים בפסיק, מעל אמצעי התשלום שכבר מופעלים בקופה. ברירת מחדל: visa,master,american_express,diners_club. שמות אפשריים נוספים: discover, jcb, maestro, unionpay, paypal, apple_pay, google_pay, shopify_pay.",
         "default": "visa,master,american_express,diners_club"
+      },
+      {
+        "type": "header",
+        "content": "מקדמה לשריון"
+      },
+      {
+        "type": "paragraph",
+        "content": "בדף המוצר אפשר לבחור בין תשלום מלא באתר לבין מקדמה עכשיו והיתרה בסניף באיסוף. המקדמה היא מוצר בחנות (למשל \"מקדמה לשריון מוצר\" ב-300 ₪, מוסתר מהחיפוש ומהקטגוריות): המחיר שלו הוא סכום המקדמה ליחידה, ובהזמנה הוא נושא את פרטי המכשיר, המחיר המלא והיתרה. בלי מוצר כאן האפשרות לא מוצגת."
+      },
+      {
+        "type": "product",
+        "id": "deposit_product",
+        "label": "מוצר המקדמה"
+      },
+      {
+        "type": "number",
+        "id": "deposit_min_price",
+        "label": "מקדמה ממחיר (₪)",
+        "default": 1000,
+        "info": "האפשרות מוצגת רק כשמחיר הדגם שנבחר הוא לפחות הסכום הזה."
       }
     ]
   },

@@ -1218,3 +1218,100 @@ html.no-js .product-wishlist {
     font-size: var(--text-body);
   }
 }
+
+/* ---------- Pay in full or reserve with a deposit (snippets/buy-buttons) ---------- */
+.deposit-choice {
+  display: block;
+  margin-block-end: var(--space-sm);
+}
+
+.deposit-choice__set {
+  display: grid;
+  gap: var(--space-xs);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.deposit-choice__legend {
+  margin-block-end: var(--space-2xs);
+  padding: 0;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.deposit-choice__option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background-color: var(--color-background);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.deposit-choice__option:has(:checked) {
+  border-color: var(--color-brand);
+  box-shadow: inset 0 0 0 1px var(--color-brand);
+  background-color: color-mix(in srgb, var(--color-brand) 6%, var(--color-background));
+}
+
+.deposit-choice__option:has(:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.deposit-choice__radio {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: var(--color-brand);
+}
+
+.deposit-choice__radio:focus-visible {
+  outline: none;
+}
+
+.deposit-choice__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.deposit-choice__title,
+.deposit-choice__price {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.deposit-choice__note {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+.deposit-choice__price {
+  white-space: nowrap;
+}
+
+.product-buy__note {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+/* 1200+: with the choice the price takes its own line again (the one-row box above has no room for two
+   full-width options beside it); the buttons keep their single row. */
+@media (min-width: 1200px) {
+  .product__buy:has(deposit-choice) > .product-block--price:has(+ .product-block--buy) {
+    flex: 1 1 100%;
+    max-width: none;
+    padding-block-end: var(--space-xs);
+    border-block-end: 0;
+  }
+}

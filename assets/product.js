@@ -37,12 +37,13 @@ class ProductForm extends HTMLElement {
     const checkout = (btn?.dataset.mode || this.dataset.mode) === 'checkout' && !window.theme?.cartConsent;
     const data = new FormData(form), item = { id: +data.get('id'), quantity: +data.get('quantity') || 1, properties: {} };
     for (const [key, value] of data) if (key.startsWith('properties[') && value) item.properties[key.slice(11, -1)] = value;
+    const deposit = this.querySelector('deposit-choice'), line = deposit?.chosen ? deposit.line(item) : item;
     const addons = this.addons, extras = addons?.selectedItems?.() || [];
     const box = this.querySelector('[data-form-error]');
     showError(box, '');
     busy(btn, true);
     try {
-      await addItems([item, ...extras], { open: !checkout, opener: btn });
+      await addItems([line, ...extras], { open: !checkout, opener: btn });
       if (extras.length) addons.clear();
       if (checkout) return location.assign(`${routes.root}checkout`);
     } catch (err) {
@@ -55,6 +56,33 @@ class ProductForm extends HTMLElement {
       }
     }
     busy(btn, false);
+  }
+}
+
+// "תשלום מלא באתר" or "שריון במקדמה" (snippets/buy-buttons). With the deposit the device's line becomes the
+// deposit product, same quantity, carrying the device in its properties. The buttons region is re-rendered on
+// every variant change, so the choice lives here and each new copy picks it up (a variant under the threshold
+// has no choice, and the device goes in at its price).
+let payMode = 'full';
+
+class DepositChoice extends HTMLElement {
+  connectedCallback() {
+    this.addEventListener('change', this);
+    const radio = this.querySelector(`input[name="pay_mode"][value="${payMode}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  handleEvent(e) { if (e.target.name === 'pay_mode') payMode = e.target.value; }
+  get chosen() { return this.querySelector('input[name="pay_mode"][value="deposit"]')?.checked === true; }
+
+  line(item) {
+    let properties = {};
+    try {
+      properties = JSON.parse(this.querySelector('[data-deposit-properties]').textContent);
+    } catch {
+      properties = {};
+    }
+    return { id: +this.dataset.variant, quantity: item.quantity, properties: { ...item.properties, ...properties } };
   }
 }
 
@@ -197,6 +225,7 @@ class PickupAvailability extends HTMLElement {
 }
 
 define('product-form', ProductForm);
+define('deposit-choice', DepositChoice);
 define('variant-picker', VariantPicker);
 define('media-gallery', MediaGallery);
 define('pickup-availability', PickupAvailability);

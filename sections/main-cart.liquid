@@ -185,10 +185,28 @@
                 </div>
               {%- endfor -%}
             {%- endif -%}
+            {%- liquid
+              # Deposit lines (snippets/cart-line): the balance left to pay at the branch, over the whole cart.
+              assign deposit_balance = 0
+              if settings.deposit_product != blank
+                for dep_item in cart.items
+                  if dep_item.product.id == settings.deposit_product.id and dep_item.properties['_full_price'] != blank
+                    assign dep_line = dep_item.properties['_full_price'] | plus: 0 | times: dep_item.quantity | minus: dep_item.final_line_price | at_least: 0
+                    assign deposit_balance = deposit_balance | plus: dep_line
+                  endif
+                endfor
+              endif
+            -%}
             <div class="cart-summary__row cart-summary__row--total">
-              <dt>{{ 'cart.page.total' | t }}</dt>
+              <dt>{% if deposit_balance > 0 %}{{ 'deposit.pay_now' | t }}{% else %}{{ 'cart.page.total' | t }}{% endif %}</dt>
               <dd>{{ cart.total_price | money_without_trailing_zeros }}</dd>
             </div>
+            {%- if deposit_balance > 0 -%}
+              <div class="cart-summary__row cart-summary__row--balance">
+                <dt>{{ 'deposit.balance_total' | t }}</dt>
+                <dd>{{ deposit_balance | money_without_trailing_zeros }}</dd>
+              </div>
+            {%- endif -%}
           </dl>
 
           {%- if all_tax_free and settings.tax_free_labels -%}
