@@ -21,7 +21,7 @@
  * what the theme's "no money in JS" rule is actually protecting: a format that cannot drift from the
  * shop's. The authoritative total is still the cart drawer's, which the note under the sum says.
  */
-import { define, on, sectionIdOf, searchSection } from '@theme/global';
+import { define, emit, formatMoney, on, sectionIdOf, searchSection } from '@theme/global';
 import { addItems } from '@theme/cart';
 
 const SECTION = 'product-addons';
@@ -309,25 +309,8 @@ class ProductAddons extends HTMLElement {
     if (this.hidden) this.checked.forEach((c) => { c.checked = false; });
   }
 
-  /* The shop's money_format, filled in. Only the four amount tokens Shopify defines are handled,
-     which is every format a shop can be set to. */
   money(cents) {
-    const fmt = (value, decimals, sep) => {
-      const fixed = (value / 100).toFixed(decimals);
-      const [whole, part] = fixed.split('.');
-      const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
-      return part ? `${grouped}.${part}` : grouped;
-    };
-    /* The page prints prices with money_without_trailing_zeros, so a whole amount loses its .00
-       here too and the total matches every other price around it. */
-    const strip = (text) => text.replace(/\.00(?=\D*$)/, '');
-    return strip(this.moneyFormat.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, token) => {
-      if (token === 'amount') return fmt(cents, 2, ',');
-      if (token === 'amount_no_decimals') return fmt(cents, 0, ',');
-      if (token === 'amount_with_comma_separator') return fmt(cents, 2, '.').replace(/\.(\d{2})$/, ',$1');
-      if (token === 'amount_no_decimals_with_comma_separator') return fmt(cents, 0, '.');
-      return fmt(cents, 0, ',');
-    }));
+    return formatMoney(cents, this.moneyFormat);
   }
 
   /* The main price: the final total while accessories are ticked and the device is for sale, else the
@@ -368,6 +351,11 @@ class ProductAddons extends HTMLElement {
     this.priceTotal = base + extras;
     this.priceCount = n;
     this.paintPrice();
+    /* The pay-in-full / deposit choice by the buy buttons (assets/product.js) adds the same accessories
+       to both of its amounts: they go into the cart at their price either way. */
+    this.extras = standalone ? 0 : extras;
+    this.extraCount = standalone ? 0 : n;
+    emit('addons:changed', { sectionId: this.sectionId });
 
     /* Each pill carries how many of its own tiles are ticked, so a choice made in one group is still
        visible from the others. */

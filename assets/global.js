@@ -1,5 +1,6 @@
-// @theme/global. Prices come server-rendered. The one sum JS has to add (the add-ons total in
-// assets/product-addons.js) is printed with the shop's own money_format, never a hand-rolled one.
+// @theme/global. Prices come server-rendered. The sums JS has to add (the add-ons total in
+// assets/product-addons.js, the pay-in-full / deposit amounts in assets/product.js) are printed with
+// the shop's own money_format (formatMoney below), never a hand-rolled one.
 const cfg = window.theme || {};
 const html = document.documentElement;
 
@@ -17,6 +18,26 @@ export const emit = (name, detail) => document.dispatchEvent(new CustomEvent(nam
 export function on(name, fn) {
   document.addEventListener(name, fn);
   return () => document.removeEventListener(name, fn);
+}
+
+/* The shop's money_format, filled in. Only the four amount tokens Shopify defines are handled, which is
+   every format a shop can be set to. The page prints prices with money_without_trailing_zeros, so a whole
+   amount loses its .00 here too and a sum matches every other price around it. */
+export function formatMoney(cents, format = '{{amount_no_decimals_with_comma_separator}} ₪') {
+  const fmt = (value, decimals, sep) => {
+    const fixed = (value / 100).toFixed(decimals);
+    const [whole, part] = fixed.split('.');
+    const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+    return part ? `${grouped}.${part}` : grouped;
+  };
+  const strip = (text) => text.replace(/\.00(?=\D*$)/, '');
+  return strip(format.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, token) => {
+    if (token === 'amount') return fmt(cents, 2, ',');
+    if (token === 'amount_no_decimals') return fmt(cents, 0, ',');
+    if (token === 'amount_with_comma_separator') return fmt(cents, 2, '.').replace(/\.(\d{2})$/, ',$1');
+    if (token === 'amount_no_decimals_with_comma_separator') return fmt(cents, 0, '.');
+    return fmt(cents, 0, ',');
+  }));
 }
 
 const withParam = (url, key, value) => `${url}${url.includes('?') ? '&' : '?'}${key}=${value}`;

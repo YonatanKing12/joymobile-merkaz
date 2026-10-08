@@ -207,7 +207,14 @@
               assign bb_dep_key_balance = 'deposit.property_balance' | t
               assign bb_dep_key_sku = 'deposit.property_sku' | t
             -%}
-            <deposit-choice class="deposit-choice" data-variant="{{ bb_deposit.id }}">
+            <deposit-choice
+              class="deposit-choice"
+              data-variant="{{ bb_deposit.id }}"
+              data-price="{{ bb_variant.price }}"
+              data-deposit="{{ bb_deposit.price }}"
+              data-money="{{ shop.money_format | escape }}"
+              data-note="{{ 'deposit.note' | t: balance: '{balance}' | escape }}"
+            >
               <fieldset class="deposit-choice__set">
                 <legend class="deposit-choice__legend">{{ 'deposit.legend' | t }}</legend>
                 <label class="deposit-choice__option">
@@ -216,15 +223,16 @@
                     <span class="deposit-choice__title">{{ 'deposit.full_title' | t }}</span>
                     <span class="deposit-choice__note">{{ 'deposit.full_note' | t }}</span>
                   </span>
-                  <span class="deposit-choice__price">{{ bb_dep_full }}</span>
+                  <span class="deposit-choice__price" data-deposit-full>{{ bb_dep_full }}</span>
                 </label>
                 <label class="deposit-choice__option">
                   <input class="deposit-choice__radio" type="radio" name="pay_mode" value="deposit">
                   <span class="deposit-choice__text">
                     <span class="deposit-choice__title">{{ 'deposit.title' | t }}</span>
-                    <span class="deposit-choice__note">{{ 'deposit.note' | t: balance: bb_dep_balance }}</span>
+                    <span class="deposit-choice__note" data-deposit-note>{{ 'deposit.note' | t: balance: bb_dep_balance }}</span>
+                    <span class="deposit-choice__note" data-deposit-extras hidden>{{ 'deposit.extras' | t }}</span>
                   </span>
-                  <span class="deposit-choice__price">{{ bb_deposit.price | money_without_trailing_zeros }}</span>
+                  <span class="deposit-choice__price" data-deposit-now>{{ bb_deposit.price | money_without_trailing_zeros }}</span>
                 </label>
               </fieldset>
               <script type="application/json" data-deposit-properties>

@@ -1,4 +1,4 @@
-import { routes, fetchSectionHTML, parseHTML, swapRegions, emit, on, showError, sectionIdOf, define, lockScroll, QuantityInput } from '@theme/global';
+import { routes, fetchSectionHTML, parseHTML, swapRegions, emit, on, showError, sectionIdOf, define, lockScroll, QuantityInput, formatMoney } from '@theme/global';
 import { addItems } from '@theme/cart';
 
 export { QuantityInput };
@@ -63,6 +63,9 @@ class ProductForm extends HTMLElement {
 // deposit product, same quantity, carrying the device in its properties. The buttons region is re-rendered on
 // every variant change, so the choice lives here and each new copy picks it up (a variant under the threshold
 // has no choice, and the device goes in at its price).
+// Its two amounts are what the press costs now, like the big price above them: the device times the quantity
+// (in full, or the deposit) plus the accessories ticked in <product-addons>, which go in at their price
+// either way. The balance at the branch is the device's alone.
 let payMode = 'full';
 
 class DepositChoice extends HTMLElement {
@@ -70,9 +73,35 @@ class DepositChoice extends HTMLElement {
     this.addEventListener('change', this);
     const radio = this.querySelector(`input[name="pay_mode"][value="${payMode}"]`);
     if (radio) radio.checked = true;
+    this.scope = this.closest('.shopify-section') || document.body;
+    this.offAddons = on('addons:changed', ({ detail }) => detail?.sectionId === sectionIdOf(this) && this.paint());
+    this.scope.addEventListener('change', this);
+    this.paint();
   }
 
-  handleEvent(e) { if (e.target.name === 'pay_mode') payMode = e.target.value; }
+  disconnectedCallback() {
+    this.offAddons?.();
+    this.scope?.removeEventListener('change', this);
+  }
+
+  handleEvent(e) {
+    if (e.target.name === 'pay_mode') payMode = e.target.value;
+    else if (e.target.matches?.('input[name="quantity"]')) this.paint();
+  }
+
+  paint() {
+    const qty = Math.max(1, Number(this.closest('product-form')?.querySelector('input[name="quantity"]')?.value) || 1);
+    const price = Number(this.dataset.price) || 0, deposit = Number(this.dataset.deposit) || 0;
+    const addons = this.scope.querySelector('product-addons');
+    const extras = addons?.extras || 0, count = addons?.extraCount || 0;
+    const money = (cents) => formatMoney(cents, this.dataset.money || undefined);
+    const set = (selector, text) => { const el = this.querySelector(selector); if (el) el.textContent = text; };
+    set('[data-deposit-full]', money(price * qty + extras));
+    set('[data-deposit-now]', money(deposit * qty + extras));
+    set('[data-deposit-note]', (this.dataset.note || '').replace('{balance}', money((price - deposit) * qty)));
+    const note = this.querySelector('[data-deposit-extras]');
+    if (note) note.hidden = count === 0;
+  }
   get chosen() { return this.querySelector('input[name="pay_mode"][value="deposit"]')?.checked === true; }
 
   line(item) {
