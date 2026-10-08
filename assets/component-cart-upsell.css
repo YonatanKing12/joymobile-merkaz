@@ -87,12 +87,15 @@
   display: grid;
   place-items: center;
   height: 3.75rem;
+  overflow: hidden;
   background-color: var(--color-surface);
 }
 
+/* The photo fills the box and contain-fits inside it. A max-height in % has nothing to resolve against
+   in an auto grid row, so a 240px photo in a 158px-wide tile grew to 158px and spilled over the title. */
 .cu-card__img {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   mix-blend-mode: multiply;
 }
