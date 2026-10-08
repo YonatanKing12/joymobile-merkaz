@@ -9,8 +9,11 @@
   keep a tile only when this prints "fit":
 
   - The model is the query minus its group word ("כיסוי ", "מגן מסך "). A charger, cable or power
-    bank query names a maker or nothing, and a watch query is pinned by the case size, so those
-    always fit. A "-word" (a negative search term) is not part of the model.
+    bank query names a maker or nothing, so those skip the model test. A watch query skips it too,
+    but the search also reads descriptions, and "מגן מסך Apple Watch 44" returned only phone
+    screen protectors (Oct 2026), so a watch tile must say "watch" (a band's, "band"), and a watch
+    screen protector must carry the case size. A "-word" (a negative search term) is not part of
+    the model.
   - The title must name that kind of thing: a lens guard is not a screen protector.
   - The title must carry the model number (the first word with a digit, and what follows it), the
     word before it must be the model's ("iPad Air 11" is not "iPad 11"), and the word after it
@@ -219,6 +222,26 @@
       unless af_t contains 'כיסוי' or af_t contains 'case'
         assign af_fit = false
       endunless
+    endif
+
+    # A watch's screen protector or strap names the watch, and a screen protector its case size.
+    assign af_wear = ''
+    if af_terms contains 'watch'
+      assign af_wear = 'watch'
+    elsif af_terms contains 'smart band'
+      assign af_wear = 'band'
+    endif
+    if af_wear != '' and af_lead4 != 'מטען'
+      unless af_t contains af_wear
+        assign af_fit = false
+      endunless
+      assign af_size = af_terms | split: ' ' | last
+      assign af_size_digit = af_size | slice: 0
+      if af_lead7 == 'מגן מסך' and af_wear == 'watch' and af_digits contains af_size_digit
+        unless af_t contains af_size
+          assign af_fit = false
+        endunless
+      endif
     endif
   endif
 
