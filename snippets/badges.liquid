@@ -3,9 +3,10 @@
   page, the import channel ("יבוא מקביל", "יד שנייה", "מחודש", "יבואן רשמי").
 
   Rules (ported from the previous theme and made configurable):
-  - TAX FREE: same rule as the price snippet — only when the variant is not
-    taxable in Shopify (`taxable == false`) and the theme setting `tax_free_labels`
-    and the badge setting `badge_show_tax_free` are on.
+  - TAX FREE (its two lines are the locale's products.badges.tax_free_title/_subtitle, so a
+    store can print e.g. BEST PRICE / מחיר ג'וי): with the badge setting `badge_show_tax_free`
+    on, on every product when `badge_tax_free_all` is on, else only when the variant is not
+    taxable in Shopify (`taxable == false`) and `tax_free_labels` is on, the price snippet's rule.
   - Sold out: the product (or the passed variant) is not available.
   - Last units: the variant tracks inventory in Shopify (`inventory_management ==
     'shopify'`) and 0 < inventory_quantity <= `settings.badge_low_stock_threshold`
@@ -44,8 +45,12 @@
   endif
 
   assign badge_tax_free = false
-  if settings.tax_free_labels and settings.badge_show_tax_free and badge_variant.taxable == false
-    assign badge_tax_free = true
+  if settings.badge_show_tax_free
+    if settings.badge_tax_free_all
+      assign badge_tax_free = true
+    elsif settings.tax_free_labels and badge_variant.taxable == false
+      assign badge_tax_free = true
+    endif
   endif
 
   assign badge_channel = ''

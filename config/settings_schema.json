@@ -586,9 +586,16 @@
       {
         "type": "checkbox",
         "id": "badge_show_tax_free",
-        "label": "תגית TAX FREE / מחיר אילת על תמונת המוצר בכרטיסים",
-        "info": "פועל רק כשהמתג הראשי שלמעלה (סימון 'מחיר אילת' ו-TAX FREE) מופעל. בעמוד המוצר TAX FREE מוצג ליד המחיר.",
+        "label": "תגית צהובה על תמונת המוצר (TAX FREE / מחיר אילת)",
+        "info": "שתי השורות שלה הן התרגומים products.badges.tax_free_title ו-tax_free_subtitle. בלי המתג הבא היא מופיעה רק על מוצר שאינו חייב במס, וכשהמתג הראשי שלמעלה מופעל.",
         "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_tax_free_all",
+        "label": "התגית הצהובה על כל המוצרים",
+        "info": "גם על מוצר שמסומן בשופיפיי כחייב במס, וגם כשהמתג הראשי שלמעלה כבוי.",
+        "default": false
       },
       {
         "type": "header",
