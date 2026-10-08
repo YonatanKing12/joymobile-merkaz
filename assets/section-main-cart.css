@@ -750,6 +750,8 @@ cart-items[aria-busy="true"] .cart-summary__row--total dd {
 /* Deposit lines (snippets/cart-line): the chip beside the device's title and the balance due at the branch. */
 .deposit-chip {
   display: inline-block;
+  align-self: flex-start;
+  width: fit-content;
   margin-inline-start: var(--space-2xs);
   padding: 0 0.5rem;
   border-radius: 999px;
