@@ -166,7 +166,7 @@
           groups, so the block leaves no gap there.
         {%- endcomment -%}
         {%- capture addons_html -%}
-          {%- render 'product-addons', product: product, variant: current_variant, section_id: section.id -%}
+          {%- render 'product-addons', product: product, variant: current_variant, section_id: section.id, layout: block.settings.layout -%}
         {%- endcapture -%}
         {%- if addons_html != blank -%}
           <div class="product-block product-block--addons" {{ block.shopify_attributes }}>{{ addons_html }}</div>
@@ -470,10 +470,11 @@
   </div>
 
   {%- comment -%}
-    Desktop only: the info lines (stock, pickup, warranty, payment) and the trust box move under the
-    gallery, in that order, and the add-ons card goes just before the price block (or the buttons
-    when there is no price block), so the price row and the buttons follow it. The card stays a child
-    of the buy column, so the one-row price + buttons layout (price followed by buttons) is untouched.
+    At every width the add-ons card goes just before the price block (or the buttons when there is
+    no price block), so the price row and the buttons follow it. Desktop: the info lines (stock,
+    pickup, warranty, payment) and the trust box move under the gallery, in that order. Phones: the
+    trust box moves after the "מידע נוסף" panels, so the page reads like the desktop buy column.
+    The card stays a child of the buy column, so the one-row price + buttons layout is untouched.
     A comment marker keeps the info lines' spot in the buy column for the way back below 992px.
     Inline and right after the markup, so the move happens while the page is parsed, before
     <product-addons> is upgraded and before either is painted in its phone position. Only the
@@ -495,21 +496,32 @@
       const mark = lines && document.createComment('product-block--lines');
       lines?.before(mark);
       if (!slot || !panels || (!aside && !card && !lines)) return;
+      const details = root?.querySelector('.product > .product__details');
       const wide = matchMedia('(min-width: 992px)');
+      const phone = matchMedia('(max-width: 767px)');
       const place = () => {
+        /* Every width: the card sits right above the price and the buttons, so the price by the
+           buttons is the final one (device + ticked accessories, assets/product-addons.js). */
+        if (card && anchor && card.nextElementSibling !== anchor) anchor.before(card);
         if (wide.matches) {
           if (lines && lines.parentElement !== slot) slot.prepend(lines);
           if (aside && aside.parentElement !== slot) slot.append(aside);
-          if (card && anchor && card.nextElementSibling !== anchor) anchor.before(card);
           if (card && !anchor && card.parentElement !== panels) panels.append(card);
         } else {
-          if (card && card.parentElement !== home) home.append(card);
+          if (card && !anchor && card.parentElement !== home) home.append(card);
           if (lines && lines.parentElement === slot) mark.after(lines);
-          if (aside && aside.parentElement !== panels) panels.append(aside);
+          /* Phones read the desktop's buy column top to bottom: the panels ("מידע נוסף"…) right under
+             the buttons, then the trust box, the way the gallery column ends on desktop. */
+          if (aside && phone.matches && details) {
+            if (details.nextElementSibling !== aside) details.after(aside);
+          } else if (aside && aside.parentElement !== panels) {
+            panels.append(aside);
+          }
         }
       };
       place();
       wide.addEventListener('change', place);
+      phone.addEventListener('change', place);
     })();
   </script>
 
@@ -1069,6 +1081,17 @@
         {
           "type": "paragraph",
           "content": "אביזרים שמתאימים לדגם (כיסויים, מגני מסך, מטענים…), לפי סוג המוצר: מכשירים, טאבלטים, שעונים ואוזניות. מה שהלקוח מסמן נוסף לעגלה יחד עם המכשיר בלחיצה על \"שריון באילת\" או \"הוסף לעגלה\" (גם מהסרגל התחתון בטלפון). כשהמכשיר אזל מהמלאי מופיע כפתור נפרד לאביזרים."
+        },
+        {
+          "type": "select",
+          "id": "layout",
+          "label": "עיצוב",
+          "info": "להשוואה בלי לשמור: מוסיפים לכתובת של דף מוצר ?addons=carousel או ?addons=grid",
+          "options": [
+            { "value": "grid", "label": "רשת אריחים" },
+            { "value": "carousel", "label": "קרוסלה עם סיכום הערכה" }
+          ],
+          "default": "grid"
         }
       ]
     },

@@ -180,6 +180,48 @@
     endif
   endif
 
+  # Every group, whatever its model test: the title must name the kind of thing the pill promises.
+  # The search also matches descriptions, so "מטען Apple" brought AirTags into the chargers, and a
+  # power bank ("מטען נייד") is not a wall charger. Watch queries skip the model test above, so the
+  # screen-protector and strap groups need this too.
+  if af_fit
+    assign af_t = title | downcase
+    assign af_lead4 = af_terms | slice: 0, 4
+    assign af_lead5 = af_terms | slice: 0, 5
+    assign af_lead7 = af_terms | slice: 0, 7
+    if af_terms contains 'סוללה ניידת'
+      unless af_t contains 'סוללה ניידת' or af_t contains 'סוללת גיבוי' or af_t contains 'מטען נייד' or af_t contains 'powerbank' or af_t contains 'power bank'
+        assign af_fit = false
+      endunless
+    elsif af_lead4 == 'מטען'
+      unless af_t contains 'מטען'
+        assign af_fit = false
+      endunless
+      if af_t contains 'מטען נייד'
+        assign af_fit = false
+      endif
+    elsif af_lead4 == 'כבל '
+      unless af_t contains 'כבל'
+        assign af_fit = false
+      endunless
+    elsif af_lead5 == 'רצועה'
+      unless af_t contains 'רצוע' or af_t contains 'band' or af_t contains 'loop'
+        assign af_fit = false
+      endunless
+    elsif af_lead7 == 'מגן מסך'
+      unless af_t contains 'מגן מסך' or af_t contains 'מגן זכוכית'
+        assign af_fit = false
+      endunless
+      if af_t contains 'עדש'
+        assign af_fit = false
+      endif
+    elsif af_lead4 == 'כיסו'
+      unless af_t contains 'כיסוי' or af_t contains 'case'
+        assign af_fit = false
+      endunless
+    endif
+  endif
+
   if af_fit
     echo 'fit'
   endif

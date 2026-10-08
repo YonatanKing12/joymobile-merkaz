@@ -143,6 +143,30 @@ html:has(main :focus-visible) {
   }
 }
 
+/* From 992px the info lines and the trust box sit under the gallery (inline script in
+   sections/main-product), which leaves the buy column short and an empty band under its buttons. The
+   "מידע נוסף / פרטים טכניים / משלוח / תנאי רכישה" panels fill it: they go into the buy column's own
+   width, right under the buttons, instead of a full-width row below both columns. The gallery column
+   spans all three rows, so a long open panel only makes the buy column longer. */
+/* Phones: the trust box comes after the panels (inline script in sections/main-product). */
+.product > .product__aside {
+  margin-block-start: var(--space-lg);
+}
+
+@media (min-width: 992px) {
+  .product {
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "media head"
+      "media info"
+      "media details";
+  }
+
+  .product__details {
+    margin-block-start: var(--space-lg);
+  }
+}
+
 /* ---------- Brand logo ---------- */
 .product__brand {
   display: flex;

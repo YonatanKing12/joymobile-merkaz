@@ -18,6 +18,9 @@
   @param {product} product - The product on the page.
   @param {variant} [variant] - The selected variant. Default: selected or first available.
   @param {string} section_id - The calling section's id; keeps the tab/panel ids unique.
+  @param {string} [layout] - 'grid' (default: pills over a grid of tiles) or 'carousel' (pills over a
+    swipeable row of large cards, with a strip of the chosen accessories). A product page URL with
+    ?addons=carousel or ?addons=grid shows the other one without saving (assets/product-addons.js).
 
   @example
   {% render 'product-addons', product: product, variant: current_variant, section_id: section.id %}
@@ -31,6 +34,10 @@
   assign pa_group_list = pa_groups | strip | remove_first: '###' | split: '###'
   assign pa_uid = section_id | default: 'pa'
   assign pa_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
+  assign pa_layout = 'grid'
+  if layout == 'carousel'
+    assign pa_layout = 'carousel'
+  endif
 -%}
 
 {%- if pa_group_list.size > 0 -%}
@@ -45,7 +52,7 @@
     the cart drawer's.
   {%- endcomment -%}
   <product-addons
-    class="pa"
+    class="pa pa--{{ pa_layout }}"
     data-pa-main-variant="{{ pa_variant.id }}"
     data-pa-handle="{{ product.handle }}"
     data-pa-base="{{ pa_variant.price }}"
@@ -103,8 +110,22 @@
           {%- endfor -%}
         </ul>
         <p class="pa__empty" data-pa-empty hidden>{{ 'products.addons.empty' | t }}</p>
+        <p class="pa__swipe" data-pa-swipe hidden></p>
       </div>
     {%- endfor -%}
+
+    {%- comment -%}
+      Carousel layout only (CSS hides it in the grid): a thumbnail of each chosen accessory, in the
+      order chosen. Each thumbnail is a button that takes its accessory out again
+      (assets/product-addons.js draws them).
+    {%- endcomment -%}
+    <div
+      class="pa__chosen"
+      data-pa-chosen
+      data-pa-str-remove="{{ 'products.addons.chosen_remove' | t | escape }}"
+    >
+      <p class="pa__chosen-none">{{ 'products.addons.chosen_none' | t }}</p>
+    </div>
 
     {%- comment -%}
       The bar sums the device and what is ticked, and says what the product's buttons will do. Its
@@ -133,6 +154,10 @@
       data-pa-str-hint-one-solo="{{ 'products.addons.hint_one_solo' | t | escape }}"
       data-pa-str-hint-many-solo="{{ 'products.addons.hint_many_solo' | t | escape }}"
       data-pa-str-added-solo="{{ 'products.addons.added_solo' | t | escape }}"
+      data-pa-str-swipe="{{ 'products.addons.swipe' | t | escape }}"
+      data-pa-str-caption-none="{{ 'products.addons.caption_none' | t | escape }}"
+      data-pa-str-caption-one="{{ 'products.addons.caption_one' | t | escape }}"
+      data-pa-str-caption-many="{{ 'products.addons.caption_many' | t | escape }}"
     >
       {%- if pa_variant.available -%}
         <p class="pa__hint" data-pa-hint>{{ 'products.addons.hint_idle' | t }}</p>

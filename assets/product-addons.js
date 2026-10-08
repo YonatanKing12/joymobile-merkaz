@@ -49,6 +49,15 @@ class ProductAddons extends HTMLElement {
     this.totalBox = this.querySelector('[data-pa-total]');
     this.subBox = this.querySelector('[data-pa-sub]');
     this.sumLabel = this.querySelector('[data-pa-sum-label]');
+    this.chosenBox = this.querySelector('[data-pa-chosen]');
+
+    /* ?addons=carousel or ?addons=grid on a product page URL shows that layout without saving it in
+       the theme editor, so the two can be compared on the live store. */
+    const asked = new URLSearchParams(location.search).get('addons');
+    if (asked === 'carousel' || asked === 'grid') {
+      this.classList.remove('pa--grid', 'pa--carousel');
+      this.classList.add(`pa--${asked}`);
+    }
     this.addEventListener('change', this);
     this.tablist?.addEventListener('click', this);
     this.tablist?.addEventListener('keydown', this);
@@ -155,7 +164,11 @@ class ProductAddons extends HTMLElement {
   get checked() { return [...this.querySelectorAll('[data-pa-check]')].filter((c) => c.checked); }
 
   handleEvent(e) {
-    if (e.type === 'change' && e.target.matches('[data-pa-check]')) return this.refresh();
+    if (e.type === 'change' && e.target.matches('[data-pa-check]')) {
+      /* When it was ticked, so the chosen strip lists them in the order they were picked. */
+      e.target.dataset.paAt = e.target.checked ? String(Date.now()) : '';
+      return this.refresh();
+    }
     if (e.type === 'click') {
       const tab = e.target.closest('[role="tab"]');
       if (tab) this.activate(tab, false);
@@ -214,6 +227,12 @@ class ProductAddons extends HTMLElement {
       items.forEach((li) => list.appendChild(li));
       panel.dataset.paLoaded = 'true';
       panel.dataset.paCount = String(items.length);
+      /* Carousel layout: "4 אפשרויות · החליקו לעוד" under a row that has more than one card. */
+      const swipe = panel.querySelector('[data-pa-swipe]');
+      if (swipe) {
+        swipe.textContent = (this.str.paStrSwipe || '').replace('{count}', items.length);
+        swipe.hidden = items.length < 2;
+      }
       if (!items.length) {
         list.hidden = true;
         if (empty) empty.hidden = false;
@@ -346,7 +365,15 @@ class ProductAddons extends HTMLElement {
 
     /* Sold out, the device is not part of the purchase: the copy drops "יחד עם המכשיר". */
     if (this.subBox) this.subBox.textContent = this.pick('paStrSub');
-    if (this.sumLabel) this.sumLabel.textContent = this.pick('paStrTotal');
+    if (this.sumLabel) {
+      /* The carousel's total says what it adds up ("מכשיר + 2 אביזרים"); the grid keeps one label. */
+      const carousel = this.classList.contains('pa--carousel') && !standalone;
+      this.sumLabel.textContent = !carousel ? this.pick('paStrTotal')
+        : n === 0 ? this.str.paStrCaptionNone
+        : n === 1 ? this.str.paStrCaptionOne
+        : this.str.paStrCaptionMany.replace('{count}', n);
+    }
+    this.paintChosen();
     const hint = n === 0 ? this.pick('paStrHintIdle')
       : n === 1 ? this.pick('paStrHintOne')
       : this.pick('paStrHintMany').replace('{count}', n);
@@ -362,6 +389,42 @@ class ProductAddons extends HTMLElement {
       this.lastCount = n;
     }
     this.hideError();
+  }
+
+  /* The carousel's strip: one thumbnail button per ticked accessory, in the order they were ticked;
+     pressing one unticks it. Rebuilt from the checkboxes on every refresh, so it cannot drift from
+     them. The grid layout hides the strip, so it costs nothing there beyond this loop. */
+  paintChosen() {
+    const box = this.chosenBox;
+    if (!box) return;
+    const picked = this.checked
+      .map((c) => ({ check: c, at: Number(c.dataset.paAt) || 0, item: c.closest('[data-pa-item]') }))
+      .sort((a, b) => a.at - b.at);
+    box.querySelectorAll('.pa__thumb').forEach((el) => el.remove());
+    box.classList.toggle('pa__chosen--empty', picked.length === 0);
+    const removeTpl = box.dataset.paStrRemove || '';
+    picked.forEach(({ check, item }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'pa__thumb';
+      button.setAttribute('aria-label', removeTpl.replace('{title}', item.dataset.paTitle || ''));
+      const source = item.querySelector('.pa-card__img');
+      const img = document.createElement('img');
+      img.className = 'pa__thumb-img';
+      img.alt = '';
+      img.src = source?.currentSrc || source?.src || '';
+      if (source?.classList.contains('pa-card__img--fallback')) img.classList.add('pa__thumb-img--fallback');
+      const x = document.createElement('span');
+      x.className = 'pa__thumb-x';
+      x.setAttribute('aria-hidden', 'true');
+      button.append(img, x);
+      button.addEventListener('click', () => {
+        check.checked = false;
+        check.dataset.paAt = '';
+        this.refresh();
+      });
+      box.append(button);
+    });
   }
 
   showError(message) {

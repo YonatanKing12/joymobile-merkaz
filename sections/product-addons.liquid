@@ -114,6 +114,14 @@
               <span class="pa-card__icon pa-card__icon--plus">{%- render 'icon', name: 'plus', size: 16 -%}</span>
               <span class="pa-card__icon pa-card__icon--check">{%- render 'icon', name: 'check', size: 16 -%}</span>
             </span>
+            {%- comment -%}
+              The carousel layout's wide button at the foot of the card ("הוספה לערכה" / "בערכה"). Also a
+              drawing: the grid layout hides it, and in both the label is what takes the click.
+            {%- endcomment -%}
+            <span class="pa-card__cta" aria-hidden="true">
+              <span class="pa-card__cta-add">{%- render 'icon', name: 'plus', size: 16 -%}{{ 'products.addons.card_add' | t }}</span>
+              <span class="pa-card__cta-on">{%- render 'icon', name: 'check', size: 16 -%}{{ 'products.addons.card_on' | t }}</span>
+            </span>
           </label>
         </li>
       {%- endif -%}
