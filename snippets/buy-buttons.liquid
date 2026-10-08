@@ -19,7 +19,7 @@
   The accessories ticked in "השלימו את הערכה" (snippets/product-addons) are added by these same
   buttons, in the same request as the device (assets/product.js); the buttons show "+N" meanwhile.
   Quantity: min 1; max = stock when Shopify tracks it and overselling is off.
-  Pay in full or reserve with a deposit (theme settings › עגלה › מקדמה לשריון): on a variant that costs
+  Pay in full or reserve with a deposit (theme settings › עגלה › מקדמה לשריון, on while its switch is on): on a variant that costs
   at least the threshold, two options above the buttons, "תשלום מלא באתר" (checked) and "שריון
   במקדמה". With the deposit the same buttons add the deposit product instead of the device, one per
   unit, carrying the device in its properties: shown ones for the shopper and the branch (product, SKU,
@@ -155,7 +155,7 @@
     assign bb_qty_id = 'ProductQuantity-' | append: section_id
 
     assign bb_deposit = nil
-    if settings.deposit_product != blank and bb_available
+    if settings.deposit_enabled and settings.deposit_product != blank and bb_available
       assign bb_deposit_variant = settings.deposit_product.selected_or_first_available_variant
       assign bb_deposit_min = settings.deposit_min_price | default: 0 | times: 100
       if bb_deposit_variant.available and bb_variant.price >= bb_deposit_min and bb_variant.price > bb_deposit_variant.price
