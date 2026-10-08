@@ -98,7 +98,7 @@ class DepositChoice extends HTMLElement {
     const set = (selector, text) => { const el = this.querySelector(selector); if (el) el.textContent = text; };
     set('[data-deposit-full]', money(price * qty + extras));
     set('[data-deposit-now]', money(deposit * qty + extras));
-    set('[data-deposit-note]', (this.dataset.note || '').replace('{balance}', money((price - deposit) * qty)));
+    set('[data-deposit-note]', (this.dataset.note || '').replace('@balance@', money((price - deposit) * qty)));
     const note = this.querySelector('[data-deposit-extras]');
     if (note) note.hidden = count === 0;
   }

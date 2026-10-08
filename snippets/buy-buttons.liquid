@@ -213,7 +213,7 @@
               data-price="{{ bb_variant.price }}"
               data-deposit="{{ bb_deposit.price }}"
               data-money="{{ shop.money_format | escape }}"
-              data-note="{{ 'deposit.note' | t: balance: '{balance}' | escape }}"
+              data-note="{{ 'deposit.note' | t: balance: '@balance@' | escape }}"
             >
               <fieldset class="deposit-choice__set">
                 <legend class="deposit-choice__legend">{{ 'deposit.legend' | t }}</legend>
