@@ -33,11 +33,9 @@
       assign cw_path = cw_item.url
       # A deposit line (snippets/cart-line) names the device it reserves and links to it.
       if settings.deposit_product != blank and cw_item.product.id == settings.deposit_product.id and cw_item.properties['_full_price'] != blank
-        assign cw_title = 'deposit.line_title' | t: product: cw_item.properties['_title']
+        assign cw_dep_key = 'deposit.property_product' | t
+        assign cw_title = 'deposit.line_title_html' | t: product: cw_item.properties[cw_dep_key]
         assign cw_variant = ''
-        if cw_item.properties['_variant_title'] != blank
-          assign cw_variant = ' (' | append: cw_item.properties['_variant_title'] | append: ')'
-        endif
         assign cw_path = cw_item.properties['_url'] | default: cw_item.url
       endif
       assign cw_join = '?'

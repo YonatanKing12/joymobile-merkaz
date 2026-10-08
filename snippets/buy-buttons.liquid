@@ -22,9 +22,11 @@
   Pay in full or reserve with a deposit (theme settings › עגלה › מקדמה לשריון): on a variant that costs
   at least the threshold, two options above the buttons, "תשלום מלא באתר" (checked) and "שריון
   במקדמה". With the deposit the same buttons add the deposit product instead of the device, one per
-  unit, carrying the device in its properties: shown ones (product, full price, balance at the branch,
-  printed at checkout and on the order) and private ones (_title, _variant_title, _variant_id, _sku,
-  _full_price in agorot, _handle, _url, _image) for the cart (snippets/cart-line). <deposit-choice> (@theme/product) keeps
+  unit, carrying the device in its properties: shown ones for the shopper and the branch (product, SKU,
+  full price, balance at the branch, printed at checkout and on the order) and two private ones for the
+  cart (snippets/cart-line): _url, the device's page with its variant (the cart finds its photo and
+  options from it), and _full_price in agorot (the balance). Shopify's admin prints private properties
+  too, so there are only these two. <deposit-choice> (@theme/product) keeps
   the choice through the re-render of a variant change. Without JavaScript the device is added at its
   full price. The deposit product's own page prints a note instead of buttons.
 
@@ -200,14 +202,10 @@
               endunless
               assign bb_dep_full = bb_variant.price | money_without_trailing_zeros
               assign bb_dep_balance = bb_variant.price | minus: bb_deposit.price | money_without_trailing_zeros
-              assign bb_dep_image = bb_variant.featured_image | default: product.featured_image
-              assign bb_dep_image_url = ''
-              if bb_dep_image
-                assign bb_dep_image_url = bb_dep_image | image_url: width: 240
-              endif
               assign bb_dep_key_product = 'deposit.property_product' | t
               assign bb_dep_key_full = 'deposit.property_full_price' | t
               assign bb_dep_key_balance = 'deposit.property_balance' | t
+              assign bb_dep_key_sku = 'deposit.property_sku' | t
             -%}
             <deposit-choice class="deposit-choice" data-variant="{{ bb_deposit.id }}">
               <fieldset class="deposit-choice__set">
@@ -232,16 +230,13 @@
               <script type="application/json" data-deposit-properties>
                 {
                   {{ bb_dep_key_product | json }}: {{ bb_dep_name | json }},
+                  {%- if bb_variant.sku != blank %}
+                    {{ bb_dep_key_sku | json }}: {{ bb_variant.sku | json }},
+                  {%- endif %}
                   {{ bb_dep_key_full | json }}: {{ bb_dep_full | json }},
                   {{ bb_dep_key_balance | json }}: {{ bb_dep_balance | json }},
-                  "_title": {{ product.title | json }},
-                  "_variant_title": {% if product.has_only_default_variant %}""{% else %}{{ bb_variant.title | json }}{% endif %},
-                  "_variant_id": "{{ bb_variant.id }}",
-                  "_sku": {{ bb_variant.sku | default: '' | json }},
-                  "_full_price": "{{ bb_variant.price }}",
-                  "_handle": {{ product.handle | json }},
                   "_url": {{ bb_variant.url | json }},
-                  "_image": {{ bb_dep_image_url | json }}
+                  "_full_price": "{{ bb_variant.price }}"
                 }
               </script>
             </deposit-choice>

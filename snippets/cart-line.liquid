@@ -16,8 +16,8 @@
   - the stepper input, its −/+ buttons and the remove link get ids derived from the line key
     (stable when other lines are removed), so focus returns to them after the section re-renders.
   A deposit line (the theme's deposit product, snippets/buy-buttons) stands for the device it reserves:
-  the device's title, photo and page from its private properties, a "מקדמה" chip, the full price and the
-  balance left to pay at the branch instead of the property list.
+  the device's title, options, photo and page (looked up from the link in its _url property), a "מקדמה"
+  chip, the full price and the balance left to pay at the branch instead of the property list.
   Private line properties (names starting with "_") are never printed. A line without a photo shows
   its brand logo or the JOY symbol (snippets/image, fallback 'brand').
 
@@ -51,9 +51,25 @@
   assign line_deposit = false
   if settings.deposit_product != blank and item.product.id == settings.deposit_product.id and item.properties['_full_price'] != blank
     assign line_deposit = true
-    assign line_dep_device = item.properties['_title'] | default: item.properties['_handle']
-    assign line_title = 'deposit.line_title' | t: product: line_dep_device
     assign line_url = item.properties['_url'] | default: item.url
+    assign line_dep_handle = line_url | remove_first: '/products/' | split: '?' | first
+    assign line_dep_variant_id = line_url | split: 'variant=' | last | plus: 0
+    assign line_dep_product = all_products[line_dep_handle]
+    assign line_dep_variant = nil
+    for line_dep_option in line_dep_product.variants
+      if line_dep_option.id == line_dep_variant_id
+        assign line_dep_variant = line_dep_option
+        break
+      endif
+    endfor
+    assign line_dep_key = 'deposit.property_product' | t
+    assign line_dep_device = line_dep_product.title | default: item.properties[line_dep_key]
+    assign line_title = 'deposit.line_title_html' | t: product: line_dep_device
+    assign line_dep_options = ''
+    if line_dep_variant and line_dep_product.has_only_default_variant == false
+      assign line_dep_options = line_dep_variant.title
+    endif
+    assign line_dep_image = line_dep_variant.featured_image | default: line_dep_product.featured_image
     assign line_dep_full = item.properties['_full_price'] | plus: 0 | times: item.quantity
     assign line_dep_balance = line_dep_full | minus: item.final_line_price | at_least: 0
   endif
@@ -87,18 +103,15 @@
 -%}
 
 {%- capture line_image -%}
-  {%- if line_deposit and item.properties['_image'] != blank -%}
-    <img
-      src="{{ item.properties['_image'] | escape }}"
-      alt=""
-      width="240"
-      height="240"
-      loading="lazy"
-      class="{% if line_context == 'page' %}cart-item__image{% else %}cart-line__img{% endif %}"
-    >
-  {%- elsif line_context == 'page' -%}
+  {%- liquid
+    assign line_image_src = item.image
+    if line_deposit and line_dep_image
+      assign line_image_src = line_dep_image
+    endif
+  -%}
+  {%- if line_context == 'page' -%}
     {%- render 'image',
-      image: item.image,
+      image: line_image_src,
       widths: '80,160,240',
       sizes: '(min-width: 768px) 80px, 72px',
       decorative: true,
@@ -108,7 +121,7 @@
     -%}
   {%- else -%}
     {%- render 'image',
-      image: item.image,
+      image: line_image_src,
       widths: '70,140,210',
       sizes: '70px',
       loading: 'lazy',
@@ -131,8 +144,8 @@
   {%- if line_deposit %}
     <span class="deposit-chip">{{ 'deposit.chip' | t }}</span>
     <ul class="{{ lc }}__options" role="list">
-      {%- if item.properties['_variant_title'] != blank -%}
-        <li>{{ item.properties['_variant_title'] | escape }}</li>
+      {%- if line_dep_options != blank -%}
+        <li>{{ line_dep_options | escape }}</li>
       {%- endif -%}
       <li>{{ 'deposit.property_full_price' | t }}: {{ line_dep_full | money_without_trailing_zeros }}</li>
       <li class="deposit-balance">{{ 'deposit.property_balance' | t }}: {{ line_dep_balance | money_without_trailing_zeros }}</li>

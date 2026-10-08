@@ -28,8 +28,9 @@
   for cu_line in cart.items
     # A deposit line (snippets/cart-line) stands for the device it reserves.
     assign cu_product = cu_line.product
-    if settings.deposit_product != blank and cu_line.product.id == settings.deposit_product.id and cu_line.properties['_handle'] != blank
-      assign cu_product = all_products[cu_line.properties['_handle']] | default: cu_line.product
+    if settings.deposit_product != blank and cu_line.product.id == settings.deposit_product.id and cu_line.properties['_url'] != blank
+      assign cu_handle = cu_line.properties['_url'] | remove_first: '/products/' | split: '?' | first
+      assign cu_product = all_products[cu_handle] | default: cu_line.product
     endif
     assign cu_skip = cu_skip | append: cu_product.handle | append: ','
     if cu_anchor == nil
