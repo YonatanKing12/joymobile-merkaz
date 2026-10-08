@@ -1314,4 +1314,8 @@ html.no-js .product-wishlist {
     padding-block-end: var(--space-xs);
     border-block-end: 0;
   }
+
+  .product__buy:has(deposit-choice) > .product-block--price + .product-block--buy {
+    flex: 1 1 100%;
+  }
 }
