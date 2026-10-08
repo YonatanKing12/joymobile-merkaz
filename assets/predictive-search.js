@@ -1,7 +1,7 @@
 // /search/suggest rejects Hebrew on this store (HTTP 417), so this renders the search page's section instead.
 import { routes, debounce, fetchSectionHTML, parseHTML, announce, t, define } from '@theme/global';
 
-const PARAMS = '&type=product,article,page&options[prefix]=last&options[unavailable_products]=last';
+const PARAMS = '&type=product,article,page&options[prefix]=last&options[unavailable_products]=hide';
 
 /* Search tolerance: a query typed in the wrong keyboard layout ("ןפיםמק" for iphone, "thhpui" for אייפון) and a few
    Hebrew names the store's search reads badly ("כיסוי איירפודס" finds 0 products, "כיסוי airpods" 97).

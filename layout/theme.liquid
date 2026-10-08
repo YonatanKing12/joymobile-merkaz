@@ -3,6 +3,26 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    {%- comment -%}
+      Sold-out products are never listed (the owner's rule): a category asks Shopify for in-stock
+      products only (the storefront filter filter.v.availability=1) and the search for available ones
+      (options[unavailable_products]=hide), so counts, pages and filters all agree. The theme's own
+      links and forms carry the parameter; a URL from outside (Google, an old link, a menu) is
+      replaced here, before anything renders. The product page itself stays reachable.
+    {%- endcomment -%}
+    {%- if request.page_type == 'collection' or request.page_type == 'search' -%}
+      <script>
+        (() => {
+          const u = new URL(location.href), p = u.searchParams;
+          const [key, value] = {{ request.page_type | json }} === 'collection'
+            ? ['filter.v.availability', '1'] : ['options[unavailable_products]', 'hide'];
+          if (p.get(key) === value || ({{ request.page_type | json }} === 'search' && !p.get('q'))) return;
+          p.set(key, value);
+          p.delete('page');
+          location.replace(u);
+        })();
+      </script>
+    {%- endif -%}
     {% render 'meta-tags' %}
 
     {%- comment -%}

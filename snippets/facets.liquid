@@ -92,8 +92,18 @@
         {%- endfor -%}
       {%- endif -%}
 
+      {%- assign fc_stock = results.filters | where: 'param_name', 'filter.v.availability' | first -%}
+      {%- if fc_stock -%}
+        <input type="hidden" name="filter.v.availability" value="1">
+      {%- endif -%}
+
       {%- if fc_show -%}
+        {%- assign fc_shown = 0 -%}
         {%- for filter in results.filters -%}
+          {%- if filter.param_name == 'filter.v.availability' -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- assign fc_shown = fc_shown | plus: 1 -%}
           {%- liquid
             assign fc_group_id = filter.param_name | url_encode | replace: '%', '' | replace: '.', '-' | replace: '+', '-'
             assign fc_group_id = 'Facet-' | append: fc_sid | append: '-' | append: fc_group_id
@@ -110,7 +120,7 @@
             assign fc_is_open = false
             if fc_open == 'all' or fc_active > 0
               assign fc_is_open = true
-            elsif fc_open == 'first' and forloop.first
+            elsif fc_open == 'first' and fc_shown == 1
               assign fc_is_open = true
             endif
           -%}

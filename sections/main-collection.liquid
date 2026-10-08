@@ -75,6 +75,13 @@
     endif
     assign clear_query = clear_query | append: 'sort_by=' | append: sort_value
   endif
+  assign stock_filter = collection.filters | where: 'param_name', 'filter.v.availability' | first
+  if stock_filter
+    if clear_query != blank
+      assign clear_query = clear_query | append: '&'
+    endif
+    assign clear_query = clear_query | append: 'filter.v.availability=1'
+  endif
   assign clear_url = results_url
   if clear_query != blank
     assign clear_url = results_url | append: '?' | append: clear_query
@@ -181,7 +188,14 @@
     </nav>
   {%- endif -%}
 
-  {%- if collection.all_products_count == 0 -%}
+  {%- liquid
+    # Nothing in stock and no filter of the shopper's: the empty state, not "no matches, clear the filters".
+    assign nothing_listed = false
+    if collection.all_products_count == 0 or collection.products_count == 0 and active_count == 0
+      assign nothing_listed = true
+    endif
+  -%}
+  {%- if nothing_listed -%}
     <div class="collection-empty">
       {%- render 'icon', name: 'bag', size: 44, class: 'collection-empty__icon' -%}
       <h2 class="collection-empty__title">{{ 'collections.empty.title' | t }}</h2>

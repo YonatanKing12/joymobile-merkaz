@@ -56,6 +56,7 @@
       <form class="blog-search article__search" action="{{ routes.search_url }}" method="get" role="search">
         <input type="hidden" name="type" value="article">
         <input type="hidden" name="options[prefix]" value="last">
+        <input type="hidden" name="options[unavailable_products]" value="hide">
         <label class="visually-hidden" for="ArticleSearch-{{ section.id }}">{{ 'blogs.blog.search_label' | t }}</label>
         <input
           class="blog-search__input"

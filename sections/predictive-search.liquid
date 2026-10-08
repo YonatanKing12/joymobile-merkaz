@@ -3,7 +3,7 @@
   predictive-search API rejects Hebrew (HTTP 417), so the script fetches the regular search
   page rendered through this section:
     /search?q=<terms>&type=product,article,page&options[prefix]=last
-      &options[unavailable_products]=last&section_id=predictive-search
+      &options[unavailable_products]=hide&section_id=predictive-search
   and moves this section's children into the header's [data-results] element, which is the
   combobox popup: role="listbox" with an aria-label (see sections/header.liquid). So the
   output is listbox content only — groups and options, no free text:
@@ -29,7 +29,7 @@
   capture ps_strict
     render 'search-query', terms: ps_terms, format: 'strict'
   endcapture
-  assign ps_all_url = routes.search_url | append: '?q=' | append: ps_strict | append: '&options%5Bprefix%5D=last'
+  assign ps_all_url = routes.search_url | append: '?q=' | append: ps_strict | append: '&options%5Bprefix%5D=last&options%5Bunavailable_products%5D=hide'
   assign ps_show_price = settings.predictive_search_show_price
   assign ps_product_limit = 6
   assign ps_content_limit = 3
@@ -63,6 +63,9 @@
       assign ps_products = 0
       assign ps_content = 0
       for item in search.results
+        if item.object_type == 'product' and item.available == false
+          continue
+        endif
         if item.object_type == 'product'
           assign ps_products = ps_products | plus: 1
         else
@@ -76,7 +79,7 @@
           <div class="predictive-search__heading" aria-hidden="true">{{ 'search.predictive.products' | t }}</div>
           {%- assign shown = 0 -%}
           {%- for item in search.results -%}
-            {%- if item.object_type != 'product' -%}
+            {%- if item.object_type != 'product' or item.available == false -%}
               {%- continue -%}
             {%- endif -%}
             {%- if shown >= ps_product_limit -%}
@@ -187,7 +190,7 @@
             {%- if clean_term != blank -%}
               <a
                 class="predictive-search__chip"
-                href="{{ routes.search_url }}?q={% render 'search-query', terms: clean_term, format: 'strict' %}&amp;options%5Bprefix%5D=last"
+                href="{{ routes.search_url }}?q={% render 'search-query', terms: clean_term, format: 'strict' %}&amp;options%5Bprefix%5D=last&amp;options%5Bunavailable_products%5D=hide"
                 role="option"
                 id="PredictiveSearchOption-trending-{{ forloop.index }}"
                 aria-selected="false"

@@ -52,6 +52,9 @@
   {%- for pg_pass in (1..pg_passes) -%}
     {%- for product in products -%}
       {%- liquid
+        if product.available == false
+          continue
+        endif
         if pg_passes == 2
           if pg_pass == 1 and product.featured_media == blank
             continue

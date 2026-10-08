@@ -62,7 +62,10 @@
         endfor
       endif
     else
-      assign af_count = af_count | plus: filter.active_values.size
+      # The in-stock filter is always on (layout/theme.liquid): kept in the query, never counted or shown.
+      unless filter.param_name == 'filter.v.availability'
+        assign af_count = af_count | plus: filter.active_values.size
+      endunless
       if af_format == 'query'
         for af_value in filter.active_values
           assign af_name = af_value.param_name | url_encode
@@ -118,7 +121,7 @@
               </a>
             </li>
           {%- endif -%}
-        {%- else -%}
+        {%- elsif filter.param_name != 'filter.v.availability' -%}
           {%- for af_value in filter.active_values -%}
             {%- assign af_label = filter.label | append: ': ' | append: af_value.label -%}
             <li class="active-filters__item">

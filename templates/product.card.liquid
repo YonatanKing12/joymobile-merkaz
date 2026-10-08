@@ -7,4 +7,7 @@
   (built by the card agent).
 {%- endcomment -%}
 {%- layout none -%}
+{%- comment -%} Sold out: no card, so neither list shows it; the saved handle stays for when it is back. {%- endcomment -%}
+{%- if product.available -%}
 {%- render 'card-product', product: product, lazy: true, heading: 'h2', show_swatches: settings.card_show_swatches -%}
+{%- endif -%}

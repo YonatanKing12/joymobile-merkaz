@@ -207,6 +207,7 @@
                   spellcheck="false"
                 >
                 <input type="hidden" name="options[prefix]" value="last">
+                <input type="hidden" name="options[unavailable_products]" value="hide">
                 <button class="search-form__submit" type="submit" aria-label="{{ 'header.search.submit' | t }}">
                   {%- render 'icon', name: 'search', size: 22 -%}
                 </button>
@@ -229,7 +230,7 @@
                       {%- assign clean_term = term | strip -%}
                       {%- if clean_term != blank -%}
                         <li>
-                          <a class="search-drawer__chip" href="{{ routes.search_url }}?q={{ clean_term | url_encode }}&amp;options%5Bprefix%5D=last">
+                          <a class="search-drawer__chip" href="{{ routes.search_url }}?q={{ clean_term | url_encode }}&amp;options%5Bprefix%5D=last&amp;options%5Bunavailable_products%5D=hide">
                             {{- clean_term | escape -}}
                           </a>
                         </li>
@@ -353,6 +354,7 @@
               spellcheck="false"
             >
             <input type="hidden" name="options[prefix]" value="last">
+            <input type="hidden" name="options[unavailable_products]" value="hide">
             <button class="search-form__submit" type="submit" aria-label="{{ 'header.search.submit' | t }}">
               {%- render 'icon', name: 'search', size: 16 -%}
             </button>
