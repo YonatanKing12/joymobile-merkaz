@@ -1,0 +1,12 @@
+{
+  "layout": "landing",
+  "sections": {
+    "main": {
+      "type": "iphone-duo-landing",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

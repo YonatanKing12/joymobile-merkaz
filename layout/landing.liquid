@@ -1,0 +1,70 @@
+<!doctype html>
+{%- comment -%}
+  Bare layout for standalone campaign pages (templates/page.iphone-duo.json): no store header, footer,
+  cart or theme CSS, so the page looks exactly like its original. The section brings its own CSS and JS.
+  Kept out of search results, like the original page (robots noindex,nofollow).
+{%- endcomment -%}
+{%- liquid
+  if template.suffix == 'iphone-duo' and shop.permanent_domain == 'x511g0-rj.myshopify.com'
+    assign meta_title = 'iPhone Duo באילת | JOY Mobile'
+    assign meta_description = 'הרשמו לעדכונים לקראת השקת iPhone Duo ב-JOY Mobile אילת ובחרו מראש את הצבע המועדף עליכם.'
+  elsif template.suffix == 'iphone-duo'
+    assign meta_title = 'iPhone Duo | JOY Mobile'
+    assign meta_description = 'הרשמו לעדכונים לקראת השקת iPhone Duo ב-JOY Mobile ובחרו מראש את הצבע המועדף עליכם.'
+  else
+    assign meta_title = page_title | append: ' | JOY Mobile'
+    assign meta_description = page_description | default: shop.description
+  endif
+-%}
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ meta_title | escape }}</title>
+    <meta name="description" content="{{ meta_description | escape }}">
+    <meta property="og:title" content="{{ meta_title | escape }}">
+    <meta property="og:description" content="{{ meta_description | escape }}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="he_IL">
+    <meta property="og:site_name" content="JOY MOBILE">
+
+    {%- comment -%} Icons: the store's own, as in layout/theme.liquid. {%- endcomment -%}
+    {%- if settings.favicon != blank %}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+      <link rel="apple-touch-icon" href="{{ settings.favicon | image_url: width: 180, height: 180 }}">
+    {%- else %}
+      <link rel="icon" type="image/png" sizes="96x96" href="{{ 'favicon.png' | asset_url }}">
+      <link rel="apple-touch-icon" sizes="180x180" href="{{ 'apple-touch-icon.png' | asset_url }}">
+    {%- endif %}
+    <meta name="robots" content="noindex,nofollow">
+
+    {%- comment -%}
+      Assistant, self-hosted by the theme (see assets/fonts.css), instead of Google Fonts. Same
+      unversioned URLs as the rest of the store, so a visitor who has seen the store reuses the cached files.
+    {%- endcomment %}
+    <style>
+      @font-face {
+        font-family: "Assistant";
+        font-style: normal;
+        font-weight: 200 800;
+        font-display: swap;
+        src: url("{{ 'assistant-hebrew-wght.woff2' | asset_url | split: '?' | first }}") format("woff2");
+        unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+      }
+      @font-face {
+        font-family: "Assistant";
+        font-style: normal;
+        font-weight: 200 800;
+        font-display: swap;
+        src: url("{{ 'assistant-latin-wght.woff2' | asset_url | split: '?' | first }}") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style>
+
+    {{ content_for_header }}
+  </head>
+
+  <body>
+    {{ content_for_layout }}
+  </body>
+</html>
