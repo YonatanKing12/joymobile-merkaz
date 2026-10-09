@@ -349,7 +349,7 @@
         "banner-1": {
           "type": "banner",
           "settings": {
-            "image": "shopify://shop_images/JoyCarePlus_phone_protection_banner.png",
+            "image": "shopify://shop_images/1.png",
             "link": "",
             "alt": "",
             "label": "",
@@ -359,7 +359,7 @@
         "banner-2": {
           "type": "banner",
           "settings": {
-            "image": "shopify://shop_images/Golden_Joy_perfume_collection.png",
+            "image": "shopify://shop_images/2.png",
             "link": "",
             "alt": "",
             "label": "",
@@ -371,7 +371,6 @@
         "banner-1",
         "banner-2"
       ],
-      "disabled": true,
       "settings": {
         "heading": "",
         "banner_size": "image",
