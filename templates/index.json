@@ -377,7 +377,7 @@
           "type": "banner",
           "settings": {
             "image": "shopify://shop_images/2.png",
-            "link": "",
+            "link": "https://www.eilat.joymobile.co.il/pages/iphone-duo",
             "alt": "",
             "label": "",
             "show_on": "all"
