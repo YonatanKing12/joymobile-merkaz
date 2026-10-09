@@ -6,8 +6,9 @@
     Eilat shop and "national" elsewhere, and STORE_COPY holds the lines that differ (Eilat: no VAT,
     pickup at the Eilat branches; national: VAT included, home delivery, no pickup).
   - Images: JOY's are theme assets (iphone-duo-*.webp); Apple's product images stay hotlinked from apple.com.
-  - Leads go to the same Google Apps Script as the original page, with source "iphone-duo-launch-page"
-    (Eilat) or "iphone-duo-launch-page-national".
+  - Leads go to the same Google Apps Script as the original page. That receiver accepts only the
+    original page's source ("iphone18-launch-page") and privacy URL (the Konimbo contract page), so
+    both are sent unchanged and the consent checkbox links to that same policy.
   - Privacy and terms links: the Hebrew pages (handles privacy, terms) when they exist, else Shopify's
     policy pages, like the footer and contact form of the theme.
 {%- endcomment -%}
@@ -113,15 +114,13 @@ const STORE_COPY={
   brandName:'<bdi>JOY MOBILE</bdi> אילת',kicker:'<bdi>JOY MOBILE</bdi> · אילת',
   offer:'מחירי אילת ואיסוף בסניף',
   benefits:[[tagIcon,'מחירים ללא מע״מ','מחירי אילת'],[storeIcon,'איסוף מהיר בסניפי אילת','איסוף פשוט ונוח']],
-  priceFaq:['האם המחיר כולל הטבת אילת?','המחיר הסופי והתנאים יימסרו עם פתיחת המכירה ובהתאם למחירי JOY MOBILE אילת ולתנאי העסקה הרלוונטיים.'],
-  source:'iphone-duo-launch-page'
+  priceFaq:['האם המחיר כולל הטבת אילת?','המחיר הסופי והתנאים יימסרו עם פתיחת המכירה ובהתאם למחירי JOY MOBILE אילת ולתנאי העסקה הרלוונטיים.']
  },
  national:{
   brandName:'<bdi>JOY MOBILE</bdi>',kicker:'<bdi>JOY MOBILE</bdi>',
   offer:'משלוח עד הבית לכל הארץ',
   benefits:[[truckIcon,'משלוח עד הבית','לכל הארץ, עד 7 ימי עסקים'],[tagIcon,'משלוח חינם','בהזמנה מעל 3,000 ₪']],
-  priceFaq:['האם המחיר כולל מע״מ?','כן. כל המחירים באתר כוללים מע״מ. המחיר הסופי והתנאים יימסרו עם פתיחת המכירה.'],
-  source:'iphone-duo-launch-page-national'
+  priceFaq:['האם המחיר כולל מע״מ?','כן. כל המחירים באתר כוללים מע״מ. המחיר הסופי והתנאים יימסרו עם פתיחת המכירה.']
  }
 }[STORE];
 // Verified against the linked Apple US product pages on 2026-09-10.
@@ -240,7 +239,7 @@ const Benefits=()=>`<section class="benefits" aria-label="למה ${STORE_COPY.br
 ].map(([i,h,p])=>`<div class="benefit">${i}<div><h3>${h}</h3><p>${p}</p></div></div>`).join('')}</div></section>`;
 const field=(id,label,control,required=false)=>`<div class="field"><label for="${id}">${label}</label>${control}<span class="field-error" id="${id}-error" aria-live="polite"></span></div>`;
 const select=(id,options,required=false)=>`<select id="${id}" name="${id}" ${required?'required':''} aria-describedby="${id}-error">${options.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`;
-const LeadForm=()=>`<section class="hero-lead" id="lead" aria-labelledby="lead-title"><div class="hero-form-heading"><span class="hero-form-kicker">הרשמה לעדכוני ההשקה</span><h2 id="lead-title">תהיו הראשונים לדעת.</h2><p>השאירו פרטים ונחזור אליכם עם פתיחת המכירה.</p></div><div class="form-panel"><form id="lead-form" novalidate><div class="form-grid">${field('name','שם מלא','<input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="השם שלכם" aria-describedby="name-error">')}${field('phone','טלפון נייד','<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" required placeholder="050-0000000" dir="ltr" aria-describedby="phone-error">')}${field('email','אימייל','<input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com" dir="ltr" aria-describedby="email-error">')}${field('color','צבע מועדף',select('color',[['','בחרו צבע'],['undecided','עוד לא החלטתי'],...duoColors.map(c=>[c.name,`${c.label} — ${c.name}`])],true))}${field('tradeIn','טרייד-אין',select('tradeIn',[['','בחרו אפשרות'],['undecided','עוד לא החלטתי'],['interested','רוצה לבדוק'],['not-relevant','לא רלוונטי']],true))}${field('contactMethod','איך תרצו שנחזור אליכם?',select('contactMethod',[['','בחרו דרך ליצירת קשר'],['phone','שיחת טלפון'],['whatsapp','וואטסאפ'],['sms','מסרון']],true))}</div><button class="button submit" type="submit"><span class="submit-label">שמרו לי מקום בהשקה</span>${arrow}</button><div class="lead-consent"><div class="lead-consent-row"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes" checked required aria-describedby="marketingConsent-error"><label for="marketingConsent">מאשרים קבלת הצעות שיווקיות מעת לעת בהודעות אלקטרוניות, מסרונים או שיחות. השימוש במידע שתמסרו הינו בהתאם <a href="${PRIVACY_URL}" target="_blank" rel="noopener noreferrer">למדיניות הפרטיות</a> של החברה.</label></div><span class="field-error" id="marketingConsent-error" aria-live="polite"></span></div><p id="submit-error" class="submit-error" role="alert" hidden></p></form><div id="success" class="success" role="status" tabindex="-1" hidden><span class="success-mark" aria-hidden="true">✓</span><h3>הפרטים התקבלו.</h3><p>נעדכן אתכם כשה-<bdi>iPhone Duo</bdi> מגיע ל-${STORE_COPY.brandName}.</p></div></div><p class="hero-no-commitment">ללא התחייבות לרכישה. בחירת הצבע כפופה לזמינות.</p></section>`;
+const LeadForm=()=>`<section class="hero-lead" id="lead" aria-labelledby="lead-title"><div class="hero-form-heading"><span class="hero-form-kicker">הרשמה לעדכוני ההשקה</span><h2 id="lead-title">תהיו הראשונים לדעת.</h2><p>השאירו פרטים ונחזור אליכם עם פתיחת המכירה.</p></div><div class="form-panel"><form id="lead-form" novalidate><div class="form-grid">${field('name','שם מלא','<input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="השם שלכם" aria-describedby="name-error">')}${field('phone','טלפון נייד','<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" required placeholder="050-0000000" dir="ltr" aria-describedby="phone-error">')}${field('email','אימייל','<input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com" dir="ltr" aria-describedby="email-error">')}${field('color','צבע מועדף',select('color',[['','בחרו צבע'],['undecided','עוד לא החלטתי'],...duoColors.map(c=>[c.name,`${c.label} — ${c.name}`])],true))}${field('tradeIn','טרייד-אין',select('tradeIn',[['','בחרו אפשרות'],['undecided','עוד לא החלטתי'],['interested','רוצה לבדוק'],['not-relevant','לא רלוונטי']],true))}${field('contactMethod','איך תרצו שנחזור אליכם?',select('contactMethod',[['','בחרו דרך ליצירת קשר'],['phone','שיחת טלפון'],['whatsapp','וואטסאפ'],['sms','מסרון']],true))}</div><button class="button submit" type="submit"><span class="submit-label">שמרו לי מקום בהשקה</span>${arrow}</button><div class="lead-consent"><div class="lead-consent-row"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes" checked required aria-describedby="marketingConsent-error"><label for="marketingConsent">מאשרים קבלת הצעות שיווקיות מעת לעת בהודעות אלקטרוניות, מסרונים או שיחות. השימוש במידע שתמסרו הינו בהתאם <a href="${PRIVACY_POLICY_URL}" target="_blank" rel="noopener noreferrer">למדיניות הפרטיות</a> של החברה.</label></div><span class="field-error" id="marketingConsent-error" aria-live="polite"></span></div><p id="submit-error" class="submit-error" role="alert" hidden></p></form><div id="success" class="success" role="status" tabindex="-1" hidden><span class="success-mark" aria-hidden="true">✓</span><h3>הפרטים התקבלו.</h3><p>נעדכן אתכם כשה-<bdi>iPhone Duo</bdi> מגיע ל-${STORE_COPY.brandName}.</p></div></div><p class="hero-no-commitment">ללא התחייבות לרכישה. בחירת הצבע כפופה לזמינות.</p></section>`;
 const FAQ=()=>`<section class="faq-section section-space" aria-labelledby="faq-title"><div class="wrap faq-layout"><div class="faq-heading reveal"><span class="eyebrow">שאלות ותשובות</span><h2 id="faq-title">לפני שמחליטים.</h2></div><div class="faq-list reveal">${[
 ['האם ההרשמה מחייבת רכישה?','לא. ההרשמה מיועדת לקבלת עדכונים וליצירת קשר לקראת פתיחת המכירה, ללא התחייבות לרכישה.'],['האם אפשר לציין טרייד-אין?','כן. תוכלו לציין בטופס אם תרצו לבדוק אפשרות לטרייד-אין, והנציג יוכל להתייחס לכך בהמשך.'],STORE_COPY.priceFaq,['מתי תיפתח המכירה?','נעדכן את הנרשמים ברגע שהמכירה תיפתח ויהיו פרטים מאושרים לגבי זמינות ומחירים.'],['האם ניתן לבחור צבע מראש?','כן. ניתן לציין צבע מועדף בטופס, בכפוף לזמינות בפועל עם פתיחת המכירה.']
 ].map(([q,a],i)=>`<article class="faq-item"><h3><button type="button" id="question-${i}" aria-expanded="false" aria-controls="answer-${i}">${q}<span aria-hidden="true">+</span></button></h3><div class="faq-answer" id="answer-${i}" role="region" aria-labelledby="question-${i}" inert><div><p>${a}</p></div></div></article>`).join('')}</div></div></section>`;
@@ -249,7 +248,9 @@ const Footer=()=>`<footer class="footer"><div class="wrap footer-inner"><div>${b
 
 const LEADS_ENDPOINT='https://script.google.com/macros/s/AKfycbxztQtXdk04iDv_b-ew8v59wYQOV6ZevbRaeVWbD4pa1DkMBwNNwEPcmU-H0qr0rCGZ/exec';
 const CONSENT_VERSION='20260910-1';
-const PRIVACY_POLICY_URL=new URL(PRIVACY_URL,location.href).href;
+// The receiver rejects any other source or privacy URL ({"accepted":false,"error":"invalid"}).
+const PRIVACY_POLICY_URL='https://joymobile.konimbo.co.il/contract';
+const LEAD_SOURCE='iphone18-launch-page';
 const LEAD_FIELDS=['name','phone','email','color','tradeIn','contactMethod','marketingConsent'];
 function normalizePhone(value){
  const raw=String(value).trim();
@@ -384,7 +385,7 @@ form.addEventListener('submit',async event=>{
  const data=Object.fromEntries(new FormData(form));const errors=validateLead(data);
  LEAD_FIELDS.forEach(key=>showFieldError(key,errors[key]));
  if(Object.keys(errors).length){form.elements[Object.keys(errors)[0]].focus();return}
- const payload=prepareLead({name:data.name.trim(),phone:normalizePhone(data.phone),email:data.email.trim(),device:DEVICE,color:data.color,tradeIn:data.tradeIn,contactMethod:data.contactMethod,marketingConsent:true,consentDefault:'prechecked',consentVersion:CONSENT_VERSION,privacyPolicyUrl:PRIVACY_POLICY_URL,source:STORE_COPY.source,website:data.website||''});
+ const payload=prepareLead({name:data.name.trim(),phone:normalizePhone(data.phone),email:data.email.trim(),device:DEVICE,color:data.color,tradeIn:data.tradeIn,contactMethod:data.contactMethod,marketingConsent:true,consentDefault:'prechecked',consentVersion:CONSENT_VERSION,privacyPolicyUrl:PRIVACY_POLICY_URL,source:LEAD_SOURCE,website:data.website||''});
  state.submitting=true;const submit=form.querySelector('[type=submit]');const label=submit.querySelector('.submit-label');const error=document.querySelector('#submit-error');
  submit.disabled=true;label.textContent='שולחים את הפרטים…';form.setAttribute('aria-busy','true');error.hidden=true;
  try{await submitLead(payload);form.hidden=true;const success=document.querySelector('#success');success.hidden=false;success.focus();}
