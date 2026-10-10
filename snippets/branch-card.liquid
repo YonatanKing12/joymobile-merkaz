@@ -20,7 +20,7 @@
   @param {string} [services] - Services line.
   @param {string} [address] - Address as shown, ending with the city.
   @param {string} [hours] - Opening hours for people, one range per line.
-  @param {string} [phone] - Branch phone. Default: the theme setting contact_phone.
+  @param {string} [phone] - Branch phones separated by / . Default: the theme setting contact_phone.
   @param {string} [text] - Extra text, HTML (rich text).
   @param {string} [map_query] - Map search. Default: the address.
   @param {image} [image] - Photo of the branch; shown instead of the map.
@@ -38,8 +38,21 @@
   assign bc_map_query_encoded = bc_map_query | url_encode | replace: '+', '%20'
 
   assign bc_phone = phone | strip | default: settings.contact_phone | strip
-  capture bc_phone_href
-    render 'phone-href', phone: bc_phone
+  assign bc_phones = bc_phone | split: '/'
+  capture bc_phone_links
+    for bc_number in bc_phones
+      assign bc_number = bc_number | strip
+      capture bc_phone_href
+        render 'phone-href', phone: bc_number
+      endcapture
+      if bc_phone_href != blank
+        echo '<a class="branch__phone" href="'
+        echo bc_phone_href
+        echo '" dir="ltr">'
+        echo bc_number | escape
+        echo '</a>'
+      endif
+    endfor
   endcapture
 
   assign bc_hours = hours | strip
@@ -79,13 +92,13 @@
           {%- endif -%}
         </div>
       {%- endif -%}
-      {%- if bc_phone_href != blank -%}
+      {%- if bc_phone_links != blank -%}
         <div class="branch__row">
           <dt>
             {%- render 'icon', name: 'phone', size: 20, class: 'branch__icon' -%}
             <span>{{ 'branches.phone' | t }}</span>
           </dt>
-          <dd><a class="branch__phone" href="{{ bc_phone_href }}" dir="ltr">{{ bc_phone | escape }}</a></dd>
+          <dd class="branch__phones">{{ bc_phone_links }}</dd>
         </div>
       {%- endif -%}
     </dl>
