@@ -5,7 +5,7 @@
       "settings": {
         "show_breadcrumbs": true,
         "description_position": "split",
-        "banner_source": "none",
+        "banner_source": "branded",
         "banner_pattern": "joy-mobile-category-[handle].png",
         "show_subcollections": true,
         "subcollections_menu": "main-menu",

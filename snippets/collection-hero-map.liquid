@@ -1,0 +1,227 @@
+{%- comment -%}
+  Curated collection hero artwork. See .github/collection-heroes/README.md.
+  Exact handles avoid substring mismatches (headphones vs phones, children vs accessories).
+  format: family (default) or brands (only verified authentic logo assets).
+  Unknown/new collections use the general showroom artwork without manufacturer logos.
+{%- endcomment -%}
+{%- liquid
+  assign hero_map_handle = handle
+  assign hero_map_vendor = vendor | strip | downcase
+  case hero_map_vendor
+    when "apple"
+      assign hero_map_handle = "phones-apple"
+    when "samsung"
+      assign hero_map_handle = "phones-samsung"
+    when "xiaomi"
+      assign hero_map_handle = "phones-xiaomi"
+    when "google"
+      assign hero_map_handle = "phones-google"
+    when "oneplus"
+      assign hero_map_handle = "phones-oneplus"
+    when "infinix"
+      assign hero_map_handle = "phones-infinix"
+    when "jbl"
+      assign hero_map_handle = "audio-jbl"
+    when "razer"
+      assign hero_map_handle = "gaming-razer"
+    when "sandisk"
+      assign hero_map_handle = "storage-sandisk"
+    when "dyson"
+      assign hero_map_handle = "vacuums-dyson"
+    when "roborock"
+      assign hero_map_handle = "vacuums-roborock"
+    when "ninja"
+      assign hero_map_handle = "kitchen-ninja"
+    when "dji"
+      assign hero_map_handle = "drones-dji"
+    when "otterbox"
+      assign hero_map_handle = "accessories-otterbox"
+    when "puregear"
+      assign hero_map_handle = "accessories-puregear"
+    when "soundcore"
+      assign hero_map_handle = "אוזניות-anker-soundcore"
+    when "anker soundcore"
+      assign hero_map_handle = "אוזניות-anker-soundcore"
+    when "lego"
+      assign hero_map_handle = "building-sets"
+    when "insta360"
+      assign hero_map_handle = "vendor-insta360"
+  endcase
+  if format == 'brands'
+    case hero_map_handle
+      when "phones-apple"
+        echo 'apple'
+      when "phones-samsung"
+        echo 'samsung'
+      when "phones-xiaomi"
+        echo 'xiaomi'
+      when "phones-google"
+        echo 'google'
+      when "phones-infinix"
+        echo 'infinix'
+      when "phones-oneplus"
+        echo 'oneplus'
+      when "iphone-18-pro-pro-max"
+        echo 'apple'
+      when "iphone-17-18"
+        echo 'apple'
+      when "tablets-apple"
+        echo 'apple'
+      when "tablets-samsung"
+        echo 'samsung'
+      when "watches-apple"
+        echo 'apple'
+      when "watches-samsung"
+        echo 'samsung'
+      when "שעוני-infinx"
+        echo 'infinix'
+      when "headphones-apple"
+        echo 'apple'
+      when "air-pods-max-2"
+        echo 'apple'
+      when "אוזניות-samsung-galaxy-buds"
+        echo 'samsung'
+      when "אוזניות-anker-soundcore"
+        echo 'soundcore'
+      when "audio-jbl"
+        echo 'jbl'
+      when "gaming-razer"
+        echo 'razer'
+      when "storage-sandisk"
+        echo 'sandisk'
+      when "vacuums-dyson"
+        echo 'dyson'
+      when "vacuums-roborock"
+        echo 'roborock'
+      when "drones-dji"
+        echo 'dji'
+      when "building-sets"
+        echo 'lego'
+      when "vendor-insta360"
+        echo 'insta360'
+    endcase
+  else
+    case hero_map_handle
+      when "frontpage", "reservable-eilat", "all"
+        echo 'general'
+      when "smartphones", "phones-used", "phones-under-1500", "phones-1500-3000", "phones-3000-5000", "phones-over-5000"
+        echo 'smartphones'
+      when "phones-apple", "iphone-18-pro-pro-max", "iphone-17-18"
+        echo 'phones-apple'
+      when "phones-samsung"
+        echo 'phones-samsung'
+      when "phones-xiaomi"
+        echo 'phones-xiaomi'
+      when "phones-google"
+        echo 'phones-google'
+      when "phones-infinix"
+        echo 'phones-infinix'
+      when "phones-oneplus"
+        echo 'phones-oneplus'
+      when "tablets"
+        echo 'tablets'
+      when "tablets-apple"
+        echo 'tablets-apple'
+      when "tablets-samsung"
+        echo 'tablets-samsung'
+      when "tablets-kids"
+        echo 'tablets-kids'
+      when "accessories-tablets"
+        echo 'tablet-accessories'
+      when "smartwatches", "שעוני-infinx"
+        echo 'watches'
+      when "watches-apple"
+        echo 'watches-apple'
+      when "watches-samsung"
+        echo 'watches-samsung'
+      when "accessories-smartwatch"
+        echo 'watch-accessories'
+      when "audio", "אוזניות-anker-soundcore"
+        echo 'audio'
+      when "headphones-apple"
+        echo 'apple-audio'
+      when "headphones-true-wireless"
+        echo 'earbuds'
+      when "headphones-over-ear"
+        echo 'headphones'
+      when "air-pods-max-2"
+        echo 'apple-headphones'
+      when "headphones-wired"
+        echo 'wired-audio'
+      when "headphones-gaming"
+        echo 'gaming-headsets'
+      when "speakers-portable"
+        echo 'speakers'
+      when "audio-jbl"
+        echo 'jbl'
+      when "accessories-airpods"
+        echo 'airpods-cases'
+      when "אוזניות-samsung-galaxy-buds"
+        echo 'galaxy-buds'
+      when "computers-gaming"
+        echo 'computers'
+      when "computers-laptops"
+        echo 'laptops'
+      when "computers-desktops"
+        echo 'desktops'
+      when "monitors"
+        echo 'monitors'
+      when "gaming-mice"
+        echo 'mice'
+      when "gaming-keyboards"
+        echo 'keyboards'
+      when "gaming-razer"
+        echo 'razer'
+      when "gaming-consoles"
+        echo 'consoles'
+      when "gaming-games"
+        echo 'games'
+      when "gaming-controllers"
+        echo 'controllers'
+      when "storage-network", "storage-sandisk"
+        echo 'storage'
+      when "appliances"
+        echo 'appliances'
+      when "vacuums", "vacuums-dyson"
+        echo 'vacuums'
+      when "vacuums-robot", "vacuums-roborock"
+        echo 'robot-vacuums'
+      when "kitchen", "kitchen-ninja"
+        echo 'kitchen'
+      when "grooming"
+        echo 'grooming'
+      when "perfumes"
+        echo 'perfumes'
+      when "photo-drones"
+        echo 'photo'
+      when "cameras", "vendor-insta360"
+        echo 'cameras'
+      when "drones-dji"
+        echo 'drones'
+      when "accessories"
+        echo 'accessories'
+      when "accessories-cases", "accessories-otterbox", "accessories-puregear"
+        echo 'cases'
+      when "accessories-screen-protectors", "accessories-essentials"
+        echo 'protectors'
+      when "accessories-chargers"
+        echo 'chargers'
+      when "accessories-cables"
+        echo 'cables'
+      when "accessories-power-banks"
+        echo 'power-banks'
+      when "accessories-car"
+        echo 'car'
+      when "accessories-stands-mounts"
+        echo 'stands'
+      when "collectibles"
+        echo 'collectibles'
+      when "building-sets"
+        echo 'building'
+      when "water-scooters"
+        echo 'water'
+      else
+        echo 'general'
+    endcase
+  endif
+-%}
