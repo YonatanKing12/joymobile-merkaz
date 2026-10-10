@@ -88,7 +88,22 @@
   endif
 
   assign banner = nil
+  assign hero_family = ''
+  assign hero_brands = ''
+  assign branded_hero = false
   case section.settings.banner_source
+    when 'branded'
+      capture hero_family
+        render 'collection-hero-map', handle: collection.handle, vendor: collection.current_vendor, format: 'family'
+      endcapture
+      capture hero_brands
+        render 'collection-hero-map', handle: collection.handle, vendor: collection.current_vendor, format: 'brands'
+      endcapture
+      assign hero_family = hero_family | strip
+      assign hero_brands = hero_brands | strip
+      if hero_family != blank
+        assign branded_hero = true
+      endif
     when 'collection'
       assign banner = collection.image
     when 'files'
@@ -159,7 +174,80 @@
     {%- render 'breadcrumbs', class: 'collection__breadcrumbs' -%}
   {%- endif -%}
 
-  {%- if banner != blank -%}
+  {%- if branded_hero -%}
+    {%- liquid
+      assign hero_asset_stem = 'collection-hero-' | append: hero_family
+      assign hero_asset = hero_asset_stem | append: '.webp'
+      assign hero_asset_small = hero_asset_stem | append: '-720.webp'
+      assign hero_asset_medium = hero_asset_stem | append: '-1100.webp'
+      assign hero_brand_keys = hero_brands | split: ','
+    -%}
+    <div class="collection__banner collection__banner--branded" data-collection-hero="{{ hero_family | escape }}">
+      <img
+        class="collection__banner-img"
+        src="{{ hero_asset | asset_url }}"
+        srcset="{{ hero_asset_small | asset_url }} 720w, {{ hero_asset_medium | asset_url }} 1100w, {{ hero_asset | asset_url }} 1536w"
+        sizes="(min-width: 1360px) 1320px, calc(100vw - 30px)"
+        alt=""
+        width="1536"
+        height="513"
+        loading="eager"
+        fetchpriority="high"
+      >
+      <img
+        class="collection__hero-logo"
+        src="{{ 'logo-joy.png' | asset_url }}"
+        alt="Joy Mobile"
+        width="871"
+        height="249"
+        loading="eager"
+        fetchpriority="low"
+      >
+      {%- if hero_brands != blank -%}
+        <div class="collection__hero-brands">
+          {%- for hero_brand in hero_brand_keys -%}
+            {%- liquid
+              assign hero_brand = hero_brand | strip
+              assign hero_brand_extension = '.svg'
+              if hero_brand == 'dyson' or hero_brand == 'roborock'
+                assign hero_brand_extension = '.png'
+              endif
+              assign hero_brand_asset = 'collection-brand-' | append: hero_brand | append: hero_brand_extension
+              assign hero_brand_class = ''
+              case hero_brand
+                when 'samsung', 'sandisk', 'infinix', 'soundcore', 'dyson', 'roborock', 'ninja', 'puregear'
+                  assign hero_brand_class = ' collection__hero-brand--wordmark'
+              endcase
+              assign hero_brand_name = hero_brand | replace: '-', ' ' | capitalize
+              case hero_brand
+                when 'oneplus'
+                  assign hero_brand_name = 'OnePlus'
+                when 'jbl'
+                  assign hero_brand_name = 'JBL'
+                when 'dji'
+                  assign hero_brand_name = 'DJI'
+                when 'sandisk'
+                  assign hero_brand_name = 'SanDisk'
+                when 'puregear'
+                  assign hero_brand_name = 'PureGear'
+                when 'otterbox'
+                  assign hero_brand_name = 'OtterBox'
+              endcase
+            -%}
+            <img
+              class="collection__hero-brand{{ hero_brand_class }}"
+              src="{{ hero_brand_asset | asset_url }}"
+              alt="{{ hero_brand_name | escape }}"
+              width="112"
+              height="36"
+              loading="eager"
+              fetchpriority="low"
+            >
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- elsif banner != blank -%}
     <div class="collection__banner">
       {%- render 'image',
         image: banner,
@@ -173,8 +261,8 @@
     </div>
   {%- endif -%}
 
-  <header class="collection__header">
-    <h1 class="collection__title">{{ collection.title | escape }}</h1>
+  <header class="collection__header{% if branded_hero and desc_top == blank %} collection__header--artwork{% endif %}">
+    <h1 class="collection__title{% if branded_hero %} visually-hidden{% endif %}">{{ collection.title | escape }}</h1>
     {%- if desc_top != blank -%}
       <div class="collection__description rte">{{ desc_top }}</div>
     {%- endif -%}
@@ -219,7 +307,7 @@
     {%- paginate collection.products by section.settings.products_per_page -%}
       {%- liquid
         assign eager = 0
-        if paginate.current_page == 1 and banner == blank
+        if paginate.current_page == 1 and banner == blank and branded_hero == false
           assign eager = 4
         endif
         assign shown = paginate.current_offset | plus: paginate.page_size | at_most: paginate.items
@@ -463,6 +551,10 @@
       "label": "באנר",
       "options": [
         {
+          "value": "branded",
+          "label": "תמונת קטגוריה ממותגת"
+        },
+        {
           "value": "none",
           "label": "ללא באנר"
         },
@@ -475,8 +567,8 @@
           "label": "תמונת הקטגוריה"
         }
       ],
-      "default": "none",
-      "info": "תמונות הקטגוריות בחנות ריבועיות ומשמשות לכרטיסים; לבאנר רחב עדיף קובץ ייעודי."
+      "default": "branded",
+      "info": "תמונות ממותגות מותאמות לקטגוריה, למחשב ולמובייל. שם הקטגוריה נשאר נגיש לקוראי מסך ובפירורי הלחם."
     },
     {
       "type": "text",

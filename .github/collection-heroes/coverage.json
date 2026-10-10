@@ -1,0 +1,389 @@
+{
+  "families": {
+    "general": [
+      "frontpage",
+      "reservable-eilat",
+      "all"
+    ],
+    "smartphones": [
+      "smartphones",
+      "phones-used",
+      "phones-under-1500",
+      "phones-1500-3000",
+      "phones-3000-5000",
+      "phones-over-5000"
+    ],
+    "phones-apple": [
+      "phones-apple",
+      "iphone-18-pro-pro-max",
+      "iphone-17-18"
+    ],
+    "phones-samsung": [
+      "phones-samsung"
+    ],
+    "phones-xiaomi": [
+      "phones-xiaomi"
+    ],
+    "phones-google": [
+      "phones-google"
+    ],
+    "phones-infinix": [
+      "phones-infinix"
+    ],
+    "phones-oneplus": [
+      "phones-oneplus"
+    ],
+    "tablets": [
+      "tablets"
+    ],
+    "tablets-apple": [
+      "tablets-apple"
+    ],
+    "tablets-samsung": [
+      "tablets-samsung"
+    ],
+    "tablets-kids": [
+      "tablets-kids"
+    ],
+    "tablet-accessories": [
+      "accessories-tablets"
+    ],
+    "watches": [
+      "smartwatches",
+      "שעוני-infinx"
+    ],
+    "watches-apple": [
+      "watches-apple"
+    ],
+    "watches-samsung": [
+      "watches-samsung"
+    ],
+    "watch-accessories": [
+      "accessories-smartwatch"
+    ],
+    "audio": [
+      "audio",
+      "אוזניות-anker-soundcore"
+    ],
+    "apple-audio": [
+      "headphones-apple"
+    ],
+    "earbuds": [
+      "headphones-true-wireless"
+    ],
+    "headphones": [
+      "headphones-over-ear"
+    ],
+    "apple-headphones": [
+      "air-pods-max-2"
+    ],
+    "wired-audio": [
+      "headphones-wired"
+    ],
+    "gaming-headsets": [
+      "headphones-gaming"
+    ],
+    "speakers": [
+      "speakers-portable"
+    ],
+    "jbl": [
+      "audio-jbl"
+    ],
+    "airpods-cases": [
+      "accessories-airpods"
+    ],
+    "galaxy-buds": [
+      "אוזניות-samsung-galaxy-buds"
+    ],
+    "computers": [
+      "computers-gaming"
+    ],
+    "laptops": [
+      "computers-laptops"
+    ],
+    "desktops": [
+      "computers-desktops"
+    ],
+    "monitors": [
+      "monitors"
+    ],
+    "mice": [
+      "gaming-mice"
+    ],
+    "keyboards": [
+      "gaming-keyboards"
+    ],
+    "razer": [
+      "gaming-razer"
+    ],
+    "consoles": [
+      "gaming-consoles"
+    ],
+    "games": [
+      "gaming-games"
+    ],
+    "controllers": [
+      "gaming-controllers"
+    ],
+    "storage": [
+      "storage-network",
+      "storage-sandisk"
+    ],
+    "appliances": [
+      "appliances"
+    ],
+    "vacuums": [
+      "vacuums",
+      "vacuums-dyson"
+    ],
+    "robot-vacuums": [
+      "vacuums-robot",
+      "vacuums-roborock"
+    ],
+    "kitchen": [
+      "kitchen",
+      "kitchen-ninja"
+    ],
+    "grooming": [
+      "grooming"
+    ],
+    "perfumes": [
+      "perfumes"
+    ],
+    "photo": [
+      "photo-drones"
+    ],
+    "cameras": [
+      "cameras",
+      "vendor-insta360"
+    ],
+    "drones": [
+      "drones-dji"
+    ],
+    "accessories": [
+      "accessories"
+    ],
+    "cases": [
+      "accessories-cases",
+      "accessories-otterbox",
+      "accessories-puregear"
+    ],
+    "protectors": [
+      "accessories-screen-protectors",
+      "accessories-essentials"
+    ],
+    "chargers": [
+      "accessories-chargers"
+    ],
+    "cables": [
+      "accessories-cables"
+    ],
+    "power-banks": [
+      "accessories-power-banks"
+    ],
+    "car": [
+      "accessories-car"
+    ],
+    "stands": [
+      "accessories-stands-mounts"
+    ],
+    "collectibles": [
+      "collectibles"
+    ],
+    "building": [
+      "building-sets"
+    ],
+    "water": [
+      "water-scooters"
+    ]
+  },
+  "brands": {
+    "phones-apple": "apple",
+    "phones-samsung": "samsung",
+    "phones-xiaomi": "xiaomi",
+    "phones-google": "google",
+    "phones-infinix": "infinix",
+    "phones-oneplus": "oneplus",
+    "iphone-18-pro-pro-max": "apple",
+    "iphone-17-18": "apple",
+    "tablets-apple": "apple",
+    "tablets-samsung": "samsung",
+    "watches-apple": "apple",
+    "watches-samsung": "samsung",
+    "שעוני-infinx": "infinix",
+    "headphones-apple": "apple",
+    "air-pods-max-2": "apple",
+    "אוזניות-samsung-galaxy-buds": "samsung",
+    "אוזניות-anker-soundcore": "soundcore",
+    "audio-jbl": "jbl",
+    "gaming-razer": "razer",
+    "storage-sandisk": "sandisk",
+    "vacuums-dyson": "dyson",
+    "vacuums-roborock": "roborock",
+    "drones-dji": "dji",
+    "building-sets": "lego",
+    "vendor-insta360": "insta360"
+  },
+  "logoSources": {
+    "apple": {
+      "title": "Apple",
+      "source": "https://www.apple.com",
+      "slug": "apple",
+      "library": "simple-icons@16",
+      "filename": "collection-brand-apple.svg",
+      "geometry": "Original vector paths; white display fill and viewBox fitted to original path bounds with 2% padding.",
+      "viewBox": "1.8340 -0.4800 20.3320 24.9602"
+    },
+    "samsung": {
+      "title": "Samsung",
+      "source": "https://www.samsung.com/us/about-us/brand-identity/logo/",
+      "slug": "samsung",
+      "library": "simple-icons@16",
+      "filename": "collection-brand-samsung.svg",
+      "geometry": "Original vector paths; white display fill and viewBox fitted to original path bounds with 2% padding.",
+      "viewBox": "-0.4800 10.0928 24.9600 3.8143"
+    },
+    "xiaomi": {
+      "title": "Xiaomi",
+      "source": "https://www.mi.com/global",
+      "slug": "xiaomi",
+      "library": "simple-icons@16",
+      "filename": "collection-brand-xiaomi.svg",
+      "geometry": "Original vector paths; white display fill and viewBox fitted to original path bounds with 2% padding.",
+      "viewBox": "-0.4800 -0.4800 24.9600 24.9600"
+    },
+    "google": {
+      "title": "Google",
+      "source": "https://partnermarketinghub.withgoogle.com",
+      "slug": "google",
+      "library": "simple-icons@16",
+      "filename": "collection-brand-google.svg",
+      "geometry": "Original vector paths; white display fill and viewBox fitted to original path bounds with 2% padding.",
+      "viewBox": "-0.1607 -0.4800 24.3214 24.9600"
+    },
+    "oneplus": {
+      "title": "OnePlus",
+      "source": "https://www.oneplus.com/ca_en/brand/asset",
+      "slug": "oneplus",
+      "library": "simple-icons@16",
+      "filename": "collection-brand-oneplus.svg",
+      "geometry": "Original vector paths; white display fill and viewBox fitted to original path bounds with 2% padding.",
+      "viewBox": "-0.4800 -0.4800 24.9600 24.9600"
+    },
+    "jbl": {
+      "title": "JBL",
+      "source": "https://www.jbl.com",
+      "slug": "jbl",
+      "library": "simple-icons@16",
+      "filename": "collection-brand-jbl.svg",
+      "geometry": "Original vector paths; white display fill and viewBox fitted to original path bounds with 2% padding.",
+      "viewBox": "-0.4800 4.9950 24.9600 14.0099"
+    },
+    "razer": {
+      "title": "Razer",
+      "source": "https://press.razer.com",
+      "slug": "razer",
+      "library": "simple-icons@16",
+      "filename": "collection-brand-razer.svg",
+      "geometry": "Original vector paths; white display fill and viewBox fitted to original path bounds with 2% padding.",
+      "viewBox": "-0.4335 -0.4801 24.8663 24.9602"
+    },
+    "dji": {
+      "title": "DJI",
+      "source": "https://www.dji.com",
+      "slug": "dji",
+      "library": "simple-icons@16",
+      "filename": "collection-brand-dji.svg",
+      "geometry": "Original vector paths; white display fill and viewBox fitted to original path bounds with 2% padding.",
+      "viewBox": "-0.4800 4.6368 24.9600 14.7258"
+    },
+    "sandisk": {
+      "label": "SanDisk",
+      "filename": "collection-brand-sandisk.svg",
+      "original_brand_source": "https://kb.sandisk.com",
+      "provenance": "Simple Icons 13.0.0 official-source paths, unchanged apart from white fill and tighter viewBox ViewBox cropped with padding around browser-computed path bounds; all original paths remain unchanged.",
+      "viewBox": "-0.24 9.55 24.48 4.9",
+      "source_urls": [
+        "https://raw.githubusercontent.com/simple-icons/simple-icons/13.0.0/icons/sandisk.svg"
+      ],
+      "appearance": "transparent white wordmark"
+    },
+    "dyson": {
+      "label": "Dyson",
+      "filename": "collection-brand-dyson.png",
+      "original_brand_source": "https://www.dyson.com/",
+      "provenance": "Unmodified transparent manufacturer wordmark from Home Assistant maintained brand-assets mirror; correct manufacturer identity visually verified",
+      "dimensions": [
+        667,
+        256
+      ],
+      "alpha": true,
+      "source_urls": [
+        "https://raw.githubusercontent.com/home-assistant/brands/master/custom_integrations/dyson_local/dark_logo.png"
+      ],
+      "appearance": "transparent white wordmark"
+    },
+    "roborock": {
+      "label": "Roborock",
+      "filename": "collection-brand-roborock.png",
+      "original_brand_source": "https://global.roborock.com/",
+      "provenance": "Unmodified transparent manufacturer wordmark from Home Assistant maintained brand-assets mirror; correct manufacturer identity visually verified",
+      "dimensions": [
+        1193,
+        256
+      ],
+      "alpha": true,
+      "source_urls": [
+        "https://raw.githubusercontent.com/home-assistant/brands/master/core_integrations/roborock/dark_logo.png"
+      ],
+      "appearance": "transparent white wordmark with original red Roborock symbol"
+    },
+    "infinix": {
+      "label": "Infinix",
+      "source_urls": [
+        "https://raw.githubusercontent.com/RAYEN311/2026-a/6410de6a10141acfde8cf38bcc60402d0f90cca2/src/assets/svg/infinix.svg",
+        "https://cdn.shopify.com/s/files/1/1085/9459/4161/collections/LOGO_INFINIX.jpg?v=1791217771"
+      ],
+      "original_brand_source": "https://www.infinixmobility.com/",
+      "provenance": "Original vector mirror; manufacturer identity and wordmark visually verified against the current native Shopify Infinix logo. Paths preserved, white fill only. Native JPG has baked-in checkerboard and was rejected for production.",
+      "filename": "collection-brand-infinix.svg",
+      "viewBox": "0 -.52 567 124.69",
+      "appearance": "transparent white wordmark"
+    },
+    "soundcore": {
+      "label": "Soundcore",
+      "source_urls": [
+        "https://raw.githubusercontent.com/garylin-cmyk/soundcore-/214503550505467e00d8d9bf88b9803d2a385eff/img/soundcore-LOGO.svg"
+      ],
+      "original_brand_source": "https://www.soundcore.com/",
+      "provenance": "Original Soundcore wordmark vector mirror, manufacturer identity visually verified; exact original paths preserved, white fill only. ViewBox cropped with padding around browser-computed path bounds; all original paths remain unchanged.",
+      "filename": "collection-brand-soundcore.svg",
+      "viewBox": "21 22 258 46",
+      "appearance": "transparent white wordmark"
+    },
+    "lego": {
+      "label": "LEGO",
+      "source_urls": [
+        "https://raw.githubusercontent.com/detain/svg-logos/master/svg/l/lego-logo.svg"
+      ],
+      "original_brand_source": "https://www.lego.com/",
+      "provenance": "Unmodified original multicolour LEGO logo vector mirror; correct LEGO manufacturer identity visually verified.",
+      "filename": "collection-brand-lego.svg",
+      "viewBox": "0 0 512 512",
+      "appearance": "original red/yellow/white/black square LEGO logo"
+    },
+    "insta360": {
+      "label": "Insta360",
+      "filename": "collection-brand-insta360.svg",
+      "source_urls": [
+        "https://raw.githubusercontent.com/simple-icons/simple-icons/13.0.0/icons/insta360.svg",
+        "https://joymobile.co.il/cdn/shop/files/brand-insta360.png?v=1791217318"
+      ],
+      "provenance": "Simple Icons 13.0.0 original Insta360 paths, official press/logo source metadata; unchanged apart from white fill. Native current Shopify symbol also downloaded and compared for correct manufacturer identity.",
+      "appearance": "transparent white official manufacturer symbol",
+      "original_brand_source": "https://www.insta360.com/press/logo",
+      "viewBox": "0 0 24 24",
+      "native_fallback_filename": "collection-brand-insta360.png"
+    }
+  }
+}
