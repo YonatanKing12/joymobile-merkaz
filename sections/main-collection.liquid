@@ -1,6 +1,6 @@
 {%- comment -%}
   Collection page (/collections/<handle>) — the JOY Mobile category page rebuilt on
-  Shopify data: breadcrumbs, H1 (+ the description's intro, optional banner), sub-category links
+  Shopify data: breadcrumbs, branded banner with a visible H1 and concise copy, sub-category links
   from the main menu, results count and the inline sort row ("מיין לפי: …"), the filter
   sidebar on the inline-start side (drawer below 992px), the product grid
   (4 / 3 / 3 / 2 columns) and "טען עוד" over real paginated links. Under the grid: the rest of
@@ -115,6 +115,16 @@
         assign banner = images[section.settings.banner_fallback]
       endif
   endcase
+  if branded_hero
+    capture hero_copy
+      render 'collection-hero-copy', family: hero_family
+    endcapture
+    assign hero_copy = hero_copy | strip
+    assign desc_top = ''
+    if section.settings.description_position != 'none'
+      assign desc_bottom = collection.description
+    endif
+  endif
 -%}
 {%- capture filter_query -%}
   {%- render 'active-filters', results: collection, format: 'query' -%}
@@ -183,6 +193,7 @@
       assign hero_brand_keys = hero_brands | split: ','
     -%}
     <div class="collection__banner collection__banner--branded" data-collection-hero="{{ hero_family | escape }}">
+      <div class="collection__hero-media">
       <img
         class="collection__banner-img"
         src="{{ hero_asset | asset_url }}"
@@ -246,6 +257,11 @@
           {%- endfor -%}
         </div>
       {%- endif -%}
+      </div>
+      <div class="collection__hero-copy">
+        <h1 class="collection__hero-title"><bdi>{{ collection.title | escape }}</bdi></h1>
+        <p class="collection__hero-subtitle">{{ hero_copy | escape }}</p>
+      </div>
     </div>
   {%- elsif banner != blank -%}
     <div class="collection__banner">
@@ -261,12 +277,14 @@
     </div>
   {%- endif -%}
 
-  <header class="collection__header{% if branded_hero and desc_top == blank %} collection__header--artwork{% endif %}">
-    <h1 class="collection__title{% if branded_hero %} visually-hidden{% endif %}">{{ collection.title | escape }}</h1>
+  {%- unless branded_hero -%}
+  <header class="collection__header">
+    <h1 class="collection__title">{{ collection.title | escape }}</h1>
     {%- if desc_top != blank -%}
       <div class="collection__description rte">{{ desc_top }}</div>
     {%- endif -%}
   </header>
+  {%- endunless -%}
 
   {%- if subnav_items != blank -%}
     <nav class="collection__subnav" aria-label="{{ 'collections.subcollections_label' | t }}">
@@ -542,7 +560,7 @@
           "label": "לא להציג"
         }
       ],
-      "info": "בחלוקה: מה שלפני הכותרת הראשונה (H2) בתיאור מוצג מתחת לשם הקטגוריה, והשאר מתחת למוצרים.",
+      "info": "בבאנר ממותג התיאור המלא מוצג מתחת למוצרים. במצבי באנר אחרים, חלוקה מציגה את הפתיח מעל המוצרים ואת שאר התיאור מתחתם.",
       "default": "split"
     },
     {

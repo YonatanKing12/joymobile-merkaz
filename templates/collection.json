@@ -4,7 +4,7 @@
       "type": "main-collection",
       "settings": {
         "show_breadcrumbs": true,
-        "description_position": "split",
+        "description_position": "bottom",
         "banner_source": "branded",
         "banner_pattern": "joy-mobile-category-[handle].png",
         "show_subcollections": true,
