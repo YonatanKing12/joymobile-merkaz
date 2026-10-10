@@ -1334,6 +1334,18 @@ predictive-search[aria-busy="true"] .search-form__submit::after {
 }
 
 @media (min-width: 992px) and (max-width: 1199px) {
+  .header__inner {
+    column-gap: 0.75rem;
+  }
+
+  .header__actions {
+    gap: 0.625rem;
+  }
+
+  .header__actions > * {
+    margin-inline-end: 0;
+  }
+
   .header__site-switch .site-switch__opt {
     padding-inline: 0.625rem;
   }

@@ -42,14 +42,18 @@
   block-size: auto;
 }
 
-/* Category artwork replaces the separate visible heading. Its fixed frame reserves
-   space before loading and keeps the product controls close on small screens. */
+/* The collection heading and category copy belong to the campaign banner.
+   Small screens keep copy in the same navy card below the uncropped artwork. */
 .collection__banner--branded {
   position: relative;
   isolation: isolate;
-  aspect-ratio: 1536 / 513;
   border-radius: var(--radius-card);
   background-color: #060433;
+}
+
+.collection__hero-media {
+  position: relative;
+  aspect-ratio: 1536 / 513;
 }
 
 .collection__banner--branded .collection__banner-img {
@@ -62,6 +66,7 @@
 
 .collection__hero-logo {
   position: absolute;
+  z-index: 2;
   inset-block-start: clamp(0.75rem, 2vw, 1.5rem);
   inset-inline-start: clamp(0.75rem, 2vw, 1.5rem);
   inline-size: 5rem;
@@ -71,6 +76,7 @@
 
 .collection__hero-brands {
   position: absolute;
+  z-index: 2;
   inset-block-start: clamp(0.75rem, 2vw, 1.5rem);
   inset-inline-end: clamp(0.75rem, 2vw, 1.5rem);
   display: flex;
@@ -95,6 +101,62 @@
   inline-size: 5rem;
 }
 
+.collection__hero-copy {
+  position: relative;
+  z-index: 2;
+  padding: 1rem 1.125rem 1.125rem;
+  background: #060433;
+  color: #fff;
+}
+
+.collection__hero-title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.5rem, 3.4vw, 2rem);
+  font-weight: 800;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.collection__hero-subtitle {
+  margin-block: 0.5rem 0;
+  color: #e0fff2;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+@media (min-width: 992px) {
+  .collection__banner--branded::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to left, rgb(6 4 51 / 92%), rgb(6 4 51 / 55%) 24%, transparent 48%);
+  }
+
+  .collection__hero-copy {
+    position: absolute;
+    inset-inline-start: clamp(1.5rem, 3vw, 3rem);
+    inset-block-end: clamp(1.5rem, 4vw, 3.75rem);
+    inline-size: 30%;
+    padding: 0;
+    background: transparent;
+  }
+
+  .collection__hero-title {
+    font-size: clamp(2rem, 3.3vw, 3rem);
+    text-shadow: 0 2px 16px rgb(6 4 51 / 35%);
+  }
+
+  .collection__hero-subtitle {
+    margin-block-start: 0.75rem;
+    font-size: 1rem;
+  }
+}
+
 @media (min-width: 768px) {
   .collection__hero-logo {
     inline-size: 6.875rem;
@@ -111,10 +173,6 @@
 
 .collection__header {
   margin-block: 0.9375rem;
-}
-
-.collection__header--artwork {
-  margin-block: 0;
 }
 
 .collection__title {
