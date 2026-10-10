@@ -27,6 +27,16 @@
       {%- endif -%}
       <ul class="usp-bar__list" role="list">
         {%- for block in section.blocks -%}
+          {%- liquid
+            assign usp_link = block.settings.link
+            # Keep the existing service shortcut useful until its Shopify page is published.
+            if usp_link == '/pages/joy-fix' and pages['joy-fix'].url == blank
+              assign usp_link = pages['contact'].url
+              if usp_link != blank
+                assign usp_link = usp_link | append: '#branches'
+              endif
+            endif
+          -%}
           <li class="usp-bar__item" {{ block.shopify_attributes }}>
             {%- capture usp_inner -%}
               <span class="usp-bar__icon">
@@ -39,8 +49,8 @@
                 {%- endif -%}
               </span>
             {%- endcapture -%}
-            {%- if block.settings.link != blank -%}
-              <a class="usp-bar__tile usp-bar__tile--link" href="{{ block.settings.link }}">{{ usp_inner }}</a>
+            {%- if usp_link != blank -%}
+              <a class="usp-bar__tile usp-bar__tile--link" href="{{ usp_link }}">{{ usp_inner }}</a>
             {%- else -%}
               <div class="usp-bar__tile">{{ usp_inner }}</div>
             {%- endif -%}

@@ -1,0 +1,471 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-10",
+  "mode": "review_only",
+  "live_writes_performed": false,
+  "products": [
+    {
+      "store": "k8qhkp-gn.myshopify.com",
+      "handle": "apple-iphone-17-pro",
+      "id": "16046138818929",
+      "graphql_id": "gid://shopify/Product/16046138818929",
+      "title": "Apple iPhone 17 Pro",
+      "operation": "productUpdate",
+      "fields_changed": [
+        "descriptionHtml"
+      ],
+      "before_description_file": "national-iphone17pro.before.description.html",
+      "proposed_description_file": "national-iphone17pro.proposed.description.html",
+      "expected_description_sha256": "7e48388d8f4272a0c40fba64afa854bcf42580024ef7b5ae979e7446229f3ae1",
+      "precise_replacements": [
+        {
+          "from": "Apple iPhone 17 Pro 512GB",
+          "to": "Apple iPhone 17 Pro",
+          "count": 2
+        },
+        {
+          "from": "האייפון 17 Pro 512GB",
+          "to": "האייפון 17 Pro",
+          "count": 5
+        },
+        {
+          "from": "אייפון 17 Pro 512GB",
+          "to": "אייפון 17 Pro",
+          "count": 1
+        },
+        {
+          "from": "אייפון 17 Pro בנפח 512GB",
+          "to": "אייפון 17 Pro בנפח האחסון שנבחר",
+          "count": 1
+        }
+      ],
+      "storage_paragraph_replacement": {
+        "before": "<p><strong>נפח אחסון גדול – 512GB<br></strong>אייפון 17 Pro בנפח 512GB מציע נפח אחסון גדול במיוחד למשתמשים הזקוקים להרבה מקום.<br>האחסון מאפשר:<br>- שמירת אלפי תמונות וסרטונים<br>- התקנת אפליקציות ומשחקים רבים<br>- אחסון קבצים גדולים ופרויקטים<br>נפח של 512GB באייפון 17 Pro מתאים במיוחד ליוצרי תוכן, צלמים ומשתמשים מתקדמים.</p>",
+        "after": "<p><strong>נפחי אחסון לבחירה<br></strong>הדגם מוצע בנפחי אחסון 256GB, 512GB ו-1TB. בחרו את נפח האחסון המתאים לכם באפשרויות הבחירה בעמוד המוצר; האפשרות שנבחרה מוצגת בבורר.</p>"
+      },
+      "verified_capacity_values": [
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "preserve": [
+        "all other technical paragraphs",
+        "all SIM/eSIM claims",
+        "title",
+        "options",
+        "variants",
+        "SKUs",
+        "prices",
+        "inventory",
+        "images",
+        "publication"
+      ],
+      "fresh_snapshot_requirement": "Admin product handle/ID/descriptionHtml/options must match the reviewed source or already-applied result; otherwise stop and refresh review."
+    },
+    {
+      "store": "x511g0-rj.myshopify.com",
+      "handle": "apple-iphone-17-pro",
+      "id": "7825054171345",
+      "graphql_id": "gid://shopify/Product/7825054171345",
+      "title": "Apple iPhone 17 Pro",
+      "operation": "productUpdate",
+      "fields_changed": [
+        "descriptionHtml"
+      ],
+      "before_description_file": "eilat-iphone17pro.before.description.html",
+      "proposed_description_file": "eilat-iphone17pro.proposed.description.html",
+      "expected_description_sha256": "7e48388d8f4272a0c40fba64afa854bcf42580024ef7b5ae979e7446229f3ae1",
+      "precise_replacements": [
+        {
+          "from": "Apple iPhone 17 Pro 512GB",
+          "to": "Apple iPhone 17 Pro",
+          "count": 2
+        },
+        {
+          "from": "האייפון 17 Pro 512GB",
+          "to": "האייפון 17 Pro",
+          "count": 5
+        },
+        {
+          "from": "אייפון 17 Pro 512GB",
+          "to": "אייפון 17 Pro",
+          "count": 1
+        },
+        {
+          "from": "אייפון 17 Pro בנפח 512GB",
+          "to": "אייפון 17 Pro בנפח האחסון שנבחר",
+          "count": 1
+        }
+      ],
+      "storage_paragraph_replacement": {
+        "before": "<p><strong>נפח אחסון גדול – 512GB<br></strong>אייפון 17 Pro בנפח 512GB מציע נפח אחסון גדול במיוחד למשתמשים הזקוקים להרבה מקום.<br>האחסון מאפשר:<br>- שמירת אלפי תמונות וסרטונים<br>- התקנת אפליקציות ומשחקים רבים<br>- אחסון קבצים גדולים ופרויקטים<br>נפח של 512GB באייפון 17 Pro מתאים במיוחד ליוצרי תוכן, צלמים ומשתמשים מתקדמים.</p>",
+        "after": "<p><strong>נפחי אחסון לבחירה<br></strong>הדגם מוצע בנפחי אחסון 256GB, 512GB ו-1TB. בחרו את נפח האחסון המתאים לכם באפשרויות הבחירה בעמוד המוצר; האפשרות שנבחרה מוצגת בבורר.</p>"
+      },
+      "verified_capacity_values": [
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "preserve": [
+        "all other technical paragraphs",
+        "all SIM/eSIM claims",
+        "title",
+        "options",
+        "variants",
+        "SKUs",
+        "prices",
+        "inventory",
+        "images",
+        "publication"
+      ],
+      "fresh_snapshot_requirement": "Admin product handle/ID/descriptionHtml/options must match the reviewed source or already-applied result; otherwise stop and refresh review."
+    }
+  ],
+  "collections": [
+    {
+      "store": "k8qhkp-gn.myshopify.com",
+      "handle": "smartphones",
+      "id": "711169999217",
+      "graphql_id": "gid://shopify/Collection/711169999217",
+      "operation": "collectionUpdate",
+      "fields_changed": [
+        "descriptionHtml"
+      ],
+      "proposed_description_file": "national-smartphones.proposed.description.html",
+      "expected_current_description": "empty based on public audit; verify exact Admin descriptionHtml before update",
+      "preserve": [
+        "title",
+        "handle",
+        "sortOrder",
+        "product membership",
+        "merchandising ranks",
+        "Eilat collection descriptionHtml in full"
+      ],
+      "source_facts": "Verified National shipping page: ₪24, free ≥₪3,000, seven business days from approval with product/checkout exceptions and delivery-area restrictions."
+    }
+  ],
+  "menus": [
+    {
+      "store": "k8qhkp-gn.myshopify.com",
+      "handle": "footer-1",
+      "id": null,
+      "operation": "menuUpdate_append_missing_page_item",
+      "requires_fresh_snapshot": {
+        "lookup": "exact menu handle footer-1",
+        "fields": [
+          "id",
+          "handle",
+          "title",
+          "items recursively: id,title,type,url,resourceId,tags,items"
+        ]
+      },
+      "dependency": {
+        "published_national_page_handle": "joy-fix",
+        "page_id": "resolve only after create/lookup succeeds",
+        "storefront_expected_status": 200
+      },
+      "append_item": {
+        "title": "מעבדת JOY FIX",
+        "type": "PAGE",
+        "resourceId": "$resolved_national_joy_fix_page_gid",
+        "items": []
+      },
+      "idempotence": "Search recursively for matching National resourceId or exact normalized /pages/joy-fix URL. Existing match => no append. Multiple matches => flag for review; do not delete automatically.",
+      "preserve": "Retain menu id/handle/title, existing item IDs, type, URLs, resource IDs, tags, nesting and order. Append exactly one new top-level item after existing items. Re-read and abort if menu changed between snapshot and write.",
+      "never": "Do not reuse Eilat page/menu IDs or overwrite all menu entries with a handcrafted subset."
+    }
+  ],
+  "physical_branches": [
+    {
+      "store": "k8qhkp-gn.myshopify.com",
+      "metaobject_type": "branch",
+      "handle": "branch-flagship",
+      "id": null,
+      "operation": "align_verified_physical_branch_fields",
+      "status": "requires_admin_metaobject_and_definition_snapshot",
+      "source_store": "x511g0-rj.myshopify.com",
+      "source_file": "eilat-branches.source.html",
+      "before_rendered": {
+        "name": "סניף הדגל – טיילת אילת",
+        "address": "דרבן 150, פנינת אילת (מול מול הים), אילת",
+        "map_query": "JOY Mobile, דרבן 150, אילת",
+        "text_html": "",
+        "text_plain": "",
+        "text_rich_text_field_value": null
+      },
+      "proposed_rendered": {
+        "name": "ג'וי מובייל | סלולר, אלקטרוניקה ומעבדה - סניף הפנינה",
+        "address": "דרבן 150, פנינת אילת (מול מול הים), אילת",
+        "map_query": "JOY Mobile, דרבן 150, אילת",
+        "text_html": "<p>בתחילת הטיילת, מול עזריאלי מול הים. תצוגת ענק של כל המוצרים שבאתר.</p>",
+        "text_plain": "בתחילת הטיילת, מול עזריאלי מול הים. תצוגת ענק של כל המוצרים שבאתר.",
+        "text_rich_text_field_value": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"בתחילת הטיילת, מול עזריאלי מול הים. תצוגת ענק של כל המוצרים שבאתר.\"}]}]}"
+      },
+      "rendered_changes": {
+        "name": {
+          "before_rendered": "סניף הדגל – טיילת אילת",
+          "proposed": "ג'וי מובייל | סלולר, אלקטרוניקה ומעבדה - סניף הפנינה"
+        },
+        "text_html": {
+          "before_rendered": "",
+          "proposed": "<p>בתחילת הטיילת, מול עזריאלי מול הים. תצוגת ענק של כל המוצרים שבאתר.</p>"
+        }
+      },
+      "proposed_fields": {
+        "name": "ג'וי מובייל | סלולר, אלקטרוניקה ומעבדה - סניף הפנינה",
+        "address": "דרבן 150, פנינת אילת (מול מול הים), אילת",
+        "map_query": "JOY Mobile, דרבן 150, אילת",
+        "text": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"בתחילת הטיילת, מול עזריאלי מול הים. תצוגת ענק של כל המוצרים שבאתר.\"}]}]}"
+      },
+      "fields_allowed": [
+        "name",
+        "text",
+        "address",
+        "map_query"
+      ],
+      "text_value_format": "JSON rich_text_field inferred only from verified simple rendered paragraphs; validate against Admin field definition and exact Eilat source value before execution. If no source text is rendered, preserve existing National text rather than assume it is empty.",
+      "lookup_and_guard": "Lookup type branch + exact handle in BOTH stores; verify same physical location by address/name before selecting IDs. Storefront cards may come from template fallback, so do not infer an Admin object exists from a card handle. Never copy source IDs. Missing National object requires verified branch definition and explicit create plan.",
+      "preserve": [
+        "services",
+        "hours",
+        "phone",
+        "image",
+        "position/sort fields",
+        "translations",
+        "all unrelated metadata",
+        "company/legal identity/address/jurisdiction/accessibility coordinator"
+      ],
+      "physical_address_is_not_national_legal_address": true
+    },
+    {
+      "store": "k8qhkp-gn.myshopify.com",
+      "metaobject_type": "branch",
+      "handle": "branch-icemall",
+      "id": null,
+      "operation": "align_verified_physical_branch_fields",
+      "status": "requires_admin_metaobject_and_definition_snapshot",
+      "source_store": "x511g0-rj.myshopify.com",
+      "source_file": "eilat-branches.source.html",
+      "before_rendered": {
+        "name": "JOY Mobile – קניון ICE MALL",
+        "address": "אייס מול, קאמפן 8, קומה עליונה (מול ויקטוריה סיקרט ו-H&M), אילת",
+        "map_query": "Ice Mall, קאמפן 8, אילת",
+        "text_html": "",
+        "text_plain": "",
+        "text_rich_text_field_value": null
+      },
+      "proposed_rendered": {
+        "name": "JOY Mobile – קניון ICE MALL",
+        "address": "אייס מול, קאמפן 8, קומה עליונה (מול ויקטוריה סיקרט ו-H&M), אילת",
+        "map_query": "Ice Mall, קאמפן 8, אילת",
+        "text_html": "",
+        "text_plain": "",
+        "text_rich_text_field_value": null
+      },
+      "rendered_changes": {},
+      "proposed_fields": {
+        "name": "JOY Mobile – קניון ICE MALL",
+        "address": "אייס מול, קאמפן 8, קומה עליונה (מול ויקטוריה סיקרט ו-H&M), אילת",
+        "map_query": "Ice Mall, קאמפן 8, אילת"
+      },
+      "fields_allowed": [
+        "name",
+        "text",
+        "address",
+        "map_query"
+      ],
+      "text_value_format": "JSON rich_text_field inferred only from verified simple rendered paragraphs; validate against Admin field definition and exact Eilat source value before execution. If no source text is rendered, preserve existing National text rather than assume it is empty.",
+      "lookup_and_guard": "Lookup type branch + exact handle in BOTH stores; verify same physical location by address/name before selecting IDs. Storefront cards may come from template fallback, so do not infer an Admin object exists from a card handle. Never copy source IDs. Missing National object requires verified branch definition and explicit create plan.",
+      "preserve": [
+        "services",
+        "hours",
+        "phone",
+        "image",
+        "position/sort fields",
+        "translations",
+        "all unrelated metadata",
+        "company/legal identity/address/jurisdiction/accessibility coordinator"
+      ],
+      "physical_address_is_not_national_legal_address": true
+    },
+    {
+      "store": "k8qhkp-gn.myshopify.com",
+      "metaobject_type": "branch",
+      "handle": "branch-shalom",
+      "id": null,
+      "operation": "align_verified_physical_branch_fields",
+      "status": "requires_admin_metaobject_and_definition_snapshot",
+      "source_store": "x511g0-rj.myshopify.com",
+      "source_file": "eilat-branches.source.html",
+      "before_rendered": {
+        "name": "סניף מרכז השלום",
+        "address": "שדרות התמרים 2 (צמוד לבנק דיסקונט), אילת",
+        "map_query": "שדרות התמרים 2, אילת",
+        "text_html": "",
+        "text_plain": "",
+        "text_rich_text_field_value": null
+      },
+      "proposed_rendered": {
+        "name": "ג'וי מובייל | סלולר ואלקטרוניקה - סניף מרכז שלום",
+        "address": "שדרות התמרים 2 (צמוד לבנק דיסקונט), אילת",
+        "map_query": "שדרות התמרים 2, אילת",
+        "text_html": "<p>הסניף הראשון של הרשת.</p>",
+        "text_plain": "הסניף הראשון של הרשת.",
+        "text_rich_text_field_value": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"הסניף הראשון של הרשת.\"}]}]}"
+      },
+      "rendered_changes": {
+        "name": {
+          "before_rendered": "סניף מרכז השלום",
+          "proposed": "ג'וי מובייל | סלולר ואלקטרוניקה - סניף מרכז שלום"
+        },
+        "text_html": {
+          "before_rendered": "",
+          "proposed": "<p>הסניף הראשון של הרשת.</p>"
+        }
+      },
+      "proposed_fields": {
+        "name": "ג'וי מובייל | סלולר ואלקטרוניקה - סניף מרכז שלום",
+        "address": "שדרות התמרים 2 (צמוד לבנק דיסקונט), אילת",
+        "map_query": "שדרות התמרים 2, אילת",
+        "text": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"הסניף הראשון של הרשת.\"}]}]}"
+      },
+      "fields_allowed": [
+        "name",
+        "text",
+        "address",
+        "map_query"
+      ],
+      "text_value_format": "JSON rich_text_field inferred only from verified simple rendered paragraphs; validate against Admin field definition and exact Eilat source value before execution. If no source text is rendered, preserve existing National text rather than assume it is empty.",
+      "lookup_and_guard": "Lookup type branch + exact handle in BOTH stores; verify same physical location by address/name before selecting IDs. Storefront cards may come from template fallback, so do not infer an Admin object exists from a card handle. Never copy source IDs. Missing National object requires verified branch definition and explicit create plan.",
+      "preserve": [
+        "services",
+        "hours",
+        "phone",
+        "image",
+        "position/sort fields",
+        "translations",
+        "all unrelated metadata",
+        "company/legal identity/address/jurisdiction/accessibility coordinator"
+      ],
+      "physical_address_is_not_national_legal_address": true
+    },
+    {
+      "store": "k8qhkp-gn.myshopify.com",
+      "metaobject_type": "branch",
+      "handle": "branch-tachana",
+      "id": null,
+      "operation": "align_verified_physical_branch_fields",
+      "status": "requires_admin_metaobject_and_definition_snapshot",
+      "source_store": "x511g0-rj.myshopify.com",
+      "source_file": "eilat-branches.source.html",
+      "before_rendered": {
+        "name": "JOY התחנה – מרכז הפצה",
+        "address": "שדרות התמרים 12 (התחנה המרכזית), אילת",
+        "map_query": "התחנה המרכזית, שדרות התמרים 12, אילת",
+        "text_html": "",
+        "text_plain": "",
+        "text_rich_text_field_value": null
+      },
+      "proposed_rendered": {
+        "name": "JOY התחנה – מרכז הפצה",
+        "address": "שדרות התמרים 12 (התחנה המרכזית), אילת",
+        "map_query": "התחנה המרכזית, שדרות התמרים 12, אילת",
+        "text_html": "<p>מרכז ההפצה והלוגיסטיקה של הרשת, בתחנה המרכזית של אילת.</p>",
+        "text_plain": "מרכז ההפצה והלוגיסטיקה של הרשת, בתחנה המרכזית של אילת.",
+        "text_rich_text_field_value": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"מרכז ההפצה והלוגיסטיקה של הרשת, בתחנה המרכזית של אילת.\"}]}]}"
+      },
+      "rendered_changes": {
+        "text_html": {
+          "before_rendered": "",
+          "proposed": "<p>מרכז ההפצה והלוגיסטיקה של הרשת, בתחנה המרכזית של אילת.</p>"
+        }
+      },
+      "proposed_fields": {
+        "name": "JOY התחנה – מרכז הפצה",
+        "address": "שדרות התמרים 12 (התחנה המרכזית), אילת",
+        "map_query": "התחנה המרכזית, שדרות התמרים 12, אילת",
+        "text": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"מרכז ההפצה והלוגיסטיקה של הרשת, בתחנה המרכזית של אילת.\"}]}]}"
+      },
+      "fields_allowed": [
+        "name",
+        "text",
+        "address",
+        "map_query"
+      ],
+      "text_value_format": "JSON rich_text_field inferred only from verified simple rendered paragraphs; validate against Admin field definition and exact Eilat source value before execution. If no source text is rendered, preserve existing National text rather than assume it is empty.",
+      "lookup_and_guard": "Lookup type branch + exact handle in BOTH stores; verify same physical location by address/name before selecting IDs. Storefront cards may come from template fallback, so do not infer an Admin object exists from a card handle. Never copy source IDs. Missing National object requires verified branch definition and explicit create plan.",
+      "preserve": [
+        "services",
+        "hours",
+        "phone",
+        "image",
+        "position/sort fields",
+        "translations",
+        "all unrelated metadata",
+        "company/legal identity/address/jurisdiction/accessibility coordinator"
+      ],
+      "physical_address_is_not_national_legal_address": true
+    },
+    {
+      "store": "k8qhkp-gn.myshopify.com",
+      "metaobject_type": "branch",
+      "handle": "branch-fix",
+      "id": null,
+      "operation": "align_verified_physical_branch_fields",
+      "status": "requires_admin_metaobject_and_definition_snapshot",
+      "source_store": "x511g0-rj.myshopify.com",
+      "source_file": "eilat-branches.source.html",
+      "before_rendered": {
+        "name": "מעבדת JOY FIX – ICE MALL",
+        "address": "אייס מול, קומה עליונה, בין אדידס לבובי בראון, אילת",
+        "map_query": "Ice Mall, קאמפן 8, אילת",
+        "text_html": "",
+        "text_plain": "",
+        "text_rich_text_field_value": null
+      },
+      "proposed_rendered": {
+        "name": "ג'וי מובייל פיקס | מעבדת סלולר ותיקונים - אייסמול",
+        "address": "אייס מול, קומה עליונה, בין אדידס לבובי בראון, אילת",
+        "map_query": "Ice Mall, קאמפן 8, אילת",
+        "text_html": "<p>סמוך למרחב המוגן. בטלפון של המעבדה פותחים קריאת שירות.</p>",
+        "text_plain": "סמוך למרחב המוגן. בטלפון של המעבדה פותחים קריאת שירות.",
+        "text_rich_text_field_value": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"סמוך למרחב המוגן. בטלפון של המעבדה פותחים קריאת שירות.\"}]}]}"
+      },
+      "rendered_changes": {
+        "name": {
+          "before_rendered": "מעבדת JOY FIX – ICE MALL",
+          "proposed": "ג'וי מובייל פיקס | מעבדת סלולר ותיקונים - אייסמול"
+        },
+        "text_html": {
+          "before_rendered": "",
+          "proposed": "<p>סמוך למרחב המוגן. בטלפון של המעבדה פותחים קריאת שירות.</p>"
+        }
+      },
+      "proposed_fields": {
+        "name": "ג'וי מובייל פיקס | מעבדת סלולר ותיקונים - אייסמול",
+        "address": "אייס מול, קומה עליונה, בין אדידס לבובי בראון, אילת",
+        "map_query": "Ice Mall, קאמפן 8, אילת",
+        "text": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"סמוך למרחב המוגן. בטלפון של המעבדה פותחים קריאת שירות.\"}]}]}"
+      },
+      "fields_allowed": [
+        "name",
+        "text",
+        "address",
+        "map_query"
+      ],
+      "text_value_format": "JSON rich_text_field inferred only from verified simple rendered paragraphs; validate against Admin field definition and exact Eilat source value before execution. If no source text is rendered, preserve existing National text rather than assume it is empty.",
+      "lookup_and_guard": "Lookup type branch + exact handle in BOTH stores; verify same physical location by address/name before selecting IDs. Storefront cards may come from template fallback, so do not infer an Admin object exists from a card handle. Never copy source IDs. Missing National object requires verified branch definition and explicit create plan.",
+      "preserve": [
+        "services",
+        "hours",
+        "phone",
+        "image",
+        "position/sort fields",
+        "translations",
+        "all unrelated metadata",
+        "company/legal identity/address/jurisdiction/accessibility coordinator"
+      ],
+      "physical_address_is_not_national_legal_address": true
+    }
+  ]
+}

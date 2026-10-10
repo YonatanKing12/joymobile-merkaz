@@ -5,7 +5,8 @@
   bold summary line with a bottom rule, 15px text, "קראו עוד"; "לכל הכתבות" 18px underlined, start-aligned.
   Phones: a carousel, 1 card per view with 30px peeks. Each card links to its own article (the whole card is
   one link). The store's articles have no images, so the media box is a brand-coloured panel showing the
-  article's topic: the collection named by its tag (title + collection image), with a geometric mark otherwise.
+  article's topic: its selected collection mapping, or its collection tag (title + collection image),
+  with a geometric mark when neither is available.
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
 {%- liquid
@@ -30,6 +31,32 @@
   if g_articles_count > 0
     assign g_count = g_articles_count | at_most: section.settings.articles_count
   endif
+
+  # Selected articles lead in the merchant's block order. Resolve through this blog's own
+  # articles so another blog, a removed selection, or duplicate blocks cannot add a card.
+  assign g_ordered_articles = '' | split: ','
+  assign g_featured_ids = ','
+  for featured_block in section.blocks
+    if featured_block.type == 'article_topic'
+      assign featured_article = featured_block.settings.article
+      if featured_article.id != blank
+        assign featured_matches = g_blog.articles | where: 'id', featured_article.id
+        assign featured_match = featured_matches | first
+        assign featured_token = ',' | append: featured_article.id | append: ','
+        unless featured_match == blank or g_featured_ids contains featured_token
+          assign g_ordered_articles = g_ordered_articles | concat: featured_matches
+          assign g_featured_ids = g_featured_ids | append: featured_article.id | append: ','
+        endunless
+      endif
+    endif
+  endfor
+  for remaining_article in g_blog.articles
+    assign remaining_token = ',' | append: remaining_article.id | append: ','
+    unless g_featured_ids contains remaining_token
+      assign remaining_matches = g_blog.articles | where: 'id', remaining_article.id
+      assign g_ordered_articles = g_ordered_articles | concat: remaining_matches
+    endunless
+  endfor
 -%}
 
 {%- if g_articles_count > 0 or request.design_mode -%}
@@ -79,7 +106,7 @@
           {% endif %}
         >
           {%- if g_articles_count > 0 -%}
-            {%- for article in g_blog.articles limit: section.settings.articles_count -%}
+            {%- for article in g_ordered_articles limit: section.settings.articles_count -%}
               {%- liquid
                 # Plain text: a space before every tag keeps words of adjacent blocks apart
                 # ("ברור.</p><h2>כרטיס"), split/join condenses the whitespace. Entities stay
@@ -92,21 +119,35 @@
                   assign g_preview = article.content | replace: '<', ' <' | strip_html | split: ' ' | join: ' ' | truncatewords: 18
                 endif
 
-                # Topic: the first tag that names a collection. g_miss_tags is a ",tag," list (tags never
-                # contain commas), so a tag that missed for an earlier article costs no second lookup.
+                # A merchant-selected article/collection mapping is authoritative, including for
+                # existing articles without collection tags. Empty or removed selections are ignored.
                 assign g_topic = nil
-                for tag in article.tags
-                  assign g_tag_token = ',' | append: tag | append: ','
-                  if g_skip_tags contains tag or g_miss_tags contains g_tag_token
-                    continue
+                for topic_block in section.blocks
+                  if topic_block.type == 'article_topic'
+                    assign mapped_article = topic_block.settings.article
+                    assign mapped_collection = topic_block.settings.collection
+                    if mapped_article.id != blank and mapped_article.id == article.id and mapped_collection.id != blank
+                      assign g_topic = mapped_collection
+                      break
+                    endif
                   endif
-                  assign g_candidate = collections[tag]
-                  if g_candidate.id != blank
-                    assign g_topic = g_candidate
-                    break
-                  endif
-                  assign g_miss_tags = g_miss_tags | append: g_tag_token
                 endfor
+
+                # Otherwise retain the first collection tag. Cache missing tags within this render.
+                if g_topic == nil
+                  for tag in article.tags
+                    assign g_tag_token = ',' | append: tag | append: ','
+                    if g_skip_tags contains tag or g_miss_tags contains g_tag_token
+                      continue
+                    endif
+                    assign g_candidate = collections[tag]
+                    if g_candidate.id != blank
+                      assign g_topic = g_candidate
+                      break
+                    endif
+                    assign g_miss_tags = g_miss_tags | append: g_tag_token
+                  endfor
+                endif
               -%}
               <div class="carousel__slide guides__slide" role="listitem">
                 <article class="guides__card">
@@ -418,6 +459,27 @@
       "label": "פונט טקסט",
       "default": "assistant_n4",
       "visible_if": "{{ section.settings.ss_custom_body_font }}"
+    }
+  ],
+  "max_blocks": 16,
+  "blocks": [
+    {
+      "type": "article_topic",
+      "name": "מאמר מוביל",
+      "settings": [
+        {
+          "type": "article",
+          "id": "article",
+          "label": "מאמר",
+          "info": "יש לבחור מאמר מהבלוג שנבחר בסקשן. סדר הבלוקים קובע אילו מאמרים מוצגים ראשונים, ואחריהם יתר מאמרי הבלוג. בחירה מבלוג אחר לא תוצג."
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "קטגוריית המאמר",
+          "info": "שם הקטגוריה ותמונתה יוצגו כשאין תמונה למאמר. בלי בחירה תקינה הנושא נקבע לפי תגיות המאמר."
+        }
+      ]
     }
   ],
   "presets": [

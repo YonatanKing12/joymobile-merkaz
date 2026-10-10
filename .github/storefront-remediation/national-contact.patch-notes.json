@@ -1,0 +1,8 @@
+{
+  "template_asset": "templates/page.contact.json",
+  "owner": "root",
+  "sections.contact.settings.intro": "<p>כתבו לנו ונחזור אליכם בהקדם. לשאלות על מוצר, הזמנה או משלוח עד הבית, ציינו את שם המוצר ומספר ההזמנה אם יש לכם.</p>",
+  "sections.branches.settings.intro": "<p>כתובות, שעות פתיחה ושירותים בסניפי JOY Mobile באילת.</p>",
+  "pickup_facts": "Remove the three National online pickup workflow fact cards; retain verified physical branch addresses, hours, maps and service descriptions. National delivery status/cost guidance belongs with the form or shipping link.",
+  "preserve_form_fields_and_validation": true
+}

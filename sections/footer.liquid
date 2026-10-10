@@ -19,6 +19,9 @@
   # the store has no such entry.
   assign flagship = metaobjects.branch['branch-flagship']
   assign store_address = flagship.address.value | strip
+  if store_address == blank
+    assign store_address = section.settings.flagship_address_fallback | strip
+  endif
   assign store_hours = flagship.hours.value | strip
   assign map_query = flagship.map_query.value | strip
   if store_address == blank
@@ -295,6 +298,12 @@
   },
   "max_blocks": 8,
   "settings": [
+    {
+      "type": "text",
+      "id": "flagship_address_fallback",
+      "label": "כתובת סניף הדגל",
+      "info": "כתובת מלאה לתחתית האתר כשלא הוגדרה כתובת במטא־אובייקט של סניף הדגל. אינה משנה את פרטי המשלוח או את זהות החנות."
+    },
     {
       "type": "paragraph",
       "content": "עד ארבע עמודות מ-768 פיקסלים. במובייל כל תפריט הוא שורה נפתחת."

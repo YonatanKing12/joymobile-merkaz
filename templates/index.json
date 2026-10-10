@@ -50,7 +50,7 @@
             "image": "shopify://shop_images/c7085f4be235a40a571049a5aa712e7f_fe7e2157-1ad8-4209-9ecd-01c3ab30f931.png",
             "image_mobile": "shopify://shop_images/3dbd9205b7a539680f3978eb47d36fe1_36005116-634a-4a38-b2ab-6c408c192b33.png",
             "alt": "IPHONE DOU HELLO HELLO הזמנה מוקדמת החל מ-16.10",
-            "link": "https://www.eilat.joymobile.co.il/pages/iphone-duo",
+            "link": "/pages/iphone-duo",
             "video_on_mobile": false,
             "heading": "",
             "text": "",
@@ -127,8 +127,8 @@
       },
       "block_order": [
         "slide_6A4MiP",
-        "slide-galaxy-s26",
         "slide_LxnXfg",
+        "slide-galaxy-s26",
         "slide_rJ7Ppd",
         "slide_hNxEAV",
         "slide-telegram-vip",
@@ -180,7 +180,7 @@
             "icon": "store",
             "title": "משלוח עד הבית",
             "text": "תוך 7 ימי עסקים, חינם מעל 3,000 ₪",
-            "link": "/pages/branches"
+            "link": "/pages/shipping"
           }
         },
         "usp-warranty": {
@@ -334,7 +334,12 @@
       "settings": {
         "title": "סמארטפונים",
         "collection": "smartphones",
-        "pinned_products": [],
+        "pinned_products": [
+          "apple-iphone-18-pro-max",
+          "apple-iphone-18-pro",
+          "apple-iphone-17-pro-max",
+          "apple-iphone-17-pro"
+        ],
         "first_collection": "iphone-17-18",
         "products_limit": 10,
         "hide_sold_out": true,
@@ -377,7 +382,7 @@
           "type": "banner",
           "settings": {
             "image": "shopify://shop_images/2.png",
-            "link": "https://www.eilat.joymobile.co.il/pages/iphone-duo",
+            "link": "/pages/iphone-duo",
             "alt": "",
             "label": "",
             "show_on": "all"
@@ -422,7 +427,12 @@
       "settings": {
         "title": "טאבלטים",
         "collection": "tablets",
-        "pinned_products": [],
+        "pinned_products": [
+          "apple-ipad-air-11-m4-wi-fi",
+          "apple-ipad-air-13-m4-wi-fi",
+          "apple-ipad-pro-11-m5-wi-fi",
+          "apple-ipad-11-a16-wi-fi"
+        ],
         "first_collection": "",
         "products_limit": 10,
         "hide_sold_out": true,
@@ -453,7 +463,12 @@
       "settings": {
         "title": "שואבי אבק",
         "collection": "vacuums",
-        "pinned_products": [],
+        "pinned_products": [
+          "שואב-אבק-ושוטף-רובוטי-dreame-x60-ultra-complete",
+          "roborock-saros-20-complete-6936905905666",
+          "roborock-saros-20-sonic-6936905905581",
+          "mova-v70-ultra-complete-x-6978794735177"
+        ],
         "first_collection": "",
         "products_limit": 10,
         "hide_sold_out": true,
@@ -484,7 +499,12 @@
       "settings": {
         "title": "שמע ואוזניות",
         "collection": "audio",
-        "pinned_products": [],
+        "pinned_products": [
+          "apple-airpodsmax-2-dcs-black-195951039152",
+          "אוזניות-samsung-galaxy-buds-4-pro",
+          "אוזניות-samsung-galaxy-buds-4",
+          "אוזניות-apple-airpods-pro-3-usb-c"
+        ],
         "first_collection": "",
         "products_limit": 10,
         "hide_sold_out": true,
@@ -515,7 +535,12 @@
       "settings": {
         "title": "מחשבים וגיימינג",
         "collection": "computers-gaming",
-        "pinned_products": [],
+        "pinned_products": [
+          "ps5-dualsense-white-711719022756",
+          "turtlebeach-rematch-mario-jump-nintendoswitch2-840454402711",
+          "turtlebeach-afterglow-nintendoswitch2-white-840454402353",
+          "razer-viper-v4-pro-8887910085134"
+        ],
         "first_collection": "",
         "products_limit": 10,
         "hide_sold_out": true,
@@ -644,7 +669,7 @@
         "show_logo": true,
         "logo_width": 220,
         "heading": "",
-        "text": "<p>JOY Mobile היא רשת חנויות לסלולר, מחשבים וגיימינג: סמארטפונים, טאבלטים, שעונים חכמים, אוזניות ורמקולים, מחשבים ומוצרי חשמל. בוחרים באתר ומקבלים משלוח עד הבית. כל המחירים כוללים מע״מ.</p>",
+        "text": "<p>JOY Mobile היא רשת חנויות לסלולר, מחשבים וגיימינג: סמארטפונים, טאבלטים, שעונים חכמים, אוזניות ורמקולים, מחשבים ומוצרי חשמל. בוחרים באתר ומקבלים משלוח עד הבית. לרשת סניפים באילת: טיילת אילת (פנינת אילת), קניון אייס מול, מרכז השלום ו־JOY התחנה. במעבדות JOY FIX מתקנים סמארטפונים וטאבלטים במקום. כל המחירים בחנות הארצית כוללים מע״מ.</p>",
         "button_label": "עוד עלינו",
         "button_link": "shopify://pages/about",
         "padding_top": 0,
@@ -690,7 +715,27 @@
         "ss_heading_font": "assistant_n7",
         "ss_custom_body_font": false,
         "ss_body_font": "assistant_n4"
-      }
+      },
+      "blocks": {
+        "guide-vacuum": {
+          "type": "article_topic",
+          "settings": {
+            "article": "tips/vacuum-suction-power",
+            "collection": "vacuums"
+          }
+        },
+        "guide-gaming": {
+          "type": "article_topic",
+          "settings": {
+            "article": "tips/gaming-pc-where-to-invest",
+            "collection": "computers-gaming"
+          }
+        }
+      },
+      "block_order": [
+        "guide-vacuum",
+        "guide-gaming"
+      ]
     },
     "testimonials": {
       "type": "testimonials",

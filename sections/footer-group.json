@@ -98,7 +98,8 @@
         "ss_custom_heading_font": false,
         "ss_heading_font": "assistant_n7",
         "ss_custom_body_font": false,
-        "ss_body_font": "assistant_n4"
+        "ss_body_font": "assistant_n4",
+        "flagship_address_fallback": "דרבן 150, פנינת אילת (מול מול הים), אילת"
       }
     }
   },

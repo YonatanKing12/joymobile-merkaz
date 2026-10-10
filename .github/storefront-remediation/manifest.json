@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "store": "k8qhkp-gn.myshopify.com",
+  "storefront": "https://joymobile.co.il",
+  "created_utc": "2026-10-10",
+  "mode": "dry_run",
+  "live_writes_performed": false,
+  "contacts": {
+    "phone": "03-511-7171",
+    "whatsapp": "053-325-5020",
+    "email": "joymobileltd@gmail.com"
+  },
+  "publication_date_rule": "Resolve {{publication_date}} only to the Israel calendar date when the approved content is actually applied. Do not claim a draft was already published.",
+  "required_facts": {
+    "legal_entity_name": "Exact National operator name; different from Eilat operator.",
+    "registration_number": "Exact National company / business registration number; include the correct identifier label if not ח.פ.",
+    "legal_mail_address": "Exact National legal mailing / cancellation / privacy-request address. Do not infer it from an Eilat branch.",
+    "jurisdiction_city": "National terms jurisdiction city; do not infer or copy Eilat.",
+    "accessibility_coordinator_name": "National accessibility coordinator name.",
+    "accessibility_coordinator_phone": "National accessibility coordinator contact phone; public customer support number does not prove coordinator number.",
+    "accessibility_coordinator_email": "National accessibility coordinator contact email; public customer support mailbox does not prove coordinator mailbox."
+  },
+  "pages": [
+    {
+      "handle": "about",
+      "id": "720270197105",
+      "graphql_id": "gid://shopify/Page/720270197105",
+      "title": "אודות JOY Mobile",
+      "operation": "update_page_body_html",
+      "status": "ready",
+      "before_body_html_file": "national-about.before.body.html",
+      "proposed_body_html_file": "national-about.proposed.body.html",
+      "rendered_source_sha256": "e0e1e8e5e4d54c73f6602fa1ea00a386069d1530ec597c4fd90cca51bfa74e57",
+      "source_file": "national-about.source.html",
+      "public_source_is_not_admin_concurrency_token": true,
+      "replacements": [
+        {
+          "from": "[טלפון]",
+          "to": "03-511-7171",
+          "count": 1,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[וואטסאפ]",
+          "to": "053-325-5020",
+          "count": 1,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "כל המחירים באתר כוללים מע״מ. המשלוח מגיע עד הבית תוך 7 ימי עסקים, וחינם בהזמנה מעל 3,000 ₪.",
+          "to": "כל המחירים באתר כוללים מע״מ. משלוח עד הבית עולה 24 ₪, וחינם בהזמנה בסך 3,000 ₪ ומעלה. ההזמנה תסופק בתוך 7 ימי עסקים ממועד אישורה, אלא אם צוין מועד אחר בדף המוצר או בעמוד התשלום.",
+          "count": 1,
+          "reason": "Verified National shipping policy; fixes inclusive free-shipping threshold"
+        }
+      ],
+      "fact_bindings": {},
+      "requires_facts": [],
+      "preserve_legal_substance": true,
+      "operational_facts": [
+        "Eilat physical branch details / laboratory services / existing warranty information copied from verified public Eilat About; no National legal identity inferred."
+      ]
+    },
+    {
+      "handle": "shipping",
+      "id": "720269934961",
+      "graphql_id": "gid://shopify/Page/720269934961",
+      "title": "משלוחים",
+      "operation": "update_page_body_html",
+      "status": "ready",
+      "before_body_html_file": "national-shipping.before.body.html",
+      "proposed_body_html_file": "national-shipping.proposed.body.html",
+      "rendered_source_sha256": "d67abc07fc4a44267eefff99fc353190144e452e209e017f6994b83afce758df",
+      "source_file": "national-shipping.source.html",
+      "public_source_is_not_admin_concurrency_token": true,
+      "replacements": [
+        {
+          "from": "[טלפון]",
+          "to": "03-511-7171",
+          "count": 1,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[וואטסאפ]",
+          "to": "053-325-5020",
+          "count": 1,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[דואר אלקטרוני]",
+          "to": "joymobileltd@gmail.com",
+          "count": 1,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[תאריך]",
+          "to": "{{publication_date}}",
+          "count": 1,
+          "reason": "Actual content publication date, resolved at apply time"
+        }
+      ],
+      "fact_bindings": {},
+      "requires_facts": [],
+      "preserve_legal_substance": true,
+      "operational_facts": []
+    },
+    {
+      "handle": "terms",
+      "id": "720270033265",
+      "graphql_id": "gid://shopify/Page/720270033265",
+      "title": "תקנון האתר",
+      "operation": "update_page_body_html",
+      "status": "needs_legal_facts",
+      "before_body_html_file": "national-terms.before.body.html",
+      "proposed_body_html_file": "national-terms.proposed.body.html",
+      "rendered_source_sha256": "7075be42a83581a713b3f3c5d55c0a75739b7157b2834948f3fea98b5f00f1b3",
+      "source_file": "national-terms.source.html",
+      "public_source_is_not_admin_concurrency_token": true,
+      "replacements": [
+        {
+          "from": "[טלפון]",
+          "to": "03-511-7171",
+          "count": 2,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[וואטסאפ]",
+          "to": "053-325-5020",
+          "count": 2,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[דואר אלקטרוני]",
+          "to": "joymobileltd@gmail.com",
+          "count": 3,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[תאריך]",
+          "to": "{{publication_date}}",
+          "count": 1,
+          "reason": "Actual content publication date, resolved at apply time"
+        }
+      ],
+      "fact_bindings": {
+        "[שם החברה]": "legal_entity_name",
+        "[ח.פ.]": "registration_number",
+        "[כתובת החברה]": "legal_mail_address",
+        "[עיר]": "jurisdiction_city"
+      },
+      "requires_facts": [
+        "jurisdiction_city",
+        "legal_entity_name",
+        "legal_mail_address",
+        "registration_number"
+      ],
+      "preserve_legal_substance": true,
+      "operational_facts": []
+    },
+    {
+      "handle": "returns",
+      "id": "720269967729",
+      "graphql_id": "gid://shopify/Page/720269967729",
+      "title": "ביטול עסקה והחזרת מוצרים",
+      "operation": "update_page_body_html",
+      "status": "needs_legal_facts",
+      "before_body_html_file": "national-returns.before.body.html",
+      "proposed_body_html_file": "national-returns.proposed.body.html",
+      "rendered_source_sha256": "80039f17e84376152073794b34bd89ec92e66f7993aa2c2327fe1cfed4fa6582",
+      "source_file": "national-returns.source.html",
+      "public_source_is_not_admin_concurrency_token": true,
+      "replacements": [
+        {
+          "from": "[טלפון]",
+          "to": "03-511-7171",
+          "count": 2,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[וואטסאפ]",
+          "to": "053-325-5020",
+          "count": 2,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[דואר אלקטרוני]",
+          "to": "joymobileltd@gmail.com",
+          "count": 2,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[תאריך]",
+          "to": "{{publication_date}}",
+          "count": 1,
+          "reason": "Actual content publication date, resolved at apply time"
+        }
+      ],
+      "fact_bindings": {
+        "[שם החברה]": "legal_entity_name",
+        "[כתובת החברה]": "legal_mail_address"
+      },
+      "requires_facts": [
+        "legal_entity_name",
+        "legal_mail_address"
+      ],
+      "preserve_legal_substance": true,
+      "operational_facts": []
+    },
+    {
+      "handle": "privacy",
+      "id": "720270000497",
+      "graphql_id": "gid://shopify/Page/720270000497",
+      "title": "מדיניות פרטיות",
+      "operation": "update_page_body_html",
+      "status": "needs_legal_facts",
+      "before_body_html_file": "national-privacy.before.body.html",
+      "proposed_body_html_file": "national-privacy.proposed.body.html",
+      "rendered_source_sha256": "d3e27d53e76978c1f98504efee8caf137cad330b0c77a8a09974abd9b0d7b694",
+      "source_file": "national-privacy.source.html",
+      "public_source_is_not_admin_concurrency_token": true,
+      "replacements": [
+        {
+          "from": "[טלפון]",
+          "to": "03-511-7171",
+          "count": 1,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[דואר אלקטרוני]",
+          "to": "joymobileltd@gmail.com",
+          "count": 3,
+          "reason": "Verified National public contact"
+        },
+        {
+          "from": "[תאריך]",
+          "to": "{{publication_date}}",
+          "count": 1,
+          "reason": "Actual content publication date, resolved at apply time"
+        }
+      ],
+      "fact_bindings": {
+        "[שם החברה]": "legal_entity_name",
+        "[ח.פ.]": "registration_number",
+        "[כתובת החברה]": "legal_mail_address"
+      },
+      "requires_facts": [
+        "legal_entity_name",
+        "legal_mail_address",
+        "registration_number"
+      ],
+      "preserve_legal_substance": true,
+      "operational_facts": []
+    },
+    {
+      "handle": "accessibility",
+      "id": "720270164337",
+      "graphql_id": "gid://shopify/Page/720270164337",
+      "title": "הצהרת נגישות",
+      "operation": "update_page_body_html",
+      "status": "needs_legal_facts",
+      "before_body_html_file": "national-accessibility.before.body.html",
+      "proposed_body_html_file": "national-accessibility.proposed.body.html",
+      "rendered_source_sha256": "ba584cb83de415c510a1daeb855ddc0042e60c51901e3fe802a81819cf4acfc7",
+      "source_file": "national-accessibility.source.html",
+      "public_source_is_not_admin_concurrency_token": true,
+      "replacements": [
+        {
+          "from": "[תאריך]",
+          "to": "{{publication_date}}",
+          "count": 1,
+          "reason": "Actual content publication date, resolved at apply time"
+        }
+      ],
+      "fact_bindings": {
+        "[שם החברה]": "legal_entity_name",
+        "[שם]": "accessibility_coordinator_name",
+        "[טלפון]": "accessibility_coordinator_phone",
+        "[דואר אלקטרוני]": "accessibility_coordinator_email"
+      },
+      "requires_facts": [
+        "accessibility_coordinator_email",
+        "accessibility_coordinator_name",
+        "accessibility_coordinator_phone",
+        "legal_entity_name"
+      ],
+      "preserve_legal_substance": true,
+      "operational_facts": [
+        "Keyboard navigation guidance and physical branch accessibility arrangements copied from verified Eilat public Accessibility; coordinator details deliberately not copied."
+      ]
+    },
+    {
+      "handle": "joy-fix",
+      "id": null,
+      "graphql_id": null,
+      "title": "מעבדת JOY FIX – תיקון סלולר באילת",
+      "operation": "create_page_if_handle_absent",
+      "status": "ready",
+      "template_suffix": "joy-fix",
+      "proposed_body_html_file": "national-joy-fix.proposed.body.html",
+      "source_file": "eilat-joy-fix.source.html",
+      "source_status": 200,
+      "national_source_status": 404,
+      "published": true,
+      "requires_existing_theme_asset": "templates/page.joy-fix.json",
+      "operational_facts": [
+        "Verified existing JOY FIX services and two Eilat laboratory locations.",
+        "Verified laboratory phone 053-325-2060; National public branch/FAQ already advertises it.",
+        "Existing diagnostic fees: specific problem 100₪ / water damage 150₪.",
+        "Existing repair turnaround/parts availability and water-damage warranty limitations copied verbatim.",
+        "No National legal operator identity added; do not infer Eilat operator identity from this shared service page."
+      ],
+      "idempotence": "Lookup National page by exact handle before create. If already present, require matching approved content or re-read before update; never create a second handle."
+    },
+    {
+      "handle": "faqs",
+      "id": "720229106033",
+      "graphql_id": "gid://shopify/Page/720229106033",
+      "title": "שאלות נפוצות",
+      "operation": "patch_theme_template_settings",
+      "status": "root_owned",
+      "patch_notes_file": "national-faqs.patch-notes.json",
+      "page_body_update_will_not_fix_rendered_template_copy": true,
+      "preserve_form_and_accordion_structure": true
+    },
+    {
+      "handle": "contact",
+      "id": "719980724593",
+      "graphql_id": "gid://shopify/Page/719980724593",
+      "title": "צרו קשר",
+      "operation": "patch_theme_template_settings",
+      "status": "root_owned",
+      "patch_notes_file": "national-contact.patch-notes.json",
+      "page_body_update_will_not_fix_rendered_template_copy": true,
+      "preserve_form_and_accordion_structure": true
+    }
+  ]
+}

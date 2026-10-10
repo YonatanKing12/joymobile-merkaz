@@ -86,13 +86,16 @@
     render 'whatsapp-url', format: 'display'
   endcapture
 
-  assign address = settings.store_street | strip
-  assign city = settings.store_city | strip
-  if city != blank
-    if address != blank
-      assign address = address | append: ', '
+  assign address = section.settings.info_address | strip
+  if address == blank
+    assign address = settings.store_street | strip
+    assign city = settings.store_city | strip
+    if city != blank
+      if address != blank
+        assign address = address | append: ', '
+      endif
+      assign address = address | append: city
     endif
-    assign address = address | append: city
   endif
 
   assign new_window = 'accessibility.new_window' | t
@@ -587,6 +590,12 @@
       "id": "info_heading",
       "label": "כותרת",
       "default": "פרטי התקשרות"
+    },
+    {
+      "type": "text",
+      "id": "info_address",
+      "label": "כתובת בכרטיס הקשר",
+      "info": "כתובת מלאה כולל עיר. כשריק, מוצגת הכתובת מהגדרות התבנית. אינה משנה את מסלול המשלוח או האיסוף."
     },
     {
       "type": "richtext",

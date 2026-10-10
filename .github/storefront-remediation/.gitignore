@@ -1,0 +1,8 @@
+__pycache__/
+*.snapshot.json
+*.before.json
+*.plan.json
+*.preflight.json
+*.applied.json
+*-backup-*.json
+*-report.json
