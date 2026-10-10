@@ -35,39 +35,54 @@
 
 .field select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23ffffff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-size:16px;background-position:left 14px center;padding-inline-end:44px}
 @media(forced-colors:active){.field select{appearance:auto;background-image:none;padding-inline-end:12px}}
-/* Registration is the first action; image and copy remain secondary to the form. */
-.launch-hero{padding:108px 0 40px;--text-secondary:#c8c9df}
-.launch-grid{grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+/* Product finishes set the campaign palette; JOY mint identifies the actions. */
+:root{--duo-pearl:#f4f3ef;--duo-ink:#292d2e;--duo-panel:#202526;--text-secondary:#5c6162}
+body,.product-explorer{background:var(--duo-pearl)}
+.header{background:#f4f3eff5;border-bottom-color:#2025261a}
+.header-contact{color:#246d57}.header-back{color:var(--text-secondary)}
+.benefits{background:#ebf5ef}.footer{background:var(--duo-ink)}
+.pv-feature-button[aria-selected=true],.pv-choose{background:var(--duo-ink);border-color:var(--duo-ink)}
+.pv-choose:hover{background:#454b4c}
+/* Wide screens place the full registration form beside a larger product image. */
+.launch-hero{padding:calc(var(--landing-header-height,76px) + 28px) 0 40px;background:var(--duo-pearl);color:var(--duo-ink)}
+.launch-grid{grid-template-columns:minmax(0,1fr) minmax(440px,520px);gap:64px;align-items:center}
 .launch-offer{text-align:center;min-width:0}
 .launch-copy{display:block}
-.launch-copy h1{justify-content:center;font-size:clamp(46px,5vw,68px);margin:0 0 12px}
+.launch-copy h1{justify-content:center;font-size:clamp(48px,5vw,72px);margin:0 0 12px}
 .launch-copy>p:not(.launch-offer-note){margin:0 auto;font-size:20px;max-width:none}
-.launch-art{max-width:420px;aspect-ratio:1.55;margin:20px auto 12px}
+.launch-art{width:100%;max-width:560px;aspect-ratio:auto;margin:24px auto 8px}
 .launch-art:before,.launch-art:after{display:none}
-.launch-device-duo{width:92%;left:4%;bottom:10%}
-.launch-offer-note{font-size:16px;margin-top:0;color:#c8c9df}
-.launch-explore{display:inline-flex;align-items:center;min-height:44px;font-size:15px;text-underline-offset:4px;color:#8fe8c9;margin-top:8px}
-.hero-lead{color:white;padding:26px;scroll-margin-top:12px}
+.launch-device-duo{position:relative;width:100%;left:auto;bottom:auto;aspect-ratio:786/505;filter:drop-shadow(0 12px 14px #20252616)}
+.launch-offer-note{font-size:16px;margin-top:0;color:var(--text-secondary)}
+.launch-explore{display:inline-flex;align-items:center;min-height:44px;font-size:15px;text-underline-offset:4px;color:#1a694f;margin-top:8px}
+.hero-lead{color:white;background:var(--duo-panel);border-color:#2025261a;box-shadow:0 12px 32px #1520210b;padding:26px;scroll-margin-top:12px}
 .hero-form-heading h2{font-size:28px;line-height:1.2;letter-spacing:0}
 .hero-lead>.form-panel{margin-top:20px}
 .hero-lead .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
-.hero-lead .field{gap:4px}.hero-lead .field input,.hero-lead .field select{min-height:46px;font-size:16px;padding:10px 12px}.hero-lead .field select{padding-inline-end:40px}
-.hero-lead .lead-consent{margin-top:14px;font-size:13px;line-height:1.45}
+.hero-lead .field{gap:4px}.hero-lead .field input,.hero-lead .field select{min-height:46px;font-size:16px;padding:10px 12px;background-color:#343a3c;border-color:#ffffff66}.hero-lead .field select{padding-inline-end:40px}
+.hero-lead .field input[aria-invalid=true],.hero-lead .field select[aria-invalid=true]{border-color:#ffaba9}
+.hero-lead .field input::placeholder{color:#c1c7c8}
+.hero-lead .lead-consent{margin-top:14px;font-size:13px;line-height:1.45;color:#d7dddd}
 .hero-lead .submit{margin-top:18px}
-.hero-no-commitment{font-size:13px;margin-top:10px}
+.hero-no-commitment{font-size:13px;margin-top:10px;color:#bdc7c8}
 .section-space{padding-block:40px}
 .section-heading{margin-bottom:22px;text-align:right}
 .section-heading h2,.faq-heading h2{font-size:30px;letter-spacing:0}
 .pv-heading h3{font-size:22px}
-@media(max-width:760px){
- .launch-hero{padding:88px 0 28px}
- .launch-grid{grid-template-columns:1fr;gap:18px}
- .launch-offer{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:12px;align-items:center;text-align:right}
- .launch-copy h1{font-size:clamp(28px,8vw,34px);justify-content:flex-end;margin:0 0 6px}
- .hero-apple-logo{display:none}
- .launch-art{width:112px;aspect-ratio:1.55;margin:0}
- .launch-offer-note{font-size:14px;text-align:right}
+/* Portrait screens introduce the device above the immediately visible form. */
+@media(max-width:1099px){
+ .launch-grid{grid-template-columns:1fr;gap:20px}
+ .hero-lead{width:100%;max-width:720px;margin-inline:auto}
  .launch-explore{display:none}
+}
+@media(max-width:760px){
+ .launch-hero{padding:calc(var(--landing-header-height,68px) + 16px) 0 28px}
+ .launch-grid{grid-template-columns:1fr;gap:18px}
+ .launch-offer{display:flex;flex-direction:column;gap:12px;text-align:center}
+ .launch-copy h1{font-size:clamp(36px,10vw,44px);justify-content:center;margin:0 0 6px}
+ .hero-apple-logo{display:block}
+ .launch-art{width:min(100%,280px);margin:0}
+ .launch-offer-note{font-size:14px;text-align:center}
  .hero-lead{padding:20px 18px}
  .hero-form-heading h2{font-size:24px}
  .hero-lead>.form-panel{margin-top:16px}
@@ -79,6 +94,15 @@
  .hero-lead .lead-consent{font-size:13px}
  .section-space{padding-block:32px}
  .section-heading h2,.faq-heading h2{font-size:26px}
+}
+/* Intermediate widths have room for a horizontal introduction and three fields per row. */
+@media(min-width:600px) and (max-width:1099px){
+ .launch-offer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,280px);gap:24px;align-items:center;width:100%;max-width:720px;justify-self:center;text-align:right}
+ .launch-copy h1{font-size:clamp(36px,5.2vw,48px);justify-content:flex-end}
+ .launch-offer-note{text-align:right}
+ .launch-art{width:100%;max-width:280px;margin:0}
+ .hero-lead .form-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 12px}
+ .hero-lead .field[data-field="email"],.hero-lead .field[data-field="contactMethod"]{grid-column:auto}
 }
 </style>
 <a class="skip" href="#lead">דילוג לטופס ההרשמה</a><div id="app"></div><noscript><p class="wrap">כדי לבחור צבע ולשלוח את הפרטים, יש להפעיל JavaScript בדפדפן.</p></noscript>
@@ -227,7 +251,7 @@ const Benefits=()=>`<section class="benefits" aria-label="למה ${STORE_COPY.br
 ].map(([i,h,p])=>`<div class="benefit">${i}<div><h3>${h}</h3><p>${p}</p></div></div>`).join('')}</div></section>`;
 const field=(id,label,control,required=false)=>`<div class="field" data-field="${id}"><label for="${id}">${label}</label>${control}<span class="field-error" id="${id}-error" aria-live="polite"></span></div>`;
 const select=(id,options,required=false)=>`<select id="${id}" name="${id}" ${required?'required':''} aria-describedby="${id}-error">${options.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`;
-const LeadForm=()=>`<section class="hero-lead" id="lead" aria-labelledby="lead-title"><div class="hero-form-heading"><h2 id="lead-title">עדכנו אותי כשהמכירה נפתחת</h2></div><div class="form-panel"><form id="lead-form" novalidate><div class="form-grid">${field('name','שם מלא','<input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="השם שלכם" aria-describedby="name-error">')}${field('phone','טלפון נייד','<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" required placeholder="0500000000" dir="ltr" aria-describedby="phone-error">')}${field('email','אימייל','<input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com" dir="ltr" aria-describedby="email-error">')}${field('color','צבע מועדף',select('color',[['undecided','לא הוחלט'],...duoColors.map(c=>[c.name,c.label])]))}${field('tradeIn','טרייד אין',select('tradeIn',[['undecided','לא הוחלט'],['interested','רוצה לבדוק'],['not-relevant','לא רלוונטי']]))}${field('contactMethod','יצירת קשר',select('contactMethod',[['phone','שיחת טלפון'],['whatsapp','וואטסאפ'],['sms','מסרון']]))}</div><div class="lead-consent"><div class="lead-consent-row"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes" required aria-describedby="marketingConsent-error"><label for="marketingConsent">מאשרים קבלת הצעות שיווקיות מעת לעת בהודעות אלקטרוניות, מסרונים או שיחות. השימוש במידע שתמסרו הינו בהתאם <a href="${PRIVACY_POLICY_URL}" target="_blank" rel="noopener noreferrer">למדיניות מערכת ההרשמה</a>. ראו גם את <a href="${PRIVACY_URL}" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של החנות</a>.</label></div><span class="field-error" id="marketingConsent-error" aria-live="polite"></span></div><button class="button submit" type="submit"><span class="submit-label">שליחת הפרטים</span></button><p id="submit-error" class="submit-error" role="alert" hidden></p></form><div id="success" class="success" role="status" tabindex="-1" hidden><h3>הפרטים התקבלו</h3><p>נעדכן אתכם עם פתיחת המכירה</p></div></div><p class="hero-no-commitment">ללא התחייבות לרכישה. בחירת הצבע כפופה לזמינות.</p></section>`;
+const LeadForm=()=>`<section class="hero-lead" id="lead" aria-labelledby="lead-title"><div class="hero-form-heading"><h2 id="lead-title">עדכנו אותי כשהמכירה נפתחת</h2></div><div class="form-panel"><form id="lead-form" novalidate><div class="form-grid">${field('name','שם מלא','<input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="השם שלכם" aria-describedby="name-error">')}${field('phone','טלפון נייד','<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" required placeholder="0500000000" dir="ltr" aria-describedby="phone-error">')}${field('email','אימייל','<input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com" dir="ltr" aria-describedby="email-error">')}${field('color','צבע מועדף',select('color',[['undecided','לא הוחלט'],...duoColors.map(c=>[c.name,c.label])]))}${field('tradeIn','טרייד אין',select('tradeIn',[['undecided','לא הוחלט'],['interested','רוצה לבדוק'],['not-relevant','לא רלוונטי']]))}${field('contactMethod','יצירת קשר',select('contactMethod',[['phone','שיחת טלפון'],['whatsapp','וואטסאפ'],['sms','מסרון']]))}</div><div class="lead-consent"><div class="lead-consent-row"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes" required aria-describedby="marketingConsent-error"><label for="marketingConsent">מאשרים קבלת הצעות שיווקיות מעת לעת בהודעות אלקטרוניות, מסרונים או שיחות. השימוש במידע שתמסרו הינו בהתאם <a href="${PRIVACY_POLICY_URL}" target="_blank" rel="noopener noreferrer">למדיניות מערכת ההרשמה</a>. ראו גם את <a href="${PRIVACY_URL}" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של החנות</a>.</label></div><span class="field-error" id="marketingConsent-error" aria-live="polite"></span></div><button class="button submit" type="submit"><span class="submit-label">הרשמה לעדכונים</span></button><p id="submit-error" class="submit-error" role="alert" hidden></p></form><div id="success" class="success" role="status" tabindex="-1" hidden><h3>הפרטים התקבלו</h3><p>נעדכן אתכם עם פתיחת המכירה</p></div></div><p class="hero-no-commitment">ללא התחייבות לרכישה. בחירת הצבע כפופה לזמינות.</p></section>`;
 const FAQ=()=>`<section class="faq-section section-space" aria-labelledby="faq-title"><div class="wrap faq-layout"><div class="faq-heading reveal"><h2 id="faq-title">מידע על ההרשמה</h2></div><div class="faq-list reveal">${[
 ['האם ההרשמה מחייבת רכישה?','לא. ההרשמה מיועדת לקבלת עדכונים וליצירת קשר לקראת פתיחת המכירה, ללא התחייבות לרכישה.'],STORE_COPY.priceFaq,['מתי תיפתח המכירה?','נעדכן את הנרשמים ברגע שהמכירה תיפתח ויהיו פרטים מאושרים לגבי זמינות ומחירים.']
 ].map(([q,a],i)=>`<article class="faq-item"><h3><button type="button" id="question-${i}" aria-expanded="false" aria-controls="answer-${i}">${q}<span aria-hidden="true">+</span></button></h3><div class="faq-answer" id="answer-${i}" role="region" aria-labelledby="question-${i}" inert><div><p>${a}</p></div></div></article>`).join('')}</div></div></section>`;
@@ -400,7 +424,7 @@ form.addEventListener('submit',async event=>{
  submit.disabled=true;label.textContent='שולחים את הפרטים…';form.setAttribute('aria-busy','true');error.hidden=true;
  try{await submitLead(payload);form.hidden=true;const success=document.querySelector('#success');success.hidden=false;success.focus();}
  catch{error.textContent='לא התקבל אישור קליטה. הפרטים שמילאתם נשמרו בטופס נסו לשלוח שוב.';error.hidden=false;}
- finally{state.submitting=false;submit.disabled=false;label.textContent='שליחת הפרטים';form.setAttribute('aria-busy','false')}
+ finally{state.submitting=false;submit.disabled=false;label.textContent='הרשמה לעדכונים';form.setAttribute('aria-busy','false')}
 });
 const faqButtons=[...document.querySelectorAll('.faq-item button')];
 faqButtons.forEach((button,index)=>{
