@@ -1,6 +1,13 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const source=fs.readFileSync(path.join(__dirname,'../../assets/cookie-banner.js'),'utf8').replace(/^import .*;\n/m,'').replace(/export /g,'');
+test('cookie section supports the standalone page layout and the header group',()=>{
+ const section=fs.readFileSync(path.join(__dirname,'../../sections/cookie-banner.liquid'),'utf8');
+ const schema=JSON.parse(section.split('{% schema %}')[1].split('{% endschema %}')[0]);
+ assert(schema.enabled_on.templates.includes('page'));assert(schema.enabled_on.groups.includes('header'));
+ const layout=fs.readFileSync(path.join(__dirname,'../../layout/landing.liquid'),'utf8');
+ assert(layout.includes("{% section 'cookie-banner' %}"));
+});
 function fixture(shopify={}) {
   const local=new Map(),session=new Map(),buttons=[{disabled:false},{disabled:false}];
   const styles=()=>({setProperty(){},removeProperty(){}});
