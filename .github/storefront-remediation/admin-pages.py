@@ -10,6 +10,7 @@ import ssl
 import sys
 import urllib.error
 import urllib.request
+from html_equivalence import equivalent_html
 
 STORE = 'k8qhkp-gn.myshopify.com'
 API_VERSION = '2026-07'
@@ -192,14 +193,14 @@ def preflight(operations, snapshot):
         if op['kind'] == 'update_page_body_html':
             if not current or numeric_id(current['id']) != op['id']:
                 raise SafeError(f"Page identity changed for {op['handle']}; nothing in this preflight may execute.")
-            if current['body_html'] == op['body']:
+            if equivalent_html(current['body_html'], op['body']):
                 status = 'already_applied'
             elif current['body_html'] != op['expected']:
                 raise SafeError(f"Admin content changed for {op['handle']}; rebuild the plan from a new snapshot.")
             else:
                 status = 'ready_to_update'
         elif current:
-            if current['body_html'] != op['body'] or current.get('template_suffix') != 'joy-fix' or current.get('title') != op['title'] or current.get('isPublished') is not True:
+            if not equivalent_html(current['body_html'], op['body']) or current.get('template_suffix') != 'joy-fix' or current.get('title') != op['title'] or current.get('isPublished') is not True:
                 raise SafeError('joy-fix already exists with different content/settings; no creation allowed.')
             status = 'already_applied'
         else:
@@ -237,7 +238,7 @@ def run_plan(client, plan, *, apply=False, backup_path=None):
             try:
                 report['mutation_attempts'] += 1
                 page = client.update(operation) if operation['kind'] == 'update_page_body_html' else client.create(operation)
-                if page['handle'] != operation['handle'] or page['body_html'] != operation['body'] or (operation['kind'] == 'update_page_body_html' and numeric_id(page['id']) != operation['id']) or (operation['kind'] == 'create_page_if_handle_absent' and (page.get('template_suffix') != 'joy-fix' or page.get('isPublished') is not True or page.get('title') != operation['title'])):
+                if page['handle'] != operation['handle'] or not equivalent_html(page['body_html'], operation['body']) or (operation['kind'] == 'update_page_body_html' and numeric_id(page['id']) != operation['id']) or (operation['kind'] == 'create_page_if_handle_absent' and (page.get('template_suffix') != 'joy-fix' or page.get('isPublished') is not True or page.get('title') != operation['title'])):
                     raise MutationUnknown('Shopify returned unexpected page state; re-read before proceeding.')
             except MutationUnknown:
                 try:
