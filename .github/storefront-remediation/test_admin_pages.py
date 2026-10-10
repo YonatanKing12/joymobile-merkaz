@@ -3,6 +3,9 @@ import importlib.util
 import json
 import os
 import pathlib
+import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -102,6 +105,82 @@ class ApplierTests(unittest.TestCase):
         report = a.run_plan(client, plan(update(after='<p>Old</p>')), apply=True, backup_path=self.backup)
         self.assertEqual(report['remote_writes'], 0)
         self.assertEqual(client.writes, [])
+
+    def test_shopify_apostrophe_serialization_is_already_applied(self):
+        proposed = '<p>ג&#x27;וי מובייל מרכז בע״מ, ג&#x27;וי מובייל</p>'
+        serialized = proposed.replace('&#x27;', "'")
+        self.assertEqual(len(proposed) - len(serialized), 10)
+        client = MockClient([page(body=serialized)])
+        report = a.run_plan(client, plan(update(after=proposed)), apply=True, backup_path=self.backup)
+        self.assertEqual(report['results'][0]['status'], 'already_applied')
+        self.assertEqual(client.writes, [])
+        self.assertFalse(self.backup.exists())
+
+    def test_serialized_mutation_response_is_successful(self):
+        class SerializingClient(MockClient):
+            def update(self, operation):
+                super().update(operation)
+                self.pages[0]['body_html'] = operation['body'].replace('&#x27;', "'")
+                return copy.deepcopy(self.pages[0])
+        client = SerializingClient([page()])
+        report = a.run_plan(client, plan(update(after='<p>ג&#x27;וי</p>')), apply=True, backup_path=self.backup)
+        self.assertEqual(report['results'][0]['status'], 'updated')
+        self.assertEqual(report['remote_writes'], 1)
+        self.assertEqual(client.reads, 2)
+        self.assertEqual(len(client.writes), 1)
+
+    def test_serialized_create_is_idempotent_with_all_settings_checked(self):
+        client = MockClient([page('joy-fix', "<p>ג'וי</p>", template_suffix='joy-fix', title='JOY FIX', isPublished=True)])
+        report = a.run_plan(client, plan(create('<p>ג&#x27;וי</p>')), apply=True, backup_path=self.backup)
+        self.assertEqual(report['results'][0]['status'], 'already_applied')
+        self.assertEqual(client.writes, [])
+        client.pages[0]['isPublished'] = False
+        with self.assertRaises(a.SafeError):
+            a.run_plan(client, plan(create('<p>ג&#x27;וי</p>')), apply=True, backup_path=self.backup)
+
+    def test_expected_baseline_remains_byte_exact(self):
+        client = MockClient([page(body="<p>Merchant's baseline</p>")])
+        with self.assertRaises(a.SafeError):
+            a.run_plan(client, plan(update(before='<p>Merchant&#x27;s baseline</p>')), apply=True, backup_path=self.backup)
+        self.assertEqual(client.writes, [])
+        self.assertFalse(self.backup.exists())
+
+    def test_normalization_never_hides_changed_text_or_link(self):
+        desired = '<p>ג&#x27;וי <a href="/policies/returns">החזרות</a></p>'
+        for changed in [desired.replace('החזרות', 'ביטולים'), desired.replace('/policies/returns', '/policies/privacy')]:
+            client = MockClient([page(body=changed)])
+            with self.assertRaises(a.SafeError):
+                a.run_plan(client, plan(update(after=desired)), apply=True, backup_path=self.backup)
+            self.assertEqual(client.writes, [])
+
+    def test_unknown_serialized_outcome_is_reread_but_never_retried(self):
+        class UncertainSerializingClient(MockClient):
+            def update(self, operation):
+                super().update(operation)
+                self.pages[0]['body_html'] = operation['body'].replace('&#x27;', "'")
+                raise a.MutationUnknown('mock timeout after serialization')
+        client = UncertainSerializingClient([page()])
+        with self.assertRaises(a.ApplyStopped) as caught:
+            a.run_plan(client, plan(update(after='<p>ג&#x27;וי</p>')), apply=True, backup_path=self.backup)
+        report = caught.exception.report
+        self.assertEqual(report['results'][0]['status'], 'confirmed_applied_after_unknown_response')
+        self.assertFalse(report['results'][0]['automatic_retry'])
+        self.assertEqual(client.reads, 3)
+        self.assertEqual(len(client.writes), 1)
+        self.assertEqual(report['mutation_attempts'], 1)
+
+    def test_changed_mutation_response_stops_without_retry(self):
+        class ChangedClient(MockClient):
+            def update(self, operation):
+                super().update(operation)
+                self.pages[0]['body_html'] = operation['body'].replace('/returns', '/privacy')
+                return copy.deepcopy(self.pages[0])
+        client = ChangedClient([page()])
+        with self.assertRaises(a.ApplyStopped) as caught:
+            a.run_plan(client, plan(update(after='<a href="/returns">Return</a>')), apply=True, backup_path=self.backup)
+        self.assertEqual(caught.exception.report['results'][0]['status'], 'unknown_outcome_requires_new_snapshot')
+        self.assertEqual(client.reads, 3)
+        self.assertEqual(len(client.writes), 1)
 
     def test_backup_is_actual_before_state_and_private(self):
         client = MockClient([page()])
@@ -205,6 +284,44 @@ class ApplierTests(unittest.TestCase):
         self.assertEqual(calls, [{'after': None}, {'after': 'next'}])
         self.assertEqual(len(snapshot['pages']), 2)
         self.assertFalse(snapshot['pages'][0]['isPublished'])
+
+class HtmlEquivalenceTests(unittest.TestCase):
+    def test_safe_tag_attribute_and_entity_serialization(self):
+        self.assertTrue(a.equivalent_html(
+            '<P><a HREF="/returns?a=1&amp;b=2" class="link">ג&#39;וי</a><br /></P>',
+            "<p><a class='link' href='/returns?a=1&b=2'>ג'וי</a><br></p>"))
+
+    def test_meaningful_whitespace_and_attribute_changes_stay_distinct(self):
+        for left, right in [
+            ('<p>Hello <b>world</b></p>', '<p>Hello<b>world</b></p>'),
+            ('<p>One&nbsp;two</p>', '<p>One two</p>'),
+            ('<a href="/returns">Link</a>', '<a href="/privacy">Link</a>'),
+            ('<p class="one">Text</p>', '<p class="two">Text</p>'),
+            ('<p />', '<p>'),
+            ('<!-- one --><p>Text</p>', '<!-- two --><p>Text</p>'),
+            ('<a href="/a" href="/b">Link</a>', '<a href="/b" href="/a">Link</a>'),
+        ]:
+            with self.subTest(left=left, right=right):
+                self.assertFalse(a.equivalent_html(left, right))
+
+    def test_compiler_recognizes_serialized_desired_and_keeps_raw_expected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = pathlib.Path(temp)
+            for filename in ['prepare-updates.py', 'html_equivalence.py']:
+                shutil.copy(PATH.with_name(filename), directory / filename)
+            manifest = {'store': a.STORE, 'pages': [{'handle': 'about', 'id': a.ALLOWED_IDS['about'], 'operation': 'update_page_body_html', 'status': 'ready_to_update', 'before_body_html_file': 'before.html', 'proposed_body_html_file': 'proposed.html'}]}
+            (directory / 'manifest.json').write_text(json.dumps(manifest))
+            (directory / 'before.html').write_text('<p>Old&#x27;s text</p>')
+            (directory / 'proposed.html').write_text('<p>ג&#x27;וי</p>')
+            for body, status in [("<p>ג'וי</p>", 'already_applied'), ("<p>Old's text</p>", 'ready_to_update'), ("<p>Other's text</p>", 'conflict_changed_content')]:
+                with self.subTest(status=status):
+                    snapshot = directory / 'snapshot.json'
+                    snapshot.write_text(json.dumps({'pages': [page(body=body)]}))
+                    result = subprocess.run([sys.executable, str(directory / 'prepare-updates.py'), '--snapshot', str(snapshot), '--publication-date', '2026-10-10'], text=True, capture_output=True, check=True)
+                    op = json.loads(result.stdout)['operations'][0]
+                    self.assertEqual(op['status'], status)
+                    if status == 'ready_to_update':
+                        self.assertEqual(op['expected_body_html'], body)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,19 +1,7 @@
 """Compile reviewable page operations. Offline, dry-run only: never sends API requests."""
 import argparse,datetime,html,json,pathlib,re,sys,zoneinfo
-from html.parser import HTMLParser
+from html_equivalence import equivalent_html
 
-class CanonicalHTML(HTMLParser):
- """Ignore HTML serialization differences, retaining text, tags and attributes."""
- def __init__(self):super().__init__(convert_charrefs=True);self.parts=[]
- def handle_starttag(self,tag,attrs):self.parts.append(('start',tag,tuple(sorted(attrs))))
- def handle_startendtag(self,tag,attrs):self.handle_starttag(tag,attrs);self.handle_endtag(tag)
- def handle_endtag(self,tag):
-  if tag not in {'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}:self.parts.append(('end',tag))
- def handle_data(self,data):
-  text=' '.join(data.split())
-  if text:self.parts.append(('text',text))
-def equivalent_html(left,right):
- l=CanonicalHTML();r=CanonicalHTML();l.feed(left);r.feed(right);return l.parts==r.parts
 P=argparse.ArgumentParser(description=__doc__)
 P.add_argument('--facts',type=pathlib.Path,help='JSON object of confirmed National facts; values are HTML escaped')
 P.add_argument('--snapshot',type=pathlib.Path,help='Fresh Admin JSON {pages:[{id,handle,body_html,template_suffix}]} for strict before/already-applied checks')
@@ -50,7 +38,7 @@ for page in manifest['pages']:
   existing=current.get(page['handle'])
   if existing:
    op['id']=str(existing['id']);payload['id']=existing['id'];actual=(existing.get('body_html') or '').strip()
-   if actual==proposed and (page['operation']!='create_page_if_handle_absent' or existing.get('template_suffix')==page['template_suffix']):op['status']='already_applied';op.pop('payload')
+   if equivalent_html(actual,proposed) and (page['operation']!='create_page_if_handle_absent' or existing.get('template_suffix')==page['template_suffix']):op['status']='already_applied';op.pop('payload')
    elif page['operation']=='create_page_if_handle_absent':op['status']='conflict_existing_handle';op.pop('payload')
    else:
     expected=(D/page['before_body_html_file']).read_text().strip()
