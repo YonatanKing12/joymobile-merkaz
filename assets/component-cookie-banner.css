@@ -54,8 +54,8 @@ html.a11y-no-motion .cookie-banner__panel {
 /* Room for the ✕ at the inline-end corner. */
 .cookie-banner__text {
   padding-inline-end: 2.25rem;
-  font-size: var(--text-xs);
-  line-height: var(--leading-snug);
+  font-size: var(--text-sm);
+  line-height: 1.55;
 }
 
 .cookie-banner__text > * {
@@ -87,10 +87,10 @@ html.a11y-no-motion .cookie-banner__panel {
 .cookie-banner__button {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding-inline: var(--space-sm);
   font-size: var(--text-sm);
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .cookie-banner__close {
@@ -108,6 +108,20 @@ html.a11y-no-motion .cookie-banner__panel {
   color: var(--color-ink);
   cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.cookie-banner__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.cookie-banner__button:disabled,
+.cookie-banner__close:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 @media (hover: hover) {
