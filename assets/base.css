@@ -1044,3 +1044,13 @@ html.a11y-no-motion *::after {
     display: none !important;
   }
 }
+/* Cookie preferences use the same navigation appearance with a real keyboard-accessible button. */
+.footer__privacy-button {
+  font: inherit;
+  text-align: inherit;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  min-height: 44px;
+}

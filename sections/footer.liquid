@@ -255,6 +255,7 @@
           {%- if statement_url != blank -%}
             <li><a class="footer__link" href="{{ statement_url }}">{{ 'footer.accessibility' | t }}</a></li>
           {%- endif -%}
+          <li><button type="button" class="footer__link footer__privacy-button" data-cookie-preferences>הגדרות עוגיות</button></li>
           {%- if section.settings.show_policies -%}
             {%- # The Hebrew pages (handles privacy, terms, returns) win over Shopify's policy pages when they exist. -%}
             {%- liquid
