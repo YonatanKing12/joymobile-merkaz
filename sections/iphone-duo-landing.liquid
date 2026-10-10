@@ -50,13 +50,8 @@
 .hero-lead{color:white;padding:26px;scroll-margin-top:12px}
 .hero-form-heading h2{font-size:28px;line-height:1.2;letter-spacing:0}
 .hero-lead>.form-panel{margin-top:20px}
-.hero-lead .form-grid{grid-template-columns:1fr;gap:12px}
-.hero-lead .field{gap:4px}
-.lead-preferences{margin-top:14px;border-block:1px solid #ffffff26;font-size:15px}
-.lead-preferences summary{cursor:pointer;padding:12px 0;min-height:48px;color:#e0fff2}
-.lead-preferences .form-grid{padding-bottom:16px}
-.lead-preference-choice{font-weight:700;margin-inline-start:6px}
-.lead-contact-note{font-size:13px;color:#c8c9df;margin-top:10px}
+.hero-lead .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+.hero-lead .field{gap:4px}.hero-lead .field input,.hero-lead .field select{min-height:46px;font-size:16px;padding:10px 12px}.hero-lead .field select{padding-inline-end:40px}
 .hero-lead .lead-consent{margin-top:14px;font-size:13px;line-height:1.45}
 .hero-lead .submit{margin-top:18px}
 .hero-no-commitment{font-size:13px;margin-top:10px}
@@ -76,8 +71,11 @@
  .hero-lead{padding:20px 18px}
  .hero-form-heading h2{font-size:24px}
  .hero-lead>.form-panel{margin-top:16px}
- .hero-lead .field input{min-height:48px;padding:10px 12px}
- .hero-lead .field label{font-size:15px}
+ .hero-lead .form-grid{gap:12px 10px}
+ .hero-lead .field[data-field="email"],.hero-lead .field[data-field="contactMethod"]{grid-column:1 / -1}
+ .hero-lead .field input,.hero-lead .field select{min-height:46px;font-size:16px;padding:10px}
+ .hero-lead .field select{padding-inline-end:34px;background-position:left 10px center;background-size:14px}
+ .hero-lead .field label{font-size:14px}
  .hero-lead .lead-consent{font-size:13px}
  .section-space{padding-block:32px}
  .section-heading h2,.faq-heading h2{font-size:26px}
@@ -227,9 +225,9 @@ const Benefits=()=>`<section class="benefits" aria-label="למה ${STORE_COPY.br
 ...STORE_COPY.benefits.map(([path,h,p])=>[icon(path),h,p]),
 [icon('<path d="m16 2 12 5v9c0 7-12 14-12 14S4 23 4 16V7l12-5Z"/><path d="m10 15 4 4 8-9"/>'),'אחריות רשמית של <bdi>Apple</bdi>','12 חודשים']
 ].map(([i,h,p])=>`<div class="benefit">${i}<div><h3>${h}</h3><p>${p}</p></div></div>`).join('')}</div></section>`;
-const field=(id,label,control,required=false)=>`<div class="field"><label for="${id}">${label}</label>${control}<span class="field-error" id="${id}-error" aria-live="polite"></span></div>`;
+const field=(id,label,control,required=false)=>`<div class="field" data-field="${id}"><label for="${id}">${label}</label>${control}<span class="field-error" id="${id}-error" aria-live="polite"></span></div>`;
 const select=(id,options,required=false)=>`<select id="${id}" name="${id}" ${required?'required':''} aria-describedby="${id}-error">${options.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`;
-const LeadForm=()=>`<section class="hero-lead" id="lead" aria-labelledby="lead-title"><div class="hero-form-heading"><h2 id="lead-title">עדכנו אותי כשהמכירה נפתחת</h2></div><div class="form-panel"><form id="lead-form" novalidate><div class="form-grid">${field('name','שם מלא','<input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="השם שלכם" aria-describedby="name-error">')}${field('phone','טלפון נייד','<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" required placeholder="050-0000000" dir="ltr" aria-describedby="phone-error">')}${field('email','אימייל','<input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com" dir="ltr" aria-describedby="email-error">')}</div><details class="lead-preferences"><summary>צבע, טרייד אין ודרך יצירת קשר <span class="lead-preference-choice"></span></summary><div class="form-grid">${field('color','צבע מועדף',select('color',[['undecided','עוד לא החלטתי'],...duoColors.map(c=>[c.name,`${c.label} (${c.name})`])]))}${field('tradeIn','טרייד אין',select('tradeIn',[['undecided','עוד לא החלטתי'],['interested','רוצה לבדוק'],['not-relevant','לא רלוונטי']]))}${field('contactMethod','יצירת קשר',select('contactMethod',[['phone','שיחת טלפון'],['whatsapp','וואטסאפ'],['sms','מסרון']]))}</div></details><p class="lead-contact-note">נציג יחזור אליכם בטלפון. אפשר לבחור דרך אחרת למעלה.</p><div class="lead-consent"><div class="lead-consent-row"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes" required aria-describedby="marketingConsent-error"><label for="marketingConsent">מאשרים קבלת הצעות שיווקיות מעת לעת בהודעות אלקטרוניות, מסרונים או שיחות. השימוש במידע שתמסרו הינו בהתאם <a href="${PRIVACY_POLICY_URL}" target="_blank" rel="noopener noreferrer">למדיניות מערכת ההרשמה</a>. ראו גם את <a href="${PRIVACY_URL}" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של החנות</a>.</label></div><span class="field-error" id="marketingConsent-error" aria-live="polite"></span></div><button class="button submit" type="submit"><span class="submit-label">שליחת הפרטים</span></button><p id="submit-error" class="submit-error" role="alert" hidden></p></form><div id="success" class="success" role="status" tabindex="-1" hidden><h3>הפרטים התקבלו</h3><p>נעדכן אתכם עם פתיחת המכירה</p></div></div><p class="hero-no-commitment">ללא התחייבות לרכישה. בחירת הצבע כפופה לזמינות.</p></section>`;
+const LeadForm=()=>`<section class="hero-lead" id="lead" aria-labelledby="lead-title"><div class="hero-form-heading"><h2 id="lead-title">עדכנו אותי כשהמכירה נפתחת</h2></div><div class="form-panel"><form id="lead-form" novalidate><div class="form-grid">${field('name','שם מלא','<input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="השם שלכם" aria-describedby="name-error">')}${field('phone','טלפון נייד','<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" required placeholder="0500000000" dir="ltr" aria-describedby="phone-error">')}${field('email','אימייל','<input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com" dir="ltr" aria-describedby="email-error">')}${field('color','צבע מועדף',select('color',[['undecided','לא הוחלט'],...duoColors.map(c=>[c.name,c.label])]))}${field('tradeIn','טרייד אין',select('tradeIn',[['undecided','לא הוחלט'],['interested','רוצה לבדוק'],['not-relevant','לא רלוונטי']]))}${field('contactMethod','יצירת קשר',select('contactMethod',[['phone','שיחת טלפון'],['whatsapp','וואטסאפ'],['sms','מסרון']]))}</div><div class="lead-consent"><div class="lead-consent-row"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes" required aria-describedby="marketingConsent-error"><label for="marketingConsent">מאשרים קבלת הצעות שיווקיות מעת לעת בהודעות אלקטרוניות, מסרונים או שיחות. השימוש במידע שתמסרו הינו בהתאם <a href="${PRIVACY_POLICY_URL}" target="_blank" rel="noopener noreferrer">למדיניות מערכת ההרשמה</a>. ראו גם את <a href="${PRIVACY_URL}" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של החנות</a>.</label></div><span class="field-error" id="marketingConsent-error" aria-live="polite"></span></div><button class="button submit" type="submit"><span class="submit-label">שליחת הפרטים</span></button><p id="submit-error" class="submit-error" role="alert" hidden></p></form><div id="success" class="success" role="status" tabindex="-1" hidden><h3>הפרטים התקבלו</h3><p>נעדכן אתכם עם פתיחת המכירה</p></div></div><p class="hero-no-commitment">ללא התחייבות לרכישה. בחירת הצבע כפופה לזמינות.</p></section>`;
 const FAQ=()=>`<section class="faq-section section-space" aria-labelledby="faq-title"><div class="wrap faq-layout"><div class="faq-heading reveal"><h2 id="faq-title">מידע על ההרשמה</h2></div><div class="faq-list reveal">${[
 ['האם ההרשמה מחייבת רכישה?','לא. ההרשמה מיועדת לקבלת עדכונים וליצירת קשר לקראת פתיחת המכירה, ללא התחייבות לרכישה.'],STORE_COPY.priceFaq,['מתי תיפתח המכירה?','נעדכן את הנרשמים ברגע שהמכירה תיפתח ויהיו פרטים מאושרים לגבי זמינות ומחירים.']
 ].map(([q,a],i)=>`<article class="faq-item"><h3><button type="button" id="question-${i}" aria-expanded="false" aria-controls="answer-${i}">${q}<span aria-hidden="true">+</span></button></h3><div class="faq-answer" id="answer-${i}" role="region" aria-labelledby="question-${i}" inert><div><p>${a}</p></div></div></article>`).join('')}</div></div></section>`;
@@ -377,17 +375,13 @@ const state={submitting:false};
 document.querySelector('#app').innerHTML=Header()+'<main>'+Hero()+Benefits()+ProductViewer(duo)+FAQ()+'</main>'+Footer();
 const form=document.querySelector('#lead-form');
 const prepareLead=createLeadRequest();
-form.elements.contactMethod.addEventListener('change',()=>{
- const method={phone:'בטלפון',whatsapp:'בוואטסאפ',sms:'באמצעות מסרון'}[form.elements.contactMethod.value];
- document.querySelector('.lead-contact-note').textContent=`ניצור קשר ${method} עם פתיחת המכירה`;
-});
 const honeypot=document.createElement('input');
 honeypot.type='text';honeypot.name='website';honeypot.tabIndex=-1;honeypot.autocomplete='off';
 honeypot.setAttribute('aria-hidden','true');honeypot.style.cssText='position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden';
 form.append(honeypot);
 // Explicit color choices carry into the registration form.
 function selectColor(color){
- if(duoColors.some(c=>c.name===color)){form.elements.color.value=color;form.elements.color.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.lead-preference-choice').textContent=duoColors.find(c=>c.name===color).label;}
+ if(duoColors.some(c=>c.name===color)){form.elements.color.value=color;form.elements.color.dispatchEvent(new Event('change',{bubbles:true}));}
 }
 initializeProductViewer(duo,selectColor);
 function showFieldError(key,message){const input=form.elements[key];input.setAttribute('aria-invalid',message?'true':'false');document.getElementById(key+'-error').textContent=message||'';}
