@@ -33,7 +33,7 @@
   @param {string} name - Branch name.
   @param {string} address - Address as shown on the site, ending with the city, e.g. "שדרות התמרים 2 (צמוד לבנק דיסקונט), אילת".
   @param {string} [services] - Services line; becomes the description.
-  @param {string} [phone] - Branch phone. Default: the theme setting contact_phone.
+  @param {string} [phone] - Branch phones separated by / . Default: the theme setting contact_phone.
   @param {string} [hours_spec] - Machine-readable opening hours, e.g. "Su-Th 10:00-23:00; Fr 10:00-14:00".
   @param {string} [geo] - Exact coordinates, "latitude,longitude".
   @param {string} [map_query] - Map search. Default: the address.
@@ -74,9 +74,20 @@
 
   # Phone: 03-511-7171 → +97235117171 (the same rules as the tel: links).
   assign bj_phone = phone | strip | default: settings.contact_phone | strip
-  capture bj_phone
-    render 'phone-href', phone: bj_phone, format: 'e164'
-  endcapture
+  assign bj_phones = bj_phone | split: '/'
+  assign bj_phones_json = ''
+  assign bj_phone_count = 0
+  for bj_number in bj_phones
+    capture bj_phone
+      render 'phone-href', phone: bj_number, format: 'e164'
+    endcapture
+    if bj_phone != blank
+      assign bj_phone_json = bj_phone | json
+      assign bj_phones_json = bj_phones_json | append: ',' | append: bj_phone_json
+      assign bj_phone_count = bj_phone_count | plus: 1
+    endif
+  endfor
+  assign bj_phones_json = bj_phones_json | remove_first: ','
 
   # Payment: the cards the shop takes (theme setting payment_icons_extra), by their names.
   assign bj_payment = ''
@@ -235,7 +246,8 @@
     "addressLocality": {{ bj_city | json }},
     "addressCountry": "IL"
   }
-  {%- if bj_phone != blank -%},"telephone": {{ bj_phone | json }}{%- endif -%},
+  {%- if bj_phone_count > 1 -%},"telephone": [{{ bj_phones_json }}]
+  {%- elsif bj_phone_count == 1 -%},"telephone": {{ bj_phones_json }}{%- endif -%},
   "currenciesAccepted": {{ shop.currency | default: 'ILS' | json }}
   {%- if bj_payment != blank -%},"paymentAccepted": {{ bj_payment | json }}{%- endif -%},
   "priceRange": "₪₪"
