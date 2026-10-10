@@ -23,6 +23,8 @@ jobs:
         run: node .github/scripts/liquid-braces.js $(git ls-files '*.liquid')
       - name: JavaScript syntax (every asset is an ES module)
         run: for f in assets/*.js; do node --input-type=module --check < "$f" || { echo "::error file=$f::syntax error"; exit 1; }; done
+      - name: Content update guards (offline mock clients)
+        run: python3 -m unittest discover -s .github/storefront-remediation -p 'test_admin_*.py' -v
       - name: JSON validity (templates, config, locales)
         run: |
           for f in templates/*.json config/*.json locales/*.json sections/*.json; do

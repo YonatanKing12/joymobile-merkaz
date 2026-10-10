@@ -1,0 +1,312 @@
+{
+  "smartphones": [
+    {
+      "handle": "apple-iphone-18-pro-max",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPhone 18 Pro Max",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPhone 18 Pro Max",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "apple-iphone-18-pro",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPhone 18 Pro",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPhone 18 Pro",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "apple-iphone-17-pro-max",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPhone 17 Pro Max",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPhone 17 Pro Max",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "apple-iphone-17-pro",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPhone 17 Pro",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPhone 17 Pro",
+        "hasImage": true
+      }
+    }
+  ],
+  "tablets": [
+    {
+      "handle": "apple-ipad-air-11-m4-wi-fi",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPad Air 11\" M4 Wi-Fi",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPad Air 11\" M4 Wi-Fi",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "apple-ipad-air-13-m4-wi-fi",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPad Air 13\" M4 Wi-Fi",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPad Air 13\" M4 Wi-Fi",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "apple-ipad-pro-11-m5-wi-fi",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPad Pro 11\" M5 Wi-Fi",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPad Pro 11\" M5 Wi-Fi",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "apple-ipad-11-a16-wi-fi",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPad 11\" A16 Wi-Fi",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "Apple iPad 11\" A16 Wi-Fi",
+        "hasImage": true
+      }
+    }
+  ],
+  "vacuums": [
+    {
+      "handle": "שואב-אבק-ושוטף-רובוטי-dreame-x60-ultra-complete",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "שואב אבק ושוטף רובוטי Dreame X60 Ultra Complete",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "שואב אבק ושוטף רובוטי Dreame X60 Ultra Complete",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "roborock-saros-20-complete-6936905905666",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "שואב אבק רובוטי Roborock Saros 20 Complete שחור",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "שואב אבק רובוטי Roborock Saros 20 Complete שחור",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "roborock-saros-20-sonic-6936905905581",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "שואב אבק רובוטי Roborock Saros 20 Sonic שחור",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "שואב אבק רובוטי Roborock Saros 20 Sonic שחור",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "mova-v70-ultra-complete-x-6978794735177",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "שואב אבק רובוטי MOVA V70 Ultra Complete X לבן",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "שואב אבק רובוטי MOVA V70 Ultra Complete X לבן",
+        "hasImage": true
+      }
+    }
+  ],
+  "audio": [
+    {
+      "handle": "apple-airpodsmax-2-dcs-black-195951039152",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "אוזניות Apple AirPods Max 2 שחור – DCS",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "אוזניות Apple AirPods Max 2 שחור – DCS",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "אוזניות-samsung-galaxy-buds-4-pro",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "אוזניות Samsung Galaxy Buds 4 Pro",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "אוזניות Samsung Galaxy Buds 4 Pro",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "אוזניות-samsung-galaxy-buds-4",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "אוזניות Samsung Galaxy Buds 4",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "אוזניות Samsung Galaxy Buds 4",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "אוזניות-apple-airpods-pro-3-usb-c",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "אוזניות Apple AirPods Pro 3 USB-C",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "אוזניות Apple AirPods Pro 3 USB-C",
+        "hasImage": true
+      }
+    }
+  ],
+  "computers-gaming": [
+    {
+      "handle": "ps5-dualsense-white-711719022756",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "בקר Sony DualSense V3 ל-PS5 לבן – יבואן רשמי ישפאר",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "בקר Sony DualSense V3 ל-PS5 לבן – יבואן רשמי ישפאר",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "turtlebeach-rematch-mario-jump-nintendoswitch2-840454402711",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "בקר אלחוטי Turtle Beach Rematch Mario Jump ל-Nintendo Switch 2",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "בקר אלחוטי Turtle Beach Rematch Mario Jump ל-Nintendo Switch 2",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "turtlebeach-afterglow-nintendoswitch2-white-840454402353",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "בקר אלחוטי Turtle Beach Afterglow ל-Nintendo Switch 2 לבן",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "בקר אלחוטי Turtle Beach Afterglow ל-Nintendo Switch 2 לבן",
+        "hasImage": true
+      }
+    },
+    {
+      "handle": "razer-viper-v4-pro-8887910085134",
+      "national": {
+        "exists": true,
+        "available": true,
+        "title": "עכבר אלחוטי Razer Viper V4 Pro",
+        "hasImage": true
+      },
+      "eilat": {
+        "exists": true,
+        "available": true,
+        "title": "עכבר אלחוטי Razer Viper V4 Pro",
+        "hasImage": true
+      }
+    }
+  ]
+}
