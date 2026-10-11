@@ -35,8 +35,8 @@
 
 .field select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23ffffff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-size:16px;background-position:left 14px center;padding-inline-end:44px}
 @media(forced-colors:active){.field select{appearance:auto;background-image:none;padding-inline-end:12px}}
-/* Product finishes set the campaign palette; JOY mint identifies the actions. */
-:root{--duo-pearl:#f4f3ef;--duo-ink:#292d2e;--duo-panel:#202526;--text-secondary:#5c6162}
+/* Product finishes set the page palette; the registration form uses JOY brand colors. */
+:root{--duo-pearl:#f4f3ef;--duo-ink:#292d2e;--text-secondary:#5c6162}
 body,.product-explorer{background:var(--duo-pearl)}
 .header{background:#f4f3eff5;border-bottom-color:#2025261a}
 .header-contact{color:#246d57}.header-back{color:var(--text-secondary)}
@@ -55,16 +55,19 @@ body,.product-explorer{background:var(--duo-pearl)}
 .launch-device-duo{position:relative;width:100%;left:auto;bottom:auto;aspect-ratio:786/505;filter:drop-shadow(0 12px 14px #20252616)}
 .launch-offer-note{font-size:16px;margin-top:0;color:var(--text-secondary)}
 .launch-explore{display:inline-flex;align-items:center;min-height:44px;font-size:15px;text-underline-offset:4px;color:#1a694f;margin-top:8px}
-.hero-lead{color:white;background:var(--duo-panel);border-color:#2025261a;box-shadow:0 12px 32px #1520210b;padding:26px;scroll-margin-top:12px}
+.hero-lead{color:white;background:var(--joy-navy);border-color:var(--joy-green);box-shadow:0 12px 32px #06043314;padding:26px;scroll-margin-top:12px}
 .hero-form-heading h2{font-size:28px;line-height:1.2;letter-spacing:0}
 .hero-lead>.form-panel{margin-top:20px}
 .hero-lead .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
-.hero-lead .field{gap:4px}.hero-lead .field input,.hero-lead .field select{min-height:46px;font-size:16px;padding:10px 12px;background-color:#343a3c;border-color:#ffffff66}.hero-lead .field select{padding-inline-end:40px}
+.hero-lead .field{gap:4px}.hero-lead .field input,.hero-lead .field select{min-height:46px;font-size:16px;padding:10px 12px;background-color:#151342;border-color:#8d8caa}.hero-lead .field select{padding-inline-end:40px}
 .hero-lead .field input[aria-invalid=true],.hero-lead .field select[aria-invalid=true]{border-color:#ffaba9}
-.hero-lead .field input::placeholder{color:#c1c7c8}
-.hero-lead .lead-consent{margin-top:14px;font-size:13px;line-height:1.45;color:#d7dddd}
-.hero-lead .submit{margin-top:18px}
-.hero-no-commitment{font-size:13px;margin-top:10px;color:#bdc7c8}
+.hero-lead .field input::placeholder{color:#c8c9df}
+.hero-lead :focus-visible{outline-color:var(--joy-mint)}
+.hero-lead .lead-consent{margin-top:14px;font-size:13px;line-height:1.45;color:#e0fff2}
+.hero-lead .submit{margin-top:18px;background:var(--joy-mint);color:var(--joy-navy)}
+.hero-lead .submit:hover{background:#e0fff2}
+.hero-lead .lead-consent a{color:var(--joy-mint)}
+.hero-no-commitment{font-size:13px;margin-top:10px;color:#c8c9df}
 .section-space{padding-block:40px}
 .section-heading{margin-bottom:22px;text-align:right}
 .section-heading h2,.faq-heading h2{font-size:30px;letter-spacing:0}
