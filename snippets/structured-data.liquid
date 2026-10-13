@@ -105,7 +105,7 @@
       assign org_alternate_name = 'general.meta.alternate_name' | t | strip
       assign org_description = 'general.meta.default_description' | t: brand: brand_name
       assign org_email = settings.contact_email | strip
-      # 03-511-7171 → +972-3-511-7171: Google asks for the country code.
+      # 08-6371234 → +972-8-6371234: Google asks for the country code.
       assign org_phone = settings.contact_phone | strip
       assign org_phone_first = org_phone | slice: 0
       if org_phone_first == '0'

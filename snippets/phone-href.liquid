@@ -8,13 +8,13 @@
 
   Normalising: spaces, dashes, dots and parentheses are removed. "+…" and "00…" are
   international; a leading 0 is Israeli local (05x…, 0x…) and becomes 972; digits that
-  already start with 972 are Israeli international too ("972-3-511-7171"), and the trunk 0
+  already start with 972 are Israeli international too ("972-8-637-1234"), and the trunk 0
   some people keep after it ("+972 (0)53…") is dropped. Anything else (1-800 / 1-700
   numbers, *2060) has no country code and is kept as typed: those dial only inside Israel.
 
   - 'tel' (default): "tel:+972533255020" ("tel:1800800800" without a country code).
   - 'e164': "+972533255020" (digits as typed without a country code: "1800800800").
-  - 'display': Israeli numbers in local form — 053-3255020, 03-5117171 — other countries
+  - 'display': Israeli numbers in local form — 053-3255020, 08-6371234 — other countries
     "+<digits>", and a number without a country code exactly as typed. Plain text, not
     HTML-escaped: escape it when printing.
 
