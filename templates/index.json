@@ -28,13 +28,13 @@
             "text_color": "dark"
           }
         },
-        "slide-galaxy-s26": {
+        "slide_C6EFG3": {
           "type": "slide",
           "settings": {
-            "image": "shopify://shop_images/site_banner_18.png",
-            "image_mobile": "shopify://shop_images/mobile_18.png",
-            "alt": "IPHONE 18 PRO",
-            "link": "shopify://collections/iphone-18-pro-pro-max",
+            "image": "shopify://shop_images/Banner_Hero_-_Desktop.png",
+            "image_mobile": "shopify://shop_images/Banner_Hero_-_Square.png",
+            "alt": "יורדים לאילת?  כנסו לאתר אילת שלנו, ושריינו את המוצרים שלכם  במחירי JOY ללא מע”מ",
+            "link": "https://www.eilat.joymobile.co.il",
             "video_on_mobile": false,
             "heading": "",
             "text": "",
@@ -51,6 +51,22 @@
             "image_mobile": "shopify://shop_images/3dbd9205b7a539680f3978eb47d36fe1_36005116-634a-4a38-b2ab-6c408c192b33.png",
             "alt": "IPHONE DOU HELLO HELLO הזמנה מוקדמת החל מ-16.10",
             "link": "/pages/iphone-duo",
+            "video_on_mobile": false,
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
+        },
+        "slide-galaxy-s26": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/site_banner_18.png",
+            "image_mobile": "shopify://shop_images/mobile_18.png",
+            "alt": "IPHONE 18 PRO",
+            "link": "shopify://collections/iphone-18-pro-pro-max",
             "video_on_mobile": false,
             "heading": "",
             "text": "",
@@ -127,6 +143,7 @@
       },
       "block_order": [
         "slide_6A4MiP",
+        "slide_C6EFG3",
         "slide_LxnXfg",
         "slide-galaxy-s26",
         "slide_rJ7Ppd",
@@ -691,6 +708,26 @@
     },
     "guides": {
       "type": "guides",
+      "blocks": {
+        "guide-vacuum": {
+          "type": "article_topic",
+          "settings": {
+            "article": "tips/vacuum-suction-power",
+            "collection": "vacuums"
+          }
+        },
+        "guide-gaming": {
+          "type": "article_topic",
+          "settings": {
+            "article": "tips/gaming-pc-where-to-invest",
+            "collection": "computers-gaming"
+          }
+        }
+      },
+      "block_order": [
+        "guide-vacuum",
+        "guide-gaming"
+      ],
       "settings": {
         "heading": "מדריכים והשוואות מוצרים שיעזרו לך לבחור נכון",
         "blog": "tips",
@@ -715,27 +752,7 @@
         "ss_heading_font": "assistant_n7",
         "ss_custom_body_font": false,
         "ss_body_font": "assistant_n4"
-      },
-      "blocks": {
-        "guide-vacuum": {
-          "type": "article_topic",
-          "settings": {
-            "article": "tips/vacuum-suction-power",
-            "collection": "vacuums"
-          }
-        },
-        "guide-gaming": {
-          "type": "article_topic",
-          "settings": {
-            "article": "tips/gaming-pc-where-to-invest",
-            "collection": "computers-gaming"
-          }
-        }
-      },
-      "block_order": [
-        "guide-vacuum",
-        "guide-gaming"
-      ]
+      }
     },
     "testimonials": {
       "type": "testimonials",
