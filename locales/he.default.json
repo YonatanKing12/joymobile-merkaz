@@ -167,6 +167,10 @@
       "import_parallel": "יבוא מקביל",
       "import_used": "יד שנייה",
       "import_refurbished": "מחודש",
+      "sim_type": {
+        "esim_only_html": "<strong>eSIM בלבד</strong> – אין במכשיר מגירה לכרטיס SIM פיזי. את הקו מפעילים כ-eSIM דרך החברה הסלולרית.",
+        "physical_esim_html": "<strong>תומך SIM פיזי + eSIM</strong> – אפשר להכניס כרטיס SIM רגיל וגם להשתמש ב-eSIM."
+      },
       "warranty_months": {
         "one": "חודש אחד",
         "two": "חודשיים",

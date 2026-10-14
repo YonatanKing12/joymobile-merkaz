@@ -1,0 +1,66 @@
+{% doc %}
+  SIM type of the selected variant, right under the variant picker of the product page: whether the
+  device takes a physical SIM card or is eSIM only. The variant's option values say it (the iPhone
+  option "סוג", e.g. "יבוא מקביל DCS · eSIM בלבד" or "יבואן רשמי · SIM פיזי + eSIM"); nothing
+  else is read.
+  - A selected value containing "eSIM בלבד": the amber attention note
+    (products.product.sim_type.esim_only_html).
+  - Otherwise a selected value containing "SIM פיזי + eSIM": the calm mint note
+    (products.product.sim_type.physical_esim_html).
+  - Otherwise nothing visible.
+  The `[data-swap="sim-type"]` region is printed for every variant of a product whose variants name
+  a SIM type (hidden when the selected one does not), so the section re-render on a variant change
+  (@theme/product) swaps the note in, out or over; it sits in a polite live region, like the price.
+  A product whose variants never name one gets no markup at all.
+  Styles: assets/section-main-product.css.
+
+  @param {product} product - The product.
+  @param {variant} [variant] - The variant to evaluate. Default: selected or first available variant.
+
+  @example
+  {% render 'sim-type-notice', product: product, variant: current_variant %}
+{% enddoc %}
+{%- liquid
+  assign sim_esim_only = 'eSIM בלבד'
+  assign sim_dual = 'SIM פיזי + eSIM'
+  assign sim_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
+
+  # A variant's title is its option values joined by " / ".
+  assign sim_used = false
+  for sim_candidate in product.variants
+    if sim_candidate.title contains sim_esim_only or sim_candidate.title contains sim_dual
+      assign sim_used = true
+      break
+    endif
+  endfor
+
+  # "|" is in neither phrase, so a match is always inside one option value.
+  assign sim_values = sim_variant.options | join: '|'
+  assign sim_type = ''
+  if sim_values contains sim_esim_only
+    assign sim_type = 'esim-only'
+  elsif sim_values contains sim_dual
+    assign sim_type = 'physical-esim'
+  endif
+-%}
+{%- if sim_used -%}
+  <div class="sim-notice-live" aria-live="polite" aria-atomic="true">
+    <div
+      class="sim-notice{% if sim_type != blank %} sim-notice--{{ sim_type }}{% endif %}"
+      data-swap="sim-type"
+      role="note"
+      {% if sim_type == blank %}
+        hidden
+      {% endif %}
+    >
+      {%- case sim_type -%}
+        {%- when 'esim-only' -%}
+          {%- render 'icon', name: 'alert', size: 20, class: 'sim-notice__icon' -%}
+          <p class="sim-notice__text">{{ 'products.product.sim_type.esim_only_html' | t }}</p>
+        {%- when 'physical-esim' -%}
+          {%- render 'icon', name: 'check', size: 20, class: 'sim-notice__icon' -%}
+          <p class="sim-notice__text">{{ 'products.product.sim_type.physical_esim_html' | t }}</p>
+      {%- endcase -%}
+    </div>
+  </div>
+{%- endif -%}

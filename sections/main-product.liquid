@@ -14,7 +14,7 @@
     every width; all panels start closed, and "קרא עוד" / "פרטים טכניים נוספים" open their panel.
   - Mobile: a fixed buy bar that slides in once the in-page buttons scroll away.
   Variant changes: @theme/product re-renders this section (?variant=…&section_id=…) and swaps the
-  [data-swap] regions: price, sku, availability, pickup, badges, buttons, sticky, option-N.
+  [data-swap] regions: price, sku, availability, pickup, badges, buttons, sticky, option-N, sim-type.
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
 {%- liquid
@@ -132,6 +132,7 @@
         {%- unless product.has_only_default_variant -%}
           <div class="product-block product-block--variants" {{ block.shopify_attributes }}>
             {%- render 'variant-picker', product: product, section_id: section.id, color_style: block.settings.color_style -%}
+            {%- render 'sim-type-notice', product: product, variant: current_variant -%}
           </div>
         {%- endunless -%}
 

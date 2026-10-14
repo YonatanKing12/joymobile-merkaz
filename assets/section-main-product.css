@@ -309,6 +309,43 @@ html:has(main :focus-visible) {
   font-size: var(--text-md);
 }
 
+/* ---------- SIM type under the variant picker (snippets/sim-type-notice) ---------- */
+/* Physical SIM + eSIM: the mint wash of the selected options, brand-green rule and tick. eSIM only: an
+   amber attention note (the amber of "few units left"), not the alarm red of an error. Ink text on both
+   (18.4:1 on mint, 17.3:1 on amber); green tick 4.7:1, amber icon 4.8:1. */
+.sim-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin-block-start: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-inline-start: 3px solid var(--color-brand);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-accent-soft);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}
+
+.sim-notice__icon {
+  flex: none;
+  color: var(--color-brand-text);
+}
+
+.sim-notice__text {
+  margin: 0;
+  min-width: 0;
+}
+
+.sim-notice--esim-only {
+  border-inline-start-color: #b54708;
+  background-color: #fef0c7;
+}
+
+.sim-notice--esim-only .sim-notice__icon {
+  color: #b54708;
+}
+
 /* ---------- Price box ---------- */
 .product__price .price--product {
   gap: 0.125rem;
