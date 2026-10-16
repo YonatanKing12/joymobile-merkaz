@@ -364,6 +364,17 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   margin-block-end: var(--space-sm);
 }
 
+/* The coupon field (snippets/cart-discount) rides on top of the sticky totals, but scrolls: in the sticky
+   part it would take a phone's screen from the lines for something most shoppers never use. */
+.cart-drawer__discount {
+  margin: auto var(--space-md) 0;
+  padding-block: var(--space-sm);
+}
+
+.cart-drawer__discount + .cart-drawer__footer {
+  margin-block-start: 0;
+}
+
 .cart-drawer__footer {
   position: sticky;
   bottom: 0;

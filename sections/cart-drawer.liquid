@@ -12,6 +12,11 @@
   message (snippets/branch-picker, only when Shopify reports two or more branches holding every
   line) and, under the checkout area, the "לשריון דרך וואטסאפ" link (snippets/cart-whatsapp,
   section setting). Without JS the header cart link simply opens /cart.
+  Above the sticky totals, at the end of the scrolling part, the coupon field (snippets/cart-discount,
+  theme setting, JavaScript only; codes applied and removed through /cart/update.js, shown as chips).
+  Right above the checkout button the marketing consent (snippets/cart-marketing, theme settings ›
+  עגלה, preselected by default, never required): asked here too because this button goes straight to
+  checkout, and posted with it as the cart attribute "אישור דיוור" ("כן" / "לא").
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
 {%- liquid
@@ -126,6 +131,8 @@
             </details>
           {%- endif -%}
 
+          {%- render 'cart-discount', context: 'drawer', class: 'cart-drawer__discount' -%}
+
           <div class="drawer__footer cart-drawer__footer">
             {%- if cart.cart_level_discount_applications.size > 0 -%}
               <ul class="cart-drawer__discounts" role="list" aria-label="{{ 'cart.drawer.discounts' | t }}">
@@ -188,6 +195,8 @@
               </label>
             {%- endif -%}
 
+            {%- render 'cart-marketing', context: 'drawer' -%}
+
             <button class="button button--accent button--full button--large cart-drawer__checkout" type="submit" name="checkout">
               {{- 'cart.drawer.checkout' | t -}}
             </button>
@@ -247,7 +256,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "הודעת האיסוף, הערת ההזמנה ותיבת האישור לתנאי 90 הימים נקבעות בהגדרות התבנית › עגלה (משותפות לעמוד העגלה)."
+      "content": "הודעת האיסוף, הערת ההזמנה, תיבת האישור לתנאי 90 הימים, שדה קוד הקופון ותיבת ההסכמה לדיוור נקבעים בהגדרות התבנית › עגלה (משותפים לעמוד העגלה)."
     },
     {
       "type": "richtext",

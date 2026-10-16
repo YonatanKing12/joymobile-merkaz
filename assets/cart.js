@@ -89,6 +89,25 @@ export const updateNote = (note) => update({ note }, 'note');
 // so a re-render keeps the choice.
 export const updateAttributes = (attributes, { render = false } = {}) => update({ attributes }, 'attributes', render);
 
+// Coupon codes (snippets/cart-discount). `discount` replaces every code on the cart, so applying one sends
+// the codes already there plus the new one. Resolves to whether Shopify applies it (the answer's
+// discount_codes; an answer without the list counts as applied, and the re-rendered chips tell). One that
+// does not is taken off again, as at Shopify's checkout: the cart is as it was, so nothing re-renders,
+// unless taking it off fails, when the render shows its chip for the shopper to remove.
+export const applyDiscount = (codes, code) => serial(async () => {
+  const url = `${routes.cart_update}.js`, same = (d) => d.code.toLowerCase() === code.toLowerCase();
+  const cart = await postJSON(url, { discount: [...codes, code].join(','), sections: sectionIds(), sections_url: location.pathname });
+  if (cart.discount_codes && !cart.discount_codes.find(same)?.applicable) {
+    await postJSON(url, { discount: codes.join(',') }).catch(() => renderSections(cart.sections));
+    return false;
+  }
+  renderSections(cart.sections);
+  emit('cart:updated', { cart, source: 'discount' });
+  return true;
+});
+// Removing one sends the rest ('' removes them all).
+export const updateDiscounts = (codes) => update({ discount: codes.join(',') }, 'discount', true);
+
 // Only an undo that puts the line back as it was is worth offering, so the line says whether it can
 // be: the markup prints data-undo-* for plain lines and withholds it from lines carrying properties
 // or a selling plan, which /cart/add.js could not restore.
@@ -172,8 +191,18 @@ class CartItems extends HTMLElement {
     this.timers = {};
     this.addEventListener('change', this);
     this.addEventListener('click', this);
+    this.addEventListener('formdata', this.onFormData, true);
     showUndo(this);
   }
+
+  // The checkout POST carries a cleared box's data-unchecked-value (the marketing consent's "לא",
+  // snippets/cart-marketing), which a browser never posts for an unchecked box. Captured: the event is
+  // fired at the form.
+  onFormData = (e) => {
+    for (const el of e.target.elements) {
+      if (el.type === 'checkbox' && !el.checked && el.name && el.dataset.uncheckedValue) e.formData.set(el.name, el.dataset.uncheckedValue);
+    }
+  };
 
   handleEvent(e) {
     const el = e.target, line = el.closest('[data-key]');
@@ -185,8 +214,9 @@ class CartItems extends HTMLElement {
       }
     } else if (el.name === 'note') updateNote(el.value).catch((err) => announce(err.message));
     else if ((el.type === 'checkbox' || el.type === 'radio') && el.name.startsWith('attributes[')) {
-      // A radio fires change only when it becomes the checked one, so its value is the choice.
-      const value = el.type === 'checkbox' && !el.checked ? '' : el.value;
+      // A radio fires change only when it becomes the checked one, so its value is the choice. A cleared
+      // box removes its attribute, or saves its data-unchecked-value when it has one.
+      const value = el.type === 'checkbox' && !el.checked ? (el.dataset.uncheckedValue ?? '') : el.value;
       updateAttributes({ [el.name.slice(11, -1)]: value }, { render: !!el.closest('[data-cart-render]') }).catch((err) => announce(err.message));
     } else if (line && el.tagName === 'INPUT') {
       if (el.value === '') return (el.value = el.defaultValue);
@@ -224,6 +254,81 @@ class CartItems extends HTMLElement {
   }
 }
 
+// The coupon field (snippets/cart-discount). Its codes are the chips, the codes Liquid printed for the cart.
+class CartDiscount extends HTMLElement {
+  connectedCallback() {
+    ['click', 'keydown', 'input'].forEach((type) => this.addEventListener(type, this));
+  }
+
+  get codes() { return [...this.querySelectorAll('[data-discount-code]')].map((el) => el.dataset.discountCode); }
+
+  // An applied or removed code re-renders the sections, this element with them: what is left to do goes to
+  // the new copy (same id).
+  get current() { return document.getElementById(this.id) || this; }
+
+  handleEvent(e) {
+    const chip = e.target.closest('[data-discount-code]');
+    if (e.type === 'input') e.target.removeAttribute('aria-invalid');
+    else if (e.type === 'keydown') {
+      // In the drawer the field sits inside the cart form, which Enter would submit to checkout.
+      if (e.key !== 'Enter' || !e.target.matches('input')) return;
+      e.preventDefault();
+      this.apply();
+    } else if (e.target.closest('[data-discount-apply]')) this.apply();
+    else if (chip && e.target.closest('[data-discount-remove]')) this.remove(chip.dataset.discountCode);
+  }
+
+  async apply() {
+    const input = this.querySelector('input'), button = this.querySelector('[data-discount-apply]'), code = input.value.trim();
+    if (!code) return input.focus();
+    if (this.hasAttribute('aria-busy')) return;
+    // Shopify takes a code in any case; one typed again replaces its chip instead of doubling it.
+    const codes = this.codes.filter((c) => c.toLowerCase() !== code.toLowerCase());
+    this.setAttribute('aria-busy', 'true');
+    button.setAttribute('aria-busy', 'true');
+    let applied = false, failed = false;
+    try {
+      applied = await applyDiscount(codes, code);
+    } catch {
+      failed = true; // the cart is as it was
+    }
+    this.removeAttribute('aria-busy');
+    button.removeAttribute('aria-busy');
+    // Not applied: nothing re-rendered, the code stays in the field to correct.
+    if (!applied) input.setAttribute('aria-invalid', 'true');
+    this.say(t(failed ? 'discountError' : applied ? 'discountApplied' : 'discountInvalid'), applied);
+  }
+
+  async remove(code) {
+    if (this.hasAttribute('aria-busy')) return;
+    this.setAttribute('aria-busy', 'true');
+    let message = t('discountRemoved'), ok = true;
+    try {
+      await updateDiscounts(this.codes.filter((c) => c !== code));
+    } catch (err) {
+      message = err.message;
+      ok = false;
+    }
+    this.removeAttribute('aria-busy');
+    this.say(message, ok);
+    // The chip and its button went with the re-render: the field is the next thing to work with.
+    if (ok) this.current.querySelector('input')?.focus();
+  }
+
+  // Into the message region the screen reader already knows, moved into the new copy after a re-render (a
+  // region inserted a moment ago is often not listened to yet). Emptied first and filled a moment later, so
+  // the same message twice is announced twice.
+  say(message, ok) {
+    const box = this.querySelector('[data-discount-message]'), el = this.current;
+    if (!box) return;
+    if (el !== this) el.querySelector('[data-discount-message]')?.replaceWith(box);
+    box.classList.toggle('form-message--success', ok);
+    box.classList.toggle('form-message--error', !ok);
+    box.textContent = '';
+    setTimeout(() => (box.textContent = message), 100);
+  }
+}
+
 class CartCount extends HTMLElement {
   render(next) {
     this.dataset.count = next.dataset.count ?? '';
@@ -233,4 +338,5 @@ class CartCount extends HTMLElement {
 
 define('cart-drawer', CartDrawer);
 define('cart-items', CartItems);
+define('cart-discount', CartDiscount);
 define('cart-count', CartCount);

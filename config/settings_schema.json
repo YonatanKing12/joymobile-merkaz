@@ -697,6 +697,41 @@
       },
       {
         "type": "header",
+        "content": "קוד קופון"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_discount_field_enabled",
+        "label": "שדה קוד קופון בעגלה",
+        "info": "בעגלה הצדדית ובעמוד העגלה, מעל הסכום לתשלום. הקודים שהופעלו מוצגים מתחת לשדה, ואפשר להסיר כל אחד מהם.",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "הסכמה לדיוור"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_marketing_enabled",
+        "label": "תיבת הסכמה לדיוור",
+        "info": "נשמר בהזמנה כ״אישור דיוור״. הדשבורד מעדכן לפיו את הסכמת הלקוח בשופיפיי.",
+        "default": true
+      },
+      {
+        "type": "inline_richtext",
+        "id": "cart_marketing_label",
+        "label": "נוסח ההסכמה",
+        "default": "אשמח לקבל עדכונים, מבצעים והטבות מ-JOY Mobile במייל וב-SMS. אפשר להסיר את ההסכמה בכל עת."
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_marketing_preselect",
+        "label": "התיבה מסומנת מראש",
+        "info": "התיבה מסומנת כל עוד הלקוח לא בחר אחרת. ביטול הסימון נשמר בהזמנה כ״לא״, והתיבה לא מסומנת שוב.",
+        "default": true
+      },
+      {
+        "type": "header",
         "content": "מקדמה לשריון"
       },
       {

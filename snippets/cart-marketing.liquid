@@ -1,0 +1,67 @@
+{% doc %}
+  Marketing consent in the cart, right above the checkout button: on the cart page, and in the drawer
+  too, because the drawer's button goes straight to checkout. Never required. The label is the theme
+  setting "נוסח ההסכמה" (cart_marketing_label); the box shows while "תיבת הסכמה לדיוור"
+  (cart_marketing_enabled) is on.
+
+  Saved as the cart attribute "אישור דיוור", "כן" or "לא", which reaches the order's Additional
+  details; the dashboard reads it there and updates the customer's marketing consent in Shopify. The
+  key and both values are that contract, so they are written here, not in the locale file, where a
+  wording change in the admin would break it.
+
+  Checked when the attribute is "כן", or while it is still blank and "התיבה מסומנת מראש"
+  (cart_marketing_preselect, on by default: the owner's decision) is on; unchecked otherwise. Both
+  answers are saved, so a re-render never ticks a box the shopper cleared: @theme/cart saves every
+  change (a cleared box saves its data-unchecked-value), and the checkout POST carries the answer
+  either way: a ticked box posts "כן" (also a preselected one nobody touched), and for a cleared one
+  @theme/cart adds "לא" to the form data. Without JavaScript a cleared box posts nothing, and the
+  attribute keeps what it had.
+
+  @param {string} [context] - 'drawer' (default) or 'page': the id (stable, so focus survives the re-render).
+  @param {string} [form] - id of the form the box belongs to (the cart page's summary sits outside its form).
+
+  @example
+  {% render 'cart-marketing', context: 'page', form: cart_form_id %}
+{% enddoc %}
+{%- if settings.cart_marketing_enabled and settings.cart_marketing_label != blank -%}
+  {%- liquid
+    assign cm_key = 'אישור דיוור'
+    assign cm_saved = cart.attributes[cm_key] | strip
+    assign cm_checked = false
+    if cm_saved == 'כן'
+      assign cm_checked = true
+    elsif cm_saved == blank and settings.cart_marketing_preselect
+      assign cm_checked = true
+    endif
+
+    assign cm_id = 'CartDrawer-Marketing'
+    if context == 'page'
+      assign cm_id = 'CartPage-Marketing'
+    endif
+  -%}
+  <label class="checkbox cart-marketing">
+    <input
+      type="checkbox"
+      id="{{ cm_id }}"
+      name="attributes[{{ cm_key }}]"
+      value="כן"
+      data-unchecked-value="לא"
+      {% if form != blank %}form="{{ form | escape }}"{% endif %}
+      {% if cm_checked %}checked{% endif %}
+    >
+    <span>{{ settings.cart_marketing_label }}</span>
+  </label>
+{%- endif -%}
+
+{% stylesheet %}
+  .cart-marketing {
+    color: var(--color-text);
+    line-height: var(--leading-snug);
+    cursor: pointer;
+  }
+
+  .cart-marketing a {
+    color: var(--color-ink);
+    text-decoration: underline;
+  }
+{% endstylesheet %}

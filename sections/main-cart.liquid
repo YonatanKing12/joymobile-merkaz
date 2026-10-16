@@ -2,8 +2,16 @@
   Cart page (/cart). Works without JavaScript: one plain form posts to /cart
   (quantities as updates[], the note, optional consent attributes; "update" or
   "checkout"). With JavaScript, <cart-items> (@theme/cart) saves quantity changes,
-  removals and the note through the Ajax API and re-renders this section by id
-  (bundled section rendering), so every price and label below always comes from Liquid.
+  removals, the note and the consents through the Ajax API, <cart-discount> the coupon
+  codes, and both re-render this section by id (bundled section rendering), so every
+  price and label below always comes from Liquid.
+
+  Above the totals the coupon field (snippets/cart-discount, theme setting, JavaScript
+  only): a code is applied or removed through /cart/update.js and shows as a chip; the
+  discount lines with their amounts stay in the totals. Right above the checkout button
+  the marketing consent (snippets/cart-marketing, theme settings › עגלה, preselected by
+  default, never required), saved as the cart attribute "אישור דיוור" ("כן" / "לא") for
+  the dashboard. The page has no phone / ID number block for it to follow.
 
   The lines are snippets/cart-line (context 'page'), the same snippet as the drawer's lines, which
   also holds the contract with @theme/cart (data-key, the stepper, [data-cart-remove],
@@ -169,6 +177,8 @@
         <section class="main-cart__summary cart-summary" aria-labelledby="CartSummary-{{ section.id }}">
           <h2 class="cart-summary__title" id="CartSummary-{{ section.id }}">{{ 'cart.page.summary_title' | t }}</h2>
 
+          {%- render 'cart-discount', context: 'page', class: 'cart-summary__discount' -%}
+
           <dl class="cart-summary__rows">
             {%- if cart.cart_level_discount_applications.size > 0 -%}
               <div class="cart-summary__row">
@@ -300,6 +310,8 @@
             </div>
           {%- endif -%}
 
+          {%- render 'cart-marketing', context: 'page', form: cart_form_id -%}
+
           <button
             type="submit"
             name="checkout"
@@ -419,7 +431,7 @@
     },
     {
       "type": "paragraph",
-      "content": "כל תנאי הוא בלוק מסוג 'תנאי שריון'. ההודעה בראש העגלה היא בלוק מסוג 'הודעה בראש העגלה'. טקסט האיסוף והתשלום, ההערה להזמנה ותיבת האישור לתנאי 90 הימים נקבעים בהגדרות התבנית › עגלה."
+      "content": "כל תנאי הוא בלוק מסוג 'תנאי שריון'. ההודעה בראש העגלה היא בלוק מסוג 'הודעה בראש העגלה'. טקסט האיסוף והתשלום, ההערה להזמנה, תיבת האישור לתנאי 90 הימים, שדה קוד הקופון ותיבת ההסכמה לדיוור נקבעים בהגדרות התבנית › עגלה."
     },
     {
       "type": "text",

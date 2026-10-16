@@ -1,0 +1,189 @@
+{% doc %}
+  Coupon field of the cart (drawer and cart page), above the totals: "קוד קופון", a text field and
+  "הפעלה", then the codes on the cart as chips, each with a remove button ("הסרת הקוד X"): from
+  `cart.discount_codes`, or, where Shopify's Liquid does not have it (it is missing from the Liquid
+  reference), from the cart's discount applications of type discount_code. The discount lines with
+  their amounts stay where they were, in the totals; a chip is the code itself, there to take it off.
+  Theme setting "שדה קוד קופון בעגלה" (cart_discount_field_enabled).
+
+  <cart-discount> (@theme/cart) saves through /cart/update.js `{ discount }`, which replaces every
+  code on the cart: applying sends the codes of the chips plus the new one, removing sends the rest
+  ('' removes them all). The answer's `discount_codes` says whether the new code applies. One that
+  does is re-rendered with the sections like any cart change (totals, discount lines, chips) and
+  "הקוד הופעל" is said; one that does not is taken off again, as Shopify's checkout does, so the cart
+  never carries a code that would only come back there as an error, and "הקוד לא מתאים לסל הזה" is
+  said, the code left in the field to correct. A failed request: "לא הצלחנו להפעיל את הקוד. נסו שוב."
+  A code that stops applying after a later change (a minimum the cart fell under) keeps its chip,
+  marked "לא מתאים לסל", while `cart.discount_codes` is there to say so; without it such a code has
+  no chip and goes with the next change of codes. Messages go to the polite status line under the
+  field.
+
+  Not a form of its own: in the drawer this sits inside the cart form, and forms cannot nest. So the
+  field has no name (it is never posted with the cart), the button is type=button and the script
+  takes Enter, which would otherwise submit the cart form to checkout. Needs JavaScript (.js-only);
+  without it the rest of the cart works as before.
+
+  @param {string} [context] - 'drawer' (default) or 'page': the ids (stable, so focus survives the re-render).
+  @param {string} [class] - Extra classes on the element.
+
+  @example
+  {% render 'cart-discount', context: 'drawer', class: 'cart-drawer__discount' %}
+{% enddoc %}
+{%- if settings.cart_discount_field_enabled -%}
+  {%- liquid
+    assign cd_id = 'CartDrawer-Discount'
+    if context == 'page'
+      assign cd_id = 'CartPage-Discount'
+    endif
+
+    # The codes on the cart: cart.discount_codes (each with `applicable`) where Shopify's Liquid has it, else
+    # the codes of the cart's discount applications, which are the codes that apply. The ones that do not
+    # apply as ",code,code," (a code cannot hold a comma: /cart/update.js splits on it).
+    assign cd_codes = cart.discount_applications | where: 'type', 'discount_code' | map: 'title' | uniq
+    assign cd_off = ','
+    if cart.discount_codes.size > 0
+      assign cd_codes = cart.discount_codes | map: 'code'
+      for cd_code in cart.discount_codes
+        unless cd_code.applicable
+          assign cd_off = cd_off | append: cd_code.code | append: ','
+        endunless
+      endfor
+    endif
+  -%}
+  <cart-discount class="cart-discount js-only{% if class != blank %} {{ class }}{% endif %}" id="{{ cd_id }}">
+    <label class="cart-discount__label" for="{{ cd_id }}-Code">{{ 'cart.discount.label' | t }}</label>
+    <div class="cart-discount__field">
+      <input
+        class="input cart-discount__input"
+        type="text"
+        id="{{ cd_id }}-Code"
+        dir="auto"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        enterkeyhint="go"
+        aria-describedby="{{ cd_id }}-Message"
+      >
+      <button class="button button--outline cart-discount__apply" type="button" id="{{ cd_id }}-Apply" data-discount-apply>
+        {{- 'cart.discount.apply' | t -}}
+      </button>
+    </div>
+    <p class="cart-discount__message form-message" id="{{ cd_id }}-Message" role="status" data-discount-message></p>
+
+    {%- if cd_codes.size > 0 -%}
+      <ul class="cart-discount__codes" role="list" aria-label="{{ 'cart.discount.codes_label' | t }}">
+        {%- for cd_code in cd_codes -%}
+          {%- assign cd_probe = ',' | append: cd_code | append: ',' -%}
+          <li class="cart-discount__code{% if cd_off contains cd_probe %} is-inapplicable{% endif %}" data-discount-code="{{ cd_code | escape }}">
+            {%- render 'icon', name: 'tag', size: 14 -%}
+            <span dir="ltr">{{ cd_code | escape }}</span>
+            {%- if cd_off contains cd_probe -%}
+              <span class="cart-discount__note">{{ 'cart.discount.inapplicable' | t }}</span>
+            {%- endif -%}
+            <button
+              class="cart-discount__remove"
+              type="button"
+              data-discount-remove
+              aria-label="{{ 'cart.discount.remove' | t: code: cd_code }}"
+            >
+              {%- render 'icon', name: 'close', size: 14 -%}
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </cart-discount>
+{%- endif -%}
+
+{% stylesheet %}
+  .cart-discount {
+    display: block;
+  }
+
+  .cart-discount__label {
+    display: block;
+    margin-block-end: var(--space-2xs);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .cart-discount__field {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .cart-discount__input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .cart-discount__apply {
+    flex-shrink: 0;
+  }
+
+  /* Printed empty and never hidden: a live region that is hidden, or appears together with its text,
+     is not reliably announced. */
+  .cart-discount__message:not(:empty) {
+    margin-block-start: var(--space-2xs);
+  }
+
+  .cart-discount__codes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    margin: var(--space-xs) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cart-discount__code {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    min-height: 2.25rem;
+    padding-inline-start: var(--space-xs);
+    border: 1px solid var(--color-brand);
+    border-radius: var(--radius-badge);
+    background-color: var(--color-hover-bg);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .cart-discount__code.is-inapplicable {
+    border-style: dashed;
+    border-color: var(--color-border-control);
+    background-color: var(--color-background);
+    color: var(--color-muted);
+  }
+
+  .cart-discount__note {
+    font-size: var(--text-xs);
+    font-weight: 400;
+  }
+
+  .cart-discount__remove {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-badge);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .cart-discount__remove:hover {
+      color: var(--color-error);
+    }
+  }
+
+  cart-discount[aria-busy="true"] .cart-discount__code {
+    opacity: 0.6;
+  }
+{% endstylesheet %}
