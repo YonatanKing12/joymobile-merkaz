@@ -16,8 +16,9 @@
   first sub-collection in menu order that holds the product (third-level links first,
   skipping a link that repeats its group's collection, then second-level groups), so
   "אביזרים › מגני מסך ומגני עדשה" rather than "אביזרים"; else the smallest of the product's
-  collections. Never `all`, `frontpage` or a catch-all collection that holds 90% or more of
-  the catalogue (e.g. "זמין לשריון באילת").
+  collections. Never `all`, `frontpage`, a reservation list (a handle with "reservable", e.g.
+  reservable-eilat, "זמין לשריון בסניף" — on the national site it isn't a category at all) or a
+  catch-all collection that holds 90% or more of the catalogue.
 
   `structured-data` with type 'breadcrumbs' calls this snippet with format 'json',
   so the visual trail and the JSON-LD always agree. The HTML format already
@@ -52,7 +53,7 @@
         # The product's real collections as "|url|" tokens, for the menu walk below.
         assign product_urls = '|'
         for product_collection in product.collections
-          if product_collection.handle == 'all' or product_collection.handle == 'frontpage'
+          if product_collection.handle == 'all' or product_collection.handle == 'frontpage' or product_collection.handle contains 'reservable'
             continue
           endif
           if catch_all_count > 0 and product_collection.products_count >= catch_all_count
