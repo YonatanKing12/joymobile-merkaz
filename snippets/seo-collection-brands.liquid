@@ -1,0 +1,49 @@
+{% doc %}
+  Up to three leading brands of a category, for its generated meta description:
+  "Apple, Samsung ו-Xiaomi". Well-known brands come first (in the order below), then the
+  category's other vendors alphabetically; the store's own vendor ("joy mobile", the shop name
+  or the theme's brand name) is never a brand. Prints nothing for a category without vendors.
+
+  @param {collection} collection - The category.
+  @param {string} brand_name - The theme's brand name (settings.brand_name).
+
+  @example
+  {% render 'seo-collection-brands', collection: collection, brand_name: brand_name %}
+{% enddoc %}
+{%- liquid
+  assign scb_list = ''
+  assign scb_count = 0
+  assign scb_shop_key = shop.name | strip | downcase
+  assign scb_brand_key = brand_name | strip | downcase
+  assign scb_vendors = collection.all_vendors
+  assign scb_priority = 'Apple,Samsung,Xiaomi,Google,DJI,Sony,Dyson,JBL,Razer,Microsoft,Nintendo,Lenovo,OtterBox' | split: ','
+  for scb_vendor in scb_priority
+    if scb_count < 3 and scb_vendors contains scb_vendor
+      assign scb_list = scb_list | append: '|' | append: scb_vendor
+      assign scb_count = scb_count | plus: 1
+    endif
+  endfor
+  for scb_vendor in scb_vendors
+    if scb_count >= 3
+      break
+    endif
+    assign scb_key = scb_vendor | strip | downcase
+    assign scb_token = '|' | append: scb_vendor
+    if scb_key != blank and scb_key != scb_shop_key and scb_key != scb_brand_key
+      unless scb_list contains scb_token
+        assign scb_list = scb_list | append: scb_token
+        assign scb_count = scb_count | plus: 1
+      endunless
+    endif
+  endfor
+  assign scb_brands = scb_list | remove_first: '|' | split: '|'
+  for scb_brand in scb_brands
+    if forloop.first
+      echo scb_brand
+    elsif forloop.last
+      echo ' ו-' | append: scb_brand
+    else
+      echo ', ' | append: scb_brand
+    endif
+  endfor
+-%}

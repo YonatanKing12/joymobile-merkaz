@@ -1,0 +1,46 @@
+{% doc %}
+  The Hebrew noun of a product type, for a product title written only in Latin letters
+  ("Samsung Galaxy Z Flip 8" → "טלפון סלולרי"), so the <title> carries the Hebrew words people
+  search with. Prints nothing when the title already has a Hebrew letter or the type has no
+  noun here (accessory codes such as "א.מכשירים" are too broad to name one thing).
+
+  @param {string} title - The page title of the product (without the site suffix).
+  @param {string} type - The product type (product.type).
+
+  @example
+  {% render 'seo-type-noun', title: base_title, type: product.type %}
+{% enddoc %}
+{%- liquid
+  assign stn_letters = 'א,ב,ג,ד,ה,ו,ז,ח,ט,י,כ,ל,מ,נ,ס,ע,פ,צ,ק,ר,ש,ת,ך,ם,ן,ף,ץ' | split: ','
+  for stn_letter in stn_letters
+    if title contains stn_letter
+      break
+    endif
+    if forloop.last
+      case type
+        when 'מכשירים'
+          echo 'טלפון סלולרי'
+        when 'טאבלטים'
+          echo 'טאבלט'
+        when 'שעונים'
+          echo 'שעון חכם'
+        when 'אוזניות'
+          echo 'אוזניות'
+        when 'רחפנים'
+          echo 'רחפן'
+        when 'מצלמות'
+          echo 'מצלמה'
+        when 'שואבים'
+          echo 'שואב אבק'
+        when 'קונסולות'
+          echo 'קונסולת משחק'
+        when 'מ.קונסולות'
+          echo 'משחק לקונסולה'
+        when 'מחשבים'
+          echo 'מחשב'
+        when 'מסכים'
+          echo 'מסך מחשב'
+      endcase
+    endif
+  endfor
+-%}

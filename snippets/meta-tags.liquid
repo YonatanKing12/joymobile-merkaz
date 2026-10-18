@@ -39,9 +39,34 @@
 
   Robots: "noindex, follow" on search results and on collection URLs with an active
   storefront filter (filter.* parameters) or a sort_by parameter — near-copies of the
-  collection whose links are still worth following. Every other page allows large image
-  previews (max-image-preview:large). No hreflang: the store has one language and one
-  market, and hreflang only points to alternate languages or regions.
+  collection whose links are still worth following. The in-stock filter alone
+  (filter.v.availability=1) does NOT count: layout/theme.liquid sends every category visit to
+  that URL, so it is the category itself, and a noindex there would drop the category from
+  Google (Googlebot renders the page and follows the redirect). Also "noindex, follow": the
+  collections listed in the theme setting seo_noindex_collections (default frontpage,
+  vendors, types — empty or catch-all pages), any product, collection, page or article whose
+  seo.hidden metafield is 1 (Shopify's own "hide from search engines" flag, which also takes it
+  out of the sitemap), and the 404 page. Every other page allows large image previews
+  (max-image-preview:large). No hreflang: both JOY sites are Hebrew for Israel, and hreflang
+  only points to alternate languages or regions.
+
+  Canonical override: a product, collection, page or article with the metafield
+  custom.canonical_url (type URL) uses it as its canonical and og:url — for a copy whose
+  original lives elsewhere: a pre-merge single-colour product whose colour is now a variant of
+  another product, or an Eilat product whose national twin is the page that should rank.
+
+  SEO settings (theme settings › קידום אתרים):
+  - seo_collection_title_modifier: words added after a category's name when the admin sets no
+    SEO title ("סמארטפונים – מחירים ומשלוח עד הבית | JOY Mobile").
+  - seo_product_description_lead: an opening for generated product descriptions, with the
+    tokens [title] and [price] ("[title] ב-[price] עם משלוח עד הבית."), followed by the
+    description itself and cut at 160 characters, so the two JOY sites' copies of a product
+    don't share one snippet.
+  A product title with no Hebrew letter ("Samsung Galaxy Z Flip 8") gets the Hebrew noun of
+  its product type ("– טלפון סלולרי"), the words Hebrew searches use. SEO descriptions carried
+  over from Konimbo ("…? הכנסו>>") are ignored and the generated description is used instead.
+  A category without a description gets a generated one with its product count and leading
+  brands. A category without an image shares its first product's photo.
 
   Share image: pages without their own image use the theme setting "תמונת שיתוף"
   (share_image), else assets/social-share.jpg (1200×630, the JOY Mobile lockup on navy).
@@ -96,6 +121,25 @@
         assign base_title = meta_head
       endunless
     endif
+    # A Latin-only title ("Samsung Galaxy Z Flip 8") misses the Hebrew words people search with:
+    # the product type's Hebrew noun is added ("Samsung Galaxy Z Flip 8 – טלפון סלולרי").
+    if product.metafields.global.title_tag.value == blank and base_title != blank
+      capture meta_type_noun
+        render 'seo-type-noun', title: base_title, type: product.type
+      endcapture
+      assign meta_type_noun = meta_type_noun | strip
+      if meta_type_noun != blank
+        assign base_title = base_title | append: ' – ' | append: meta_type_noun
+      endif
+    endif
+  endif
+
+  # A category without an SEO title of its own: the theme's modifier after its name.
+  if request.page_type == 'collection' and current_tags == blank and base_title != blank
+    assign meta_collection_modifier = settings.seo_collection_title_modifier | strip
+    if meta_collection_modifier != blank and collection.metafields.global.title_tag.value == blank and collection.handle != 'vendors' and collection.handle != 'types'
+      assign base_title = base_title | append: ' ' | append: meta_collection_modifier
+    endif
   endif
 
   assign meta_title = base_title
@@ -148,6 +192,18 @@
     when 'index', 'search', 'cart', '404', 'list-collections', 'blog'
       assign explicit_description = page_description
   endcase
+  # SEO descriptions imported from Konimbo ("ג׳וי מובייל - חנות סלולר … <product>? הכנסו>>") repeat one
+  # store blurb on hundreds of products: the generated description is better.
+  if explicit_description contains 'הכנסו>>' or explicit_description contains 'הכנסו&gt;&gt;'
+    assign explicit_description = ''
+  endif
+
+  # The theme's opening for generated product descriptions ([title], [price]).
+  assign meta_product_lead = ''
+  if request.page_type == 'product' and explicit_description == blank and settings.seo_product_description_lead != blank
+    assign meta_lead_price = product.selected_or_first_available_variant.price | money_without_trailing_zeros | strip_html
+    assign meta_product_lead = settings.seo_product_description_lead | strip | replace: '[title]', product.title | replace: '[price]', meta_lead_price
+  endif
 -%}
 {%- capture meta_description -%}
   {%- if explicit_description != blank -%}
@@ -163,6 +219,11 @@
             if meta_product_head != blank
               assign meta_product_html = meta_product_html | remove_first: meta_product_head
             endif
+          endif
+        -%}
+        {%- liquid
+          if meta_product_lead != blank
+            assign meta_product_html = meta_product_lead | escape | append: ' ' | append: meta_product_html
           endif
         -%}
         {%- render 'plain-text', html: meta_product_html, limit: 160 -%}
@@ -186,7 +247,17 @@
           assign meta_description = 'general.meta.product_description' | t: title: product.title, site: title_suffix
         endif
       when 'collection'
-        assign meta_description = 'general.meta.collection_description' | t: title: collection.title, site: title_suffix
+        # Product count and up to three leading brands (snippets/seo-collection-brands), e.g.
+        # "סמארטפונים ב-JOY Mobile: 219 מוצרים של Apple, Samsung ו-Xiaomi ועוד. …".
+        capture meta_brand_text
+          render 'seo-collection-brands', collection: collection, brand_name: brand_name
+        endcapture
+        assign meta_brand_text = meta_brand_text | strip
+        if collection.all_products_count > 0 and meta_brand_text != blank
+          assign meta_description = 'general.meta.collection_description_rich' | t: title: collection.title, site: title_suffix, count: collection.all_products_count, brands: meta_brand_text
+        else
+          assign meta_description = 'general.meta.collection_description' | t: title: collection.title, site: title_suffix
+        endif
       when 'list-collections'
         assign meta_description = 'general.meta.collections_description' | t: brand: brand_name
       when 'blog'
@@ -197,19 +268,59 @@
   endif
 
   # Search results and filtered or sorted collection URLs: out of the index, links still followed.
+  # The in-stock filter on its own (filter.v.availability=1) is the category itself: layout/theme.liquid
+  # sends every category visit there, Googlebot included, so it must stay indexable.
   assign robots_noindex = false
-  if request.page_type == 'search'
+  if request.page_type == 'search' or request.page_type == '404'
     assign robots_noindex = true
   elsif request.page_type == 'collection'
     if collection.sort_by != blank
       assign robots_noindex = true
     endif
     for filter in collection.filters
+      if filter.param_name == 'filter.v.availability'
+        for meta_active in filter.active_values
+          if meta_active.value != '1'
+            assign robots_noindex = true
+          endif
+        endfor
+        continue
+      endif
       if filter.active_values.size > 0 or filter.min_value.value != blank or filter.max_value.value != blank
         assign robots_noindex = true
         break
       endif
     endfor
+    # Empty or catch-all categories named in the theme settings (frontpage, vendors, types, …).
+    assign meta_noindex_handles = settings.seo_noindex_collections | default: 'frontpage, vendors, types' | split: ','
+    for meta_noindex_handle in meta_noindex_handles
+      assign meta_noindex_handle = meta_noindex_handle | strip
+      if meta_noindex_handle != blank and collection.handle == meta_noindex_handle
+        assign robots_noindex = true
+        break
+      endif
+    endfor
+  endif
+
+  # Shopify's "hide from search engines" flag (metafield seo.hidden = 1) and the canonical override.
+  assign meta_resource = nil
+  case request.page_type
+    when 'product'
+      assign meta_resource = product
+    when 'collection'
+      assign meta_resource = collection
+    when 'page'
+      assign meta_resource = page
+    when 'article'
+      assign meta_resource = article
+  endcase
+  assign meta_canonical_override = ''
+  if meta_resource != nil
+    assign meta_hidden = meta_resource.metafields.seo.hidden.value | append: ''
+    if meta_hidden == '1'
+      assign robots_noindex = true
+    endif
+    assign meta_canonical_override = meta_resource.metafields.custom.canonical_url.value | append: '' | strip
   endif
 
   # Paginated pages keep their own canonical (…?page=2).
@@ -225,9 +336,18 @@
     endunless
   endif
 
+  # custom.canonical_url: the original of a copy (a pre-merge product, a twin on the other JOY site).
+  if current_page == 1 and meta_canonical_override contains 'https://'
+    assign canonical = meta_canonical_override
+  endif
+
   assign og_type = 'website'
   assign og_title = base_title | default: meta_title
   assign og_image = page_image | default: settings.share_image
+  # A category without its own image shares its first product's photo rather than the logo card.
+  if request.page_type == 'collection' and collection.image == blank and collection.products.first.featured_media != blank
+    assign og_image = collection.products.first.featured_media.preview_image
+  endif
   case request.page_type
     when 'index'
       assign og_title = meta_title
@@ -244,7 +364,9 @@
 -%}
 <title>{{ meta_title | escape_once }}</title>
 <meta name="description" content="{{ meta_description | escape_once }}">
+{%- unless request.page_type == '404' %}
 <link rel="canonical" href="{{ canonical }}">
+{%- endunless %}
 {%- if robots_noindex %}
 <meta name="robots" content="noindex, follow">
 {%- else %}

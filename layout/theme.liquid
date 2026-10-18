@@ -9,6 +9,10 @@
       (options[unavailable_products]=hide), so counts, pages and filters all agree. The theme's own
       links and forms carry the parameter; a URL from outside (Google, an old link, a menu) is
       replaced here, before anything renders. The product page itself stays reachable.
+      SEO: Googlebot renders the page and follows this redirect, so the in-stock URL is the one it
+      indexes. snippets/meta-tags keeps that URL indexable (the in-stock filter alone is not a
+      filtered copy) with the plain category as its canonical, and the page number is kept here
+      (?page=3 stays page 3), so the deeper pages of a category stay reachable for crawlers.
     {%- endcomment -%}
     {%- if request.page_type == 'collection' or request.page_type == 'search' -%}
       <script>
@@ -18,7 +22,6 @@
             ? ['filter.v.availability', '1'] : ['options[unavailable_products]', 'hide'];
           if (p.get(key) === value || ({{ request.page_type | json }} === 'search' && !p.get('q'))) return;
           p.set(key, value);
-          p.delete('page');
           location.replace(u);
         })();
       </script>

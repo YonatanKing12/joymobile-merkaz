@@ -10,6 +10,9 @@
 {
   "current": {
     "brand_name": "JOY Mobile",
+    "seo_collection_title_modifier": "– מחירים ומשלוח עד הבית",
+    "seo_product_description_lead": "[title] ב-[price] עם משלוח עד הבית לכל הארץ.",
+    "seo_noindex_collections": "frontpage, vendors, types, reservable-eilat",
     "logo_width": 190,
     "logo_width_mobile": 130,
     "color_brand": "#309d7a",
