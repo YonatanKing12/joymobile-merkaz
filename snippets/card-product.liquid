@@ -121,12 +121,17 @@
 <div class="{{ card_classes }}">
   <div class="card-product__media">
     {%- if card_image != blank -%}
+      {%- comment -%}
+        The photo's alt text from the admin, else the product title: none of the catalogue's photos
+        has alt text, and Google Images reads category pages too. The hover photo stays decorative.
+      {%- endcomment -%}
+      {%- assign card_image_alt = card_image.alt | default: product.title -%}
       {%- render 'image',
         image: card_image,
         widths: '220,330,440,660',
         sizes: card_sizes,
         loading: card_loading,
-        decorative: true,
+        alt: card_image_alt,
         class: 'card-product__img'
       -%}
       {%- if card_image_2 != nil -%}
