@@ -10,9 +10,6 @@
 {
   "current": {
     "brand_name": "JOY Mobile",
-    "seo_collection_title_modifier": "– מחירים ומשלוח עד הבית",
-    "seo_product_description_lead": "[title] ב-[price] עם משלוח עד הבית לכל הארץ.",
-    "seo_noindex_collections": "frontpage, vendors, types, reservable-eilat",
     "logo_width": 190,
     "logo_width_mobile": 130,
     "color_brand": "#309d7a",
@@ -80,10 +77,6 @@
     "cart_pickup_message": "משלוח עד הבית תוך 7 ימי עסקים · חינם בהזמנה מעל 3,000 ₪",
     "cart_vat_consent_enabled": false,
     "cart_vat_consent_text": "אני מאשר/ת שלא רכשתי באילת מוצר אחר מאותה קטגוריה ב-90 הימים שקדמו להזמנה — זהו תנאי של הפטור ממע״מ.",
-    "cart_discount_field_enabled": true,
-    "cart_marketing_enabled": true,
-    "cart_marketing_label": "אשמח לקבל עדכונים, מבצעים והטבות מ-JOY Mobile במייל וב-SMS. אפשר להסיר את ההסכמה בכל עת.",
-    "cart_marketing_preselect": true,
     "store_street": "",
     "store_city": "",
     "store_zip": "",
@@ -110,11 +103,23 @@
     "predictive_search_enabled": true,
     "predictive_search_show_price": true,
     "search_trending": "אייפון, סמסונג, אוזניות, מחשב נייד, שעון חכם, טאבלט, מטען, רחפן",
+    "seo_collection_title_modifier": "– מחירים ומשלוח עד הבית",
+    "seo_product_description_lead": "[title] ב-[price] עם משלוח עד הבית לכל הארץ.",
+    "seo_noindex_collections": "frontpage, vendors, types, reservable-eilat",
+    "cart_discount_field_enabled": true,
+    "cart_marketing_enabled": true,
+    "cart_marketing_label": "אשמח לקבל עדכונים, מבצעים והטבות מ-JOY Mobile במייל וב-SMS. אפשר להסיר את ההסכמה בכל עת.",
+    "cart_marketing_preselect": true,
     "content_for_index": [],
     "blocks": {
       "7313114205116804392": {
         "type": "shopify://apps/propel-replays/blocks/app-embed/64fbaaa3-2d4a-49f3-aba7-86e92e44999f",
         "disabled": true,
+        "settings": {}
+      },
+      "4283104001981797428": {
+        "type": "shopify://apps/wetracked-io-connect/blocks/tracking/01a0e78e-0b9c-7d8a-b7fe-af78b794e837",
+        "disabled": false,
         "settings": {}
       }
     }
