@@ -1,0 +1,12 @@
+{
+  "layout": "landing",
+  "sections": {
+    "main": {
+      "type": "club-landing",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

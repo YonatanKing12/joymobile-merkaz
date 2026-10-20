@@ -1,6 +1,6 @@
 <!doctype html>
 {%- comment -%}
-  Bare layout for standalone campaign pages (templates/page.iphone-duo.json): no store header, footer,
+  Bare layout for standalone campaign pages (templates/page.iphone-duo.json, templates/page.club.json): no store header, footer,
   cart or theme CSS, so the page looks exactly like its original. The section brings its own CSS and JS.
   Kept out of search results, like the original page (robots noindex,nofollow).
 {%- endcomment -%}
@@ -11,6 +11,9 @@
   elsif template.suffix == 'iphone-duo'
     assign meta_title = 'iPhone Duo | JOY Mobile'
     assign meta_description = 'הרשמו לעדכונים לקראת השקת iPhone Duo ב-JOY Mobile ובחרו מראש את הצבע המועדף עליכם.'
+  elsif template.suffix == 'club'
+    assign meta_title = 'מועדון הלקוחות | JOY Mobile'
+    assign meta_description = 'הצטרפות חינם למועדון הלקוחות של JOY Mobile: הטבות לחברים, מבצעים לפני כולם ועדכונים על מכשירים חדשים.'
   else
     assign meta_title = page_title | append: ' | JOY Mobile'
     assign meta_description = page_description | default: shop.description

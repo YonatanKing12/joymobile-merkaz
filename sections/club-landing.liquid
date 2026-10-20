@@ -1,0 +1,253 @@
+{%- comment -%}
+  Customer club page ("מועדון הלקוחות של ג׳וי מובייל"): templates/page.club.json on layout/landing.liquid (no store
+  header or footer), the same file in both themes (joymobile and joymobile-merkaz). Modelled on a club sign-up page, in
+  JOY's colours and logo, the look of the iPhone Duo page. The sellers in the stores hand customers their personal QR:
+  the customer fills the form on their own phone.
+  - Store: STORE is "eilat" on the Eilat shop and "national" elsewhere (as on the iPhone Duo page).
+  - Sign-ups go to the Joy Mobile dashboard (LEADS_ENDPOINT, at the top of the script: POST /api/public/leads on
+    https://joy-mobile-online.onrender.com) with source "club-landing-page"; it keeps the member in the store whose
+    domain sent the page, with the seller of the page's ?ref= code, and answers {accepted, requestId, code}. The code is
+    shown on the success screen for the team at the counter. No gift is named on the page (the owner's decision).
+  - The ID number (תעודת זהות) is checked with the Israeli check digit here and again by the dashboard, which keeps it
+    encrypted. The page keeps nothing on the device.
+  - Consent (CLUB_CONSENT_VERSION 20261020-1): the advertising box (the spam law's דברי פרסומת) is optional and unticked;
+    the club terms box is required. The terms link: the section setting, else the page with handle club-terms, else
+    plain text (the theme editor shows a note to fill it in). The privacy link: the store's own privacy page.
+  - Wording is gender-neutral, without slashes.
+{%- endcomment -%}
+{%- liquid
+  assign store = 'national'
+  if shop.permanent_domain == 'x511g0-rj.myshopify.com'
+    assign store = 'eilat'
+  endif
+  assign privacy_url = pages['privacy'].url | default: shop.privacy_policy.url | default: '/policies/privacy-policy'
+  assign club_terms_url = section.settings.club_terms_url | default: pages['club-terms'].url | default: ''
+-%}
+<style>
+:root{--joy-navy:#060433;--joy-mint:#56d2aa;--joy-green:#309d7a;--joy-mint-soft:#e0fff2;--joy-lavender:#f0f3ff;--text-secondary:#565676;--danger:#b42318;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--joy-lavender);color:var(--joy-navy);font:400 17px/1.6 Assistant,Arial,sans-serif}button,input,select{font:inherit}button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}a{color:inherit}h1,h2,h3,p{margin:0}img{display:block;max-width:100%}[hidden]{display:none!important}:focus-visible{outline:3px solid var(--joy-green);outline-offset:3px}
+.club-skip{position:fixed;top:-100px;right:16px;z-index:10;background:var(--joy-mint);color:var(--joy-navy);padding:12px}.club-skip:focus{top:12px}
+.club-hero{background:var(--joy-navy);color:#fff;padding:28px 16px 96px;text-align:center}.club-logo{width:150px;height:auto;margin:0 auto 22px}.club-kicker{color:var(--joy-mint);font-weight:700;font-size:15px}.club-hero h1{font-size:clamp(30px,7vw,46px);line-height:1.15;font-weight:800;letter-spacing:-.02em;margin:8px auto 12px;max-width:640px}.club-hero p{color:#d1d3e4;font-size:18px;max-width:560px;margin:0 auto}
+.club-perks{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:20px auto 0;padding:0;list-style:none;max-width:640px}.club-perks li{border:1px solid #ffffff2e;border-radius:999px;padding:6px 14px;font-size:15px;color:#c1f7df}
+.club-main{width:min(720px,calc(100% - 24px));margin:-72px auto 40px;position:relative}
+.club-card{background:#fff;border:1px solid #06043318;border-radius:20px;box-shadow:0 16px 40px #06043314;padding:22px 18px}@media(min-width:640px){.club-card{padding:32px}}
+.club-card h2{font-size:24px;font-weight:800;line-height:1.25}.club-card .club-sub{color:var(--text-secondary);font-size:16px;margin-top:6px}
+.club-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 14px;margin-top:20px}.club-full{grid-column:1/-1}@media(max-width:520px){.club-grid{grid-template-columns:minmax(0,1fr)}}
+.club-field{display:flex;flex-direction:column;gap:6px;min-width:0}.club-field label,.club-field legend{font-size:16px;font-weight:700}.club-field .club-optional{font-weight:400;color:var(--text-secondary);font-size:14px}
+.club-field input,.club-field select{width:100%;min-height:50px;padding:10px 12px;border:1px solid #06043340;border-radius:10px;background:#fff;color:var(--joy-navy);font-size:17px}.club-field input[aria-invalid=true],.club-field select[aria-invalid=true]{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger)}
+.club-error{font-size:14px;line-height:1.4;color:var(--danger)}.club-error:empty{display:none}
+.club-birth{display:grid;grid-template-columns:1fr 1.4fr 1.2fr;gap:8px}
+fieldset.club-field{border:0;margin:0;padding:0}.club-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}@media(min-width:640px){.club-choices{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.club-choice{position:relative}.club-choice input{position:absolute;opacity:0;width:1px;height:1px}.club-choice span{display:flex;align-items:center;justify-content:center;min-height:48px;padding:8px;border:1px solid #06043340;border-radius:10px;text-align:center;font-weight:600;cursor:pointer}.club-choice input:checked+span{background:var(--joy-mint-soft);border-color:var(--joy-green);box-shadow:0 0 0 1px var(--joy-green)}.club-choice input:focus-visible+span{outline:3px solid var(--joy-green);outline-offset:2px}
+.club-checks{margin-top:22px;display:grid;gap:14px;font-size:15px;line-height:1.55}.club-check{display:flex;align-items:flex-start;gap:10px}.club-check input{flex:none;width:24px;height:24px;margin:2px 0 0;accent-color:var(--joy-green);cursor:pointer}.club-check label{cursor:pointer}.club-check a{color:#1d6e55;font-weight:700;text-underline-offset:3px}.club-check input[aria-invalid=true]{outline:2px solid var(--danger);outline-offset:2px}
+.club-privacy{margin-top:16px;font-size:14px;color:var(--text-secondary)}.club-privacy a{color:#1d6e55;font-weight:700}
+.club-submit{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;margin-top:22px;border:0;border-radius:12px;background:var(--joy-navy);color:#fff;font-weight:800;font-size:19px;cursor:pointer}.club-submit:disabled{opacity:.7;cursor:wait}
+.club-alert{margin-top:14px;padding:12px 14px;border-radius:12px;background:#fdecea;color:#7a1c13;font-size:15px}
+.club-success{text-align:center;padding:12px 0}.club-success h2{font-size:30px}.club-code{display:inline-block;margin:18px auto 12px;padding:14px 26px;border-radius:16px;background:var(--joy-mint-soft);border:2px dashed var(--joy-green);font-size:40px;font-weight:800;letter-spacing:.18em;direction:ltr}.club-success p{color:var(--text-secondary);font-size:18px}
+.club-note{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff6db;color:#5c4400;font-size:14px}
+.club-footer{text-align:center;font-size:14px;color:var(--text-secondary);margin:0 auto 32px;padding:0 16px}.club-footer a{color:inherit}
+.club-hp{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
+</style>
+<a class="club-skip" href="#club-form">דילוג לטופס ההצטרפות</a>
+<header class="club-hero">
+  <img class="club-logo" src="{{ 'iphone-duo-joy-mobile-logo.webp' | asset_url }}" alt="JOY Mobile" width="300" height="86">
+  <span class="club-kicker" id="club-store-name"></span>
+  <h1>מועדון הלקוחות של ג׳וי מובייל</h1>
+  <p>הצטרפות בחינם, בדקה אחת: הטבות לחברים, מבצעים לפני כולם ויחס אישי בכל ביקור.</p>
+  <ul class="club-perks" aria-label="מה מקבלים במועדון">
+    <li>הטבות לחברי המועדון</li>
+    <li>מבצעים לפני כולם</li>
+    <li>עדכונים על מכשירים חדשים</li>
+  </ul>
+</header>
+<main class="club-main">
+  <section class="club-card" aria-labelledby="club-title">
+    <form id="club-form" novalidate>
+      <h2 id="club-title">הצטרפות למועדון</h2>
+      <p class="club-sub">השדות המסומנים בכוכבית נדרשים להצטרפות.</p>
+      <div class="club-grid">
+        <div class="club-field"><label for="firstName">שם פרטי *</label><input id="firstName" name="firstName" autocomplete="given-name" maxlength="50" required aria-describedby="firstName-error"><span class="club-error" id="firstName-error" aria-live="polite"></span></div>
+        <div class="club-field"><label for="lastName">שם משפחה *</label><input id="lastName" name="lastName" autocomplete="family-name" maxlength="50" required aria-describedby="lastName-error"><span class="club-error" id="lastName-error" aria-live="polite"></span></div>
+        <div class="club-field"><label for="phone">טלפון נייד *</label><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" dir="ltr" placeholder="0500000000" required aria-describedby="phone-error"><span class="club-error" id="phone-error" aria-live="polite"></span></div>
+        <div class="club-field"><label for="email">אימייל *</label><input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" dir="ltr" placeholder="name@example.com" required aria-describedby="email-error"><span class="club-error" id="email-error" aria-live="polite"></span></div>
+        <div class="club-field"><label for="idNumber">תעודת זהות *</label><input id="idNumber" name="idNumber" inputmode="numeric" autocomplete="off" maxlength="9" dir="ltr" placeholder="000000000" required aria-describedby="idNumber-error"><span class="club-error" id="idNumber-error" aria-live="polite"></span></div>
+        <fieldset class="club-field" aria-describedby="birth-error"><legend>תאריך לידה *</legend><div class="club-birth">
+          <select id="birthDay" name="birthDay" autocomplete="bday-day" aria-label="יום" required></select>
+          <select id="birthMonth" name="birthMonth" autocomplete="bday-month" aria-label="חודש" required></select>
+          <select id="birthYear" name="birthYear" autocomplete="bday-year" aria-label="שנה" required></select>
+        </div><span class="club-error" id="birth-error" aria-live="polite"></span></fieldset>
+        <div class="club-field"><label for="city">עיר *</label><input id="city" name="city" autocomplete="address-level2" maxlength="60" required aria-describedby="city-error"><span class="club-error" id="city-error" aria-live="polite"></span></div>
+        <div class="club-field"><label for="street">רחוב <span class="club-optional">(לא חובה)</span></label><input id="street" name="street" autocomplete="address-line1" maxlength="80" aria-describedby="street-error"><span class="club-error" id="street-error" aria-live="polite"></span></div>
+        <div class="club-field"><label for="houseNumber">מספר בית <span class="club-optional">(לא חובה)</span></label><input id="houseNumber" name="houseNumber" maxlength="10" inputmode="numeric" aria-describedby="houseNumber-error"><span class="club-error" id="houseNumber-error" aria-live="polite"></span></div>
+        <div class="club-field"><label for="apartment">דירה <span class="club-optional">(לא חובה)</span></label><input id="apartment" name="apartment" maxlength="10" inputmode="numeric" aria-describedby="apartment-error"><span class="club-error" id="apartment-error" aria-live="polite"></span></div>
+        <div class="club-field"><label for="deviceBrand">איזה מכשיר יש לך היום?</label><select id="deviceBrand" name="deviceBrand"><option value="">בחירת יצרן</option><option value="apple">Apple (iPhone)</option><option value="samsung">Samsung</option><option value="xiaomi">Xiaomi</option><option value="google">Google Pixel</option><option value="oneplus">OnePlus</option><option value="motorola">Motorola</option><option value="other">אחר</option></select></div>
+        <div class="club-field"><label for="deviceModel">הדגם <span class="club-optional">(לא חובה)</span></label><input id="deviceModel" name="deviceModel" maxlength="60" placeholder="למשל iPhone 15 Pro" aria-describedby="deviceModel-error"><span class="club-error" id="deviceModel-error" aria-live="polite"></span></div>
+        <fieldset class="club-field club-full"><legend>מתי מתכננים להחליף מכשיר?</legend><div class="club-choices">
+          <label class="club-choice"><input type="radio" name="upgradePlan" value="now"><span>עכשיו</span></label>
+          <label class="club-choice"><input type="radio" name="upgradePlan" value="3m"><span>תוך 3 חודשים</span></label>
+          <label class="club-choice"><input type="radio" name="upgradePlan" value="12m"><span>תוך שנה</span></label>
+          <label class="club-choice"><input type="radio" name="upgradePlan" value="none"><span>לא מתכננים</span></label>
+        </div></fieldset>
+      </div>
+      <div class="club-checks">
+        <div class="club-check"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes"><label for="marketingConsent"><span class="club-optional">(לא חובה)</span> אני רוצה לקבל מג׳וי מובייל דברי פרסומת: הטבות, מבצעים ועדכונים, בדואר אלקטרוני, במסרון ובשיחת טלפון. אפשר לבטל את ההסכמה בכל עת, בקישור ההסרה שבכל הודעה או בפנייה לחנות.</label></div>
+        <div class="club-check"><input id="termsAccepted" name="termsAccepted" type="checkbox" value="yes" required aria-describedby="termsAccepted-error"><label for="termsAccepted">קראתי את {% if club_terms_url != blank %}<a href="{{ club_terms_url }}" target="_blank" rel="noopener noreferrer">תקנון המועדון</a>{% else %}<span id="club-terms-placeholder">תקנון המועדון</span>{% endif %} והוא מקובל עליי. *</label></div>
+        <span class="club-error" id="termsAccepted-error" aria-live="polite"></span>
+      </div>
+      {%- if club_terms_url == blank and request.design_mode -%}
+        <p class="club-note">לבעלים: עדיין אין קישור לתקנון המועדון. יש ליצור דף עם הכתובת club-terms, או למלא את הקישור בהגדרות הסקשן.</p>
+      {%- endif -%}
+      <p class="club-privacy">הפרטים, כולל מספר תעודת הזהות, משמשים לניהול המועדון ולזיהוי בחנות, ונשמרים בהתאם ל<a href="{{ privacy_url }}" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של החנות</a>.</p>
+      <input class="club-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="club-submit" type="submit"><span class="club-submit-label">הצטרפות למועדון</span></button>
+      <p id="club-submit-error" class="club-alert" role="alert" hidden></p>
+    </form>
+    <div id="club-success" class="club-success" role="status" tabindex="-1" hidden>
+      <h2>ההרשמה למועדון הושלמה!</h2>
+      <p>קוד ההרשמה</p>
+      <div class="club-code" id="club-code"></div>
+      <p>יש להציג את המסך לצוות בחנות.</p>
+    </div>
+  </section>
+</main>
+<footer class="club-footer"><p><span id="club-brand-name"></span> · <a href="{{ privacy_url }}" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות</a></p></footer>
+<script>
+// The Joy Mobile dashboard that receives the sign-ups (see the comment at the top of this section).
+const LEADS_ENDPOINT='https://joy-mobile-online.onrender.com/api/public/leads';
+const CLUB_SOURCE='club-landing-page';
+const CLUB_CONSENT_VERSION='20261020-1';
+const STORE={{ store | json }};
+const PRIVACY_URL={{ privacy_url | json }};
+const CLUB_TERMS_URL={{ club_terms_url | json }};
+const STORE_COPY={national:{storeName:'JOY Mobile',brandName:'JOY Mobile'},eilat:{storeName:'JOY Mobile אילת',brandName:'JOY Mobile אילת'}}[STORE]||{storeName:'JOY Mobile',brandName:'JOY Mobile'};
+const absolute=url=>url?new URL(url,location.origin).href:null;
+// The seller's personal code from their QR or link (?ref=), passed on as it is.
+const SELLER_REF=(()=>{const r=new URLSearchParams(location.search).get('ref')||'';return /^[A-Za-z0-9]{4,12}$/.test(r)?r.toUpperCase():''})();
+const MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+document.getElementById('club-store-name').textContent=STORE_COPY.storeName;
+document.getElementById('club-brand-name').textContent=STORE_COPY.brandName;
+const form=document.getElementById('club-form');
+const fill=(id,placeholder,options)=>{document.getElementById(id).innerHTML=`<option value="">${placeholder}</option>`+options.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')};
+const thisYear=new Date().getFullYear();
+fill('birthDay','יום',Array.from({length:31},(_,i)=>[i+1,i+1]));
+fill('birthMonth','חודש',MONTHS.map((m,i)=>[i+1,m]));
+fill('birthYear','שנה',Array.from({length:87},(_,i)=>[thisYear-14-i,thisYear-14-i]));
+
+function normalizePhone(value){
+ const raw=String(value).trim();
+ if(!/^[+\d\s()-]+$/.test(raw))return '';
+ let digits=raw.replace(/[\s()-]/g,'');
+ if(digits.startsWith('+972'))digits='0'+digits.slice(4);
+ else if(digits.startsWith('00972'))digits='0'+digits.slice(5);
+ else if(digits.startsWith('972'))digits='0'+digits.slice(3);
+ return /^05\d{8}$/.test(digits)?digits:'';
+}
+// The Israeli ID number's check digit (the dashboard checks it again).
+function validIsraeliId(value){
+ const d=String(value).replace(/[\s-]/g,'');
+ if(!/^\d{1,9}$/.test(d)||/^0+$/.test(d))return false;
+ const id=d.padStart(9,'0');let sum=0;
+ for(let i=0;i<9;i++){let n=Number(id[i])*((i%2)+1);if(n>9)n-=9;sum+=n}
+ return sum%10===0;
+}
+function validBirthDate(day,month,year){
+ const d=Number(day),m=Number(month),y=Number(year);
+ if(!d||!m||!y)return false;
+ const date=new Date(Date.UTC(y,m-1,d));
+ return date.getUTCFullYear()===y&&date.getUTCMonth()===m-1&&date.getUTCDate()===d&&date.getTime()<=Date.now();
+}
+const letters=v=>/[\p{L}]/u.test(v);
+function validateClub(data){
+ const e={};
+ const first=String(data.firstName||'').trim(),last=String(data.lastName||'').trim();
+ if(first.length<2||first.length>50||!letters(first))e.firstName='יש להזין שם פרטי.';
+ if(last.length<2||last.length>50||!letters(last))e.lastName='יש להזין שם משפחה.';
+ if(!normalizePhone(data.phone||''))e.phone='יש להזין מספר נייד ישראלי תקין, למשל 050-1234567.';
+ const email=String(data.email||'').trim();
+ if(email.length>254||!/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email))e.email='יש להזין כתובת אימייל תקינה.';
+ if(!validIsraeliId(data.idNumber||''))e.idNumber='יש להזין מספר תעודת זהות תקין, 9 ספרות כולל ספרת ביקורת.';
+ if(!validBirthDate(data.birthDay,data.birthMonth,data.birthYear))e.birth='יש לבחור יום, חודש ושנה של תאריך הלידה.';
+ const city=String(data.city||'').trim();
+ if(city.length<2||city.length>60||!letters(city))e.city='יש להזין עיר.';
+ if(data.termsAccepted!=='yes')e.termsAccepted='כדי להצטרף יש לאשר את תקנון המועדון.';
+ return e;
+}
+const FIELD_OF={birth:'birthDay'};
+function showError(key,message){
+ const input=form.elements[FIELD_OF[key]||key];
+ if(input&&input.setAttribute)input.setAttribute('aria-invalid',message?'true':'false');
+ if(key==='birth')['birthMonth','birthYear'].forEach(k=>form.elements[k].setAttribute('aria-invalid',message?'true':'false'));
+ const el=document.getElementById(key+'-error');if(el)el.textContent=message||'';
+}
+const CHECKED=['firstName','lastName','phone','email','idNumber','birth','city','termsAccepted'];
+// The same request for an unchanged retry (the dashboard answers it once), without storing anything on the device.
+let previousKey,previousPayload;
+function prepare(payload){
+ const key=JSON.stringify(payload);
+ if(key!==previousKey){previousPayload={...payload,requestId:crypto.randomUUID(),consentRecordedAt:new Date().toISOString()};previousKey=key}
+ return previousPayload;
+}
+async function submitSignup(payload){
+ const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),30000);
+ try{
+  const response=await fetch(LEADS_ENDPOINT,{method:'POST',mode:'cors',credentials:'omit',redirect:'follow',referrerPolicy:'no-referrer',headers:{'Content-Type':'text/plain;charset=UTF-8','Accept':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
+  const isJson=response.headers.get('content-type')?.includes('application/json');
+  const body=isJson?await response.json():null;
+  if(response.status===409&&body&&body.error==='duplicate')throw new Error('duplicate');
+  if(!response.ok||!body||body.accepted!==true||body.requestId!==payload.requestId||typeof body.code!=='string')throw new Error('not-accepted');
+  return body;
+ }finally{clearTimeout(timeout)}
+}
+let submitting=false;
+form.addEventListener('submit',async event=>{
+ event.preventDefault();if(submitting)return;
+ const data=Object.fromEntries(new FormData(form));
+ const errors=validateClub(data);
+ CHECKED.forEach(k=>showError(k,errors[k]));
+ const first=CHECKED.find(k=>errors[k]);
+ if(first){(form.elements[FIELD_OF[first]||first]).focus();return}
+ const payload=prepare({
+  firstName:data.firstName.trim(),lastName:data.lastName.trim(),phone:normalizePhone(data.phone),email:data.email.trim(),
+  idNumber:String(data.idNumber).replace(/[\s-]/g,''),birthDay:Number(data.birthDay),birthMonth:Number(data.birthMonth),birthYear:Number(data.birthYear),
+  city:data.city.trim(),street:(data.street||'').trim(),houseNumber:(data.houseNumber||'').trim(),apartment:(data.apartment||'').trim(),
+  deviceBrand:data.deviceBrand||'',deviceModel:(data.deviceModel||'').trim(),upgradePlan:data.upgradePlan||'',
+  marketingConsent:data.marketingConsent==='yes',consentDefault:'unchecked',termsAccepted:true,consentVersion:CLUB_CONSENT_VERSION,
+  termsUrl:absolute(CLUB_TERMS_URL),privacyPolicyUrl:absolute(PRIVACY_URL),source:CLUB_SOURCE,ref:SELLER_REF,website:data.website||''
+ });
+ submitting=true;const button=form.querySelector('.club-submit');const label=button.querySelector('.club-submit-label');const alert=document.getElementById('club-submit-error');
+ button.disabled=true;label.textContent='שולחים את הפרטים…';form.setAttribute('aria-busy','true');alert.hidden=true;
+ try{
+  const receipt=await submitSignup(payload);
+  document.getElementById('club-code').textContent=receipt.code;
+  form.hidden=true;const done=document.getElementById('club-success');done.hidden=false;done.focus();
+ }catch(err){
+  alert.textContent=err&&err.message==='duplicate'?'מספר הנייד או תעודת הזהות כבר רשומים במועדון בפרטים אחרים. הצוות בחנות ישמח לעזור.':'לא התקבל אישור קליטה. הפרטים נשמרו בטופס, אפשר לנסות שוב.';
+  alert.hidden=false;
+ }finally{submitting=false;button.disabled=false;label.textContent='הצטרפות למועדון';form.setAttribute('aria-busy','false')}
+});
+CHECKED.forEach(key=>{
+ const input=form.elements[FIELD_OF[key]||key];if(!input)return;
+ input.addEventListener('blur',()=>showError(key,validateClub(Object.fromEntries(new FormData(form)))[key]));
+});
+</script>
+
+{% schema %}
+{
+  "name": "מועדון לקוחות",
+  "class": "section-club-landing",
+  "enabled_on": {
+    "templates": [
+      "page"
+    ]
+  },
+  "settings": [
+    {
+      "type": "url",
+      "id": "club_terms_url",
+      "label": "קישור לתקנון המועדון",
+      "info": "ריק: הדף עם הכתובת club-terms, אם קיים"
+    }
+  ]
+}
+{% endschema %}
