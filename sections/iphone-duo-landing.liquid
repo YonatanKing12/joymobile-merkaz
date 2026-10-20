@@ -6,9 +6,14 @@
     Eilat shop and "national" elsewhere, and STORE_COPY holds the lines that differ (Eilat: no VAT,
     pickup at the Eilat branches; national: VAT included, home delivery, no pickup).
   - Images: JOY's are theme assets (iphone-duo-*.webp); Apple's product images stay hotlinked from apple.com.
-  - Leads go to the same Google Apps Script as the original page. That receiver accepts only the
-    original page's source ("iphone18-launch-page") and privacy URL (the Konimbo contract page), so
-    both are sent unchanged and the consent checkbox links to that same policy.
+  - Leads go to the Joy Mobile dashboard (LEADS_ENDPOINT, at the top of the script: POST /api/public/leads
+    on https://joy-mobile-online.onrender.com), which keeps each lead in the store whose domain sent it
+    and answers the receipt {accepted, requestId} the form waits for. It accepts only the stores' own
+    domains, and a privacy URL on the sending store's own domain. The source stays the original page's
+    ("iphone18-launch-page"): the dashboard files it under the campaign "iphone-duo".
+  - Consent (CONSENT_VERSION 20261020-1): the checkbox links to the store's own privacy page (privacy_url
+    below), and that page's full URL is sent with the lead. Until 20260910-1 it linked to the Konimbo
+    contract page, which only the old Google Apps Script receiver required.
   - Privacy and terms links: the Hebrew pages (handles privacy, terms) when they exist, else Shopify's
     policy pages, like the footer and contact form of the theme.
 {%- endcomment -%}
@@ -110,6 +115,8 @@ body,.product-explorer{background:var(--duo-pearl)}
 </style>
 <a class="skip" href="#lead">דילוג לטופס ההרשמה</a><div id="app"></div><noscript><p class="wrap">כדי לבחור צבע ולשלוח את הפרטים, יש להפעיל JavaScript בדפדפן.</p></noscript>
 <script>
+// The Joy Mobile dashboard that receives the registrations (see the comment at the top of this section).
+const LEADS_ENDPOINT='https://joy-mobile-online.onrender.com/api/public/leads';
 // JOY images are theme assets; Apple's product images stay hotlinked from apple.com, as on the original page.
 const JOY_ASSETS={
  logo:{{ 'iphone-duo-joy-mobile-logo.webp' | asset_url | json }},
@@ -254,16 +261,15 @@ const Benefits=()=>`<section class="benefits" aria-label="למה ${STORE_COPY.br
 ].map(([i,h,p])=>`<div class="benefit">${i}<div><h3>${h}</h3><p>${p}</p></div></div>`).join('')}</div></section>`;
 const field=(id,label,control,required=false)=>`<div class="field" data-field="${id}"><label for="${id}">${label}</label>${control}<span class="field-error" id="${id}-error" aria-live="polite"></span></div>`;
 const select=(id,options,required=false)=>`<select id="${id}" name="${id}" ${required?'required':''} aria-describedby="${id}-error">${options.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`;
-const LeadForm=()=>`<section class="hero-lead" id="lead" aria-labelledby="lead-title"><div class="hero-form-heading"><h2 id="lead-title">עדכנו אותי כשהמכירה נפתחת</h2></div><div class="form-panel"><form id="lead-form" novalidate><div class="form-grid">${field('name','שם מלא','<input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="השם שלכם" aria-describedby="name-error">')}${field('phone','טלפון נייד','<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" required placeholder="0500000000" dir="ltr" aria-describedby="phone-error">')}${field('email','אימייל','<input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com" dir="ltr" aria-describedby="email-error">')}${field('color','צבע מועדף',select('color',[['undecided','לא הוחלט'],...duoColors.map(c=>[c.name,c.label])]))}${field('tradeIn','טרייד אין',select('tradeIn',[['undecided','לא הוחלט'],['interested','רוצה לבדוק'],['not-relevant','לא רלוונטי']]))}${field('contactMethod','יצירת קשר',select('contactMethod',[['phone','שיחת טלפון'],['whatsapp','וואטסאפ'],['sms','מסרון']]))}</div><div class="lead-consent"><div class="lead-consent-row"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes" required aria-describedby="marketingConsent-error"><label for="marketingConsent">מאשרים קבלת הצעות שיווקיות מעת לעת בהודעות אלקטרוניות, מסרונים או שיחות. השימוש במידע שתמסרו הינו בהתאם <a href="${PRIVACY_POLICY_URL}" target="_blank" rel="noopener noreferrer">למדיניות מערכת ההרשמה</a>. ראו גם את <a href="${PRIVACY_URL}" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של החנות</a>.</label></div><span class="field-error" id="marketingConsent-error" aria-live="polite"></span></div><button class="button submit" type="submit"><span class="submit-label">הרשמה לעדכונים</span></button><p id="submit-error" class="submit-error" role="alert" hidden></p></form><div id="success" class="success" role="status" tabindex="-1" hidden><h3>הפרטים התקבלו</h3><p>נעדכן אתכם עם פתיחת המכירה</p></div></div><p class="hero-no-commitment">ללא התחייבות לרכישה. בחירת הצבע כפופה לזמינות.</p></section>`;
+const LeadForm=()=>`<section class="hero-lead" id="lead" aria-labelledby="lead-title"><div class="hero-form-heading"><h2 id="lead-title">עדכנו אותי כשהמכירה נפתחת</h2></div><div class="form-panel"><form id="lead-form" novalidate><div class="form-grid">${field('name','שם מלא','<input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="השם שלכם" aria-describedby="name-error">')}${field('phone','טלפון נייד','<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" required placeholder="0500000000" dir="ltr" aria-describedby="phone-error">')}${field('email','אימייל','<input id="email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com" dir="ltr" aria-describedby="email-error">')}${field('color','צבע מועדף',select('color',[['undecided','לא הוחלט'],...duoColors.map(c=>[c.name,c.label])]))}${field('tradeIn','טרייד אין',select('tradeIn',[['undecided','לא הוחלט'],['interested','רוצה לבדוק'],['not-relevant','לא רלוונטי']]))}${field('contactMethod','יצירת קשר',select('contactMethod',[['phone','שיחת טלפון'],['whatsapp','וואטסאפ'],['sms','מסרון']]))}</div><div class="lead-consent"><div class="lead-consent-row"><input id="marketingConsent" name="marketingConsent" type="checkbox" value="yes" required aria-describedby="marketingConsent-error"><label for="marketingConsent">מאשרים קבלת הצעות שיווקיות מעת לעת בהודעות אלקטרוניות, מסרונים או שיחות. השימוש במידע שתמסרו הינו בהתאם <a href="${PRIVACY_POLICY_URL}" target="_blank" rel="noopener noreferrer">למדיניות הפרטיות של החנות</a>.</label></div><span class="field-error" id="marketingConsent-error" aria-live="polite"></span></div><button class="button submit" type="submit"><span class="submit-label">הרשמה לעדכונים</span></button><p id="submit-error" class="submit-error" role="alert" hidden></p></form><div id="success" class="success" role="status" tabindex="-1" hidden><h3>הפרטים התקבלו</h3><p>נעדכן אתכם עם פתיחת המכירה</p></div></div><p class="hero-no-commitment">ללא התחייבות לרכישה. בחירת הצבע כפופה לזמינות.</p></section>`;
 const FAQ=()=>`<section class="faq-section section-space" aria-labelledby="faq-title"><div class="wrap faq-layout"><div class="faq-heading reveal"><h2 id="faq-title">מידע על ההרשמה</h2></div><div class="faq-list reveal">${[
 ['האם ההרשמה מחייבת רכישה?','לא. ההרשמה מיועדת לקבלת עדכונים וליצירת קשר לקראת פתיחת המכירה, ללא התחייבות לרכישה.'],STORE_COPY.priceFaq,['מתי תיפתח המכירה?','נעדכן את הנרשמים ברגע שהמכירה תיפתח ויהיו פרטים מאושרים לגבי זמינות ומחירים.']
 ].map(([q,a],i)=>`<article class="faq-item"><h3><button type="button" id="question-${i}" aria-expanded="false" aria-controls="answer-${i}">${q}<span aria-hidden="true">+</span></button></h3><div class="faq-answer" id="answer-${i}" role="region" aria-labelledby="question-${i}" inert><div><p>${a}</p></div></div></article>`).join('')}</div></div></section>`;
 const Footer=()=>`<footer class="footer"><div class="wrap footer-inner"><div>${brand()}<p class="micro">${STORE_COPY.brandName}</p></div><div class="legal-links"><a href="${PRIVACY_URL}" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות</a><button type="button" data-cookie-preferences>הגדרות עוגיות</button><a href="${TERMS_URL}" target="_blank" rel="noopener noreferrer">תנאי שימוש</a></div></div></footer>`;
 
-const LEADS_ENDPOINT='https://script.google.com/macros/s/AKfycbxztQtXdk04iDv_b-ew8v59wYQOV6ZevbRaeVWbD4pa1DkMBwNNwEPcmU-H0qr0rCGZ/exec';
-const CONSENT_VERSION='20260910-1';
-// The receiver rejects any other source or privacy URL ({"accepted":false,"error":"invalid"}).
-const PRIVACY_POLICY_URL='https://joymobile.konimbo.co.il/contract';
+const CONSENT_VERSION='20261020-1';
+// The privacy page the consent links to, as a full URL on this store's domain (the dashboard refuses any other).
+const PRIVACY_POLICY_URL=new URL(PRIVACY_URL,location.origin).href;
 const LEAD_SOURCE='iphone18-launch-page';
 const LEAD_FIELDS=['name','phone','email','color','tradeIn','contactMethod','marketingConsent'];
 function normalizePhone(value){
