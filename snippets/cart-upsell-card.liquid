@@ -1,0 +1,90 @@
+{% doc %}
+  One accessory card, shared by direct verified recommendations and legacy search results.
+  @param {product} accessory - The accessory; its available variant determines image, title and price.
+{% enddoc %}
+{%- assign cu_item = accessory -%}
+{%- liquid
+          assign cu_variant = cu_item.selected_or_first_available_variant
+          assign cu_image = cu_variant.featured_media.preview_image | default: cu_variant.featured_image | default: cu_item.featured_media.preview_image
+          assign cu_title = cu_item.title
+          if cu_item.variants.size > 1
+            assign cu_title = cu_title | append: ' / ' | append: cu_variant.title
+          endif
+          assign cu_compare = 0
+          if cu_variant.compare_at_price > cu_variant.price
+            assign cu_compare = cu_variant.compare_at_price
+          endif
+        -%}
+        <li
+          class="cu-card"
+          data-cu-item
+          data-cu-handle="{{ cu_item.handle }}"
+          data-cu-variant="{{ cu_variant.id }}"
+        >
+          <a class="cu-card__link" href="{{ cu_item.url }}">
+            {%- comment -%}
+              Most of these accessories have no photo in Shopify — measured on the live catalogue:
+              86% of the cases, 94% of the screen protectors and 76% of the chargers — so the well
+              falls back to the JOY symbol rather than printing nothing.
+            {%- endcomment -%}
+            <span class="cu-card__media">
+              {%- if cu_image != blank -%}
+                {%- render 'image',
+                  image: cu_image,
+                  widths: '120,240',
+                  sizes: '60px',
+                  decorative: true,
+                  class: 'cu-card__img'
+                -%}
+              {%- else -%}
+                <img
+                  class="cu-card__img cu-card__img--fallback"
+                  src="{{ 'logo-joy-symbol.png' | asset_url }}"
+                  alt=""
+                  width="361"
+                  height="472"
+                  loading="lazy"
+                >
+              {%- endif -%}
+            </span>
+            {%- comment -%}
+              The trailing LRM keeps a title that ends in Latin ("ל-Galaxy S25+", '12.9"') from
+              throwing its last mark to the start of the line; <bdi> would reverse every Latin-first title.
+            {%- endcomment -%}
+            <span class="cu-card__title">{{ cu_title | escape }}&lrm;</span>
+          </a>
+
+          {%- comment -%}
+            Price and button sit at the foot in normal flow. The button was a circle positioned over
+            the price row, and at tile width that put it through the price and over the card's own
+            border -- and a bare "+" never said it was a button at all.
+          {%- endcomment -%}
+          <div class="cu-card__foot">
+            <p class="cu-card__prices">
+              <span class="cu-card__price">{{ cu_variant.price | money_without_trailing_zeros }}</span>
+              {%- if cu_compare > 0 -%}
+                <s class="cu-card__was">{{ cu_compare | money_without_trailing_zeros }}</s>
+              {%- endif -%}
+            </p>
+
+            {%- comment -%}
+              One press adds it. In a cart there is nothing left to decide, so a tick box and a
+              second "add" press would only put a step between the shopper and what they want.
+            {%- endcomment -%}
+            <button
+              class="cu-card__add"
+              type="button"
+              data-cu-add
+              aria-label="{{ 'cart.upsell.add_label' | t: title: cu_title }}"
+            >
+              <span class="cu-card__state cu-card__state--idle">
+                {%- render 'icon', name: 'plus', size: 14 -%}
+                {{- 'cart.upsell.add' | t -}}
+              </span>
+              <span class="cu-card__state cu-card__state--done">
+                {%- render 'icon', name: 'check', size: 14 -%}
+                {{- 'cart.upsell.in_cart' | t -}}
+              </span>
+            </button>
+          </div>
+        </li>
