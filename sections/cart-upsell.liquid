@@ -30,7 +30,7 @@
             assign cu_head = cu_type | slice: 0, 2
             if cu_head == 'א.'
               capture cu_fit
-                render 'accessory-fit', title: cu_item.title, terms: search.terms
+                render 'accessory-fit', title: cu_item.title, terms: search.terms, tags: cu_item.tags
               endcapture
               if cu_fit contains 'fit'
                 assign cu_ok = true
@@ -42,6 +42,11 @@
       {%- if cu_ok -%}
         {%- liquid
           assign cu_variant = cu_item.selected_or_first_available_variant
+          assign cu_image = cu_variant.featured_media.preview_image | default: cu_variant.featured_image | default: cu_item.featured_media.preview_image
+          assign cu_title = cu_item.title
+          if cu_item.variants.size > 1
+            assign cu_title = cu_title | append: ' / ' | append: cu_variant.title
+          endif
           assign cu_compare = 0
           if cu_variant.compare_at_price > cu_variant.price
             assign cu_compare = cu_variant.compare_at_price
@@ -61,9 +66,9 @@
               falls back to the JOY symbol rather than printing nothing.
             {%- endcomment -%}
             <span class="cu-card__media">
-              {%- if cu_item.featured_media != blank -%}
+              {%- if cu_image != blank -%}
                 {%- render 'image',
-                  image: cu_item.featured_media.preview_image,
+                  image: cu_image,
                   widths: '120,240',
                   sizes: '60px',
                   decorative: true,
@@ -84,7 +89,7 @@
               The trailing LRM keeps a title that ends in Latin ("ל-Galaxy S25+", '12.9"') from
               throwing its last mark to the start of the line; <bdi> would reverse every Latin-first title.
             {%- endcomment -%}
-            <span class="cu-card__title">{{ cu_item.title | escape }}&lrm;</span>
+            <span class="cu-card__title">{{ cu_title | escape }}&lrm;</span>
           </a>
 
           {%- comment -%}
@@ -108,7 +113,7 @@
               class="cu-card__add"
               type="button"
               data-cu-add
-              aria-label="{{ 'cart.upsell.add_label' | t: title: cu_item.title }}"
+              aria-label="{{ 'cart.upsell.add_label' | t: title: cu_title }}"
             >
               <span class="cu-card__state cu-card__state--idle">
                 {%- render 'icon', name: 'plus', size: 14 -%}

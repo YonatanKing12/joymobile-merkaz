@@ -22,6 +22,17 @@
   @example
   {%- capture groups -%}{%- render 'addon-groups', product: product -%}{%- endcapture -%}
 {% enddoc %}
+{%- assign ag_verified = product.metafields.custom.joy_addon_groups.value -%}
+{%- if ag_verified.version == 1 -%}
+  {%- for ag_group in ag_verified.groups -%}
+    {%- liquid
+      assign ag_prefix = ag_group.tag | slice: 0, 11
+      if ag_prefix == 'joy-fit-v1-' and ag_group.label != blank and ag_group.word != blank
+        echo '###' | append: ag_group.label | append: '|' | append: ag_group.word | append: '|tag:' | append: ag_group.tag
+      endif
+    -%}
+  {%- endfor -%}
+{%- else -%}
 {%- liquid
   assign ag_rules = settings.addon_rules | strip
   if ag_rules == blank
@@ -91,4 +102,6 @@
       echo '###' | append: ag_label | append: '|' | append: ag_word | append: '|' | append: ag_query
     endfor
   -%}
+{%- endif -%}
+
 {%- endif -%}
