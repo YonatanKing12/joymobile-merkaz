@@ -34,6 +34,10 @@
   assign pa_group_list = pa_groups | strip | remove_first: '###' | split: '###'
   assign pa_uid = section_id | default: 'pa'
   assign pa_variant = variant | default: product.selected_or_first_available_variant | default: product.variants.first
+  assign pa_direct = false
+  if product.metafields.custom.joy_addon_products.type == 'list.product_reference'
+    assign pa_direct = true
+  endif
   assign pa_layout = 'grid'
   if layout == 'carousel'
     assign pa_layout = 'carousel'
@@ -53,6 +57,7 @@
   {%- endcomment -%}
   <product-addons
     class="pa pa--{{ pa_layout }}"
+    data-pa-managed="{{ pa_direct }}"
     data-pa-main-variant="{{ pa_variant.id }}"
     data-pa-handle="{{ product.handle }}"
     data-pa-base="{{ pa_variant.price }}"
@@ -95,6 +100,17 @@
         assign pa_prefix = pa_parts[0] | append: '|' | append: pa_parts[1] | append: '|'
         assign pa_query = pa_group | remove_first: pa_prefix | strip
       -%}
+      {%- capture pa_direct_result -%}
+        {%- if pa_direct -%}
+          {%- assign pa_tag = pa_query | remove_first: 'tag:' -%}
+          {%- render 'verified-addon-cards', candidates: product.metafields.custom.joy_addon_products.value, tag: pa_tag, parent_id: product.id, context: 'product', limit: 4 -%}
+        {%- endif -%}
+      {%- endcapture -%}
+      {%- liquid
+        assign pa_direct_count = pa_direct_result | split: '|||' | first | plus: 0
+        assign pa_direct_prefix = pa_direct_count | append: '|||'
+        assign pa_direct_cards = pa_direct_result | remove_first: pa_direct_prefix
+      -%}
       <div
         class="pa__panel"
         role="tabpanel"
@@ -102,12 +118,17 @@
         aria-labelledby="PaTab-{{ pa_uid }}-{{ pa_key }}"
         data-pa-panel
         data-pa-query="{{ pa_query | escape }}"
+        {% if pa_direct %}data-pa-loaded="true" data-pa-count="{{ pa_direct_count }}"{% endif %}
         {% unless forloop.first %}hidden{% endunless %}
       >
         <ul class="pa__list" role="list" data-pa-list>
+          {%- if pa_direct -%}
+            {{- pa_direct_cards -}}
+          {%- else -%}
           {%- for pa_skeleton in (1..4) -%}
             <li class="pa-card pa-card--loading" aria-hidden="true"></li>
           {%- endfor -%}
+          {%- endif -%}
         </ul>
         <p class="pa__empty" data-pa-empty hidden>{{ 'products.addons.empty' | t }}</p>
         <p class="pa__swipe" data-pa-swipe hidden></p>

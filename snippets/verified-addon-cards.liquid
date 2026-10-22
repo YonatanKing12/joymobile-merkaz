@@ -1,0 +1,49 @@
+{% doc %}
+  Direct, available accessories from a device's native product references. Returns count|||cards.
+  Separate batches cover all 128 allowed references without exceeding Liquid's 50-item for limit.
+  @param {product[]} candidates - custom.joy_addon_products.value.
+  @param {string} tag - The exact reviewed compatibility tag of the requested group.
+  @param {number} parent_id - Never recommend the device itself.
+  @param {string} context - product or cart.
+  @param {number} [limit] - Maximum cards in this group.
+  @param {string} [skip] - Comma-separated handles already in the cart.
+{% enddoc %}
+{%- liquid
+  assign va_shown = 0
+  assign va_limit = limit | default: 4
+  assign va_skip = ',' | append: skip | append: ','
+  assign va_prefix = tag | slice: 0, 11
+-%}
+{%- capture va_cards -%}
+  {%- if va_prefix == 'joy-fit-v1-' -%}
+    {%- for va_batch in (0..2) -%}
+      {%- if va_shown >= va_limit -%}{%- break -%}{%- endif -%}
+      {%- assign va_offset = va_batch | times: 50 -%}
+      {%- for va_item in candidates offset: va_offset limit: 50 -%}
+        {%- liquid
+          if va_shown >= va_limit
+            break
+          endif
+          assign va_handle = ',' | append: va_item.handle | append: ','
+          assign va_type = va_item.type | slice: 0, 2
+          if va_item.id == parent_id or va_skip contains va_handle
+            continue
+          endif
+          unless va_item.available and va_item.published_at != blank and va_type == 'א.' and va_item.featured_media != blank
+            continue
+          endunless
+          unless va_item.tags contains tag
+            continue
+          endunless
+          assign va_shown = va_shown | plus: 1
+        -%}
+        {%- if context == 'cart' -%}
+          {%- render 'cart-upsell-card', accessory: va_item -%}
+        {%- else -%}
+          {%- render 'product-addons-card', accessory: va_item -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+{{- va_shown -}}|||{{- va_cards -}}

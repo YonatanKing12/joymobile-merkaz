@@ -80,9 +80,29 @@
     the page through section rendering after a cart change, and a <script> inserted that way never
     executes — a cart that started empty would print the block and leave it hidden forever.
   {%- endcomment -%}
+  {%- liquid
+    assign cu_direct = false
+    if cu_anchor.metafields.custom.joy_addon_products.type == 'list.product_reference'
+      assign cu_direct = true
+    endif
+  -%}
+  {%- capture cu_direct_cards -%}
+    {%- if cu_direct -%}
+      {%- assign cu_direct_queries = cu_queries | split: '|||' -%}
+      {%- for cu_direct_query in cu_direct_queries -%}
+        {%- assign cu_direct_tag = cu_direct_query | remove_first: 'tag:' -%}
+        {%- capture cu_direct_result -%}
+          {%- render 'verified-addon-cards', candidates: cu_anchor.metafields.custom.joy_addon_products.value, tag: cu_direct_tag, parent_id: cu_anchor.id, context: 'cart', limit: 8, skip: cu_skip -%}
+        {%- endcapture -%}
+        {%- assign cu_direct_prefix = cu_direct_result | split: '|||' | first | append: '|||' -%}
+        {{- cu_direct_result | remove_first: cu_direct_prefix -}}
+      {%- endfor -%}
+    {%- endif -%}
+  {%- endcapture -%}
   {%- if cu_queries != blank -%}
     <cart-upsell
       class="cu cu--{{ cu_context }}"
+      data-cu-managed="{{ cu_direct }}"
       data-cu-queries="{{ cu_queries | escape }}"
       data-cu-skip="{{ cu_skip | escape }}"
       data-cu-limit="4"
@@ -94,7 +114,7 @@
         <h2 class="cu__heading">{{ 'cart.upsell.heading' | t }}</h2>
         <p class="cu__sub">{{ 'cart.upsell.sub' | t }}</p>
       </div>
-      <ul class="cu__list" role="list" data-cu-list></ul>
+      <ul class="cu__list" role="list" data-cu-list>{{ cu_direct_cards }}</ul>
     </cart-upsell>
   {%- endif -%}
 {%- endif -%}

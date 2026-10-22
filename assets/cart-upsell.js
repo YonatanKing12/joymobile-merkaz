@@ -1,6 +1,7 @@
 /* "להשלים את הערכה" inside the cart — snippets/cart-upsell + sections/cart-upsell.
  *
- * The shell carries one or two search queries derived from the cart's anchor line. The tiles are the
+ * Reviewed devices arrive with available product-reference cards already rendered by Liquid.
+ * Legacy shells carry one or two search queries derived from the cart's anchor line. The tiles are the
  * results section rendered against /search, so the matching happens in Shopify's index over the
  * whole catalogue rather than in Liquid over a collection the page cannot filter.
  *
@@ -97,11 +98,21 @@ class CartUpsell extends HTMLElement {
     const picked = [];
     const seen = new Set();
     const { signal } = this.controller;
+    const direct = this.dataset.cuManaged === 'true';
+    if (direct) {
+      for (const li of this.list.querySelectorAll('[data-cu-item]')) {
+        const handle = li.dataset.cuHandle;
+        if (picked.length >= this.limit) break;
+        if (this.skip.has(handle) || seen.has(handle)) continue;
+        seen.add(handle);
+        picked.push({ handle, variant: li.dataset.cuVariant, html: li.outerHTML });
+      }
+    }
     /* Queries in order, each topping the row up: the first is what nearly everyone adds, and the
        second only matters when the first does not fill it. A query that would add nothing is still
        asked for once and kept, which is what makes the next render free. */
     try {
-      for (const query of this.queries) {
+      for (const query of direct ? [] : this.queries) {
         if (picked.length >= this.limit) break;
         for (const item of await search(query, signal)) {
           if (picked.length >= this.limit) break;

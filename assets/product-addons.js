@@ -7,7 +7,8 @@
  * badge — on the section root because the buttons themselves are re-rendered on every variant change.
  * Only when the device is sold out does this element add on its own (its standalone button).
  *
- * Each panel carries a search query. The panel's tiles are the same section rendered against
+ * Reviewed products render available native product references on the server and mark their panels
+ * loaded. Legacy panels carry a search query. The panel's tiles are the same section rendered against
  * /search for that query, so the matching happens in Shopify's search index over the whole
  * catalogue instead of in Liquid over a collection the page cannot filter.
  *
@@ -106,6 +107,7 @@ class ProductAddons extends HTMLElement {
       const list = panel.querySelector('[data-pa-list]');
       if (list) this.rowObserver.observe(list);
     });
+    this.prune();
     this.refresh();
   }
 
