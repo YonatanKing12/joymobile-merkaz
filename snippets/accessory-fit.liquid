@@ -28,10 +28,20 @@
 
   @param {string} title - The accessory's title.
   @param {string} terms - The search terms (search.terms).
+  @param {string[]} [tags] - Product tags; required for a verified compatibility query.
 
   @example
   {%- capture fit -%}{%- render 'accessory-fit', title: item.title, terms: search.terms -%}{%- endcapture -%}
 {% enddoc %}
+{%- liquid
+  assign af_verified_prefix = 'tag:joy-fit-v1-'
+  assign af_prefix_size = af_verified_prefix | size
+  assign af_query_prefix = terms | slice: 0, af_prefix_size
+-%}
+{%- if af_query_prefix == af_verified_prefix -%}
+  {%- assign af_exact_tag = terms | remove_first: 'tag:' -%}
+  {%- if tags contains af_exact_tag -%}fit{%- endif -%}
+{%- else -%}
 {%- liquid
   assign af_digits = '0,1,2,3,4,5,6,7,8,9' | split: ','
   assign af_groups = 'כיסוי ,מגן מסך ' | split: ','
@@ -249,3 +259,5 @@
     echo 'fit'
   endif
 -%}
+
+{%- endif -%}
