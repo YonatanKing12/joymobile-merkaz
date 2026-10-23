@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__joymobile-dashboard",
+      "mcp__claude-code-remote",
+      "mcp__Neon__run_sql",
+      "mcp__Neon__run_sql_transaction",
+      "mcp__Neon__explain_sql_statement",
+      "mcp__Neon__describe_project",
+      "mcp__Neon__describe_branch",
+      "mcp__Neon__describe_table_schema",
+      "mcp__Neon__get_database_tables",
+      "mcp__Neon__list_organizations",
+      "mcp__Neon__list_projects",
+      "mcp__Neon__list_branches",
+      "mcp__Neon__get_branch",
+      "mcp__Neon__list_branch_computes",
+      "mcp__Neon__list_postgres_databases",
+      "mcp__Neon__get_postgres_endpoint",
+      "mcp__Neon__list_slow_queries",
+      "mcp__Neon__list_operations",
+      "mcp__Neon__get_operation",
+      "mcp__Render__get_service",
+      "mcp__Render__list_services",
+      "mcp__Render__list_logs",
+      "mcp__Render__list_log_label_values",
+      "mcp__Render__list_events",
+      "mcp__Render__get_metrics",
+      "mcp__Render__list_deploys",
+      "mcp__Render__get_deploy",
+      "mcp__Render__list_workspaces",
+      "mcp__Render__select_workspace",
+      "mcp__Render__get_selected_workspace",
+      "mcp__github__get_file_contents",
+      "mcp__github__list_commits",
+      "mcp__github__get_commit",
+      "mcp__github__pull_request_read",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}
