@@ -4,13 +4,12 @@
   focus trap, Escape, overlay click, scroll lock and focus return come from global.js.
   Every cart mutation re-renders this section through bundled section rendering, so all
   markup and prices come from Liquid (cart.js swaps the element's children and class).
-  Content: lines (snippets/cart-line) inside <cart-items>, the pickup-in-Eilat / payment
-  message (theme setting), the reservation conditions (section setting), the optional
+  Content: lines (snippets/cart-line) inside <cart-items>, the delivery message (theme setting
+  cart_pickup_message, a legacy id), the order conditions (section setting), the optional
   required 90-day consent (theme setting, off by default; saved as a cart attribute on change), the order note, the total and the
-  green "המשך לשריון" checkout button (a POST to /cart with `checkout`, so the note and the
-  consent are saved on the way), plus app blocks. Also the pickup-branch choice after the pickup
-  message (snippets/branch-picker, only when Shopify reports two or more branches holding every
-  line) and, under the checkout area, the "לשריון דרך וואטסאפ" link (snippets/cart-whatsapp,
+  green "המשך לתשלום" checkout button (a POST to /cart with `checkout`, so the note and the
+  consent are saved on the way), plus app blocks. The national store has no pickup, so there is
+  no branch choice. Under the checkout area, the WhatsApp order link (snippets/cart-whatsapp,
   section setting). Without JS the header cart link simply opens /cart.
   Above the sticky totals, at the end of the scrolling part, the coupon field (snippets/cart-discount,
   theme setting, JavaScript only; codes applied and removed through /cart/update.js, shown as chips).
@@ -94,9 +93,8 @@
         </ul>
 
         {%- comment -%}
-          Pickup only, pay at the branch or online: said right under the lines, before the accessory row
-          that appears a moment later, so the one thing that differs from an ordinary shop is never
-          pushed out of sight.
+          The delivery terms: said right under the lines, before the accessory row that appears a
+          moment later, so they are never pushed out of sight.
         {%- endcomment -%}
         {%- if pickup_message != blank -%}
           <div class="cart-drawer__notice">
@@ -114,8 +112,6 @@
         {%- endfor -%}
 
         <form class="cart-drawer__form" action="{{ routes.cart_url }}" method="post" id="CartDrawer-Form" accept-charset="UTF-8">
-          {%- render 'branch-picker', context: 'drawer', class: 'cart-drawer__branch' -%}
-
           {%- if section.settings.conditions != blank -%}
             <div class="cart-drawer__conditions rte">{{ section.settings.conditions }}</div>
           {%- endif -%}
@@ -256,13 +252,13 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "הודעת האיסוף, הערת ההזמנה, תיבת האישור לתנאי 90 הימים, שדה קוד הקופון ותיבת ההסכמה לדיוור נקבעים בהגדרות התבנית › עגלה (משותפים לעמוד העגלה)."
+      "content": "הודעת המשלוח, הערת ההזמנה, תיבת האישור לתנאי 90 הימים, שדה קוד הקופון ותיבת ההסכמה לדיוור נקבעים בהגדרות התבנית › עגלה (משותפים לעמוד העגלה)."
     },
     {
       "type": "richtext",
       "id": "conditions",
-      "label": "תנאי השריון",
-      "default": "<p>ההזמנות באתר הן לשריון ואיסוף עצמי מסניפי JOY Mobile באילת, במחירי אילת ללא מע״מ. האיסוף בהצגת תעודה מזהה, וההזמנה ממתינה בסניף עד 21 ימי עסקים.</p>"
+      "label": "תנאי ההזמנה",
+      "default": "<p>ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪. כל המחירים כוללים מע״מ.</p>"
     },
     {
       "type": "checkbox",
@@ -286,8 +282,8 @@
     {
       "type": "checkbox",
       "id": "show_whatsapp",
-      "label": "שריון דרך וואטסאפ",
-      "info": "קישור מתחת לכפתור השריון שפותח וואטסאפ עם רשימת המוצרים, הסכום והסניף שנבחר. מוצג רק כשמספר הוואטסאפ מוגדר בהגדרות התבנית.",
+      "label": "הזמנה דרך וואטסאפ",
+      "info": "קישור מתחת לכפתור התשלום שפותח וואטסאפ עם רשימת המוצרים והסכום. מוצג רק כשמספר הוואטסאפ מוגדר בהגדרות התבנית.",
       "default": true
     },
     {

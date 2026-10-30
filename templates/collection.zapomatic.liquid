@@ -1,8 +1,10 @@
 {%- layout none -%}
 {%- comment -%}
   Zap (zapomatic) product feed for one collection, 250 products per page
-  (?page=N). Only in-stock products with a price are listed. Pickup only,
-  so shipping is 0. Linked from templates/list-collections.zapomatic-mirror.liquid.
+  (?page=N). Only in-stock products with a price are listed. SHIPMENT_COST 0 and
+  delivery 1 day were set when the store was pickup only; the national store ships
+  (24 ₪, free from 3,000 ₪, up to 7 business days), so these values await the owner's
+  decision. Linked from templates/list-collections.zapomatic-mirror.liquid.
   The XML is echoed as strings: the theme's HTML parser rejects these tags.
 {%- endcomment -%}
 {%- liquid

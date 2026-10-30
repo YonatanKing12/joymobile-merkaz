@@ -458,7 +458,6 @@
       "subtotal": "סה״כ מוצרים",
       "total": "סה״כ לתשלום",
       "tax_free": "כל המחירים כוללים מע״מ",
-      "pickup_from": "איסוף מהסניף: {{ address }}",
       "consent_error": "יש לסמן את התיבה כדי להמשיך לתשלום",
       "consent_attribute": "אישור תנאי הרכישה",
       "vat_consent_attribute": "אישור תנאי הפטור ממע״מ",
@@ -480,19 +479,11 @@
       "codes_label": "קודי הקופון בעגלה",
       "inapplicable": "לא מתאים לסל"
     },
-    "branch": {
-      "attribute": "סניף לאיסוף",
-      "legend": "באיזה סניף נוח לכם לאסוף?",
-      "optional": "(לא חובה)",
-      "hint": "כל המוצרים שבעגלה זמינים לאיסוף בסניפים האלה.",
-      "none": "ללא העדפה"
-    },
     "whatsapp": {
       "label": "להזמנה דרך וואטסאפ",
       "intro": "היי, אשמח להזמין:",
       "line_html": "\u200f{{ quantity }} × {{ title }}\u200e{{ variant }} · {{ price }}",
-      "total_html": "סה״כ: {{ total }}",
-      "branch_html": "סניף לאיסוף: {{ branch }}"
+      "total_html": "סה״כ: {{ total }}"
     }
   },
   "search": {

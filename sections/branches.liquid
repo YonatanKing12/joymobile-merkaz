@@ -1,5 +1,5 @@
 {%- comment -%}
-  Branches + pickup facts (anchor id "branches", so any link can point to
+  Branches + optional fact cards (anchor id "branches", so any link can point to
   <page>#branches). Konimbo's branches page stacked 5 branches, each with a name,
   services line, address, hours and an eagerly loaded Google Maps iframe; here every
   branch is a card (snippets/branch-card.liquid).
@@ -10,7 +10,7 @@
   Entries are ordered by their "סדר הצגה" field (snippets/branch-order.liquid). Only when the
   store has no active entry does the section fall back to its own `branch` blocks
   (templates/page.branches.json and page.contact.json hold the five locations), so the page
-  never goes empty. The pickup facts are always blocks.
+  never goes empty. The fact cards are always blocks (none on the national store: it has no pickup).
 
   Maps: the address builds a Google Maps link and a Waze link; the embedded map loads only
   when the visitor opens it (<branch-map> below copies the frame's data-src on the
@@ -224,7 +224,7 @@
 
 {% schema %}
 {
-  "name": "סניפים ואיסוף",
+  "name": "סניפים",
   "class": "section-branches",
   "disabled_on": {
     "groups": [
@@ -252,7 +252,7 @@
       "type": "richtext",
       "id": "intro",
       "label": "טקסט פתיחה",
-      "default": "<p>משריינים באתר ואוספים באחד הסניפים באילת, במחירי אילת ללא מע״מ.</p>"
+      "default": "<p>סניפי JOY Mobile באילת, למכירה, תצוגה ושירות במקום. ההזמנות באתר נשלחות עד הבית.</p>"
     },
     {
       "type": "checkbox",
@@ -264,8 +264,8 @@
     {
       "type": "text",
       "id": "facts_heading",
-      "label": "כותרת עובדות האיסוף",
-      "default": "איך אוספים הזמנה"
+      "label": "כותרת העובדות",
+      "default": "חשוב לדעת"
     },
     {
       "type": "header",
@@ -424,7 +424,7 @@
           "type": "text",
           "id": "services",
           "label": "שירותים",
-          "default": "מכירה · איסוף הזמנות"
+          "default": "מכירה · שירות"
         },
         {
           "type": "text",
@@ -478,7 +478,7 @@
     },
     {
       "type": "fact",
-      "name": "עובדת איסוף",
+      "name": "עובדה",
       "limit": 6,
       "settings": [
         {
@@ -537,34 +537,10 @@
   ],
   "presets": [
     {
-      "name": "סניפים ואיסוף",
+      "name": "סניפים",
       "blocks": [
         {
           "type": "branch"
-        },
-        {
-          "type": "fact",
-          "settings": {
-            "icon": "clock",
-            "title": "נודיע כשההזמנה מוכנה",
-            "text": "כשההזמנה מחכה לכם בסניף תקבלו הודעה, ואז אפשר לבוא לאסוף."
-          }
-        },
-        {
-          "type": "fact",
-          "settings": {
-            "icon": "account",
-            "title": "חובה להציג תעודה מזהה",
-            "text": "האיסוף מתבצע על ידי הרוכש/ת, בהצגת תעודה מזהה."
-          }
-        },
-        {
-          "type": "fact",
-          "settings": {
-            "icon": "store",
-            "title": "נשמר עד 21 ימי עסקים",
-            "text": "ההזמנה ממתינה לכם בסניף עד 21 ימי עסקים."
-          }
         }
       ]
     }

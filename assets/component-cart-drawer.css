@@ -319,10 +319,6 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   margin: 0;
 }
 
-.cart-drawer__branch {
-  margin: var(--space-sm) var(--space-md) 0;
-}
-
 .cart-drawer__conditions {
   margin: var(--space-sm) var(--space-md) 0;
   color: var(--color-muted);

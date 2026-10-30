@@ -22,11 +22,11 @@
     the render: prices follow the POS and have no end date, and a rolling date never goes
     stale in a cached page), availability (InStock / OutOfStock), itemCondition, url with
     ?variant=, sku, the GTIN, the seller (the Organization), the return policy, and
-    availableAtOrFrom = every branch, as a reference to its store node by the same @id
-    (<origin>/#store-<id>, snippets/branch-json; the ids are read from
-    snippets/branches-json, so a branch added there is offered here too). With the theme
-    setting schema_pickup_only (on by default: JOY Mobile Eilat is pickup only) also
-    availableDeliveryMethod OnSitePickup and shippingDetails with doesNotShip to IL.
+    only with the theme setting schema_pickup_only (off by default; the national store
+    ships and has no pickup): availableAtOrFrom = every branch, as a reference to its store
+    node by the same @id (<origin>/#store-<id>, snippets/branch-json; the ids are read from
+    snippets/branches-json), availableDeliveryMethod OnSitePickup and shippingDetails with
+    doesNotShip to IL.
     A single-variant product also carries its GTIN.
     - color: the selected variant's value of the colour option (the option names snippets/swatches
       reads), else, without a colour option, the colour words of the title in title order
@@ -324,7 +324,7 @@
               "priceValidUntil": {{ ld_price_valid_until | json }},
               "seller": {{ ld_seller }},
               "hasMerchantReturnPolicy": {{ return_policy_json }}
-              {%- if ld_stores != blank -%},"availableAtOrFrom": [{{ ld_stores }}]{%- endif -%}
+              {%- if ld_stores != blank and settings.schema_pickup_only -%},"availableAtOrFrom": [{{ ld_stores }}]{%- endif -%}
               {%- if settings.schema_pickup_only -%}
                 ,"availableDeliveryMethod": "https://schema.org/OnSitePickup",
                 "shippingDetails": {"@type":"OfferShippingDetails","doesNotShip":true,"shippingDestination":{"@type":"DefinedRegion","addressCountry":"IL"}}

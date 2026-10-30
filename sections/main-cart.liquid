@@ -18,13 +18,11 @@
   [data-line-error], stable ids so focus survives the re-render).
 
   Look: the Konimbo order page (#fcfcfc boxes with 1px #ccc borders, the centred
-  pickup notice) rebuilt as a cart: lines, quantity stepper, remove, totals, the
-  pickup-in-Eilat / pay-online-or-at-the-branch message, the pickup-branch choice
-  (snippets/branch-picker, only when Shopify reports two or more branches holding every
-  line), reservation conditions (plain text by default; an optional required checkbox that
+  notice) rebuilt as a cart: lines, quantity stepper, remove, totals, the delivery
+  message (theme setting cart_pickup_message, a legacy id; the national store has no
+  pickup), order conditions (plain text by default; an optional required checkbox that
   stays on this page, because Shopify checkout on the Basic plan cannot enforce it), note,
-  checkout button "המשך לשריון", the "לשריון דרך וואטסאפ" link (snippets/cart-whatsapp)
-  and @app blocks.
+  checkout button, the WhatsApp order link (snippets/cart-whatsapp) and @app blocks.
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
 {{ 'section-main-cart.css' | asset_url | stylesheet_tag }}
@@ -49,14 +47,6 @@
     endif
   endfor
 
-  assign pickup_address = settings.store_street | strip
-  assign pickup_city = settings.store_city | strip
-  if pickup_city != blank
-    if pickup_address != blank
-      assign pickup_address = pickup_address | append: ', '
-    endif
-    assign pickup_address = pickup_address | append: pickup_city
-  endif
 
   assign condition_count = 0
   for block in section.blocks
@@ -226,21 +216,14 @@
             </p>
           {%- endif -%}
 
-          {%- if settings.cart_pickup_message != blank or pickup_address != blank -%}
+          {%- if settings.cart_pickup_message != blank -%}
             <div class="cart-summary__pickup">
               {%- render 'icon', name: 'store', size: 24, class: 'cart-summary__pickup-icon' -%}
               <div class="cart-summary__pickup-text">
-                {%- if settings.cart_pickup_message != blank -%}
-                  <p class="cart-summary__pickup-title">{{ settings.cart_pickup_message }}</p>
-                {%- endif -%}
-                {%- if pickup_address != blank -%}
-                  <p class="cart-summary__pickup-address">{{ 'cart.page.pickup_from' | t: address: pickup_address }}</p>
-                {%- endif -%}
+                <p class="cart-summary__pickup-title">{{ settings.cart_pickup_message }}</p>
               </div>
             </div>
           {%- endif -%}
-
-          {%- render 'branch-picker', context: 'page', form: cart_form_id, class: 'cart-summary__branch' -%}
 
           {%- if condition_count > 0 -%}
             <div class="cart-conditions">
@@ -397,13 +380,13 @@
       "type": "text",
       "id": "checkout_label",
       "label": "טקסט הכפתור",
-      "default": "המשך לשריון"
+      "default": "המשך לתשלום"
     },
     {
       "type": "inline_richtext",
       "id": "checkout_note",
       "label": "הסבר מתחת לכפתור",
-      "default": "בשלב הבא ממלאים פרטים ובוחרים איך לשלם: באתר, בתשלום מאובטח, או בסניף בעת האיסוף."
+      "default": "בשלב הבא ממלאים כתובת למשלוח ומשלמים בתשלום מאובטח."
     },
     {
       "type": "checkbox",
@@ -414,8 +397,8 @@
     {
       "type": "checkbox",
       "id": "show_whatsapp",
-      "label": "שריון דרך וואטסאפ",
-      "info": "קישור מתחת לכפתור השריון שפותח וואטסאפ עם רשימת המוצרים, הסכום והסניף שנבחר. מוצג רק כשמספר הוואטסאפ מוגדר בהגדרות התבנית.",
+      "label": "הזמנה דרך וואטסאפ",
+      "info": "קישור מתחת לכפתור התשלום שפותח וואטסאפ עם רשימת המוצרים והסכום. מוצג רק כשמספר הוואטסאפ מוגדר בהגדרות התבנית.",
       "default": true
     },
     {
@@ -427,17 +410,17 @@
     },
     {
       "type": "header",
-      "content": "תנאי השריון"
+      "content": "תנאי ההזמנה"
     },
     {
       "type": "paragraph",
-      "content": "כל תנאי הוא בלוק מסוג 'תנאי שריון'. ההודעה בראש העגלה היא בלוק מסוג 'הודעה בראש העגלה'. טקסט האיסוף והתשלום, ההערה להזמנה, תיבת האישור לתנאי 90 הימים, שדה קוד הקופון ותיבת ההסכמה לדיוור נקבעים בהגדרות התבנית › עגלה."
+      "content": "כל תנאי הוא בלוק מסוג 'תנאי הזמנה'. ההודעה בראש העגלה היא בלוק מסוג 'הודעה בראש העגלה'. טקסט המשלוח, ההערה להזמנה, תיבת האישור לתנאי 90 הימים, שדה קוד הקופון ותיבת ההסכמה לדיוור נקבעים בהגדרות התבנית › עגלה."
     },
     {
       "type": "text",
       "id": "conditions_heading",
       "label": "כותרת התנאים",
-      "default": "תנאי השריון והאיסוף"
+      "default": "משלוח והזמנה"
     },
     {
       "type": "checkbox",
@@ -450,7 +433,7 @@
       "type": "inline_richtext",
       "id": "consent_label",
       "label": "נוסח תיבת האישור",
-      "default": "קראתי ואני מאשר/ת את תנאי השריון והאיסוף"
+      "default": "קראתי ואני מאשר/ת את תנאי הרכישה והמשלוח"
     },
     {
       "type": "header",
@@ -602,13 +585,13 @@
           "type": "richtext",
           "id": "text",
           "label": "טקסט",
-          "default": "<p><strong>חשוב לדעת:</strong> ההזמנות באתר הן לשריון ואיסוף עצמי מסניפי JOY Mobile באילת, במחירי אילת ללא מע״מ.</p>"
+          "default": "<p><strong>חשוב לדעת:</strong> ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪. כל המחירים כוללים מע״מ.</p>"
         }
       ]
     },
     {
       "type": "condition",
-      "name": "תנאי שריון",
+      "name": "תנאי הזמנה",
       "limit": 10,
       "settings": [
         {

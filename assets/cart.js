@@ -76,8 +76,8 @@ export function changeLine({ key, line, quantity }) {
   });
 }
 
-// `render`: also re-render the cart sections, for a value the Liquid prints elsewhere (the pickup
-// branch goes into the WhatsApp message). Off for the note and the consents, which nothing else shows.
+// `render`: also re-render the cart sections, for an attribute inside a [data-cart-render] element whose
+// value the Liquid prints elsewhere. Off for the note and the consents, which nothing else shows.
 const update = (body, source, render = false) => serial(async () => {
   const cart = await postJSON(`${routes.cart_update}.js`, render ? { ...body, sections: sectionIds(), sections_url: location.pathname } : body);
   if (render) renderSections(cart.sections);
@@ -85,7 +85,7 @@ const update = (body, source, render = false) => serial(async () => {
   return cart;
 });
 export const updateNote = (note) => update({ note }, 'note');
-// Cart attributes, e.g. the consent checkboxes or the pickup branch ('' removes one): saved on change,
+// Cart attributes, e.g. the consent checkboxes ('' removes one): saved on change,
 // so a re-render keeps the choice.
 export const updateAttributes = (attributes, { render = false } = {}) => update({ attributes }, 'attributes', render);
 

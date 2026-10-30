@@ -4,10 +4,11 @@
   data is not printed.
 
   part 'lines' — the info lines under the buy buttons:
-  - stock (`[data-swap="availability"]`, inside a polite live region): "במלאי · מוכן לאיסוף",
+  - stock (`[data-swap="availability"]`, inside a polite live region): the in-stock text,
     "נותרו N יחידות במלאי" (tracked stock at or under the threshold), "זמין בהזמנה
     מוקדמת" (overselling allowed) or "אזל מהמלאי";
-  - pickup: the label, the address from the theme settings (store_street, store_city) and a note;
+  - delivery (params still named pickup_*): the label, the address from the theme settings
+    (store_street, store_city, off on the national store) and a note;
   - warranty: `custom.warranty_months` and the import channel from snippets/import-channel,
     the only place that decides "יבואן רשמי" (fallback text optional);
   - payment note;

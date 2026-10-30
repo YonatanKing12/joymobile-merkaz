@@ -1,8 +1,8 @@
 {% doc %}
-  "לשריון דרך וואטסאפ": a secondary link under the cart's checkout button that opens WhatsApp with
-  the whole cart written out for the branch: every line (quantity × title and variant, line price,
-  product link), the total, and the pickup branch when one was chosen (snippets/branch-picker). A
-  shopper who would rather not pay online, or wants a person to confirm first, can still reserve.
+  "להזמנה דרך וואטסאפ": a secondary link under the cart's checkout button that opens WhatsApp with
+  the whole cart written out for the store: every line (quantity × title and variant, line price,
+  product link) and the total. A shopper who would rather not pay online, or wants a person to
+  confirm first, can still order.
   Built in Liquid on purpose: every cart change re-renders the drawer and the cart page, so the
   message is always the current cart without a line of script. Prints nothing when the theme has no
   WhatsApp number (snippets/whatsapp-url) or the cart is empty.
@@ -19,9 +19,7 @@
 {%- if cart.item_count > 0 -%}
   {%- capture cw_nl %}
 {% endcapture -%}
-  {%- capture cw_branch -%}{%- render 'branch-picker', part: 'chosen' -%}{%- endcapture -%}
   {%- liquid
-    assign cw_branch = cw_branch | strip
     assign cw_text = 'cart.whatsapp.intro' | t
     for cw_item in cart.items
       assign cw_title = cw_item.product.title | default: cw_item.title
@@ -51,10 +49,6 @@
     assign cw_total = cart.total_price | money_without_trailing_zeros
     assign cw_total_line = 'cart.whatsapp.total_html' | t: total: cw_total
     assign cw_text = cw_text | append: cw_nl | append: cw_nl | append: cw_total_line
-    if cw_branch != blank
-      assign cw_branch_line = 'cart.whatsapp.branch_html' | t: branch: cw_branch
-      assign cw_text = cw_text | append: cw_nl | append: cw_branch_line
-    endif
   -%}
   {%- capture cw_href -%}{%- render 'whatsapp-url', text: cw_text -%}{%- endcapture -%}
   {%- assign cw_href = cw_href | strip -%}
