@@ -132,7 +132,6 @@
         {%- unless product.has_only_default_variant -%}
           <div class="product-block product-block--variants" {{ block.shopify_attributes }}>
             {%- render 'variant-picker', product: product, section_id: section.id, color_style: block.settings.color_style -%}
-            {%- render 'sim-type-notice', product: product, variant: current_variant -%}
           </div>
         {%- endunless -%}
 
