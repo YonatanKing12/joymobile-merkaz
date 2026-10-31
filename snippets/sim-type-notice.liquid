@@ -36,10 +36,9 @@
 
   # "|" is in neither phrase, so a match is always inside one option value.
   assign sim_values = sim_variant.options | join: '|'
+  # The owner (31/10/2026): no note for an eSIM only variant, only the physical SIM + eSIM one.
   assign sim_type = ''
-  if sim_values contains sim_esim_only
-    assign sim_type = 'esim-only'
-  elsif sim_values contains sim_dual
+  if sim_values contains sim_dual
     assign sim_type = 'physical-esim'
   endif
 -%}
