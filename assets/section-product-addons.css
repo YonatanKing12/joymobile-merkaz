@@ -366,16 +366,14 @@ product-addons:has([data-pa-check]:checked) .pa__hint {
    which is the opposite of what an add-on next to the gallery is for.
 
    Native scroll-snap, no script: a touch swipe is the browser's own, it keeps working with JS off,
-   and the keyboard still tabs through the cards in order. The row bleeds to the card's edges and
-   pads back in, so the first card lines up with the heading and the next one peeks in — the peek is
-   what says "there is more", with no arrows to tap. */
+   and the keyboard still tabs through the cards in order. The rows stay inside the box's padding
+   (the owner, 31/10/2026: tiles and pills must not touch the frame), and the next card peeks in —
+   the peek is what says "there is more", with no arrows to tap. */
 @media (max-width: 767px) {
   /* The pills ride on one line too. Four of them wrap on a phone and the fourth lands alone on a
      second row, which reads as a mistake; one scrolling line is the same gesture as the cards. */
   .pa__tabs {
     flex-wrap: nowrap;
-    margin-inline: calc(-1 * var(--space-md));
-    padding-inline: var(--space-md);
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -391,12 +389,9 @@ product-addons:has([data-pa-check]:checked) .pa__hint {
   .pa__list {
     display: flex;
     gap: 0.625rem;
-    margin-inline: calc(-1 * var(--space-md));
-    padding-inline: var(--space-md);
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline-start: var(--space-md);
     scrollbar-width: none;
   }
 
