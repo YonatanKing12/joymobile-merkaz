@@ -120,6 +120,9 @@
   border-radius: 50%;
   object-fit: cover;
   mix-blend-mode: normal;
+  /* The same green ring as the other circles, drawn on the image itself (the disc is hidden under it). */
+  box-sizing: border-box;
+  border: var(--circle-ring-width, 2px) solid var(--circle-ring, var(--color-brand));
 }
 
 /* Owner-supplied frame ("מסגרת לעיגול קטגוריה"), drawn over the whole circle box. */
