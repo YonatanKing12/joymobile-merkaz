@@ -6,7 +6,9 @@
   reduced motion) and the pause toggle. The first slide is the LCP image: eager + fetchpriority=high + a preload (a
   Link header with one image; with separate desktop and mobile images a media-gated pair of <link rel=preload> that
   layout/theme.liquid repeats in <head>); the rest lazy.
-  The slide box takes the first slide's image ratio (desktop and mobile), so nothing shifts when images load.
+  The slide box takes the first slide's image ratio (desktop and mobile), so nothing shifts when images load. Phones: a
+  slide with its own mobile image keeps that image's ratio (--slide-ratio-mobile), so a portrait banner beside landscape
+  ones crops neither; the carousel is as tall as its tallest slide and a shorter slide sits centred in it.
   The page H1 (setting "page_heading") is visually hidden unless "show_page_heading" shows it as a line under the banners.
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
@@ -138,6 +140,12 @@
               assign has_video = true
             endif
 
+            # Phones: the slide's own mobile image ratio, never another slide's (a cover crop would cut its text).
+            assign slide_ratio_mobile = blank
+            if image_mobile != blank
+              assign slide_ratio_mobile = image_mobile.aspect_ratio
+            endif
+
             assign alt = block.settings.alt | default: image_desktop.alt | strip
             assign loading = 'lazy'
             assign priority = 'auto'
@@ -152,7 +160,7 @@
             endif
           -%}
           {%- capture slide_media -%}
-            <div class="hero-slideshow__media">
+            <div class="hero-slideshow__media"{% if slide_ratio_mobile != blank %} style="--slide-ratio-mobile: {{ slide_ratio_mobile }};"{% endif %}>
               {%- if image_desktop == blank -%}
                 <svg class="hero-slideshow__placeholder" viewBox="0 0 1380 288" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
                   <rect width="1380" height="288" fill="currentColor" opacity=".07"/>

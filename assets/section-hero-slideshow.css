@@ -39,6 +39,14 @@
   scroll-snap-stop: always;
 }
 
+/* Phones: slides of different heights (their own ratios) share the tallest one's height; a shorter banner sits
+   centred in it instead of being stretched or cropped (the link, focus ring and overlay follow the banner). */
+@media (max-width: 767px) {
+  .hero-slideshow__slide {
+    align-items: center;
+  }
+}
+
 .hero-slideshow__cover {
   position: relative;
   display: block;
@@ -63,11 +71,12 @@ a.hero-slideshow__cover:focus-visible::after {
   pointer-events: none;
 }
 
-/* The box keeps the first slide's ratio: nothing shifts when images load. */
+/* The box keeps the first slide's ratio: nothing shifts when images load. Phones: a slide's own mobile image ratio
+   when it has one (--slide-ratio-mobile, set on the slide), so banners of different shapes are never cropped. */
 .hero-slideshow__media {
   position: relative;
   overflow: hidden;
-  aspect-ratio: var(--hero-ratio-mobile, 1.28);
+  aspect-ratio: var(--slide-ratio-mobile, var(--hero-ratio-mobile, 1.28));
   background-color: var(--color-surface-alt);
 }
 
