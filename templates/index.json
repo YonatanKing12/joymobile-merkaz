@@ -264,6 +264,14 @@
     "categories": {
       "type": "category-circles",
       "blocks": {
+        "circle-black-november": {
+          "type": "circle",
+          "settings": {
+            "collection": "black-november",
+            "image": "shopify://shop_images/black-november-circle.png",
+            "label": "Black November"
+          }
+        },
         "circle-smartphones": {
           "type": "circle",
           "settings": {
@@ -330,6 +338,7 @@
         }
       },
       "block_order": [
+        "circle-black-november",
         "circle-smartphones",
         "circle-tablets",
         "circle-smartwatches",
