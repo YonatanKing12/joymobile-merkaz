@@ -3,7 +3,9 @@
   Default look is a disc with a 2px ring in the brand green (--color-brand).
   The owner may upload a frame image ("מסגרת לעיגול קטגוריה") that is drawn over every circle box;
   with a frame the ring is dropped, so the two never stack. Collection images are product photos on white, so the
-  image is blended into the disc colour (multiply) and sits inside the disc's inscribed square.
+  image is blended into the disc colour (multiply) and sits inside the disc's inscribed square. A block whose image is
+  already round artwork (e.g. the Black November logo) can turn on "תמונה על כל העיגול": the image then covers the
+  whole disc, clipped to the circle, unblended, and that disc drops its ring so the ring does not cut into the art.
   Per view: 2 (+35px peeks) < 576px, 3 < 768px, 5 at 768, 6 at 992, setting (default 7) at 1200 — the old strip
   showed 7 at every width >= 768 but shrank the circles until the labels covered the images. No autoplay by default
   (the old strip reads as a static row); when the owner turns it on, a pause button is shown.
@@ -92,6 +94,13 @@
               assign circle_label = 'home.categories.placeholder' | t
             endif
             assign circle_url = circle_collection.url | default: routes.collections_url
+            # The fill image is the disc's full size, not its inscribed square (119px on phones, 127px at 1440).
+            assign circle_fill = false
+            assign circle_sizes = '(min-width: 1200px) 110px, (min-width: 768px) 100px, 90px'
+            if block.settings.image_fill and circle_image != blank
+              assign circle_fill = true
+              assign circle_sizes = '(min-width: 1920px) 160px, (min-width: 768px) 140px, 120px'
+            endif
 
             assign circle_loading = 'lazy'
             if forloop.index <= eager_count
@@ -101,14 +110,14 @@
           {%- if circle_collection != blank or block.settings.image != blank or request.design_mode -%}
             <div class="carousel__slide category-circles__slide" role="listitem" {{ block.shopify_attributes }}>
               <a class="category-circles__link" href="{{ circle_url }}">
-                <span class="category-circles__circle">
+                <span class="category-circles__circle{% if circle_fill %} category-circles__circle--fill{% endif %}">
                   <span class="category-circles__disc"></span>
                   <span class="category-circles__media">
                   {%- if circle_image != blank -%}
                     {%- render 'image',
                       image: circle_image,
                       widths: '90,120,180,240,360',
-                      sizes: '(min-width: 1200px) 110px, (min-width: 768px) 100px, 90px',
+                      sizes: circle_sizes,
                       loading: circle_loading,
                       class: 'category-circles__img',
                       decorative: true
@@ -383,6 +392,13 @@
           "id": "label",
           "label": "כיתוב",
           "info": "לא חובה. ברירת המחדל: שם הקטגוריה."
+        },
+        {
+          "type": "checkbox",
+          "id": "image_fill",
+          "label": "תמונה על כל העיגול",
+          "info": "לתמונה עגולה מעוצבת (באנר, לוגו). התמונה ממלאת את כל העיגול, בלי מסגרת ובלי מיזוג בצבע העיגול. כבוי: תמונת מוצר על רקע לבן בתוך העיגול.",
+          "default": false
         }
       ]
     }

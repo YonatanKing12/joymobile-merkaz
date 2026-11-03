@@ -100,6 +100,28 @@
   mix-blend-mode: normal;
 }
 
+/* "תמונה על כל העיגול": round artwork (a logo or banner disc) rather than a product photo on white.
+   The image box takes the disc's own four insets, so the art is exactly the disc's size and position at
+   every width, and the image covers it, clipped to the circle, without the multiply blend. The ring
+   would be drawn on top of the art's edge, so this disc has none; the disc stays underneath for the
+   hover shadow and the focus outline. Two-class selectors so they beat the media box's
+   breakpoint insets below. */
+.category-circles__circle--fill .category-circles__media {
+  inset-inline: 10.85%;
+  top: 20.3%;
+  bottom: 1.4%;
+}
+
+.category-circles__circle--fill .category-circles__disc {
+  border: 0;
+}
+
+.category-circles__circle--fill .category-circles__img {
+  border-radius: 50%;
+  object-fit: cover;
+  mix-blend-mode: normal;
+}
+
 /* Owner-supplied frame ("מסגרת לעיגול קטגוריה"), drawn over the whole circle box. */
 .category-circles--framed .category-circles__circle::before {
   content: "";
