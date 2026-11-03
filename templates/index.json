@@ -268,7 +268,7 @@
           "type": "circle",
           "settings": {
             "collection": "black-november",
-            "image": "shopify://shop_images/black-november-circle.png",
+            "image": "shopify://shop_images/black-november-circle-round.png",
             "label": "Black November"
           }
         },
