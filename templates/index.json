@@ -12,6 +12,22 @@
     "hero": {
       "type": "hero-slideshow",
       "blocks": {
+        "slide_black_november": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/black-november-desktop.png",
+            "image_mobile": "shopify://shop_images/black-november-mobile.png",
+            "alt": "Black November | נובמבר סייל בג׳וי מובייל",
+            "link": "",
+            "video_on_mobile": false,
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
+        },
         "slide_6A4MiP": {
           "type": "slide",
           "settings": {
@@ -142,6 +158,7 @@
         }
       },
       "block_order": [
+        "slide_black_november",
         "slide_6A4MiP",
         "slide_C6EFG3",
         "slide_LxnXfg",
