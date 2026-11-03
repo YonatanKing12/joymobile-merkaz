@@ -16,7 +16,7 @@
           "type": "slide",
           "settings": {
             "image": "shopify://shop_images/black-november-desktop.png",
-            "image_mobile": "shopify://shop_images/black-november-mobile.png",
+            "image_mobile": "shopify://shop_images/black-november-mobile-wide.png",
             "alt": "Black November | נובמבר סייל בג׳וי מובייל",
             "link": "",
             "video_on_mobile": false,
