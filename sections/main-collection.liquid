@@ -115,6 +115,10 @@
         assign banner = images[section.settings.banner_fallback]
       endif
   endcase
+  assign campaign_banner = false
+  if collection.handle == 'black-november' and section.settings.banner_source != 'none'
+    assign campaign_banner = true
+  endif
   if branded_hero
     capture hero_copy
       render 'collection-hero-copy', family: hero_family
@@ -177,6 +181,10 @@
     --pg-cols-mobile: {{ section.settings.columns_mobile }};
     --pg-cols-desktop: {{ section.settings.columns_desktop }};
   }
+  #shopify-section-{{ section.id }} .collection__campaign { margin-block-end: 24px; }
+  #shopify-section-{{ section.id }} .collection__campaign picture,
+  #shopify-section-{{ section.id }} .collection__campaign img { display: block; width: 100%; }
+  #shopify-section-{{ section.id }} .collection__campaign img { height: auto; }
 {%- endstyle -%}
 
 <div class="collection page-width">
@@ -184,7 +192,15 @@
     {%- render 'breadcrumbs', class: 'collection__breadcrumbs' -%}
   {%- endif -%}
 
-  {%- if branded_hero -%}
+  {%- if campaign_banner -%}
+    <div class="collection__campaign" data-collection-hero="black-november">
+      <h1 class="visually-hidden">{{ collection.title | escape }}</h1>
+      <picture>
+        <source media="(max-width: 749px)" srcset="{{ 'black-november-category-mobile-1280x1000.png' | asset_url }}" width="1280" height="1000">
+        <img src="{{ 'black-november-category-desktop-1920x720.png' | asset_url }}" width="1920" height="720" alt="" loading="eager" fetchpriority="high">
+      </picture>
+    </div>
+  {%- elsif branded_hero -%}
     {%- liquid
       assign hero_asset_stem = 'collection-hero-' | append: hero_family
       assign hero_asset = hero_asset_stem | append: '.webp'
@@ -277,7 +293,7 @@
     </div>
   {%- endif -%}
 
-  {%- unless branded_hero -%}
+  {%- unless branded_hero or campaign_banner -%}
   <header class="collection__header">
     <h1 class="collection__title">{{ collection.title | escape }}</h1>
     {%- if desc_top != blank -%}
