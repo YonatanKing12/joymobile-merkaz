@@ -583,12 +583,7 @@
       "settings": {
         "title": "מחשבים וגיימינג",
         "collection": "computers-gaming",
-        "pinned_products": [
-          "ps5-dualsense-white-711719022756",
-          "turtlebeach-rematch-mario-jump-nintendoswitch2-840454402711",
-          "turtlebeach-afterglow-nintendoswitch2-white-840454402353",
-          "razer-viper-v4-pro-8887910085134"
-        ],
+        "pinned_products": [],
         "first_collection": "",
         "first_title_keywords": "Sony | PS5 Pro, Sony | PS5, Nintendo | Switch 2, Xbox | Series X, Microsoft Xbox Series X, Xbox | Series S, Microsoft Xbox Series S, MacBook Neo, Mac mini M6, Meta Quest 3S, Quest 3, Nintendo Switch OLED, RTX 5060",
         "products_limit": 10,
