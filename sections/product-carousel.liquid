@@ -42,30 +42,56 @@
 -%}
 
 {%- comment -%}
-  Five passes, each in its source's order: the pinned products (as picked), then the "show first" collection,
-  then the main collection, the last two with products that have a photo first and the rest only to fill the
-  strip (most of the catalogue has no photo yet). A product already in the strip is not repeated
-  (pc_seen holds ",id," for each). Every card of the strip is counted (the arrows depend on the total), only
-  the first pc_initial are printed.
+  Passes, each in its source's order: the pinned products (as picked); then, when "title keywords first" is
+  set, one pass per keyword over the "show first" collection (the main one when there is none) with the
+  products whose title contains that keyword (any case), so keyword order is display order and a product
+  goes with the first keyword it contains (it is already in the strip by the time a later keyword comes);
+  then the rest of the "show first" collection, then the main collection. Every pass after the pinned one
+  takes products with a photo first and the rest only after them (most of the catalogue has no photo yet).
+  A product already in the strip is not repeated (pc_seen holds ",id," for each). Every card of the strip is
+  counted (the arrows depend on the total), only the first pc_initial are printed.
+  pc_plan lists the passes as "source:keyword index:photo" (photo 1 = with a photo, 0 = without, a = any).
 {%- endcomment -%}
 {%- liquid
   assign pc_pinned = section.settings.pinned_products
   assign pc_first = section.settings.first_collection
   assign pc_seen = ','
+
+  assign pc_keywords = section.settings.first_title_keywords | downcase | split: ','
+  assign pc_kw_source = pc_collection.products
+  if pc_first != blank
+    assign pc_kw_source = pc_first.products
+  endif
+  assign pc_plan = 'pin:0:a'
+  for pc_kw_raw in pc_keywords
+    assign pc_kw = pc_kw_raw | strip
+    if pc_kw != blank
+      assign pc_kw_index = forloop.index0
+      assign pc_plan = pc_plan | append: '|kw:' | append: pc_kw_index | append: ':1|kw:' | append: pc_kw_index | append: ':0'
+    endif
+  endfor
+  assign pc_plan = pc_plan | append: '|first:0:1|first:0:0|main:0:1|main:0:0' | split: '|'
 -%}
 {%- capture pc_slides -%}
-  {%- for pc_pass in (1..5) -%}
+  {%- for pc_step in pc_plan -%}
     {%- liquid
+      assign pc_step_parts = pc_step | split: ':'
+      assign pc_step_source = pc_step_parts[0]
+      assign pc_step_photo = pc_step_parts[2]
+      assign pc_kw = ''
       assign pc_source = nil
-      case pc_pass
-        when 1
+      case pc_step_source
+        when 'pin'
           assign pc_source = pc_pinned
-        when 2, 3
+        when 'kw'
+          assign pc_source = pc_kw_source
+          assign pc_kw_index = pc_step_parts[1] | plus: 0
+          assign pc_kw = pc_keywords[pc_kw_index] | strip
+        when 'first'
           assign pc_source = pc_first.products
         else
           assign pc_source = pc_collection.products
       endcase
-      assign pc_photo_pass = pc_pass | modulo: 2
     -%}
     {%- if pc_source == blank -%}
       {%- continue -%}
@@ -85,14 +111,18 @@
         if section.settings.photos_only and card_product.featured_media == blank
           continue
         endif
-        # Passes 2 and 4 take products with a photo, 3 and 5 the rest; pass 1 keeps the picked order.
-        if pc_pass > 1
-          if pc_photo_pass == 0 and card_product.featured_media == blank
+        # Photo passes ("1") take products with a photo, the others ("0") the rest; the pinned pass keeps the picked order.
+        if pc_step_photo == '1' and card_product.featured_media == blank
+          continue
+        endif
+        if pc_step_photo == '0' and card_product.featured_media != blank
+          continue
+        endif
+        if pc_kw != blank
+          assign pc_title_lc = card_product.title | downcase
+          unless pc_title_lc contains pc_kw
             continue
-          endif
-          if pc_photo_pass == 1 and card_product.featured_media != blank
-            continue
-          endif
+          endunless
         endif
         assign pc_seen = pc_seen | append: card_product.id | append: ','
         assign pc_count = pc_count | plus: 1
@@ -278,6 +308,12 @@
       "id": "first_collection",
       "label": "קטגוריה שמוצגת ראשונה",
       "info": "המוצרים שלה באים מיד אחרי המוצרים המוצמדים ולפני הקטגוריה הראשית. למשל קטגוריית אייפון 17 ו-18 בקרוסלת הסמארטפונים. מוצר שמופיע בשתיהן מוצג פעם אחת."
+    },
+    {
+      "type": "text",
+      "id": "first_title_keywords",
+      "label": "מילות מפתח בשם המוצר שמוצגות ראשונות",
+      "info": "מופרדות בפסיקים, למשל: iPhone 18 Pro Max, iPhone 18 Pro, iPhone 18. מתוך הקטגוריה שמוצגת ראשונה (או הקטגוריה הראשית כשאין כזו), מוצרים ששמם מכיל מילת מפתח מוצגים מיד אחרי המוצרים המוצמדים, לפי סדר המילים. מוצר משויך למילה הראשונה שהוא מכיל, ולכן מילה ארוכה יותר כמו iPhone 18 Pro צריכה לבוא לפני iPhone 18. ריק = לפי סדר הקטגוריה."
     },
     {
       "type": "range",
