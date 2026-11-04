@@ -279,10 +279,17 @@ button.product-media__frame:focus-visible::after {
   outline-offset: 1px;
 }
 
+/* The photo fills the thumb's own box (inside its 2px frame, 0.5rem air), whole and centred. In WebKit
+   (iOS Safari) height: 100% did not resolve against the button's aspect-ratio height: a portrait photo
+   kept its own height and the box cut it at the bottom, as the main photo once was (see above). */
 .product-media__thumb-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  padding: 0.5rem;
   object-fit: contain;
+  object-position: center;
   mix-blend-mode: multiply;
 }
 
