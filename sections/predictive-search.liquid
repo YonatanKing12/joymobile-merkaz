@@ -8,7 +8,9 @@
   combobox popup: role="listbox" with an aria-label (see sections/header.liquid). So the
   output is listbox content only — groups and options, no free text:
   - "מוצרים": up to 6 products (48px image, title with the match in bold, price via
-    snippets/price, sold-out products last);
+    snippets/price, sold-out products left out), the device that was searched for first, other
+    products next, accessories last (snippets/search-rank over the first 48 results, so the phone is
+    not cut off by its many screen protectors and cases);
   - "מאמרים ועמודים": up to 3 articles/pages as text rows;
   - "כל התוצאות (N)": an option marked [data-all] (not counted as a result).
   No results: a disabled option with the message, then the theme's popular searches as
@@ -35,7 +37,7 @@
   assign ps_content_limit = 3
 -%}
 {%- if search.performed and ps_terms != blank -%}
-  {%- paginate search.results by 24 -%}
+  {%- paginate search.results by 48 -%}
     <span hidden data-announce>
       {%- if search.results_count > 0 -%}
         {{- 'search.predictive.results_count' | t: count: search.results_count -}}
@@ -77,11 +79,24 @@
       {%- if ps_products > 0 -%}
         <div class="predictive-search__group" role="group" aria-label="{{ 'search.predictive.products' | t }}">
           <div class="predictive-search__heading" aria-hidden="true">{{ 'search.predictive.products' | t }}</div>
-          {%- assign shown = 0 -%}
+          {%- liquid
+            assign shown = 0
+            capture ps_rank
+              render 'search-rank', products: search.results, terms: ps_terms, keywords: settings.search_first_title_keywords
+            endcapture
+            assign ps_rank_parts = ps_rank | strip | split: '#'
+            assign ps_steps = ps_rank_parts[0] | split: '|'
+            assign ps_map = ps_rank_parts[1]
+          -%}
+          {%- for ps_step in ps_steps -%}
           {%- for item in search.results -%}
             {%- if item.object_type != 'product' or item.available == false -%}
               {%- continue -%}
             {%- endif -%}
+            {%- assign ps_key = ',' | append: item.id | append: '=' | append: ps_step | append: ',' -%}
+            {%- unless ps_map contains ps_key -%}
+              {%- continue -%}
+            {%- endunless -%}
             {%- if shown >= ps_product_limit -%}
               {%- break -%}
             {%- endif -%}
@@ -120,6 +135,7 @@
                 {%- endif -%}
               </span>
             </a>
+          {%- endfor -%}
           {%- endfor -%}
         </div>
       {%- endif -%}

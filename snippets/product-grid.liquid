@@ -16,6 +16,10 @@
   not a price or date order: the category's default (manual, best-selling) or search relevance.
   The page holds the same products either way, so pagination and "load more" are unchanged.
 
+  `rank`: search results only, the output of snippets/search-rank ("<steps>#<map>"): one pass per group in its
+  order (the searched device first, then other products, accessories last), photos first inside each group when
+  `photos_first` is set too.
+
   Classes: .product-grid, .product-grid__item.
 
   @param {object} products - Array of products for the current page.
@@ -25,6 +29,7 @@
   @param {string} [id] - id of the list.
   @param {string} [label] - Accessible name of the list.
   @param {boolean} [photos_first] - Products with a photo first within the page. Default false.
+  @param {string} [rank] - Search order groups from snippets/search-rank. Default none (the given order).
 
   @example
   {% render 'product-grid', products: collection.products, section_id: section.id, eager: 4, heading: 'h3' %}
@@ -37,6 +42,13 @@
     assign pg_passes = 2
   endif
   assign pg_index = 0
+  assign pg_steps = 'all' | split: '|'
+  assign pg_map = ''
+  if rank != blank
+    assign pg_rank_parts = rank | strip | split: '#'
+    assign pg_steps = pg_rank_parts[0] | split: '|'
+    assign pg_map = pg_rank_parts[1]
+  endif
 -%}
 <ul
   class="product-grid"
@@ -49,11 +61,18 @@
     aria-label="{{ label | escape }}"
   {% endif %}
 >
+  {%- for pg_step in pg_steps -%}
   {%- for pg_pass in (1..pg_passes) -%}
     {%- for product in products -%}
       {%- liquid
         if product.available == false
           continue
+        endif
+        if pg_step != 'all'
+          assign pg_key = ',' | append: product.id | append: '=' | append: pg_step | append: ','
+          unless pg_map contains pg_key
+            continue
+          endunless
         endif
         if pg_passes == 2
           if pg_pass == 1 and product.featured_media == blank
@@ -79,5 +98,6 @@
         -%}
       </li>
     {%- endfor -%}
+  {%- endfor -%}
   {%- endfor -%}
 </ul>

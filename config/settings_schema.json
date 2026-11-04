@@ -997,6 +997,13 @@
         "label": "חיפושים פופולריים",
         "info": "מופרדים בפסיקים; מוצגים כשתיבת החיפוש ריקה.",
         "default": "אייפון, סמסונג, אוזניות, מחשב נייד, שעון חכם, טאבלט, מטען, רחפן"
+      },
+      {
+        "type": "textarea",
+        "id": "search_first_title_keywords",
+        "label": "דגמים שמוצגים ראשונים בחיפוש",
+        "info": "מופרדים בפסיקים, מהחדש לישן. בתוצאות החיפוש ובהצעות שבתיבת החיפוש המכשיר שחיפשו מוצג לפני מוצרים אחרים ואביזרים, ומבין המכשירים קודם אלה ששמם מכיל דגם מהרשימה, לפי סדר הרשימה (מכשיר משויך לדגם הארוך ביותר שבשמו).",
+        "default": "iPhone 18 Pro Max, iPhone 18 Pro, iPhone 18 Air, iPhone 18, iPhone Air, iPhone 17 Pro Max, iPhone 17 Pro, iPhone 17, iPhone 17e, Galaxy S26 Ultra, Galaxy Z Fold 8 Ultra, Galaxy Z Fold 8, Galaxy Z Flip 8, Galaxy S26+, Galaxy S26, Galaxy S26 FE, Pixel 11 Pro Fold, Pixel 11 Pro XL, Pixel 11 Pro, Pixel 11, Xiaomi 17 Ultra, Xiaomi 17T Pro, Xiaomi 17T, Xiaomi 17, iPad Pro 13, iPad Pro 11, iPad Air 13\" M4, iPad Air 11\" M4, iPad 11, iPad mini, Galaxy Tab S12 Ultra, Galaxy Tab S12+, Galaxy Tab S12, Galaxy Tab S11 Ultra, Galaxy Tab S11, Galaxy Tab S10 FE, Apple Watch Ultra 3, Watch Series 12, Watch SE 3, Galaxy Watch Ultra 2, Galaxy Watch 9, AirPods Pro 3, AirPods Max 2, AirPods 5, AirPods 4, Galaxy Buds 4 Pro, Galaxy Buds 4, WH-1000XM6, MacBook Pro, MacBook Air, MacBook Neo, Mac mini M6, Roborock Saros 20, Dreame X60 Ultra, Roborock Saros 10, Dyson V15s, Dyson V12"
       }
     ]
   },

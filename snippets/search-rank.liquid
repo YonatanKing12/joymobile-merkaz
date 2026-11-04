@@ -1,0 +1,91 @@
+{%- comment -%}
+  Search results order: the device the shopper searched for first, its accessories after it. "iPhone 18" used to
+  open on screen protectors for the iPhone 18 (they mention the model and sell more), with the phone further down.
+  Every product of `products` gets one group:
+    k<i>  a device whose title has every word of the query and keyword i of `keywords` (the longest one it
+          contains: "Galaxy S26 FE" goes with "Galaxy S26 FE", not with "Galaxy S26", wherever they are listed);
+    dev   a device whose title has every word of the query (no keyword);
+    rest  anything else that is not an accessory (other devices, games, products of other kinds);
+    acc   an accessory: product type "א.…", or a title with אביזר / כיסוי / מגן / מטען / כבל.
+  A device is a product of one of DEVICE_TYPES that is not an accessory. The words of the query are compared in
+  lower case, with the common Hebrew model names read as their English titles (אייפון 18 = iphone 18).
+  Output (for capture): "<steps>#<map>": the groups in display order joined by "|" (k0, k3 … for the keywords that
+  have products, then dev|rest|acc), and ",<id>=<group>," for every product. snippets/product-grid and
+  sections/predictive-search render a pass per step over the same products, so the page holds the same products
+  in this order (pagination and "טען עוד" are unchanged), each group in the search's own order.
+
+  @param {object} products - The products (search.results of this page, products only or not).
+  @param {string} terms - The words of the query (display form, HTML-escaped like search.terms).
+  @param {string} [keywords] - Comma separated title keywords (any case), newest models first (theme setting
+    search_first_title_keywords: iPhone 18 Pro Max, …): the devices of each come first, in this order.
+{%- endcomment -%}
+{%- liquid
+  assign sr_device_types = '|מכשירים|סמארטפונים|טלפונים|טאבלטים|שעונים|אוזניות|שואבים|מחשבים|מחשבים ניידים|קונסולות|מסכים|מסכי מחשב חייבים במע"מ|מצלמות|רחפנים|מולטימדיה ושמע|מוצרי מטבח|מוצרי טיפוח|מוצרי ניקיון|'
+  assign sr_query = terms | replace: '&quot;', ' ' | replace: '&#39;', ' ' | replace: '&amp;', ' ' | replace: '"', ' ' | replace: '(', ' ' | replace: ')', ' ' | replace: '*', ' ' | downcase
+  assign sr_query = sr_query | replace: 'אייפון', 'iphone' | replace: 'אייפד', 'ipad' | replace: 'איירפודס', 'airpods' | replace: 'גלקסי', 'galaxy' | replace: 'סמסונג', 'samsung' | replace: 'פיקסל', 'pixel' | replace: 'שיאומי', 'xiaomi' | replace: 'מקבוק', 'macbook'
+  assign sr_all_words = sr_query | split: ' '
+  assign sr_words = ''
+  for sr_w in sr_all_words
+    if sr_w == blank or sr_w == 'and' or sr_w == 'or' or sr_w == 'not'
+      continue
+    endif
+    assign sr_words = sr_words | append: sr_w | append: '|'
+  endfor
+  assign sr_words = sr_words | split: '|'
+  assign sr_keywords = keywords | default: '' | downcase | split: ','
+
+  assign sr_map = ','
+  assign sr_used = ','
+  for sr_p in products
+    if sr_p.object_type and sr_p.object_type != 'product'
+      continue
+    endif
+    assign sr_title = sr_p.title | downcase
+    assign sr_type = sr_p.type | strip
+    assign sr_type_head = sr_type | slice: 0, 2
+    assign sr_group = 'rest'
+    if sr_type_head == 'א.' or sr_title contains 'אביזר' or sr_title contains 'כיסוי' or sr_title contains 'מגן' or sr_title contains 'מטען' or sr_title contains 'כבל'
+      assign sr_group = 'acc'
+    else
+      assign sr_type_key = '|' | append: sr_type | append: '|'
+      if sr_type != blank and sr_device_types contains sr_type_key
+        assign sr_match = true
+        for sr_w in sr_words
+          unless sr_title contains sr_w
+            assign sr_match = false
+            break
+          endunless
+        endfor
+        if sr_match and sr_words.size > 0
+          assign sr_group = 'dev'
+          assign sr_best = 0
+          for sr_kw_raw in sr_keywords
+            assign sr_kw = sr_kw_raw | strip
+            if sr_kw != blank and sr_title contains sr_kw and sr_kw.size > sr_best
+              assign sr_group = 'k' | append: forloop.index0
+              assign sr_best = sr_kw.size
+            endif
+          endfor
+          if sr_best > 0
+            assign sr_used_key = ',' | append: sr_group | append: ','
+            unless sr_used contains sr_used_key
+              assign sr_used = sr_used | append: sr_group | append: ','
+            endunless
+          endif
+        endif
+      endif
+    endif
+    assign sr_map = sr_map | append: sr_p.id | append: '=' | append: sr_group | append: ','
+  endfor
+
+  assign sr_steps = ''
+  for sr_kw_raw in sr_keywords
+    assign sr_step = 'k' | append: forloop.index0
+    assign sr_used_key = ',' | append: sr_step | append: ','
+    if sr_used contains sr_used_key
+      assign sr_steps = sr_steps | append: sr_step | append: '|'
+    endif
+  endfor
+  assign sr_steps = sr_steps | append: 'dev|rest|acc'
+  echo sr_steps | append: '#' | append: sr_map
+-%}

@@ -16,6 +16,8 @@
   Under the title, <search-correction> (@theme/predictive-search) offers the other query when
   the search was corrected (wrong keyboard layout, a Hebrew brand name: ?typed= holds what was
   typed) or would have been ("האם התכוונת ל…"). Links only, never a redirect.
+  In relevance order the page's products come in groups (snippets/search-rank): the device that was searched for
+  first, newest models first (theme setting "דגמים שמוצגים ראשונים בחיפוש"), then other products, accessories last.
   Styles: section-main-collection.css (shared results layout), component-facets.css,
   section-main-search.css, component-predictive-search.css (the correction line); cards: Track F's
   component CSS.
@@ -365,8 +367,14 @@
               {%- liquid
                 # Photos first within the page, only in relevance order (not a price or date order).
                 assign grid_photos_first = false
+                assign grid_rank = ''
                 if search.sort_by == blank or search.sort_by == 'relevance'
                   assign grid_photos_first = true
+                  # The searched device first (newest models in the order of the theme setting
+                  # search_first_title_keywords), other products next, accessories last: snippets/search-rank.
+                  capture grid_rank
+                    render 'search-rank', products: page_products, terms: shown_terms, keywords: settings.search_first_title_keywords
+                  endcapture
                 endif
               -%}
               {%- render 'product-grid',
@@ -375,7 +383,8 @@
                 eager: eager,
                 heading: 'h3',
                 id: grid_id,
-                photos_first: grid_photos_first
+                photos_first: grid_photos_first,
+                rank: grid_rank
               -%}
             </div>
 
