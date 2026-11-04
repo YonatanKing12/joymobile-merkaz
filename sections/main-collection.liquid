@@ -181,10 +181,14 @@
     --pg-cols-mobile: {{ section.settings.columns_mobile }};
     --pg-cols-desktop: {{ section.settings.columns_desktop }};
   }
-  #shopify-section-{{ section.id }} .collection__campaign { margin-block-end: 24px; }
-  #shopify-section-{{ section.id }} .collection__campaign picture,
-  #shopify-section-{{ section.id }} .collection__campaign img { display: block; width: 100%; }
-  #shopify-section-{{ section.id }} .collection__campaign img { height: auto; }
+  #shopify-section-{{ section.id }} .collection__campaign { position: relative; isolation: isolate; background: #000314; }
+  #shopify-section-{{ section.id }} .collection__campaign::before { content: ''; position: absolute; inset: -24px; z-index: -1; background: url({{ 'black-november-category-desktop-1920x720.png' | asset_url }}) center / cover; filter: blur(24px); }
+  @media (max-width: 749px) {
+    #shopify-section-{{ section.id }} .collection__campaign::before { background-image: url({{ 'black-november-category-mobile-1280x1000.png' | asset_url }}); }
+  }
+  #shopify-section-{{ section.id }} .collection__campaign-size { visibility: hidden; pointer-events: none; }
+  #shopify-section-{{ section.id }} .collection__campaign picture { position: absolute; inset: 0; display: block; }
+  #shopify-section-{{ section.id }} .collection__campaign img { display: block; width: 100%; height: 100%; object-fit: contain; }
 {%- endstyle -%}
 
 <div class="collection page-width">
@@ -193,8 +197,15 @@
   {%- endif -%}
 
   {%- if campaign_banner -%}
-    <div class="collection__campaign" data-collection-hero="black-november">
+    <div class="collection__banner collection__campaign" data-collection-hero="black-november">
       <h1 class="visually-hidden">{{ collection.title | escape }}</h1>
+      <div class="collection__campaign-size" aria-hidden="true">
+        <div class="collection__hero-media"></div>
+        <div class="collection__hero-copy">
+          <div class="collection__hero-title">{{ collection.title | escape }}</div>
+          <p class="collection__hero-subtitle">{{ hero_copy | escape }}</p>
+        </div>
+      </div>
       <picture>
         <source media="(max-width: 749px)" srcset="{{ 'black-november-category-mobile-1280x1000.png' | asset_url }}" width="1280" height="1000">
         <img src="{{ 'black-november-category-desktop-1920x720.png' | asset_url }}" width="1920" height="720" alt="" loading="eager" fetchpriority="high">
