@@ -12,6 +12,9 @@
     buttons come after it (inline script after .product).
   - "מידע נוסף": description / specs / free tabs as an exclusive <details> group, an accordion at
     every width; all panels start closed, and "קרא עוד" / "פרטים טכניים נוספים" open their panel.
+    Technical details written into the description (label/value lines, tables) are moved into the
+    "פרטים טכניים" table by assets/product-specs.js; the specs panel is rendered hidden when only the
+    description can fill it, and shown once it does.
   - Mobile: a fixed buy bar that slides in once the in-page buttons scroll away.
   Variant changes: @theme/product re-renders this section (?variant=…&section_id=…) and swaps the
   [data-swap] regions: price, sku, availability, pickup, badges, buttons, sticky, option-N, sim-type.
@@ -116,8 +119,19 @@
             <span class="product__sku-label">{{ 'products.product.sku' | t }}</span>
             <bdi class="product__sku-value">{{ sku_code | escape }}</bdi>
           </p>
-          {%- if block.settings.show_specs_link and specs_html != blank -%}
-            <a class="product__specs-link" href="#ProductSpecs-{{ section.id }}">{{ 'products.product.specs_link' | t }}</a>
+          {%- if block.settings.show_specs_link and has_specs_tab -%}
+            {%- if specs_html != blank or product.description != blank -%}
+              <a
+                class="product__specs-link"
+                href="#ProductSpecs-{{ section.id }}"
+                data-product-specs-link
+                {% if specs_html == blank %}
+                  hidden
+                {% endif %}
+              >
+                {{- 'products.product.specs_link' | t -}}
+              </a>
+            {%- endif -%}
           {%- endif -%}
         </div>
     {%- endcase -%}
@@ -255,20 +269,28 @@
       assign tab_heading = block.settings.heading
       assign tab_body = ''
       assign tab_rte = true
+      assign tab_kind = ''
+      assign tab_hidden = false
       case block.type
         when 'tab_description'
           if product.description != blank
             assign tab_id = 'ProductDescription-' | append: section.id
             assign tab_body = product.description
+            assign tab_kind = 'description'
             if tab_heading == blank
               assign tab_heading = 'products.product.tabs.description' | t
             endif
           endif
         when 'tab_specs'
-          if specs_html != blank
+          # No data of its own: rendered hidden, for product-specs.js to fill from the description.
+          if specs_html != blank or product.description != blank
             assign tab_id = 'ProductSpecs-' | append: section.id
             assign tab_body = specs_html
             assign tab_rte = false
+            assign tab_kind = 'specs'
+            if specs_html == blank
+              assign tab_hidden = true
+            endif
             if tab_heading == blank
               assign tab_heading = 'products.product.tabs.specs' | t
             endif
@@ -291,6 +313,16 @@
         {% if details_open %}
           open
         {% endif %}
+        {% if tab_hidden %}
+          hidden
+        {% endif %}
+        {% if tab_kind == 'specs' %}
+          data-product-specs-item
+          data-flags-label="{{ 'products.product.specs.includes' | t | escape }}"
+          {% if product.metafields.custom.specs.value != blank %}
+            data-specs-metafield
+          {% endif %}
+        {% endif %}
         {{ block.shopify_attributes }}
       >
         <summary class="product-details__summary">
@@ -300,7 +332,14 @@
             {%- render 'icon', name: 'minus', size: 18, class: 'product-details__icon-minus' -%}
           </span>
         </summary>
-        <div class="product-details__panel{% if tab_rte %} rte{% endif %}">
+        <div
+          class="product-details__panel{% if tab_rte %} rte{% endif %}"
+          {% if tab_kind == 'description' %}
+            data-product-description
+          {% elsif tab_kind == 'specs' %}
+            data-product-specs-panel
+          {% endif %}
+        >
           {{- tab_body -}}
         </div>
       </details>
@@ -367,8 +406,9 @@
 {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
 <script type="module" src="{{ 'carousel.js' | asset_url }}"></script>
 <script type="module" src="{{ 'product.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product-specs.js' | asset_url }}"></script>
 
-<div class="main-product page-width{% if brand_logo != nil %} main-product--brand{% endif %}{% if section.settings.desktop_scale != blank and section.settings.desktop_scale != '100' %} main-product--scaled{% endif %}" data-section-id="{{ section.id }}">
+<div class="main-product page-width{% if brand_logo != nil %} main-product--brand{% endif %}{% if section.settings.desktop_scale != blank and section.settings.desktop_scale != '100' %} main-product--scaled{% endif %}" data-section-id="{{ section.id }}" data-product-specs-scope>
   {%- if section.settings.show_breadcrumbs -%}
     {%- render 'breadcrumbs', class: 'main-product__breadcrumbs' -%}
   {%- else -%}

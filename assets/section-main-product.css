@@ -898,7 +898,10 @@ html.no-js .product-wishlist {
   }
 }
 
-/* ---------- Specs table (snippets/product-specs) ---------- */
+/* ---------- Specs table (snippets/product-specs, assets/product-specs.js) ----------
+   Groups of label | value rows: a heading with the brand green mark, then a bordered list with
+   zebra rows. Two columns of groups from 992px. The same markup serves custom.specs and the
+   details product-specs.js moves out of the description. */
 .product-specs {
   color: var(--color-text);
   font-size: var(--text-md);
@@ -910,27 +913,39 @@ html.no-js .product-wishlist {
 }
 
 .product-specs__title {
-  margin: 0;
-  padding-inline: var(--space-sm);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-alt);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0 0 var(--space-xs);
   color: var(--color-ink);
   font-size: calc(var(--text-body) * 1.0625);
   font-weight: 900;
-  line-height: 2.5rem;
+  line-height: var(--leading-tight);
+}
+
+.product-specs__title::before {
+  content: "";
+  flex: none;
+  inline-size: 4px;
+  block-size: 1.15em;
+  border-radius: 2px;
+  background-color: var(--color-brand);
 }
 
 .product-specs__list {
   margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .product-specs__row {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   gap: var(--space-sm);
   min-height: 2.5rem;
   padding: 0.5625rem var(--space-sm);
-  border-block-start: 1px solid var(--color-border-strong);
+  border-block-start: 1px solid var(--color-border);
   line-height: var(--leading-snug);
 }
 
@@ -938,8 +953,14 @@ html.no-js .product-wishlist {
   border-block-start: 0;
 }
 
+.product-specs__row:nth-child(even) {
+  background-color: var(--color-surface-soft);
+}
+
 .product-specs__label {
+  color: var(--color-ink);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .product-specs__value {
@@ -947,12 +968,57 @@ html.no-js .product-wishlist {
   overflow-wrap: anywhere;
 }
 
+/* The key facts group stands out a little: the tinted brand surface. */
+.product-specs__group--key .product-specs__list {
+  border-color: color-mix(in srgb, var(--color-brand) 35%, var(--color-border));
+}
+
+.product-specs__group--key .product-specs__row:nth-child(odd) {
+  background-color: var(--color-surface-alt);
+}
+
+.product-specs__group--key .product-specs__row:nth-child(even) {
+  background-color: var(--color-background);
+}
+
+@media (min-width: 768px) {
+  .product-specs__row {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 5fr);
+  }
+}
+
 @media (min-width: 992px) {
   .product-specs {
     column-count: 2;
     column-gap: 2.5rem;
-    column-rule: 1px solid var(--color-border-strong);
   }
+
+  .product-specs__row {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
+
+/* Tables left in the description (a model comparison, more than three columns): zebra rows, and
+   they scroll sideways on a phone instead of squeezing the columns. */
+.product-details__panel.rte table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  -webkit-overflow-scrolling: touch;
+}
+
+.product-details__panel.rte tr:nth-child(even) :is(td, th) {
+  background-color: var(--color-surface-soft);
+}
+
+.product-details__panel.rte thead :is(td, th) {
+  background-color: var(--color-surface-alt);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.product-details__panel.rte :is(td, th) {
+  min-inline-size: 7rem;
 }
 
 /* ---------- Sold out: "עדכנו אותי כשחוזר" (snippets/buy-buttons) ---------- */

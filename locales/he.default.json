@@ -197,6 +197,7 @@
       },
       "specs": {
         "key_facts": "נתונים עיקריים",
+        "includes": "כולל",
         "summary": "בקצרה",
         "warranty": "אחריות",
         "sim": "כרטיס SIM",
