@@ -578,7 +578,20 @@
         "type": "image_picker",
         "id": "sale_badge_image",
         "label": "לוגו המבצע",
-        "info": "ריק: הלוגו העגול של Black November מקבצי החנות. מומלץ תמונה ריבועית עם רקע שקוף."
+        "info": "ריק: העיגול של Black November. מומלץ תמונה ריבועית עם רקע שקוף."
+      },
+      {
+        "type": "checkbox",
+        "id": "sale_badge_swap",
+        "label": "החלפה בין שני עיגולים",
+        "info": "העיגול מתהפך כל כמה שניות בין לוגו המבצע ללוגו השני.",
+        "default": true
+      },
+      {
+        "type": "image_picker",
+        "id": "sale_badge_image_2",
+        "label": "הלוגו השני",
+        "info": "ריק: העיגול של Special Price."
       }
     ]
   },

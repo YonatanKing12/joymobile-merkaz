@@ -1,12 +1,14 @@
 {% doc %}
   Sale logo over the product image: the Black November artwork in the image's bottom inline-start
   corner (bottom right in RTL, under TAX FREE), with a soft pulsing glow and a light shine sweep.
+  With `sale_badge_swap` on (default) the disc flips like a coin every few seconds between the
+  Black November circle and the Special Price circle (reduced motion: Black November only).
 
   Shown when the theme setting `sale_badge_show` is on and the product carries the tag in
   `sale_badge_tag` (default "black-november", the tag the black-november collection is built on;
-  exact tag, case-insensitive). The artwork is `sale_badge_image`, else the store file
-  black-november-circle-round.png (Content › Files, the home page's category circle).
-  Nothing is rendered otherwise.
+  exact tag, case-insensitive). The artwork is `sale_badge_image`, else the theme asset
+  sale-badge-black-november.png; the second face is `sale_badge_image_2`, else the theme asset
+  sale-badge-special-price.png (the owner's artwork, 264px). Nothing is rendered otherwise.
 
   Decorative overlay: pointer-events none, so the card's link and the gallery's zoom button keep
   every click. Styles: assets/component-badges.css (linked by every card caller and the product page).
@@ -32,11 +34,9 @@
     endfor
   endif
 
-  if sb_show
-    assign sb_image = settings.sale_badge_image | default: images['black-november-circle-round.png']
-    if sb_image == blank
-      assign sb_show = false
-    endif
+  assign sb_swap = true
+  if settings.sale_badge_swap == false
+    assign sb_swap = false
   endif
 
   assign sb_context = 'card'
@@ -50,9 +50,24 @@
   assign sb_max = sb_widths | split: ',' | last | plus: 0
 -%}
 {%- if sb_show -%}
-  <span class="sale-badge sale-badge--{{ sb_context }}">
+  <span class="sale-badge sale-badge--{{ sb_context }}{% if sb_swap %} sale-badge--swap{% endif %}">
     <span class="sale-badge__disc">
-      {{- sb_image | image_url: width: sb_max | image_tag: widths: sb_widths, sizes: sb_sizes, loading: 'lazy', alt: 'Black November', class: 'sale-badge__img' -}}
+      <span class="sale-badge__face sale-badge__face--a">
+        {%- if settings.sale_badge_image != blank -%}
+          {{- settings.sale_badge_image | image_url: width: sb_max | image_tag: widths: sb_widths, sizes: sb_sizes, loading: 'lazy', alt: 'Black November', class: 'sale-badge__img' -}}
+        {%- else -%}
+          <img class="sale-badge__img" src="{{ 'sale-badge-black-november.png' | asset_url }}" width="264" height="264" loading="lazy" alt="Black November">
+        {%- endif -%}
+      </span>
+      {%- if sb_swap -%}
+        <span class="sale-badge__face sale-badge__face--b" aria-hidden="true">
+          {%- if settings.sale_badge_image_2 != blank -%}
+            {{- settings.sale_badge_image_2 | image_url: width: sb_max | image_tag: widths: sb_widths, sizes: sb_sizes, loading: 'lazy', alt: '', class: 'sale-badge__img' -}}
+          {%- else -%}
+            <img class="sale-badge__img" src="{{ 'sale-badge-special-price.png' | asset_url }}" width="264" height="264" loading="lazy" alt="">
+          {%- endif -%}
+        </span>
+      {%- endif -%}
       <span class="sale-badge__shine" aria-hidden="true"></span>
     </span>
   </span>

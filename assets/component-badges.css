@@ -187,6 +187,17 @@
     0 2px 6px color-mix(in srgb, #000 28%, transparent);
 }
 
+.sale-badge__face {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* The Special Price face waits behind Black November; it shows only while the coin flip runs. */
+.sale-badge__face--b {
+  opacity: 0;
+}
+
 .sale-badge__img {
   display: block;
   width: 100%;
@@ -216,6 +227,57 @@
   html:not(.a11y-no-motion) .sale-badge__shine {
     opacity: 1;
     animation: sale-badge-shine 4.8s ease-in-out infinite;
+  }
+
+  /* Coin flip: the disc narrows to an edge, the faces swap at that moment, and it opens again. */
+  html:not(.a11y-no-motion) .sale-badge--swap .sale-badge__disc {
+    animation: sale-badge-flip 7s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  html:not(.a11y-no-motion) .sale-badge--swap .sale-badge__face--b {
+    animation: sale-badge-face 7s linear infinite;
+  }
+}
+
+@keyframes sale-badge-flip {
+  0%,
+  42% {
+    transform: scaleX(1);
+  }
+
+  46% {
+    transform: scaleX(0.04);
+  }
+
+  50%,
+  92% {
+    transform: scaleX(1);
+  }
+
+  96% {
+    transform: scaleX(0.04);
+  }
+
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes sale-badge-face {
+  0%,
+  45.9% {
+    opacity: 0;
+  }
+
+  46%,
+  95.9% {
+    opacity: 1;
+  }
+
+  96%,
+  100% {
+    opacity: 0;
   }
 }
 
