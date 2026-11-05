@@ -27,6 +27,9 @@
   the file `brand-<vendor handle>.png` from the store's Files (Content › Files, e.g.
   brand-apple.png) — or the JOY Mobile symbol when there is no such file.
 
+  Sale logo: the Black November circle at the image's bottom inline-start corner on products with the
+  sale tag (snippets/sale-badge, theme setting "לוגו מבצע על המוצר").
+
   Stock line: "במלאי", or "נותרו N יחידות" / "יחידה אחרונה" when the variant tracks inventory
   and has at most `settings.badge_low_stock_threshold` units (default 2).
 
@@ -170,6 +173,7 @@
 
     {%- render 'badges', product: product, context: 'card', class: 'card-product__badges' -%}
     {%- render 'wishlist-button', product: product, class: 'card-product__wishlist', size: 20 -%}
+    {%- render 'sale-badge', product: product -%}
   </div>
 
   <div class="card-product__body">

@@ -1,0 +1,58 @@
+{% doc %}
+  Sale logo over the product image: the Black November artwork in the image's bottom inline-start
+  corner (bottom right in RTL, under TAX FREE), with a soft pulsing glow and a light shine sweep.
+
+  Shown when the theme setting `sale_badge_show` is on and the product carries the tag in
+  `sale_badge_tag` (default "black-november", the tag the black-november collection is built on;
+  exact tag, case-insensitive). The artwork is `sale_badge_image`, else the store file
+  black-november-circle-round.png (Content › Files, the home page's category circle).
+  Nothing is rendered otherwise.
+
+  Decorative overlay: pointer-events none, so the card's link and the gallery's zoom button keep
+  every click. Styles: assets/component-badges.css (linked by every card caller and the product page).
+
+  @param {product} product - The product.
+  @param {string} [context] - 'card' (default) or 'product' (main gallery, slightly larger).
+
+  @example
+  {% render 'sale-badge', product: product %}
+  {% render 'sale-badge', product: product, context: 'product' %}
+{% enddoc %}
+{%- liquid
+  assign sb_show = false
+  if settings.sale_badge_show
+    assign sb_tag = settings.sale_badge_tag | default: 'black-november' | strip | downcase
+    for sb_product_tag in product.tags
+      assign sb_probe = sb_product_tag | strip | downcase
+      if sb_probe == sb_tag
+        assign sb_show = true
+        break
+      endif
+    endfor
+  endif
+
+  if sb_show
+    assign sb_image = settings.sale_badge_image | default: images['black-november-circle-round.png']
+    if sb_image == blank
+      assign sb_show = false
+    endif
+  endif
+
+  assign sb_context = 'card'
+  assign sb_widths = '64,96,128,168,216'
+  assign sb_sizes = '(min-width: 768px) 72px, 56px'
+  if context == 'product'
+    assign sb_context = 'product'
+    assign sb_widths = '96,144,192,264'
+    assign sb_sizes = '(min-width: 768px) 88px, 72px'
+  endif
+  assign sb_max = sb_widths | split: ',' | last | plus: 0
+-%}
+{%- if sb_show -%}
+  <span class="sale-badge sale-badge--{{ sb_context }}">
+    <span class="sale-badge__disc">
+      {{- sb_image | image_url: width: sb_max | image_tag: widths: sb_widths, sizes: sb_sizes, loading: 'lazy', alt: 'Black November', class: 'sale-badge__img' -}}
+      <span class="sale-badge__shine" aria-hidden="true"></span>
+    </span>
+  </span>
+{%- endif -%}

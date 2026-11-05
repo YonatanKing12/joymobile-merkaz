@@ -140,3 +140,133 @@
   background: var(--color-background);
   color: var(--color-ink);
 }
+
+/* ---------- Sale logo (snippets/sale-badge) ----------
+   The Black November circle in the image's bottom inline-start corner (bottom right in RTL, under TAX FREE;
+   the heart is at the top inline-end). A mint halo behind it pulses (opacity and scale only) and a light band
+   sweeps across the disc now and then (transform only). Reduced motion: the halo stays still and soft and the
+   shine is hidden. The glow colours are the artwork's green and the brand mint. Never takes a click. */
+.sale-badge {
+  --sale-glow: #56d2aa;
+  --sale-glow-deep: #1f9470;
+  --sale-badge-size: 4.5rem;
+  --sale-badge-inset: 0.625rem;
+  position: absolute;
+  inset-block-end: var(--sale-badge-inset);
+  inset-inline-start: var(--sale-badge-inset);
+  z-index: 2;
+  width: var(--sale-badge-size);
+  height: var(--sale-badge-size);
+  pointer-events: none;
+}
+
+/* The halo: fades out 10px past the disc, inside the inset, so the well's rounded clip never cuts it. */
+.sale-badge::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--sale-badge-inset) * -1);
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--sale-glow) 80%, transparent) 62%,
+    color-mix(in srgb, var(--sale-glow-deep) 35%, transparent) 80%,
+    transparent 100%
+  );
+  opacity: 0.7;
+}
+
+.sale-badge__disc {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--sale-glow) 85%, transparent),
+    0 2px 6px color-mix(in srgb, #000 28%, transparent);
+}
+
+.sale-badge__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sale-badge__shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 38%,
+    color-mix(in srgb, #fff 55%, transparent) 50%,
+    transparent 62%
+  );
+  opacity: 0;
+  transform: translateX(-110%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-no-motion) .sale-badge::before {
+    animation: sale-badge-pulse 2.4s ease-in-out infinite alternate;
+    will-change: opacity, transform;
+  }
+
+  html:not(.a11y-no-motion) .sale-badge__shine {
+    opacity: 1;
+    animation: sale-badge-shine 4.8s ease-in-out infinite;
+  }
+}
+
+@keyframes sale-badge-pulse {
+  from {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes sale-badge-shine {
+  0%,
+  55% {
+    transform: translateX(-110%);
+  }
+
+  85%,
+  100% {
+    transform: translateX(110%);
+  }
+}
+
+/* Phones (cards ≈155–175px wide): a smaller disc, about a third of the well. */
+@container card-product (max-width: 200px) {
+  .sale-badge--card {
+    --sale-badge-size: 3.375rem;
+    --sale-badge-inset: 0.5rem;
+  }
+}
+
+/* Product page: the same corner of the main photo, slightly larger. The magnifier, which lives in that
+   corner, moves to the other bottom corner while the logo is there. */
+.sale-badge--product {
+  --sale-badge-size: 4.5rem;
+  --sale-badge-inset: 0.75rem;
+  z-index: var(--z-raised);
+}
+
+@media (min-width: 768px) {
+  .sale-badge--product {
+    --sale-badge-size: 5.5rem;
+    --sale-badge-inset: 1rem;
+  }
+}
+
+.product-media:has(.sale-badge) .product-media__zoom-icon {
+  inset-inline-start: auto;
+  inset-inline-end: var(--space-xs);
+}

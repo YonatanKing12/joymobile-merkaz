@@ -14,6 +14,8 @@
   - `[data-thumb]` buttons get `aria-current` for the visible slide.
   - `[data-swap="badges"]`: status and TAX FREE badges over the image. The section re-renders
     it on variant change; it is always printed (even empty) so a swap can fill it.
+  - The sale logo (snippets/sale-badge) at the photo's bottom inline-start corner, on products
+    with the sale tag; the magnifier then moves to the other bottom corner.
   The frame keeps a fixed 5:4 box (no layout shift); images are contained inside it. A product
   without media gets the same frame with its brand's logo (`brand-<vendor handle>.png` from the
   store's Files) or the JOY Mobile symbol, faint, as on the product cards.
@@ -231,6 +233,8 @@
         {%- render 'badges', product: product, variant: pm_variant, context: 'product' -%}
       </div>
     {%- endif -%}
+
+    {%- render 'sale-badge', product: product, context: 'product' -%}
   </div>
 
   {%- if pm_thumbs and pm_count > 1 -%}
