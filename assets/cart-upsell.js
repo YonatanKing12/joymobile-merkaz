@@ -14,6 +14,7 @@
  */
 import { define, announce, searchSection } from '@theme/global';
 import { addItems } from '@theme/cart';
+import { recProperties, recScan } from '@theme/rec-tracking';
 
 const SECTION = 'cart-upsell';
 /* query -> Promise<[{ handle, variant, html }]>. Survives the re-renders; a reload clears it. */
@@ -127,6 +128,7 @@ class CartUpsell extends HTMLElement {
     if (!this.isConnected || !picked.length) return;
     this.list.innerHTML = picked.map((item) => item.html).join('');
     this.hidden = false;
+    recScan(this);
   }
 
   async handleEvent(e) {
@@ -141,7 +143,8 @@ class CartUpsell extends HTMLElement {
     try {
       /* open: false — the drawer this sits in is already open, and on the cart page there is nothing
          to open. The re-render that follows rebuilds this element with the new line skipped. */
-      await addItems([{ id, quantity: 1 }], { open: false });
+      /* properties: where the add came from (assets/rec-tracking.js), hidden from the shopper. */
+      await addItems([{ id, quantity: 1, properties: recProperties(button) }], { open: false });
       card.classList.add('is-added');
       announce(this.dataset.cuStrAdded || '');
     } catch (error) {

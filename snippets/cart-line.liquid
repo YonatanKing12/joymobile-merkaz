@@ -94,8 +94,27 @@
   # Undo after a removal re-adds the variant and the quantity, nothing else, so it is only offered
   # where that is the whole line: one carrying custom properties (an engraving, an upload) or a
   # subscription plan would come back stripped of them, which is worse than no undo at all.
+  # The hidden recommendation properties (_rec_source, _rec_anchor, _rec_pos: assets/rec-tracking.js) are
+  # the exception: they go into data-undo-properties and undo sends them back, so the line keeps its undo.
   assign line_undoable = true
-  if item.properties.size > 0 or item.selling_plan_allocation
+  assign line_rec_json = ''
+  for property in item.properties
+    assign property_key = property.first | append: ''
+    if property_key == '_rec_source' or property_key == '_rec_anchor' or property_key == '_rec_pos'
+      if line_rec_json != blank
+        assign line_rec_json = line_rec_json | append: ','
+      endif
+      assign line_rec_key = property_key | json
+      assign line_rec_value = property.last | append: '' | json
+      assign line_rec_json = line_rec_json | append: line_rec_key | append: ':' | append: line_rec_value
+    else
+      assign line_undoable = false
+    endif
+  endfor
+  if line_rec_json != blank
+    assign line_rec_json = '{' | append: line_rec_json | append: '}'
+  endif
+  if item.selling_plan_allocation
     assign line_undoable = false
   endif
 
@@ -255,6 +274,7 @@
       data-undo-variant="{{ item.variant_id }}"
       data-undo-quantity="{{ item.quantity }}"
       data-undo-title="{{ line_title | escape }}"
+      {%- if line_rec_json != blank %} data-undo-properties="{{ line_rec_json | escape }}"{% endif %}
     {%- endif %}
   >
     <div class="cart-item__media">
@@ -306,6 +326,7 @@
       data-undo-variant="{{ item.variant_id }}"
       data-undo-quantity="{{ item.quantity }}"
       data-undo-title="{{ line_title | escape }}"
+      {%- if line_rec_json != blank %} data-undo-properties="{{ line_rec_json | escape }}"{% endif %}
     {%- endif %}
   >
     <a class="cart-line__media" href="{{ line_url }}" tabindex="-1" aria-hidden="true">

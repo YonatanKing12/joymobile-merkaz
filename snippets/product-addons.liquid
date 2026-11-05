@@ -60,6 +60,8 @@
     data-pa-managed="{{ pa_direct }}"
     data-pa-main-variant="{{ pa_variant.id }}"
     data-pa-handle="{{ product.handle }}"
+    data-rec-source="product_addons"
+    data-rec-anchor="{{ product.handle }}"
     data-pa-base="{{ pa_variant.price }}"
     data-pa-available="{{ pa_variant.available }}"
     data-pa-money="{{ shop.money_format | escape }}"
@@ -121,7 +123,7 @@
         {% if pa_direct %}data-pa-loaded="true" data-pa-count="{{ pa_direct_count }}"{% endif %}
         {% unless forloop.first %}hidden{% endunless %}
       >
-        <ul class="pa__list" role="list" data-pa-list>
+        <ul class="pa__list" role="list" data-pa-list data-rec-list>
           {%- if pa_direct -%}
             {{- pa_direct_cards -}}
           {%- else -%}

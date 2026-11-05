@@ -24,6 +24,7 @@
  */
 import { define, emit, formatMoney, on, sectionIdOf, searchSection } from '@theme/global';
 import { addItems } from '@theme/cart';
+import { recProperties, recScan } from '@theme/rec-tracking';
 
 const SECTION = 'product-addons';
 
@@ -129,9 +130,14 @@ class ProductAddons extends HTMLElement {
     this.publish(0);
   }
 
-  /* What the product form adds alongside the device. */
+  /* What the product form adds alongside the device. Each line carries where it came from in hidden
+     properties (assets/rec-tracking.js): this module, the device's handle and the tile's place in its group. */
   selectedItems() {
-    return this.checked.map((c) => ({ id: Number(c.closest('[data-pa-item]').dataset.paVariant), quantity: 1 }));
+    return this.checked.map((c) => ({
+      id: Number(c.closest('[data-pa-item]').dataset.paVariant),
+      quantity: 1,
+      properties: recProperties(c),
+    }));
   }
 
   /* After a successful add: untick everything, so a second press adds the device alone. */
@@ -270,6 +276,7 @@ class ProductAddons extends HTMLElement {
     }
     this.prune();
     this.refresh();
+    recScan(this);
   }
 
   /* Every group, one request at a time: the search endpoint answers a burst with empty sets (see

@@ -180,7 +180,13 @@
         aria-roledescription="{{ 'accessibility.carousel.label' | t }}"
         aria-labelledby="{{ rp_heading_id }}"
       >
-        <div class="carousel__track related-products__track" role="list" tabindex="-1">
+        <div
+          class="carousel__track related-products__track"
+          role="list"
+          tabindex="-1"
+          data-rec-source="complementary"
+          {% if product != blank %}data-rec-anchor="{{ product.handle }}"{% endif %}
+        >
           {{- rp_slides -}}
         </div>
         <button class="carousel__btn carousel__btn--prev related-products__arrow" type="button" aria-label="{{ 'accessibility.carousel.previous' | t }}">

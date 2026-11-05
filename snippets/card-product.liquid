@@ -121,7 +121,7 @@
     assign card_classes = card_classes | append: ' card-product--sold-out'
   endunless
 -%}
-<div class="{{ card_classes }}">
+<div class="{{ card_classes }}" data-rec-item="{{ product.handle }}">
   <div class="card-product__media">
     {%- if card_image != blank -%}
       {%- comment -%}

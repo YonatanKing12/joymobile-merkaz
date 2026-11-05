@@ -1,5 +1,6 @@
 import { routes, fetchSectionHTML, parseHTML, swapRegions, emit, on, showError, sectionIdOf, define, lockScroll, QuantityInput, formatMoney } from '@theme/global';
 import { addItems } from '@theme/cart';
+import { recProperties } from '@theme/rec-tracking';
 
 export { QuantityInput };
 
@@ -37,6 +38,8 @@ class ProductForm extends HTMLElement {
     const checkout = (btn?.dataset.mode || this.dataset.mode) === 'checkout' && !window.theme?.cartConsent;
     const data = new FormData(form), item = { id: +data.get('id'), quantity: +data.get('quantity') || 1, properties: {} };
     for (const [key, value] of data) if (key.startsWith('properties[') && value) item.properties[key.slice(11, -1)] = value;
+    // A card in a recommendation row (sections/related-products) says so in hidden properties; {} anywhere else.
+    Object.assign(item.properties, recProperties(this));
     const deposit = this.querySelector('deposit-choice'), line = deposit?.chosen ? deposit.line(item) : item;
     const addons = this.addons, extras = addons?.selectedItems?.() || [];
     const box = this.querySelector('[data-form-error]');

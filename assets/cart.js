@@ -1,6 +1,7 @@
 import {
   routes, postJSON, fetchSections, parseHTML, replaceContent, emit, on, announce, t, sectionIdOf, define, DialogElement
 } from '@theme/global';
+import { recAdded } from '@theme/rec-tracking';
 
 // Serialised, so responses never render out of order.
 let queue = Promise.resolve();
@@ -45,7 +46,8 @@ export function renderSections(sections) {
   }
 }
 
-export function addItems(items, { sections = sectionIds(), open = true, opener } = {}) {
+// `track: false` for an add that only puts back what was there (undo), so it is not counted as a new one.
+export function addItems(items, { sections = sectionIds(), open = true, opener, track = true } = {}) {
   return serial(async () => {
     let res;
     try {
@@ -57,6 +59,7 @@ export function addItems(items, { sections = sectionIds(), open = true, opener }
       throw err;
     }
     renderSections(res.sections);
+    if (track) recAdded(items);
     announce(t('added'));
     emit('cart:updated', { items: res.items, source: 'add' }); // /cart/add.js returns the added lines, not the cart
     // Theme setting "אחרי הוספה לעגלה": the drawer, or the cart page.
@@ -110,11 +113,18 @@ export const updateDiscounts = (codes) => update({ discount: codes.join(',') }, 
 
 // Only an undo that puts the line back as it was is worth offering, so the line says whether it can
 // be: the markup prints data-undo-* for plain lines and withholds it from lines carrying properties
-// or a selling plan, which /cart/add.js could not restore.
+// or a selling plan, which /cart/add.js could not restore. The hidden recommendation properties (_rec_*,
+// assets/rec-tracking.js) are the exception: the line prints them in data-undo-properties and undo sends them back.
 function rememberForUndo(line) {
-  const { undoVariant, undoQuantity, undoTitle } = line.dataset;
+  const { undoVariant, undoQuantity, undoTitle, undoProperties } = line.dataset;
+  let properties = null;
+  try {
+    properties = undoProperties ? JSON.parse(undoProperties) : null;
+  } catch {
+    properties = null;
+  }
   pendingUndo = undoVariant
-    ? { variant: undoVariant, quantity: +undoQuantity || 1, title: undoTitle || '', expires: Date.now() + UNDO_WINDOW }
+    ? { variant: undoVariant, quantity: +undoQuantity || 1, properties, title: undoTitle || '', expires: Date.now() + UNDO_WINDOW }
     : null;
 }
 
@@ -146,7 +156,7 @@ function tryUndo(e) {
   if (!e.target.closest('[data-cart-undo-button]')) return false;
   const undo = pendingUndo;
   clearUndo();
-  if (undo) addItems([{ id: undo.variant, quantity: undo.quantity }], { open: false }).catch((err) => announce(err.message));
+  if (undo) addItems([{ id: undo.variant, quantity: undo.quantity, ...(undo.properties && { properties: undo.properties }) }], { open: false, track: false }).catch((err) => announce(err.message));
   return true;
 }
 
