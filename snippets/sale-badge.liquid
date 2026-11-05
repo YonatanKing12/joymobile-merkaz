@@ -20,7 +20,8 @@
 {% enddoc %}
 {%- liquid
   assign sb_show = false
-  if settings.sale_badge_show
+  # Off only when switched off: a store whose saved settings predate the toggle gets it on.
+  if settings.sale_badge_show != false
     assign sb_tag = settings.sale_badge_tag | default: 'black-november' | strip | downcase
     for sb_product_tag in product.tags
       assign sb_probe = sb_product_tag | strip | downcase
