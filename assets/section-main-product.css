@@ -968,6 +968,15 @@ html.no-js .product-wishlist {
   overflow-wrap: anywhere;
 }
 
+/* Each label and value takes the direction of its own text: "1–120Hz", "QHD+" read left to right
+   inside the RTL table instead of being reordered. Aligned right, not "start": with plaintext,
+   start would follow each value's own direction and scatter the column (the site is RTL only). */
+.product-specs__label,
+.product-specs__value {
+  unicode-bidi: plaintext;
+  text-align: right;
+}
+
 /* The key facts group stands out a little: the tinted brand surface. */
 .product-specs__group--key .product-specs__list {
   border-color: color-mix(in srgb, var(--color-brand) 35%, var(--color-border));
