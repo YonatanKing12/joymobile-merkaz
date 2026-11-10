@@ -279,6 +279,11 @@
   color: var(--card-stock-low);
 }
 
+/* "אזל מהמלאי": a grey dot, not an alarm (the product is shown on purpose). */
+.card-product__stock--out {
+  color: var(--color-muted);
+}
+
 .card-product__actions {
   position: relative;
   z-index: 2;
@@ -306,6 +311,13 @@
 
 .card-product__button-icon {
   flex: none;
+}
+
+/* Sold out, "מוצרים שאזלו מוצגים באתר": "בדיקת זמינות" (a tel: link) in navy, apart from the green buy button. */
+.card-product__button--check {
+  --button-bg: var(--color-button-bg);
+  --button-text: var(--color-button-text);
+  text-decoration: none;
 }
 
 /* The whole card answers the pointer: its green button turns mint, navy text throughout (10.4:1). */

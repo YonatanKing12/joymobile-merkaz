@@ -3,13 +3,14 @@
   predictive-search API rejects Hebrew (HTTP 417), so the script fetches the regular search
   page rendered through this section:
     /search?q=<terms>&type=product,article,page&options[prefix]=last
-      &options[unavailable_products]=hide&section_id=predictive-search
+      &options[unavailable_products]=last&section_id=predictive-search ("hide" when theme settings › מוצרים
+      שאזלו "מוצרים שאזלו מוצגים באתר" is off: snippets/search-unavailable)
   and moves this section's children into the header's [data-results] element, which is the
   combobox popup: role="listbox" with an aria-label (see sections/header.liquid). So the
   output is listbox content only — groups and options, no free text:
   - "מוצרים": up to 6 products (48px image, title with the match in bold, price via
-    snippets/price, sold-out products left out), the device that was searched for first, other
-    products next, accessories last (snippets/search-rank over the first 48 results, so the phone is
+    snippets/price; sold-out products after all the available ones while "מוצרים שאזלו מוצגים באתר"
+    is on, else left out), the device that was searched for first, other products next, accessories last (snippets/search-rank over the first 48 results, so the phone is
     not cut off by its many screen protectors and cases);
   - "מאמרים ועמודים": up to 3 articles/pages as text rows;
   - "כל התוצאות (N)": an option marked [data-all] (not counted as a result).
@@ -31,7 +32,11 @@
   capture ps_strict
     render 'search-query', terms: ps_terms, format: 'strict'
   endcapture
-  assign ps_all_url = routes.search_url | append: '?q=' | append: ps_strict | append: '&options%5Bprefix%5D=last&options%5Bunavailable_products%5D=hide'
+  assign ps_all_url = routes.search_url | append: '?q=' | append: ps_strict | append: '&options%5Bprefix%5D=last&options%5Bunavailable_products%5D='
+  capture ps_unavailable
+    render 'search-unavailable'
+  endcapture
+  assign ps_all_url = ps_all_url | append: ps_unavailable
   assign ps_show_price = settings.predictive_search_show_price
   assign ps_product_limit = 6
   assign ps_content_limit = 3
@@ -65,7 +70,7 @@
       assign ps_products = 0
       assign ps_content = 0
       for item in search.results
-        if item.object_type == 'product' and item.available == false
+        if item.object_type == 'product' and item.available == false and settings.sold_out_visible == false
           continue
         endif
         if item.object_type == 'product'
@@ -87,10 +92,29 @@
             assign ps_rank_parts = ps_rank | strip | split: '#'
             assign ps_steps = ps_rank_parts[0] | split: '|'
             assign ps_map = ps_rank_parts[1]
+            # The available products first; the sold-out ones after them all (or never, the setting off).
+            assign ps_passes = 'in' | split: ','
+            if settings.sold_out_visible
+              assign ps_passes = 'in,out' | split: ','
+            endif
           -%}
+          {%- for ps_pass in ps_passes -%}
           {%- for ps_step in ps_steps -%}
           {%- for item in search.results -%}
-            {%- if item.object_type != 'product' or item.available == false -%}
+            {%- if item.object_type != 'product' -%}
+              {%- continue -%}
+            {%- endif -%}
+            {%- liquid
+              # Liquid has no precedence for and / or: one test at a time.
+              assign ps_skip = false
+              if ps_pass == 'in' and item.available == false
+                assign ps_skip = true
+              endif
+              if ps_pass == 'out' and item.available
+                assign ps_skip = true
+              endif
+            -%}
+            {%- if ps_skip -%}
               {%- continue -%}
             {%- endif -%}
             {%- assign ps_key = ',' | append: item.id | append: '=' | append: ps_step | append: ',' -%}
@@ -135,6 +159,7 @@
                 {%- endif -%}
               </span>
             </a>
+          {%- endfor -%}
           {%- endfor -%}
           {%- endfor -%}
         </div>
@@ -206,7 +231,7 @@
             {%- if clean_term != blank -%}
               <a
                 class="predictive-search__chip"
-                href="{{ routes.search_url }}?q={% render 'search-query', terms: clean_term, format: 'strict' %}&amp;options%5Bprefix%5D=last&amp;options%5Bunavailable_products%5D=hide"
+                href="{{ routes.search_url }}?q={% render 'search-query', terms: clean_term, format: 'strict' %}&amp;options%5Bprefix%5D=last&amp;options%5Bunavailable_products%5D={% render 'search-unavailable' %}"
                 role="option"
                 id="PredictiveSearchOption-trending-{{ forloop.index }}"
                 aria-selected="false"

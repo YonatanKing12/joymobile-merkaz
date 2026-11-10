@@ -256,7 +256,111 @@ class PickupAvailability extends HTMLElement {
   }
 }
 
+// "עדכנו אותי כשחוזר" (snippets/buy-buttons, theme settings › מוצרים שאזלו): the buttons in the page and in the phone
+// bar ([data-back-in-stock-toggle], re-rendered on every variant change) open and close the form; the form posts the
+// mobile, the variant and the consent to the Joy Mobile dashboard (data-endpoint: JSON in a text/plain body, a CORS
+// "simple request", no cookies) and shows "קיבלנו" only on its receipt { accepted: true, requestId } for this request.
+// A retry of the same details sends the same requestId (the dashboard keeps it once). Nothing is stored on the device.
+const MOBILE = /^05\d{8}$/;
+function normalizeMobile(value) {
+  const raw = String(value || '').trim();
+  if (!/^[+\d\s().-]+$/.test(raw)) return '';
+  let digits = raw.replace(/[\s().-]/g, '');
+  if (digits.startsWith('+972')) digits = `0${digits.slice(4)}`;
+  else if (digits.startsWith('00972')) digits = `0${digits.slice(5)}`;
+  else if (digits.startsWith('972')) digits = `0${digits.slice(3)}`;
+  return MOBILE.test(digits) ? digits : '';
+}
+
+function toggleBackInStock(button) {
+  const panel = document.getElementById(button.getAttribute('aria-controls'));
+  if (!panel) return;
+  const open = panel.hidden;
+  panel.hidden = !open;
+  document.querySelectorAll(`[data-back-in-stock-toggle][aria-controls="${CSS.escape(panel.id)}"]`).forEach((b) => b.setAttribute('aria-expanded', String(open)));
+  if (!open) return;
+  // From the phone bar the form is further up the page: bring it into view, then the field.
+  panel.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  panel.querySelector('input[name="phone"]')?.focus({ preventScroll: true });
+}
+document.addEventListener('click', (e) => {
+  const button = e.target.closest?.('[data-back-in-stock-toggle]');
+  if (button) toggleBackInStock(button);
+});
+
+class BackInStock extends HTMLElement {
+  connectedCallback() {
+    this.form = this.querySelector('form');
+    this.form?.addEventListener('submit', this);
+  }
+
+  disconnectedCallback() { this.ctrl?.abort(); }
+
+  fail(message, field) {
+    const box = this.querySelector('.back-in-stock__error');
+    showError(box, message);
+    this.form.elements.phone?.setAttribute('aria-invalid', field === 'phone' ? 'true' : 'false');
+    (field === 'consent' ? this.form.elements.consent : this.form.elements.phone)?.focus();
+  }
+
+  request(phone) {
+    const key = `${phone}|${this.dataset.variant}`;
+    if (key !== this.key) {
+      this.key = key;
+      this.requestId = crypto.randomUUID();
+    }
+    return {
+      requestId: this.requestId,
+      phone,
+      variantId: this.dataset.variant,
+      consent: true,
+      consentVersion: this.dataset.consentVersion,
+      consentRecordedAt: new Date().toISOString(),
+      store: this.dataset.store || '',
+      website: this.form.elements.website?.value || '',
+    };
+  }
+
+  async handleEvent(e) {
+    e.preventDefault();
+    if (this.busy) return;
+    const phone = normalizeMobile(this.form.elements.phone.value);
+    if (!phone) return this.fail(this.dataset.errorPhone, 'phone');
+    if (!this.form.elements.consent.checked) return this.fail(this.dataset.errorConsent, 'consent');
+    showError(this.querySelector('.back-in-stock__error'), '');
+    const button = this.form.querySelector('[type="submit"]'), label = button.querySelector('span'), text = label.textContent;
+    this.busy = true;
+    button.setAttribute('aria-busy', 'true');
+    label.textContent = this.dataset.sending || text;
+    const ctrl = (this.ctrl = new AbortController()), timer = setTimeout(() => ctrl.abort(), 20000);
+    try {
+      const body = this.request(phone);
+      const res = await fetch(this.dataset.endpoint, {
+        method: 'POST', mode: 'cors', credentials: 'omit', referrerPolicy: 'strict-origin', signal: ctrl.signal,
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8', Accept: 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const answer = res.headers.get('content-type')?.includes('application/json') ? await res.json() : null;
+      if (res.status === 429) return this.fail(this.dataset.errorRate);
+      if (res.status === 400 && answer?.fields?.includes('phone')) return this.fail(this.dataset.errorPhone, 'phone');
+      if (!res.ok || answer?.accepted !== true || answer.requestId !== body.requestId) return this.fail(this.dataset.errorGeneric);
+      this.form.hidden = true;
+      const done = this.querySelector('.back-in-stock__done');
+      done.hidden = false;
+      done.focus();
+    } catch {
+      this.fail(this.dataset.errorGeneric);
+    } finally {
+      clearTimeout(timer);
+      this.busy = false;
+      button.removeAttribute('aria-busy');
+      label.textContent = text;
+    }
+  }
+}
+
 define('product-form', ProductForm);
+define('back-in-stock', BackInStock);
 define('deposit-choice', DepositChoice);
 define('variant-picker', VariantPicker);
 define('media-gallery', MediaGallery);

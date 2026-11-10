@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {%- comment -%}
+      With "מוצרים שאזלו מוצגים באתר" off (below):
       Sold-out products are never listed (the owner's rule): a category asks Shopify for in-stock
       products only (the storefront filter filter.v.availability=1) and the search for available ones
       (options[unavailable_products]=hide), so counts, pages and filters all agree. The theme's own
@@ -14,13 +15,23 @@
       filtered copy) with the plain category as its canonical, and the page number is kept here
       (?page=3 stays page 3), so the deeper pages of a category stay reachable for crawlers.
     {%- endcomment -%}
+    {%- comment -%}
+      "מוצרים שאזלו מוצגים באתר" (theme settings › מוצרים שאזלו, the owner's decision of 10.11.2026) turns the rule
+      around: sold-out products are listed, always after the available ones. A category still opens on the in-stock
+      filter (filter.v.availability=1: pages, counts and filters of the available products) and sections/main-collection
+      continues, after its last page, with the same category's sold-out products (filter.v.availability=0, which this
+      script lets through); the search asks Shopify to put them last (options[unavailable_products]=last, Shopify's own
+      order across every page). Off: as before.
+    {%- endcomment -%}
     {%- if request.page_type == 'collection' or request.page_type == 'search' -%}
       <script>
         (() => {
-          const u = new URL(location.href), p = u.searchParams;
-          const [key, value] = {{ request.page_type | json }} === 'collection'
-            ? ['filter.v.availability', '1'] : ['options[unavailable_products]', 'hide'];
-          if (p.get(key) === value || ({{ request.page_type | json }} === 'search' && !p.get('q'))) return;
+          const u = new URL(location.href), p = u.searchParams, collection = {{ request.page_type | json }} === 'collection';
+          const soldOutVisible = {{ settings.sold_out_visible | json }};
+          const [key, value] = collection
+            ? ['filter.v.availability', '1'] : ['options[unavailable_products]', soldOutVisible ? 'last' : 'hide'];
+          if (p.get(key) === value || (collection && soldOutVisible && p.getAll(key).join() === '0') || (!collection && !p.get('q'))) return;
+          p.delete(key);
           p.set(key, value);
           location.replace(u);
         })();
@@ -114,6 +125,7 @@
           predictive_search: {{ routes.predictive_search_url | json }}
         },
         cartType: {{ settings.cart_type | json }},
+        searchUnavailable: {% if settings.sold_out_visible %}"last"{% else %}"hide"{% endif %},
         cartConsent: {{ vat_consent | json }},
         strings: {
           error: {{ 'errors.generic' | t | json }},

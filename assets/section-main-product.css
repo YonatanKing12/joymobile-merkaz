@@ -420,6 +420,81 @@ html:has(main :focus-visible) {
   align-items: stretch;
 }
 
+/* Sold out, shown on the site: "בדיקת זמינות בסניף" (green) and "עדכנו אותי כשחוזר" (navy) where the buy buttons are. */
+.product-form__actions--check {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.product-form .product-form__button--check {
+  text-decoration: none;
+}
+
+/* ---------- "עדכנו אותי כשחוזר" (<back-in-stock>, snippets/buy-buttons) ---------- */
+.back-in-stock {
+  display: block;
+  margin-block-start: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card, 16px);
+}
+
+.back-in-stock[hidden] {
+  display: none;
+}
+
+.back-in-stock__form {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.back-in-stock__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  font-weight: 700;
+}
+
+.back-in-stock__phone {
+  max-inline-size: 16rem;
+}
+
+.back-in-stock__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug, 1.4);
+  cursor: pointer;
+}
+
+.back-in-stock__consent input {
+  flex: none;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0.0625rem 0 0;
+  accent-color: var(--color-brand);
+}
+
+/* The honeypot: out of sight and out of the tab order; people never fill it. */
+.back-in-stock__trap {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.back-in-stock__submit {
+  justify-self: start;
+}
+
+.back-in-stock__done {
+  margin: 0;
+}
+
 .product-form__whatsapp {
   display: inline-flex;
   align-items: center;
@@ -673,6 +748,12 @@ html.no-js .product-wishlist {
 
 .product-lines__stock--out .product-lines__dot {
   background-color: var(--color-error);
+}
+
+/* "מוצרים שאזלו מוצגים באתר": "אזל מהמלאי באתר" with a grey dot. */
+.product-lines__stock--soldout .product-lines__dot {
+  background-color: var(--color-muted);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-muted) 18%, transparent);
 }
 
 .product-lines__list {
@@ -1082,7 +1163,7 @@ html.no-js .product-wishlist {
 /* ---------- "+N": ticked accessories riding along with the device ---------- */
 /* snippets/product-addons.liquid publishes the count on the section root ([data-pa-count] + --pa-count),
    which outlives the re-render of the button regions; the counter turns the number into text. */
-[data-pa-count] :is(.product-form__button--checkout, .product-form__button--cart, .product-sticky__button)::after {
+[data-pa-count] :is(.product-form__button--checkout, .product-form__button--cart, .product-sticky__button:not(.product-sticky__button--sold-out))::after {
   counter-reset: pa-count var(--pa-count, 0);
   content: "+" counter(pa-count);
   display: inline-flex;
@@ -1122,6 +1203,10 @@ html.no-js .product-wishlist {
   .product-sticky__inner {
     display: flex;
     gap: var(--space-xs);
+  }
+
+  .product-sticky .product-sticky__button--sold-out {
+    text-decoration: none;
   }
 
   .product-sticky .product-sticky__button {

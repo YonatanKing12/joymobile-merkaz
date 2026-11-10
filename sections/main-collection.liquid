@@ -6,6 +6,10 @@
   (4 / 3 / 3 / 2 columns) and "טען עוד" over real paginated links. Under the grid: the rest of
   the description (its headed SEO text and FAQs).
 
+  Sold out (theme settings › מוצרים שאזלו "מוצרים שאזלו מוצגים באתר", on): after the last in-stock page, "load more"
+  continues with the category's sold-out products (filter.v.availability=0; their cards call the branch), so they
+  are always after every available product, in the order the shopper chose; a category with nothing in stock opens
+  on them. Off: never listed, as before.
   Everything works without JavaScript (GET form, plain links). <facet-filters>
   (assets/facets.js) upgrades it: it swaps the `[data-swap]` regions of this section,
   fetched through the Section Rendering API, and keeps the URL in sync. Every swap
@@ -139,6 +143,24 @@
 {%- liquid
   assign filter_query = filter_query | strip
   assign active_count = active_count | strip | plus: 0
+
+
+  # "מוצרים שאזלו מוצגים באתר": the category's sold-out part after its in-stock pages (snippets/collection-sold-out).
+  capture so_part
+    render 'collection-sold-out', collection: collection, active_count: active_count, per_page: section.settings.products_per_page
+  endcapture
+  assign so_part = so_part | strip | split: '|'
+  assign so_state = so_part[0]
+  assign so_tail_url = so_part[1]
+  assign so_back_url = so_part[2]
+  assign so_tail = false
+  if so_state == 'tail'
+    assign so_tail = true
+  endif
+  assign so_all_out = false
+  if so_state == 'all_out'
+    assign so_all_out = true
+  endif
 -%}
 
 {%- comment -%}
@@ -314,6 +336,10 @@
     if collection.all_products_count == 0 or collection.products_count == 0 and active_count == 0
       assign nothing_listed = true
     endif
+    # Nothing in stock but sold-out products shown on the site: their part instead of "empty".
+    if so_all_out
+      assign nothing_listed = false
+    endif
   -%}
   {%- if nothing_listed -%}
     <div class="collection-empty">
@@ -346,6 +372,12 @@
         assign progress = 100
         if paginate.items > 0
           assign progress = shown | times: 100 | divided_by: paginate.items
+        endif
+        # After the last in-stock page: "load more" continues with the sold-out part. On the sold-out part's first
+        # page (a direct visit), a link back up to the last in-stock page.
+        assign so_next_url = ''
+        if so_tail_url != blank and paginate.next == blank
+          assign so_next_url = so_tail_url
         endif
       -%}
       <facet-filters
@@ -433,8 +465,26 @@
                   {{- 'collections.previous' | t -}}
                 </a>
               </p>
+            {%- elsif so_back_url != blank -%}
+              <p class="load-previous">
+                <a class="load-previous__link" href="{{ so_back_url }}">
+                  {%- render 'icon', name: 'arrow-up', size: 16 -%}
+                  {{- 'collections.sold_out.back' | t -}}
+                </a>
+              </p>
             {%- endif -%}
-            {%- if collection.products_count > 0 -%}
+            {%- if so_all_out and collection.products_count == 0 -%}
+              {%- comment -%} Nothing in stock: straight to the sold-out part (a link without JavaScript). {%- endcomment -%}
+              <div class="collection-empty collection-empty--filtered">
+                <h3 class="collection-empty__title">{{ 'collections.sold_out.all_out' | t }}</h3>
+                <a class="button collection-empty__button" href="{{ so_tail_url }}">
+                  {{- 'collections.sold_out.load' | t -}}
+                </a>
+              </div>
+              {%- if active_count == 0 -%}
+                <script>location.replace({{ so_tail_url | json }});</script>
+              {%- endif -%}
+            {%- elsif collection.products_count > 0 -%}
               {%- liquid
                 # Photos first within the page, only in the category's own order: no sort_by in the URL and a
                 # manual or best-selling default. An order the shopper picked (best-selling, price, name, date;
@@ -452,7 +502,8 @@
                 eager: eager,
                 heading: 'h3',
                 id: grid_id,
-                photos_first: grid_photos_first
+                photos_first: grid_photos_first,
+                sold_out_only: so_tail
               -%}
             {%- else -%}
               <div class="collection-empty collection-empty--filtered">
@@ -467,21 +518,31 @@
           </div>
 
           <div class="facets-layout__pagination" data-swap="pagination">
-            {%- if paginate.pages > 1 -%}
+            {%- if paginate.pages > 1 or so_next_url != blank or so_tail -%}
               <div class="load-more">
-                <p class="load-more__status">{{ 'collections.progress' | t: shown: shown, total: paginate.items }}</p>
-                <span class="load-more__bar" aria-hidden="true">
-                  <span class="load-more__fill" style="inline-size: {{ progress }}%"></span>
-                </span>
+                {%- if so_tail -%}
+                  <p class="load-more__status">{{ 'collections.sold_out.heading' | t }}</p>
+                {%- elsif paginate.pages > 1 -%}
+                  <p class="load-more__status">{{ 'collections.progress' | t: shown: shown, total: paginate.items }}</p>
+                  <span class="load-more__bar" aria-hidden="true">
+                    <span class="load-more__fill" style="inline-size: {{ progress }}%"></span>
+                  </span>
+                {%- endif -%}
                 {%- if paginate.next -%}
                   <a class="button load-more__button" href="{{ paginate.next.url }}" rel="next" data-load-more>
                     {{- 'collections.load_more' | t -}}
                   </a>
+                {%- elsif so_next_url != blank and collection.products_count > 0 -%}
+                  <a class="button button--outline load-more__button" href="{{ so_next_url }}" data-load-more>
+                    {{- 'collections.sold_out.load' | t -}}
+                  </a>
                 {%- endif -%}
               </div>
-              <div class="no-js-only">
-                {%- render 'pagination', paginate: paginate, class: 'load-more__pages' -%}
-              </div>
+              {%- if paginate.pages > 1 -%}
+                <div class="no-js-only">
+                  {%- render 'pagination', paginate: paginate, class: 'load-more__pages' -%}
+                </div>
+              {%- endif -%}
             {%- endif -%}
           </div>
         </div>

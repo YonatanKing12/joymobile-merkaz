@@ -6,7 +6,8 @@
   part 'lines' — the info lines under the buy buttons:
   - stock (`[data-swap="availability"]`, inside a polite live region): the in-stock text,
     "נותרו N יחידות במלאי" (tracked stock at or under the threshold), "זמין בהזמנה
-    מוקדמת" (overselling allowed) or "אזל מהמלאי";
+    מוקדמת" (overselling allowed) or "אזל מהמלאי" (with "מוצרים שאזלו מוצגים באתר": the theme setting's
+    text, "אזל מהמלאי באתר", with a grey dot);
   - delivery (params still named pickup_*): the label, the address from the theme settings
     (store_street, store_city, off on the national store) and a note;
   - warranty: `custom.warranty_months` and the import channel from snippets/import-channel,
@@ -128,6 +129,11 @@
       if pt_variant.available == false
         assign pt_state = 'out'
         assign pt_stock_text = 'products.product.stock.out' | t
+        # "מוצרים שאזלו מוצגים באתר": a grey dot and the setting's text ("אזל מהמלאי באתר"), not the alarm red.
+        if settings.sold_out_visible and settings.sold_out_stock_text != blank
+          assign pt_state = 'soldout'
+          assign pt_stock_text = settings.sold_out_stock_text | escape
+        endif
       elsif pt_variant.inventory_management == 'shopify' and pt_variant.inventory_quantity <= 0
         assign pt_state = 'preorder'
         assign pt_stock_text = 'products.product.stock.preorder' | t

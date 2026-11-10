@@ -1,0 +1,70 @@
+{% doc %}
+  The category's sold-out part (theme settings › מוצרים שאזלו "מוצרים שאזלו מוצגים באתר"), for
+  sections/main-collection: a category opens on its in-stock products (filter.v.availability=1, layout/theme.liquid);
+  after its last page, "load more" continues with the same URL (sort, the shopper's filters) on
+  filter.v.availability=0, where snippets/product-grid shows only the products with nothing available.
+
+  Shopify's availability 0 also counts a product with one sold-out variant among available ones (already among the
+  in-stock pages). Without the shopper's own filters, the products with nothing available are exactly the category's
+  products minus its in-stock ones (all_products_count ignores filters), so a category whose "sold out" are all partly
+  available gets no sold-out part. With other filters on that total is not known, and the count of 0 decides.
+
+  Prints "<state>|<sold-out URL>|<back URL>" for the caller to split:
+  - none: nothing to add (the setting off, no availability filter, no product with nothing available);
+  - more: the in-stock list, with a sold-out part at the URL;
+  - all_out: as more, but nothing is in stock (the category opens on the sold-out part);
+  - tail: this is the sold-out part; the back URL is the in-stock list's last page.
+
+  @param {object} collection - The collection.
+  @param {number} active_count - The shopper's own active filters (snippets/active-filters, count).
+  @param {number} per_page - Products per page of the section.
+
+  @example
+  {%- capture so_part -%}{% render 'collection-sold-out', collection: collection, active_count: active_count, per_page: 24 %}{%- endcapture -%}
+{% enddoc -%}
+{%- liquid
+  assign cso_state = 'none'
+  assign cso_url = ''
+  assign cso_back = ''
+  assign cso_filter = collection.filters | where: 'param_name', 'filter.v.availability' | first
+  if settings.sold_out_visible and cso_filter
+    assign cso_in = cso_filter.values | where: 'value', '1' | first
+    assign cso_out = cso_filter.values | where: 'value', '0' | first
+    if cso_in and cso_out
+      if cso_out.active and cso_in.active == false
+        assign cso_state = 'tail'
+        assign cso_back = cso_out.url_to_remove
+        assign cso_sep = '?'
+        if cso_back contains '?'
+          assign cso_sep = '&'
+        endif
+        if cso_in.count > 0
+          assign cso_pages = cso_in.count | plus: per_page | minus: 1 | divided_by: per_page
+          assign cso_back = cso_back | append: cso_sep | append: 'filter.v.availability=1&page=' | append: cso_pages
+        else
+          assign cso_back = ''
+        endif
+      elsif cso_in.active and cso_out.active == false and cso_out.count > 0
+        assign cso_state = 'more'
+        if active_count == 0
+          assign cso_nothing_available = collection.all_products_count | minus: cso_in.count
+          if cso_nothing_available <= 0
+            assign cso_state = 'none'
+          endif
+        endif
+        if cso_state == 'more'
+          if cso_in.count == 0
+            assign cso_state = 'all_out'
+          endif
+          assign cso_url = cso_in.url_to_remove
+          assign cso_sep = '?'
+          if cso_url contains '?'
+            assign cso_sep = '&'
+          endif
+          assign cso_url = cso_url | append: cso_sep | append: 'filter.v.availability=0'
+        endif
+      endif
+    endif
+  endif
+-%}
+{{- cso_state }}|{{ cso_url }}|{{ cso_back -}}

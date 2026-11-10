@@ -19,7 +19,9 @@
     where people browse and collect, and skipping the drawer would skip its upsell.
   - Multi-variant product: "לבחירת דגם", a link to the product page, where the variant is chosen
     (a different label, so "שריון באילת" always means the same thing).
-  - Sold out: a disabled "אזל מהמלאי" button.
+  - Sold out: with "מוצרים שאזלו מוצגים באתר" (theme settings › מוצרים שאזלו) a navy "בדיקת זמינות" that calls the
+    branch (tel:, the setting's number), the stock line "אזל מהמלאי" with a grey dot and the photo faded; the price
+    stays. Without the setting (or the number), a disabled "אזל מהמלאי" button.
 
   Brand: the vendor name above the title (theme setting "הצגת המותג"); nothing when the vendor
   is the store itself (the store name or the theme's brand name, compared case-insensitively:
@@ -96,6 +98,17 @@
 
   assign card_stock = ''
   assign card_stock_count = 0
+  # "מוצרים שאזלו מוצגים באתר" (theme settings › מוצרים שאזלו): a sold-out card calls the branch.
+  assign card_so_tel = ''
+  if product.available == false and settings.sold_out_visible
+    capture card_so_tel
+      render 'phone-href', phone: settings.sold_out_phone
+    endcapture
+    assign card_so_tel = card_so_tel | strip
+    if settings.sold_out_card_stock_text != blank
+      assign card_stock = 'out'
+    endif
+  endif
   if product.available
     assign card_stock = 'in'
     assign card_low_threshold = settings.badge_low_stock_threshold | default: 2
@@ -194,7 +207,9 @@
 
       {%- if card_stock != blank -%}
         <p class="card-product__stock card-product__stock--{{ card_stock }}">
-          {%- if card_stock == 'low' -%}
+          {%- if card_stock == 'out' -%}
+            {{- settings.sold_out_card_stock_text | escape -}}
+          {%- elsif card_stock == 'low' -%}
             {%- if card_stock_count == 1 -%}
               {{- 'products.card.stock_last' | t -}}
             {%- else -%}
@@ -207,7 +222,15 @@
       {%- endif -%}
 
       <div class="card-product__actions">
-        {%- if product.available == false -%}
+        {%- if product.available == false and card_so_tel != blank -%}
+          <a class="button card-product__button card-product__button--check" href="{{ card_so_tel }}">
+            {%- render 'icon', name: 'phone', size: 18, class: 'card-product__button-icon' -%}
+            <span>
+              {{- settings.sold_out_check_label_short | escape -}}
+              <span class="visually-hidden">: {{ product.title | escape }}</span>
+            </span>
+          </a>
+        {%- elsif product.available == false -%}
           <button class="button card-product__button" type="button" disabled>
             {{- 'products.card.sold_out' | t -}}
             <span class="visually-hidden">: {{ product.title | escape }}</span>

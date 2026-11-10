@@ -63,9 +63,11 @@ class FacetFilters extends HTMLElement {
     try {
       const doc = parseHTML(await fetchSectionHTML(url, sectionIdOf(this), { signal: ctrl.signal }));
       const added = append ? this.appendPage(doc) : [];
-      if (added.length) {
+      // "Load more" keeps what is on screen even when the next part adds nothing (a category's sold-out part whose
+      // first page holds only products with an available variant: sections/main-collection).
+      if (append) {
         swapFrom(doc, '[data-swap="pagination"]', this);
-        added[0].querySelector('a[href]')?.focus({ preventScroll: true });
+        added[0]?.querySelector('a[href]')?.focus({ preventScroll: true });
       } else {
         // Keep open groups; set before the swap so a focused field can be refocused.
         this.querySelectorAll('details[id]').forEach((d) => {

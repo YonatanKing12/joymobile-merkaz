@@ -13,7 +13,13 @@
   - `[data-form-error]` shows Shopify's message (e.g. over stock); the script announces it.
   Without JavaScript a `<noscript>` variant select (after the hidden id, so its value is the
   one the server reads) replaces the radios of the variant picker.
-  Sold out: one disabled "אזל מהמלאי" button, an optional WhatsApp "לבירור זמינות" link
+  Sold out, theme settings › מוצרים שאזלו "מוצרים שאזלו מוצגים באתר" on (the owner, 10.11.2026): instead of
+  buying, the green "בדיקת זמינות בסניף" (a tel: link to "טלפון לבדיקת זמינות בסניף") and the navy "עדכנו אותי
+  כשחוזר", which opens <back-in-stock> after the product form (forms cannot nest): a mobile and an unticked consent,
+  posted to the Joy Mobile dashboard (@theme/product; "כתובת הדאשבורד לבקשות"), which sends one WhatsApp message when
+  the variant is back. No quantity. The texts and the number are theme settings. The region is re-rendered on every
+  variant change, so a variant that is back shows the buy buttons again, and a sold-out one these two.
+  The setting off: as before, one disabled "אזל מהמלאי" button, an optional WhatsApp "לבירור זמינות" link
   (theme setting "מספר וואטסאפ") and, after the product form, "עדכנו אותי כשחוזר": a contact form
   that emails the store the product, the variant and its link.
   The accessories ticked in "השלימו את הערכה" (snippets/product-addons) are added by these same
@@ -33,8 +39,9 @@
   part 'sticky' — `[data-swap="sticky"]`: a bar fixed to the bottom of phone screens with the
   same two CTAs, submitting the same form through `form="…"` (so it uses the chosen
   quantity). It slides in once the in-page buttons leave the viewport (CSS scroll-driven
-  animation; always visible on phones in browsers without it). Not printed when the variant
-  is sold out (the empty region stays so a swap can bring it back).
+  animation; always visible on phones in browsers without it). Sold out with "מוצרים שאזלו מוצגים
+  באתר": the same two actions, short ("בדיקת זמינות", "עדכנו אותי": it opens the in-page form). Else not
+  printed when the variant is sold out (the empty region stays so a swap can bring it back).
 
   Styles: assets/section-main-product.css.
 
@@ -82,6 +89,30 @@
   endif
 
   assign bb_available = bb_variant.available
+
+  # "מוצרים שאזלו" (theme settings): the sold-out actions instead of buying.
+  # Without a number to call they are not shown (the disabled "אזל מהמלאי" as before).
+  assign bb_so_visible = false
+  assign bb_so_tel = ''
+  if settings.sold_out_visible and bb_available == false
+    capture bb_so_tel
+      render 'phone-href', phone: settings.sold_out_phone
+    endcapture
+    assign bb_so_tel = bb_so_tel | strip
+    if bb_so_tel != blank
+      assign bb_so_visible = true
+    endif
+  endif
+  assign bb_bis = false
+  if bb_so_visible and settings.back_in_stock_enabled and settings.back_in_stock_endpoint != blank
+    assign bb_bis = true
+  endif
+  assign bb_bis_id = 'BackInStock-' | append: section_id
+  # The store the request is for, as the club page names it (both stores share this theme and its settings).
+  assign bb_bis_store = 'national'
+  if shop.permanent_domain == 'x511g0-rj.myshopify.com'
+    assign bb_bis_store = 'eilat'
+  endif
 -%}
 
 {%- if settings.deposit_product != blank and product.id == settings.deposit_product.id -%}
@@ -118,6 +149,27 @@
         {%- render 'icon', name: 'alert', size: 18 -%}
         <span>{{ 'products.product.sticky_error' | t }}</span>
       </a>
+    </div>
+  {%- elsif bb_so_visible -%}
+    <div class="product-sticky product-sticky--sold-out" data-swap="sticky" role="region" aria-label="{{ 'products.product.sticky_label' | t }}">
+      <div class="product-sticky__inner">
+        <a class="button button--accent product-sticky__button product-sticky__button--sold-out" href="{{ bb_so_tel }}">
+          {%- render 'icon', name: 'phone', size: 20 -%}
+          <span>{{ settings.sold_out_check_label_short | escape }}</span>
+        </a>
+        {%- if bb_bis -%}
+          <button
+            type="button"
+            class="button product-sticky__button product-sticky__button--sold-out"
+            aria-controls="{{ bb_bis_id }}"
+            aria-expanded="false"
+            data-back-in-stock-toggle
+          >
+            {%- render 'icon', name: 'bell', size: 20 -%}
+            <span>{{ settings.sold_out_notify_label_short | escape }}</span>
+          </button>
+        {%- endif -%}
+      </div>
     </div>
   {%- else -%}
     <div class="product-sticky product-sticky--empty" data-swap="sticky" hidden></div>
@@ -282,6 +334,25 @@
               </button>
             {%- endif -%}
           </div>
+        {%- elsif bb_so_visible -%}
+          <div class="product-form__actions product-form__actions--sold-out product-form__actions--check">
+            <a class="button button--accent product-form__button product-form__button--check" href="{{ bb_so_tel }}">
+              {%- render 'icon', name: 'phone', size: 20 -%}
+              <span>{{ settings.sold_out_check_label | escape }}</span>
+            </a>
+            {%- if bb_bis -%}
+              <button
+                type="button"
+                class="button product-form__button product-form__button--notify"
+                aria-controls="{{ bb_bis_id }}"
+                aria-expanded="false"
+                data-back-in-stock-toggle
+              >
+                {%- render 'icon', name: 'bell', size: 20 -%}
+                <span>{{ settings.sold_out_notify_label | escape }}</span>
+              </button>
+            {%- endif -%}
+          </div>
         {%- else -%}
           <div class="product-form__actions product-form__actions--sold-out">
             <button type="button" class="button product-form__button product-form__button--sold-out" aria-disabled="true">
@@ -306,7 +377,66 @@
       {%- endform -%}
     </product-form>
 
-    {%- unless bb_available -%}
+    {%- if bb_so_visible and bb_bis -%}
+      {%- comment -%}
+        "עדכנו אותי כשחוזר" (theme settings › מוצרים שאזלו): opened by the buttons above and in the phone bar
+        (@theme/product <back-in-stock>). The Joy Mobile dashboard keeps the request (POST, JSON in a text/plain body,
+        no cookies) and sends one WhatsApp message when this variant is back. Without JavaScript it stays hidden.
+      {%- endcomment -%}
+      <back-in-stock
+        class="back-in-stock"
+        id="{{ bb_bis_id }}"
+        data-endpoint="{{ settings.back_in_stock_endpoint | escape }}"
+        data-variant="{{ bb_variant.id }}"
+        data-store="{{ bb_bis_store }}"
+        data-consent-version="{{ settings.back_in_stock_consent_version | escape }}"
+        data-error-phone="{{ 'products.back_in_stock.error_phone' | t | escape }}"
+        data-error-consent="{{ 'products.back_in_stock.error_consent' | t | escape }}"
+        data-error-rate="{{ 'products.back_in_stock.error_rate' | t | escape }}"
+        data-error-generic="{{ 'products.back_in_stock.error_generic' | t | escape }}"
+        data-sending="{{ 'products.back_in_stock.sending' | t | escape }}"
+        hidden
+      >
+        <form class="back-in-stock__form" novalidate>
+          <p class="back-in-stock__title">
+            {%- render 'icon', name: 'bell', size: 20 -%}
+            <span>{{ 'products.back_in_stock.title' | t }}</span>
+          </p>
+          <div class="field">
+            <label class="field__label" for="{{ bb_bis_id }}-phone">{{ 'products.back_in_stock.phone' | t }}</label>
+            <input
+              class="input back-in-stock__phone"
+              type="tel"
+              inputmode="tel"
+              id="{{ bb_bis_id }}-phone"
+              name="phone"
+              autocomplete="tel"
+              placeholder="{{ 'products.back_in_stock.phone_placeholder' | t }}"
+              dir="ltr"
+              required
+              aria-describedby="{{ bb_bis_id }}-error"
+            >
+          </div>
+          <label class="back-in-stock__consent">
+            <input type="checkbox" name="consent" value="yes" required>
+            <span>{{ settings.back_in_stock_consent | escape }}</span>
+          </label>
+          <div class="back-in-stock__trap" aria-hidden="true">
+            <label for="{{ bb_bis_id }}-website">Website</label>
+            <input type="text" id="{{ bb_bis_id }}-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <p class="form-message form-message--error back-in-stock__error" id="{{ bb_bis_id }}-error" role="alert" hidden></p>
+          <button type="submit" class="button back-in-stock__submit">
+            <span>{{ 'products.back_in_stock.submit' | t }}</span>
+          </button>
+        </form>
+        <p class="form-message form-message--success back-in-stock__done" role="status" tabindex="-1" hidden>
+          {{- 'products.back_in_stock.success' | t -}}
+        </p>
+      </back-in-stock>
+    {%- endif -%}
+
+    {%- unless bb_available or bb_so_visible -%}
       {%- comment -%}
         Sold out: "עדכנו אותי כשחוזר". A contact form, so the request lands in the store's inbox with the
         product, the variant and its link, and the shopper is not signed up to marketing by asking. It sits

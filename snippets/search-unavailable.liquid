@@ -1,0 +1,10 @@
+{% doc %}
+  The search's `options[unavailable_products]`: "last" while theme settings › מוצרים שאזלו "מוצרים שאזלו מוצגים
+  באתר" is on (sold-out products after the available ones, Shopify's own order), else "hide" (never listed). Every
+  search link and form of the theme prints it here, and layout/theme.liquid sends any other value to it. Prints the
+  bare word (callers put it in a URL or an attribute).
+
+  @example
+  <input type="hidden" name="options[unavailable_products]" value="{% render 'search-unavailable' %}">
+{% enddoc -%}
+{%- if settings.sold_out_visible -%}last{%- else -%}hide{%- endif -%}

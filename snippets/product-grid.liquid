@@ -20,6 +20,11 @@
   order (the searched device first, then other products, accessories last), photos first inside each group when
   `photos_first` is set too.
 
+  Sold out: left out, unless theme settings › מוצרים שאזלו "מוצרים שאזלו מוצגים באתר" is on; then they come after
+  every available product of the page (each in the order above), so a page never shows one before an available one.
+  `sold_out_only`: the category's sold-out part (sections/main-collection, filter.v.availability=0, whose results also
+  hold products with one sold-out variant among available ones): only the products with nothing available.
+
   Classes: .product-grid, .product-grid__item.
 
   @param {object} products - Array of products for the current page.
@@ -30,6 +35,7 @@
   @param {string} [label] - Accessible name of the list.
   @param {boolean} [photos_first] - Products with a photo first within the page. Default false.
   @param {string} [rank] - Search order groups from snippets/search-rank. Default none (the given order).
+  @param {boolean} [sold_out_only] - Only products with nothing available (the category's sold-out part). Default false.
 
   @example
   {% render 'product-grid', products: collection.products, section_id: section.id, eager: 4, heading: 'h3' %}
@@ -42,6 +48,13 @@
     assign pg_passes = 2
   endif
   assign pg_index = 0
+  # Availability passes: the available products, then (the setting on) the sold-out ones.
+  assign pg_avail = 'in' | split: ','
+  if sold_out_only
+    assign pg_avail = 'out' | split: ','
+  elsif settings.sold_out_visible
+    assign pg_avail = 'in,out' | split: ','
+  endif
   assign pg_steps = 'all' | split: '|'
   assign pg_map = ''
   if rank != blank
@@ -61,11 +74,15 @@
     aria-label="{{ label | escape }}"
   {% endif %}
 >
+  {%- for pg_avail_pass in pg_avail -%}
   {%- for pg_step in pg_steps -%}
   {%- for pg_pass in (1..pg_passes) -%}
     {%- for product in products -%}
       {%- liquid
-        if product.available == false
+        if pg_avail_pass == 'in' and product.available == false
+          continue
+        endif
+        if pg_avail_pass == 'out' and product.available
           continue
         endif
         if pg_step != 'all'
@@ -98,6 +115,7 @@
         -%}
       </li>
     {%- endfor -%}
+  {%- endfor -%}
   {%- endfor -%}
   {%- endfor -%}
 </ul>
