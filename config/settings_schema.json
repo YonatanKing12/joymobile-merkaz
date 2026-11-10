@@ -849,8 +849,7 @@
       {
         "type": "text",
         "id": "contact_phone",
-        "label": "טלפון",
-        "default": ""
+        "label": "טלפון"
       },
       {
         "type": "text",
