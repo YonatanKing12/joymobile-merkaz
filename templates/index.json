@@ -130,7 +130,7 @@
             "image": "shopify://shop_images/180_daa8db9d-d808-4d33-8d26-86e1a3181dbf.png",
             "image_mobile": "shopify://shop_images/180.png",
             "alt": "לשמור על דופק בסטייל",
-            "link": "shopify://collections/שעוני-infinx",
+            "link": "shopify://collections/infinix-xband-xwatch-pods",
             "video_on_mobile": false,
             "heading": "",
             "text": "",
@@ -510,7 +510,7 @@
         "title": "שואבי אבק",
         "collection": "vacuums",
         "pinned_products": [
-          "שואב-אבק-ושוטף-רובוטי-dreame-x60-ultra-complete",
+          "dreame-x60-ultra-complete",
           "roborock-saros-20-complete-6936905905666",
           "roborock-saros-20-sonic-6936905905581",
           "mova-v70-ultra-complete-x-6978794735177"
@@ -548,9 +548,9 @@
         "collection": "audio",
         "pinned_products": [
           "apple-airpodsmax-2-dcs-black-195951039152",
-          "אוזניות-samsung-galaxy-buds-4-pro",
-          "אוזניות-samsung-galaxy-buds-4",
-          "אוזניות-apple-airpods-pro-3-usb-c"
+          "samsung-galaxy-buds-4-pro",
+          "samsung-galaxy-buds-4",
+          "apple-airpods-pro-3-usb-c"
         ],
         "first_collection": "",
         "first_title_keywords": "AirPods Pro 3, AirPods Max 2, AirPods 5, AirPods 4, Galaxy Buds 4 Pro, Galaxy Buds 4, WH-1000XM6, Bose QuietComfort Ultra, Nothing Ear (3), Liberty 5 Pro, JBL Tune 720BT",
