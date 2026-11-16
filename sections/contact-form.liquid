@@ -26,6 +26,14 @@
   emails. Every field is named by its Hebrew label: that is what the notification email shows.
   An optional WhatsApp button (show_whatsapp) offers the same request as a chat, with a
   message pre-filled for the form type.
+
+  Leads in the dashboard (dashboard_leads, on by default): beside Shopify's own submission,
+  assets/dashboard-leads.js sends the form to the Joy Mobile dashboard's leads endpoint, the
+  one the iPhone Duo page posts to, with the source of the form type (contact-form,
+  joy-fix-form, trade-in-form). It never waits for the dashboard and never stops the form:
+  Shopify's email and success message are unchanged. The form's settings for it are in the
+  <script data-dashboard-lead> inside the form (not written in the theme editor). Consent
+  text version: contact_consent_version below; bump it when the privacy box's text changes.
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
 {{ 'section-contact.css' | asset_url | stylesheet_tag }}
@@ -104,6 +112,20 @@
   if submit_label == blank
     assign submit_label = 'contact.form.submit' | t
   endif
+
+  # The dashboard lead's source by form type (assets/dashboard-leads.js; see the comment at the top).
+  assign lead_source = ''
+  if section.settings.dashboard_leads and request.design_mode == false
+    case form_kind
+      when 'repair'
+        assign lead_source = 'joy-fix-form'
+      when 'trade_in'
+        assign lead_source = 'trade-in-form'
+      else
+        assign lead_source = 'contact-form'
+    endcase
+  endif
+  assign contact_consent_version = '20261116-1'
 -%}
 
 <div class="contact page-width">
@@ -384,6 +406,12 @@
           </div>
         {%- endif -%}
 
+        {%- if lead_source != blank -%}
+          <script type="application/json" data-dashboard-lead>
+            {"source":{{ lead_source | json }},"kind":{{ form_kind | json }},"subject":{{ form_subject | default: '' | json }},"consentVersion":{{ contact_consent_version | json }},"privacyUrl":{{ privacy_url | default: '' | json }}}
+          </script>
+        {%- endif -%}
+
         <button type="submit" class="button button--accent button--large contact-form__submit">
           {{- submit_label | escape -}}
         </button>
@@ -402,6 +430,9 @@
           </a>
         {%- endif -%}
       {%- endform -%}
+      {%- if lead_source != blank -%}
+        <script type="module" src="{{ 'dashboard-leads.js' | asset_url }}"></script>
+      {%- endif -%}
     </div>
 
     {%- if section.settings.show_info -%}
@@ -573,6 +604,13 @@
       "id": "whatsapp_message",
       "label": "הודעה מוכנה בוואטסאפ",
       "info": "כשריק: הודעה לפי סוג הטופס (בפנייה כללית — ההודעה מהגדרות התבנית)."
+    },
+    {
+      "type": "checkbox",
+      "id": "dashboard_leads",
+      "label": "שליחה ללידים בדשבורד",
+      "info": "כל פנייה עם מספר נייד נשלחת גם ללידים בדשבורד של JOY Mobile, בנוסף למייל של Shopify. לא מעכב את הטופס ולא משנה את הודעת ההצלחה.",
+      "default": true
     },
     {
       "type": "header",
