@@ -222,8 +222,11 @@
           endif
         -%}
         {%- liquid
+          # The lead is escaped by hand: Shopify marks the output of `escape` as safe HTML, and `append`
+          # onto it then escapes the description too, so its tags reached the meta tag as text.
           if meta_product_lead != blank
-            assign meta_product_html = meta_product_lead | escape | append: ' ' | append: meta_product_html
+            assign meta_product_lead_html = meta_product_lead | replace: '&', '&amp;' | replace: '<', '&lt;' | replace: '>', '&gt;'
+            assign meta_product_html = meta_product_lead_html | append: ' ' | append: meta_product_html
           endif
         -%}
         {%- render 'plain-text', html: meta_product_html, limit: 160 -%}
