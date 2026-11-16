@@ -56,12 +56,14 @@
   {%- liquid
     assign ag_model = ag_model | strip
     assign ag_watch = ag_watch | strip
-    # The shop's own name as vendor ("joy mobile" on 236 products) is not a brand.
+    # The shop's own name as vendor ("joy mobile" on 236 products, "Joy Mobile Merkaz" on some of
+    # Eilat's) is not a brand.
     assign ag_vendor = product.vendor | strip
     assign ag_vendor_key = ag_vendor | downcase
+    assign ag_vendor_house = ag_vendor_key | slice: 0, 10
     assign ag_house = shop.name | strip | downcase
     assign ag_brand = settings.brand_name | strip | downcase
-    if ag_vendor_key == ag_house or ag_vendor_key == ag_brand or ag_vendor_key == 'joy mobile'
+    if ag_vendor_key == ag_house or ag_vendor_key == ag_brand or ag_vendor_house == 'joy mobile'
       assign ag_vendor = ''
     endif
 

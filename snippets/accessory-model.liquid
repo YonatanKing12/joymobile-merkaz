@@ -139,6 +139,14 @@
       assign am_cut = am_probe | split: 'watch' | first | size | plus: 5
       assign am_watch = am_model | slice: 0, am_cut
     endif
+    # "Watch Series 12 GPS 42mm" names no maker, and "רצועה Watch 42" brought Galaxy Watch straps to
+    # an Apple Watch (Nov 2026): the maker comes from the vendor then ("Apple Watch 42"). The shop's
+    # own name as vendor ("Joy Mobile Merkaz") is no maker.
+    assign am_watch_head = am_watch | downcase | slice: 0, 5
+    assign am_vendor_house = am_vendor_key | slice: 0, 10
+    if am_watch_head == 'watch' and am_vendor_key != blank and am_vendor_house != 'joy mobile'
+      assign am_watch = product.vendor | strip | append: ' ' | append: am_watch
+    endif
     if am_size != ''
       assign am_watch = am_watch | append: ' ' | append: am_size
     endif

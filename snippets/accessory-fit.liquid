@@ -108,9 +108,40 @@
       assign af_title = af_title | remove: '"' | remove: '”' | remove: '״' | remove: ',' | replace: 'ל-', '/'
       assign af_segments = af_title | split: '/'
       assign af_segment_count = af_segments.size
+      assign af_family = ''
       for af_segment in af_segments
         assign af_si = forloop.index0
         assign af_own = af_segment | split: ' '
+
+        # The family a bare number belongs to: in "ל-iPhone 13/14" the 14 is an iPhone's, so it must
+        # not answer "מגן מסך Redmi Note 14". A segment that opens with a word (no digit) names its
+        # own family, the word before its first number; one that opens with a number keeps the last.
+        assign af_seg_first = af_own | first | default: ''
+        assign af_seg_numbered = false
+        for af_d in af_digits
+          if af_seg_first contains af_d
+            assign af_seg_numbered = true
+          endif
+        endfor
+        unless af_seg_numbered
+          assign af_family = ''
+          for af_fw in af_own
+            assign af_fwi = forloop.index0
+            assign af_fw_digit = false
+            for af_d in af_digits
+              if af_fw contains af_d
+                assign af_fw_digit = true
+              endif
+            endfor
+            if af_fw_digit
+              if af_fwi > 0
+                assign af_fp = af_fwi | minus: 1
+                assign af_family = af_own[af_fp]
+              endif
+              break
+            endif
+          endfor
+        endunless
 
         # A bare number before the next model takes that model's suffix ("18/17 Pro Max"), unless
         # the next one repeats the number ("15/15 Pro"): borrow the next model's words after its first.
@@ -151,17 +182,24 @@
             if af_prev == '' or af_before == af_prev
               assign af_head_ok = true
             elsif af_si > 0 and af_j == 0
-              assign af_head_ok = true
+              # A bare number later in a list: only within the same family (see af_family above).
+              if af_family == '' or af_family == af_prev
+                assign af_head_ok = true
+              endif
             elsif af_si > 0
-              # A later model may follow a chip name: "ל-iPad 10.9"/A16 11"".
+              # A later model may follow a chip name: "ל-iPad 10.9"/A16 11"". A chip is A or M and
+              # a number ("a16", "m2"); "s24" is a phone, so "Galaxy S24 FE" does not fit "Buds FE".
               assign af_before_head = af_before | slice: 0
-              unless af_digits contains af_before_head
-                for af_d in af_digits
-                  if af_before contains af_d
-                    assign af_head_ok = true
-                  endif
-                endfor
-              endunless
+              assign af_before_rest = af_before | slice: 1, 3
+              if af_before.size <= 3 and af_before_rest != ''
+                if af_before_head == 'a' or af_before_head == 'm'
+                  for af_d in af_digits
+                    if af_before_rest contains af_d
+                      assign af_head_ok = true
+                    endif
+                  endfor
+                endif
+              endif
             endif
 
             if af_head_ok
@@ -234,6 +272,17 @@
       endunless
     endif
 
+    # Lightning and MagSafe are Apple's: a charger or a cable query that does not name Apple (a
+    # Xiaomi phone, Razer headphones, a tablet with no maker) does not get them. The search matches
+    # descriptions, so "מטען Xiaomi" brought Apple's MagSafe Charger (Nov 2026).
+    if af_lead4 == 'מטען' or af_lead4 == 'כבל '
+      unless af_terms contains 'apple'
+        if af_t contains 'lightning' or af_t contains 'magsafe'
+          assign af_fit = false
+        endif
+      endunless
+    endif
+
     # A watch's screen protector or strap names the watch, and a screen protector its case size.
     assign af_wear = ''
     if af_terms contains 'watch'
@@ -245,12 +294,73 @@
       unless af_t contains af_wear
         assign af_fit = false
       endunless
+
+      # And the same watch family: "Galaxy Watch", "Apple Watch", "Xwatch". The query's word that
+      # holds "watch", with the word before it when it is the bare "watch" ("samsung galaxy watch 44"
+      # gives "galaxy watch"). A query of "Watch" alone names no family and skips this.
+      assign af_wfam = ''
+      assign af_wterms = af_terms | remove_first: 'רצועה ' | remove_first: 'מגן מסך ' | split: ' '
+      for af_ww in af_wterms
+        if af_ww contains 'watch'
+          assign af_wfam = af_ww
+          if af_ww == 'watch'
+            assign af_wfam = ''
+            if forloop.index0 > 0
+              assign af_wp = forloop.index0 | minus: 1
+              assign af_wfam = af_wterms[af_wp] | append: ' watch'
+            endif
+          endif
+          break
+        endif
+      endfor
+      if af_wfam != ''
+        unless af_t contains af_wfam
+          assign af_fit = false
+        endunless
+      endif
       assign af_size = af_terms | split: ' ' | last
       assign af_size_digit = af_size | slice: 0
       if af_lead7 == 'מגן מסך' and af_wear == 'watch' and af_digits contains af_size_digit
         unless af_t contains af_size
           assign af_fit = false
         endunless
+      endif
+
+      # An Apple Watch strap fits its own size group: 38/40/41 or 44/45/46/49 (Apple's band
+      # compatibility). 42 is both (Series 3 42mm is the large group, Series 10 and later the small
+      # one), so a 42 asks for 42 itself. A strap that names no size is left alone.
+      if af_lead5 == 'רצועה' and af_wfam == 'apple watch' and af_digits contains af_size_digit
+        assign af_wgroup = ''
+        case af_size
+          when '38', '40', '41'
+            assign af_wgroup = ',38,40,41,'
+          when '44', '45', '46', '49'
+            assign af_wgroup = ',44,45,46,49,'
+          when '42'
+            assign af_wgroup = ',42,'
+        endcase
+        if af_wgroup != ''
+          assign af_wsizes = af_t | replace: 'מ״מ', ' ' | replace: 'mm', ' ' | replace: '/', ' ' | split: ' '
+          assign af_wnamed = false
+          assign af_wmatch = false
+          for af_ws in af_wsizes
+            assign af_wkey = ',' | append: af_ws | append: ','
+            if ',38,40,41,42,44,45,46,49,' contains af_wkey
+              assign af_wnamed = true
+              if af_wgroup contains af_wkey
+                assign af_wmatch = true
+              endif
+            endif
+          endfor
+          if af_wnamed and af_wmatch == false
+            assign af_fit = false
+          endif
+        endif
+      endif
+
+      # A Galaxy Watch Ultra strap (its own connector) is for the Ultra, which is 47mm.
+      if af_wfam == 'galaxy watch' and af_t contains 'ultra' and af_size != '47'
+        assign af_fit = false
       endif
     endif
   endif
