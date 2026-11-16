@@ -36,7 +36,7 @@
 {%- liquid
   assign ag_rules = settings.addon_rules | strip
   if ag_rules == blank
-    assign ag_rules = 'מכשירים|כיסויים|כיסוי|דגם;מכשירים|מגני מסך|מגן מסך|דגם;מכשירים|מטענים|מטען|יצרן;מכשירים|סוללות גיבוי|סוללה ניידת|ללא;טאבלטים|כיסויים|כיסוי|דגם;טאבלטים|מגני מסך|מגן מסך|דגם;טאבלטים|מטענים|מטען|יצרן;טאבלטים|כבלים|כבל|יצרן;שעונים|רצועות|רצועה|שעון;שעונים|מגני מסך|מגן מסך|שעון;שעונים|מטענים|מטען|יצרן;אוזניות|כיסויים|כיסוי|דגם;אוזניות|מטענים|מטען|יצרן;אוזניות|כבלים|כבל|יצרן;אוזניות|סוללות גיבוי|סוללה ניידת|ללא'
+    assign ag_rules = 'מכשירים|כיסויים|כיסוי|דגם;מכשירים|מגני מסך|מגן מסך|דגם;מכשירים|מטענים|מטען|יצרן;מכשירים|סוללות גיבוי|סוללה ניידת|ללא;טאבלטים|כיסויים|כיסוי|דגם;טאבלטים|מגני מסך|מגן מסך|דגם;טאבלטים|מטענים|מטען|יצרן;טאבלטים|כבלים|כבל|יצרן;שעונים|רצועות|רצועה|שעון;שעונים|מגני מסך|מגן מסך|שעון;שעונים|מטענים|מטען|יצרן;אוזניות|כיסויים|כיסוי|דגם;אוזניות|מטענים|מטען|יצרן;אוזניות|כבלים|כבל|יצרן'
   endif
   assign ag_lines = ag_rules | newline_to_br | replace: '<br />', ';' | split: ';'
 
@@ -65,6 +65,36 @@
     assign ag_brand = settings.brand_name | strip | downcase
     if ag_vendor_key == ag_house or ag_vendor_key == ag_brand or ag_vendor_house == 'joy mobile'
       assign ag_vendor = ''
+    endif
+
+    # Wireless charging, from the model: every iPhone the store sells (MagSafe from the 12), Galaxy S, Z and
+    # Note, every Pixel, Xiaomi's numbered flagships ("Xiaomi 17") and OnePlus's ("OnePlus 15", not "15R"
+    # or Nord). Galaxy A, Redmi, POCO and the rest charge by cable only (or are not known to), so a power
+    # bank group for them leaves out the magnetic and wireless ones (snippets/accessory-fit).
+    assign ag_wireless = false
+    assign ag_model_key = ag_model | downcase
+    assign ag_model_words = ag_model_key | split: ' '
+    assign ag_model_second = ag_model_words[1] | default: ''
+    assign ag_lead6 = ag_model_key | slice: 0, 6
+    assign ag_lead8 = ag_model_key | slice: 0, 8
+    assign ag_lead11 = ag_model_key | slice: 0, 11
+    if ag_lead6 == 'iphone' or ag_lead8 == 'galaxy s' or ag_lead8 == 'galaxy z' or ag_lead11 == 'galaxy note' or ag_lead6 == 'pixel '
+      assign ag_wireless = true
+    elsif ag_model_words.first == 'xiaomi' or ag_model_words.first == 'oneplus'
+      assign ag_second_digits = ag_model_second | remove: '0' | remove: '1' | remove: '2' | remove: '3' | remove: '4' | remove: '5' | remove: '6' | remove: '7' | remove: '8' | remove: '9'
+      if ag_model_second != '' and ag_second_digits == ''
+        assign ag_wireless = true
+      endif
+    endif
+
+    # An Apple Watch is charged by its own puck, not by a phone's charger: the watch's charger group asks for
+    # "טעינה Apple Watch" (the store's "כבל טעינה Apple MagSafe ל-Apple Watch"), the family without the case
+    # size, and a watch with no maker in its model gets none.
+    assign ag_watch_family = ag_watch
+    assign ag_watch_last = ag_watch | split: ' ' | last
+    assign ag_watch_last_digits = ag_watch_last | remove: '0' | remove: '1' | remove: '2' | remove: '3' | remove: '4' | remove: '5' | remove: '6' | remove: '7' | remove: '8' | remove: '9'
+    if ag_watch_last != blank and ag_watch_last_digits == ''
+      assign ag_watch_family = ag_watch | remove_last: ag_watch_last | strip
     endif
 
     for ag_line in ag_lines
@@ -98,9 +128,27 @@
           if ag_vendor != blank
             assign ag_query = ag_word | append: ' ' | append: ag_vendor
           endif
+          if ag_type == 'שעונים' and ag_word == 'מטען'
+            assign ag_family_key = ag_watch_family | downcase
+            unless ag_family_key contains ' watch' or ag_family_key contains 'xwatch'
+              continue
+            endunless
+            assign ag_query = 'טעינה ' | append: ag_watch_family
+          endif
         else
           assign ag_query = ag_word
       endcase
+
+      # Power banks are for phones (and for tablets when a rule asks for them), never headphones or
+      # watches; a phone without wireless charging is not offered the magnetic or wireless ones.
+      if ag_word == 'סוללה ניידת'
+        unless ag_type == 'מכשירים' or ag_type == 'טאבלטים'
+          continue
+        endunless
+        unless ag_wireless
+          assign ag_query = ag_query | append: ' -Magnetic -Magnet -MagSafe -Wireless'
+        endunless
+      endif
       echo '###' | append: ag_label | append: '|' | append: ag_word | append: '|' | append: ag_query
     endfor
   -%}

@@ -65,7 +65,9 @@
       assign cu_prefix = cu_parts[0] | append: '|' | append: cu_parts[1] | append: '|'
       assign cu_query = cu_group | remove_first: cu_prefix | strip
       assign cu_word = cu_parts[1] | strip
-      if cu_query == blank or cu_query == cu_word
+      # Negative terms ("סוללה ניידת -Magnetic …", snippets/addon-groups) name no model or brand either.
+      assign cu_core = cu_query | split: ' -' | first | strip
+      if cu_query == blank or cu_query == cu_word or cu_core == cu_word
         continue
       endif
       if cu_queries != blank

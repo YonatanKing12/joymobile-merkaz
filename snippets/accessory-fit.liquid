@@ -244,6 +244,18 @@
       unless af_t contains 'סוללה ניידת' or af_t contains 'סוללת גיבוי' or af_t contains 'מטען נייד' or af_t contains 'powerbank' or af_t contains 'power bank'
         assign af_fit = false
       endunless
+      # A phone without wireless charging asks with "-Magnetic" (snippets/addon-groups): no magnetic, MagSafe or
+      # wireless power bank, whatever the search let through ("Infinix MagPower" names no "Magnetic").
+      if af_terms contains '-magnetic'
+        if af_t contains 'mag' or af_t contains 'wireless' or af_t contains 'qi2' or af_t contains 'מגנט' or af_t contains 'אלחוט'
+          assign af_fit = false
+        endif
+      endif
+    elsif af_lead5 == 'טעינה'
+      # A watch's charger ("טעינה Apple Watch", snippets/addon-groups): a charger or charging cable.
+      unless af_t contains 'מטען' or af_t contains 'טעינה' or af_t contains 'charg'
+        assign af_fit = false
+      endunless
     elsif af_lead4 == 'מטען'
       unless af_t contains 'מטען'
         assign af_fit = false
@@ -299,7 +311,7 @@
       # holds "watch", with the word before it when it is the bare "watch" ("samsung galaxy watch 44"
       # gives "galaxy watch"). A query of "Watch" alone names no family and skips this.
       assign af_wfam = ''
-      assign af_wterms = af_terms | remove_first: 'רצועה ' | remove_first: 'מגן מסך ' | split: ' '
+      assign af_wterms = af_terms | remove_first: 'רצועה ' | remove_first: 'מגן מסך ' | remove_first: 'טעינה ' | split: ' '
       for af_ww in af_wterms
         if af_ww contains 'watch'
           assign af_wfam = af_ww
@@ -359,7 +371,7 @@
       endif
 
       # A Galaxy Watch Ultra strap (its own connector) is for the Ultra, which is 47mm.
-      if af_wfam == 'galaxy watch' and af_t contains 'ultra' and af_size != '47'
+      if af_wfam == 'galaxy watch' and af_t contains 'ultra' and af_digits contains af_size_digit and af_size != '47'
         assign af_fit = false
       endif
     endif

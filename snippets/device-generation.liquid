@@ -1,0 +1,81 @@
+{% doc %}
+  A phone's line and generation from its title, for sections/related-products: "<maker>|<line>|<number>", or
+  nothing when the title names no generation ("iPhone Air") or the product is not a phone (type מכשירים).
+
+  The generation is the first Latin word with a number that is not a capacity, a size or a code: its leading
+  letters and the word before it make the line, its digits the number.
+    "טלפון סלולרי Apple iPhone 17 Pro"          → apple|iphone|17
+    "iPhone13Mini | 128GB | DCS | שחור"          → apple|iphone|13
+    "Samsung Galaxy S26 Ultra 256GB"             → samsung|galaxy s|26
+    "Samsung Galaxy Z Flip 8 256GB"              → samsung|flip|8
+    "Google Pixel 9 Pro XL"                      → google|pixel|9
+    "Xiaomi Redmi Note 14 Pro NFC 256GB"         → xiaomi|note|14
+  The maker keeps two lines of one word apart (Galaxy Note, Redmi Note).
+
+  @param {product} product - The product.
+
+  @example
+  {%- capture gen -%}{%- render 'device-generation', product: product -%}{%- endcapture -%}
+{% enddoc %}
+{%- liquid
+  assign dg_type = product.type | strip
+  assign dg_out = ''
+  assign dg_digits = '0,1,2,3,4,5,6,7,8,9' | split: ','
+  assign dg_latin = 'abcdefghijklmnopqrstuvwxyz'
+  assign dg_title = product.title | downcase | split: ' – ' | first | split: ' - ' | first | replace: '|', ' ' | replace: '#', ' ' | replace: 'galaxy', 'galaxy ' | replace: 'zfold', 'z fold' | replace: 'zflip', 'z flip' | replace: 'xiaomiredmi', 'redmi '
+  assign dg_words = dg_title | split: ' '
+  assign dg_prev = ''
+  if dg_type != 'מכשירים'
+    assign dg_words = '' | split: ','
+  endif
+  for dg_word in dg_words
+    assign dg_head = dg_word | slice: 0
+    unless dg_latin contains dg_head or dg_digits contains dg_head
+      assign dg_prev = ''
+      continue
+    endunless
+    assign dg_has_digit = false
+    for dg_d in dg_digits
+      if dg_word contains dg_d
+        assign dg_has_digit = true
+        break
+      endif
+    endfor
+    if dg_has_digit == false
+      assign dg_prev = dg_word
+      continue
+    endif
+    if dg_word contains 'gb' or dg_word contains 'tb' or dg_word contains '/' or dg_word contains 'mm' or dg_word contains 'mah' or dg_word contains '-'
+      continue
+    endif
+    # Leading letters, then the digits that follow them.
+    assign dg_letters = ''
+    assign dg_number = ''
+    assign dg_chars = dg_word | split: ''
+    for dg_c in dg_chars
+      if dg_digits contains dg_c
+        assign dg_number = dg_number | append: dg_c
+      elsif dg_number == ''
+        assign dg_letters = dg_letters | append: dg_c
+      else
+        break
+      endif
+    endfor
+    if dg_number == '' or dg_number.size > 2
+      continue
+    endif
+    if dg_letters.size >= 3
+      assign dg_line = dg_letters
+    elsif dg_letters != ''
+      assign dg_line = dg_prev | append: ' ' | append: dg_letters | strip
+    else
+      assign dg_line = dg_prev
+    endif
+    if dg_line != ''
+      assign dg_maker = product.vendor | strip | downcase
+      assign dg_out = dg_maker | append: '|' | append: dg_line | append: '|' | append: dg_number
+    endif
+    break
+  endfor
+  echo dg_out
+-%}

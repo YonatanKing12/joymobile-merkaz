@@ -2,13 +2,16 @@
   Related products under the product page (decisions.md "Catalog & product"): a carousel of
   product cards (snippets/card-product) in the look of the homepage strips (2.2 · 3.2 · 4 · 5 per view).
   Source "collection" (default), all server-side:
+    0. first, the Search & Discovery "related products" the owner picked for this product (metafield
+       shopify--discovery--product_recommendation.related_products), as picked;
     1. the product's most specific collections — its collections sorted by size (smallest first),
        skipping the handles in "exclude" and catch-all collections that hold ≥ 90% of the catalogue;
        the first three are read in turn until the limit is reached (same product type and in-stock
        only, by default; never the current product, never twice; products with a photo first);
-    2. then the Search & Discovery "related products" the owner picked for this product
-       (metafield shopify--discovery--product_recommendation.related_products);
-    3. then the fallback collection from the settings.
+    2. then the fallback collection from the settings.
+  On a phone, passes 1 and 2 leave out older generations of its own line (snippets/device-generation):
+  an iPhone 17 page shows no iPhone 13, a Galaxy S26 page no S24 FE; other lines and newer ones stay.
+  Hand-picked products are shown as picked.
   Source "recommendations": the Search & Discovery related products, then the fallback collection.
   Everything renders with the page (the theme never calls Shopify's recommendations API).
   Nothing is printed with fewer than 2 products (a notice in the theme editor).
@@ -25,9 +28,50 @@
   assign rp_exclude = section.settings.exclude_handles | downcase | remove: ' ' | prepend: ',' | append: ','
   assign rp_type = product.type | strip
   assign rp_hide_sold_out = section.settings.hide_sold_out
+  assign rp_gen_line = ''
+  assign rp_gen_number = 0
+  if product != blank
+    capture rp_gen
+      render 'device-generation', product: product
+    endcapture
+    assign rp_gen = rp_gen | strip
+    if rp_gen != blank
+      assign rp_gen_parts = rp_gen | split: '|'
+      assign rp_gen_line = rp_gen_parts[0] | append: '|' | append: rp_gen_parts[1]
+      assign rp_gen_number = rp_gen_parts[2] | plus: 0
+      # Only a title that names the line's first word is read for its generation (the render costs).
+      assign rp_gen_word = rp_gen_parts[1] | split: ' ' | first
+    endif
+  endif
 -%}
 
 {%- capture rp_slides -%}
+  {%- if product != blank -%}
+    {%- assign rp_manual = product.metafields['shopify--discovery--product_recommendation'].related_products.value -%}
+    {%- for rp_product in rp_manual -%}
+      {%- liquid
+        if rp_count >= rp_limit
+          break
+        endif
+        assign rp_key = ',' | append: rp_product.handle | append: ','
+        if rp_seen contains rp_key
+          continue
+        endif
+        if rp_hide_sold_out and rp_product.available == false
+          continue
+        endif
+        if rp_product.id == settings.deposit_product.id
+          continue
+        endif
+        assign rp_seen = rp_seen | append: rp_product.handle | append: ','
+        assign rp_count = rp_count | plus: 1
+      -%}
+      <div class="carousel__slide related-products__slide" role="listitem">
+        {%- render 'card-product', product: rp_product, lazy: true, heading: 'h3', section_id: section.id -%}
+      </div>
+    {%- endfor -%}
+  {%- endif -%}
+
   {%- if product != blank and section.settings.source == 'collection' -%}
     {%- liquid
       assign rp_catalogue = collections.all.products_count | default: 0
@@ -72,6 +116,21 @@
             if rp_product.id == settings.deposit_product.id
               continue
             endif
+            assign rp_cand_title = rp_product.title | downcase
+            if rp_gen_line != '' and rp_product.type == product.type and rp_cand_title contains rp_gen_word
+              capture rp_cand
+                render 'device-generation', product: rp_product
+              endcapture
+              assign rp_cand = rp_cand | strip
+              if rp_cand != blank
+                assign rp_cand_parts = rp_cand | split: '|'
+                assign rp_cand_line = rp_cand_parts[0] | append: '|' | append: rp_cand_parts[1]
+                assign rp_cand_number = rp_cand_parts[2] | plus: 0
+                if rp_cand_line == rp_gen_line and rp_cand_number < rp_gen_number
+                  continue
+                endif
+              endif
+            endif
             if section.settings.same_type and rp_type != blank and rp_product.type != product.type
               continue
             endif
@@ -86,31 +145,6 @@
     {%- endfor -%}
   {%- endif -%}
 
-  {%- if product != blank and rp_count < rp_min -%}
-    {%- assign rp_manual = product.metafields['shopify--discovery--product_recommendation'].related_products.value -%}
-    {%- for rp_product in rp_manual -%}
-      {%- liquid
-        if rp_count >= rp_limit
-          break
-        endif
-        assign rp_key = ',' | append: rp_product.handle | append: ','
-        if rp_seen contains rp_key
-          continue
-        endif
-        if rp_hide_sold_out and rp_product.available == false
-          continue
-        endif
-        if rp_product.id == settings.deposit_product.id
-          continue
-        endif
-        assign rp_seen = rp_seen | append: rp_product.handle | append: ','
-        assign rp_count = rp_count | plus: 1
-      -%}
-      <div class="carousel__slide related-products__slide" role="listitem">
-        {%- render 'card-product', product: rp_product, lazy: true, heading: 'h3', section_id: section.id -%}
-      </div>
-    {%- endfor -%}
-  {%- endif -%}
 
   {%- if rp_count < rp_min and section.settings.fallback_collection != blank -%}
     {%- for rp_product in section.settings.fallback_collection.products limit: 50 -%}
@@ -127,6 +161,21 @@
         endif
         if rp_product.id == settings.deposit_product.id
           continue
+        endif
+        assign rp_cand_title = rp_product.title | downcase
+        if rp_gen_line != '' and rp_product.type == product.type and rp_cand_title contains rp_gen_word
+          capture rp_cand
+            render 'device-generation', product: rp_product
+          endcapture
+          assign rp_cand = rp_cand | strip
+          if rp_cand != blank
+            assign rp_cand_parts = rp_cand | split: '|'
+            assign rp_cand_line = rp_cand_parts[0] | append: '|' | append: rp_cand_parts[1]
+            assign rp_cand_number = rp_cand_parts[2] | plus: 0
+            if rp_cand_line == rp_gen_line and rp_cand_number < rp_gen_number
+              continue
+            endif
+          endif
         endif
         assign rp_seen = rp_seen | append: rp_product.handle | append: ','
         assign rp_count = rp_count | plus: 1
