@@ -273,6 +273,15 @@
             "image_fill": true
           }
         },
+        "circle-direct-from-supplier": {
+          "type": "circle",
+          "settings": {
+            "collection": "direct-from-supplier",
+            "image": "shopify://shop_images/direct-from-supplier-circle-round.png",
+            "label": "ישר מהספק",
+            "image_fill": true
+          }
+        },
         "circle-smartphones": {
           "type": "circle",
           "settings": {
@@ -340,6 +349,7 @@
       },
       "block_order": [
         "circle-black-november",
+        "circle-direct-from-supplier",
         "circle-smartphones",
         "circle-tablets",
         "circle-smartwatches",
