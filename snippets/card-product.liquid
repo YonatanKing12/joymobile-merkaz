@@ -116,6 +116,14 @@
       assign card_stock = 'low'
       assign card_stock_count = card_variant.inventory_quantity
     endif
+    # "דרופשיפינג" (snippets/dropship): the supplier's delivery time instead of "במלאי".
+    capture card_dropship
+      render 'dropship', product: product, part: 'days'
+    endcapture
+    assign card_dropship = card_dropship | strip
+    if card_dropship != blank
+      assign card_stock = 'dropship'
+    endif
   endif
 
   assign card_single = false
@@ -209,6 +217,8 @@
         <p class="card-product__stock card-product__stock--{{ card_stock }}">
           {%- if card_stock == 'out' -%}
             {{- settings.sold_out_card_stock_text | escape -}}
+          {%- elsif card_stock == 'dropship' -%}
+            {{- 'dropship.badge' | t: days: card_dropship -}}
           {%- elsif card_stock == 'low' -%}
             {%- if card_stock_count == 1 -%}
               {{- 'products.card.stock_last' | t -}}

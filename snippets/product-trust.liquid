@@ -76,11 +76,20 @@
   if pt_variant == blank and product != blank
     assign pt_variant = product.selected_or_first_available_variant | default: product.variants.first
   endif
+
+  # "דרופשיפינג" (snippets/dropship): the supplier ships it, so no stock, pickup or branch line is true for it.
+  assign pt_dropship = ''
+  if product != blank
+    capture pt_dropship
+      render 'dropship', product: product, part: 'days'
+    endcapture
+    assign pt_dropship = pt_dropship | strip
+  endif
 -%}
 
 {%- comment -%} The per-branch pickup list: part 'pickup', and pre-filled into part 'lines'. {%- endcomment -%}
 {%- capture pt_pickup_html -%}
-  {%- if part == 'pickup' or part == 'lines' and show_pickup != false -%}
+  {%- if pt_dropship == blank and part == 'pickup' or pt_dropship == blank and part == 'lines' and show_pickup != false -%}
     {%- liquid
       assign pt_pickups = pt_variant.store_availabilities | where: 'pick_up_enabled', true
       assign pt_ready = pt_pickups | where: 'available', true
@@ -134,6 +143,9 @@
           assign pt_state = 'soldout'
           assign pt_stock_text = settings.sold_out_stock_text | escape
         endif
+      elsif pt_dropship != blank
+        assign pt_state = 'dropship'
+        assign pt_stock_text = 'dropship.stock' | t: days: pt_dropship
       elsif pt_variant.inventory_management == 'shopify' and pt_variant.inventory_quantity <= 0
         assign pt_state = 'preorder'
         assign pt_stock_text = 'products.product.stock.preorder' | t
@@ -143,7 +155,12 @@
       endif
 
       assign pt_address = ''
-      if show_address != false
+      # "דרופשיפינג": shipped from the supplier, never picked up at a branch.
+      if pt_dropship != blank
+        assign pickup_label = blank
+        assign pickup_note = blank
+      endif
+      if show_address != false and pt_dropship == blank
         assign pt_street = settings.store_street | strip
         assign pt_city = settings.store_city | strip
         assign pt_address = pt_street

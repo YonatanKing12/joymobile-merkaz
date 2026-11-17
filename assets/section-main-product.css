@@ -1516,3 +1516,9 @@ html.no-js .product-wishlist {
     flex: 1 1 100%;
   }
 }
+
+/* "דרופשיפינג": the supplier's delivery time, the brand's dot (not "במלאי"'s green, not "אזל"'s red). */
+.product-lines__stock--dropship .product-lines__dot {
+  background-color: var(--color-brand);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand) 18%, transparent);
+}

@@ -1,0 +1,36 @@
+{% doc %}
+  "דרופשיפינג": a product the supplier ships to the customer, sold with no stock of ours (the dashboard sets
+  `custom.dropship_days`, the supplier's lead time in business days, on such products; the tag "דרופשיפינג"
+  alone means the default 14). Nothing is printed for any other product.
+
+  part 'days'  — the number only (for the stock line and the card).
+  part 'badge' — next to the price: "משלוח עד X ימי עסקים".
+  part 'line'  — under the buy buttons: "המוצר נשלח ישירות מהספק · אספקה עד X ימי עסקים".
+  part 'cart'  — in a cart line: "נשלח ישירות מהספק · משלוח עד X ימי עסקים".
+
+  Styles: assets/base.css (.dropship-*).
+
+  @param {product} product - The product.
+  @param {string} part - 'days', 'badge', 'line' or 'cart'.
+
+  @example
+  {% render 'dropship', product: product, part: 'badge' %}
+{% enddoc %}
+{%- liquid
+  assign ds_days = product.metafields.custom.dropship_days.value
+  if ds_days == blank and product.tags contains 'דרופשיפינג'
+    assign ds_days = 14
+  endif
+-%}
+{%- if ds_days != blank -%}
+  {%- case part -%}
+    {%- when 'days' -%}
+      {{- ds_days -}}
+    {%- when 'badge' -%}
+      <span class="dropship-badge">{{ 'dropship.badge' | t: days: ds_days }}</span>
+    {%- when 'line' -%}
+      <p class="dropship-line">{{ 'dropship.line' | t: days: ds_days }}</p>
+    {%- when 'cart' -%}
+      <p class="dropship-cart">{{ 'dropship.cart' | t: days: ds_days }}</p>
+  {%- endcase -%}
+{%- endif -%}

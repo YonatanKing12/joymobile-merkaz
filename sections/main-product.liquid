@@ -156,6 +156,8 @@
               {%- render 'price', product: product, variant: current_variant, context: 'product' -%}
             </div>
           </div>
+          {%- comment -%} "דרופשיפינג": the supplier's delivery time next to the price (snippets/dropship). {%- endcomment -%}
+          {%- render 'dropship', product: product, part: 'badge' -%}
         </div>
 
       {%- when 'buy_buttons' -%}
@@ -171,6 +173,7 @@
             whatsapp: block.settings.soldout_whatsapp,
             whatsapp_label: block.settings.soldout_whatsapp_label
           -%}
+          {%- render 'dropship', product: product, part: 'line' -%}
         </div>
 
       {%- when 'addons' -%}

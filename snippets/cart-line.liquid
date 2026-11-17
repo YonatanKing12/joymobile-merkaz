@@ -160,6 +160,7 @@
 {%- endcomment -%}
 {%- capture line_details -%}
   <a class="{{ lc }}__title" href="{{ line_url }}">{{ line_title | escape }}&lrm;</a>
+  {%- render 'dropship', product: item.product, part: 'cart' -%}
   {%- if line_deposit %}
     <span class="deposit-chip">{{ 'deposit.chip' | t }}</span>
     <ul class="{{ lc }}__options" role="list">
