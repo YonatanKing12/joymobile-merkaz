@@ -732,6 +732,24 @@
   font-weight: 600;
 }
 
+/* Advice against the parts chosen so far (BIOS, memory profile, PSU…), or what could not be checked ("לא אומת"). */
+.pcb-row__note {
+  display: -webkit-box;
+  overflow: hidden;
+  padding-inline-start: var(--space-xs);
+  border-inline-start: 2px solid var(--color-ink);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.pcb-row__note.is-unverified {
+  border-inline-start-color: var(--pcb-line-strong);
+  color: var(--color-muted);
+}
+
 .pcb-row__price {
   grid-area: price;
   justify-self: end;
@@ -1090,6 +1108,36 @@
 
 .pcb-sum__state-line ul {
   margin: var(--space-2xs) 0 0;
+}
+
+/* Advice about the build, then one line for what a representative confirms before assembly. */
+.pcb-sum__notes {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-block: var(--space-2xs) var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-inline-start: 2px solid var(--color-ink);
+  background: var(--color-surface-soft);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+
+.pcb-sum__advice {
+  display: grid;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pcb-sum__unverified {
+  color: var(--color-muted);
+}
+
+.pcb-sum__unverified strong {
+  display: block;
+  color: var(--color-ink);
+  font-weight: 600;
 }
 
 .pcb-sum__power {

@@ -439,11 +439,11 @@ class PcBuilder {
       case 'cpu': chips = [f.socket, f.igpu ? 'גרפיקה מובנית' : 'בלי גרפיקה', f.needsCooler === false ? 'כולל קירור' : 'בלי קירור']; break;
       case 'board': chips = [f.socket, f.memory || 'זיכרון לא צוין', f.formFactor, f.backConnect && 'מחברים מאחור']; break;
       case 'ram': chips = [f.memory, f.modules > 1 && `${f.modules}×${f.capacity / f.modules}GB`, f.speed && `${f.speed}MHz`]; break;
-      case 'gpu': chips = [f.vram && `${f.vram}GB`, f.watts && `${f.watts}W`]; break;
+      case 'gpu': chips = [f.vram && `${f.vram}GB`, f.watts && `${f.watts}W`, f.length && `${f.length} מ״מ`]; break;
       case 'storage': chips = [f.kind, f.gen && `Gen${f.gen}`]; break;
-      case 'cooler': chips = [f.type === 'liquid' ? `נוזלי${f.radiator ? ` ${f.radiator}mm` : ''}` : 'אוויר', f.tdp ? `עד ${f.tdp}W` : 'דירוג לא צוין']; break;
+      case 'cooler': chips = [f.type === 'liquid' ? `נוזלי${f.radiator ? ` ${f.radiator}mm` : ''}` : 'אוויר', f.tdp ? `עד ${f.tdp}W` : 'דירוג לא צוין', f.type === 'air' && f.height && `גובה ${f.height} מ״מ`]; break;
       case 'psu': chips = [f.rating && `80 Plus ${f.rating}`, f.atx3 && 'ATX 3']; break;
-      case 'case': chips = [f.formFactor && `עד ${f.formFactor}`, f.backConnect && 'מחברים מאחור']; break;
+      case 'case': chips = [f.formFactor && `עד ${f.formFactor}`, f.gpuMax && `כרטיס עד ${f.gpuMax} מ״מ`, f.backConnect && 'מחברים מאחור']; break;
       case 'os': chips = [f.language === 'he' ? 'עברית' : f.language === 'en' ? 'אנגלית' : null]; break;
       default:
     }
@@ -490,7 +490,7 @@ class PcBuilder {
       const fit = this.P.fitOf(part, earlier);
       if (!fit.ok) { blocked.push({ part, fit }); continue; }
       const drops = this.sel[key] === part ? [] : this.P.applyChoice(this.sel, part).removed;
-      ok.push({ part, drops });
+      ok.push({ part, drops, fit });
     }
     return { ok, blocked };
   }
@@ -549,7 +549,7 @@ class PcBuilder {
           </div>
         </div>` : ''}
         <p class="pcb-step__meta" aria-live="polite">${matching} מתאימים${f.brand || f.max ? ' לסינון' : ''}</p>
-        ${shown.length ? `<ul class="pcb-list" role="list">${shown.map((c) => this.partHtml(c.part, key, null, c.drops)).join('')}</ul>` : '<p class="pcb-empty">אין מוצרים שמתאימים לסינון. אפשר לנקות את הסינון או לשנות רכיב קודם.</p>'}
+        ${shown.length ? `<ul class="pcb-list" role="list">${shown.map((c) => this.partHtml(c.part, key, null, c.drops, c.fit)).join('')}</ul>` : '<p class="pcb-empty">אין מוצרים שמתאימים לסינון. אפשר לנקות את הסינון או לשנות רכיב קודם.</p>'}
         ${more > 0 ? `<button type="button" class="button button--outline pcb-list__more" data-action="more">עוד ${Math.min(more, PAGE_SIZE)}</button>` : ''}
         ${blocked.length ? `
           <div class="pcb-blocked">
@@ -603,7 +603,7 @@ class PcBuilder {
     return [...out].sort((a, b) => a - b);
   }
 
-  partHtml(part, key, reasons, drops = []) {
+  partHtml(part, key, reasons, drops = [], fit = null) {
     const isExtra = key === 'extra';
     const selected = isExtra ? this.sel.extra.includes(part) : this.sel[key] === part;
     const blocked = !!reasons;
@@ -613,6 +613,11 @@ class PcBuilder {
       ? `<img class="pcb-row__img" src="${html(sized(part.image, 120))}" alt="" width="56" height="56" loading="lazy" decoding="async">`
       : '<span class="pcb-row__img pcb-row__img--empty" aria-hidden="true"></span>';
     const dropText = drops.length ? `בחירה תסיר את ${drops.map((d) => this.label(d.step)).join(', ')}` : '';
+    // One calm line of advice against the parts chosen so far, or what could not be checked ("לא אומת").
+    // A row names only what decides whether the part physically fits; headers and memory profiles wait for the summary.
+    const U = this.P.UNVERIFIED;
+    const fitChecks = fit ? fit.unverified.filter((u) => u !== U.usbc && u !== U.fanHeaders && u !== U.memProfile) : [];
+    const note = blocked || !fit ? '' : fit.notes[0] || (fitChecks.length ? `לא אומת: ${fitChecks.join(', ')}` : '');
     return `
       <li class="pcb-row${selected ? ' is-selected' : ''}${blocked ? ' is-blocked' : ''}">
         ${img}
@@ -620,6 +625,7 @@ class PcBuilder {
           <h3 class="pcb-row__name" id="${id}"><span class="pcb-row__brand">${html(part.brand)}</span> ${html(withoutBrand(part))}</h3>
           ${chips.length ? `<p class="pcb-row__specs">${chips.map(html).join(' · ')}</p>` : ''}
           ${blocked ? `<p class="pcb-row__why"><span class="visually-hidden">לא מתאים: </span>${reasons.map(html).join('. ')}</p>` : ''}
+          ${note ? `<p class="pcb-row__note${fit.notes[0] ? '' : ' is-unverified'}">${html(note)}</p>` : ''}
           ${dropText ? `<p class="pcb-row__drop" id="${id}-d">${html(dropText)}</p>` : ''}
         </div>
         <p class="pcb-row__price">${fmt(part.price)}</p>
@@ -628,6 +634,17 @@ class PcBuilder {
           : `<button type="button" class="pcb-row__pick${selected ? ' is-on' : ''}" data-action="choose" data-id="${part.id}" aria-pressed="${selected}" aria-describedby="${id}${dropText ? ` ${id}-d` : ''}">
               ${selected ? (isExtra ? 'נוסף' : 'נבחר') : isExtra ? 'הוספה' : 'בחירה'}</button>`}
       </li>`;
+  }
+
+  /** Advice about the build (BIOS, memory profile, the card maker's PSU…) and, in one line, what a representative
+      confirms before assembly because the data to check it is missing. */
+  notesHtml(check) {
+    const notes = check.notes.map((n) => n.text);
+    if (!notes.length && !check.unverified.length) return '';
+    return `<div class="pcb-sum__notes">
+      ${notes.length ? `<ul class="pcb-sum__advice" role="list">${notes.map((n) => `<li>${html(n)}</li>`).join('')}</ul>` : ''}
+      ${check.unverified.length ? `<p class="pcb-sum__unverified"><strong>לא אומת: נציג יאשר לפני ההרכבה</strong> <span>${html(check.unverified.join(' · '))}</span></p>` : ''}
+    </div>`;
   }
 
   fpsTable(sel) {
@@ -679,12 +696,13 @@ class PcBuilder {
     const pw = check.power;
     let state;
     if (!count) state = '<p class="pcb-sum__state-line">בחרו מפרט מוכן או רכיבים, והבדיקה תופיע כאן.</p>';
-    else if (check.ok) state = '<p class="pcb-sum__state-line is-ok">כל הרכיבים תואמים</p>';
+    else if (check.ok) state = `<p class="pcb-sum__state-line is-ok">${check.unverified.length ? 'לא נמצאה אי־התאמה' : 'כל הרכיבים תואמים'}</p>`;
     else if (check.problems.length) state = `<div class="pcb-sum__state-line is-warn"><p>יש רכיבים שלא מתאימים</p><ul role="list">${check.problems.map((p) => `<li>${html(this.label(p.step))}: ${html(p.text)}</li>`).join('')}</ul></div>`;
     else state = `<p class="pcb-sum__state-line">חסר: ${html(check.missing.map((k) => this.label(k)).join(', '))}</p>`;
     box.innerHTML = `
       ${rows ? `<ul class="pcb-sum__list" role="list">${rows}</ul>` : ''}
       ${state}
+      ${count ? this.notesHtml(check) : ''}
       ${count && this.sel.cpu ? `<p class="pcb-sum__power">צריכה משוערת ${pw.draw}W${pw.psu ? ` מתוך ספק ${pw.psu}W` : ` · מומלץ ספק ${pw.recommended}W`}</p>` : ''}
       ${count && this.sel.cpu ? this.fpsTable(this.sel) : ''}`;
     const totalText = fmt(total);
@@ -842,7 +860,9 @@ class PcBuilder {
     }
     const parts = this.selectedList();
     const id = this.buildId();
-    const items = parts.map((p) => ({ id: p.variantId, quantity: 1, properties: { _build_id: id, 'הרכבה': 'כן' } }));
+    const unverified = this.P.checkBuild(this.sel).unverified;
+    // What could not be checked travels with the order (hidden from the customer, shown to the team in the admin).
+    const items = parts.map((p, i) => ({ id: p.variantId, quantity: 1, properties: { _build_id: id, 'הרכבה': 'כן', ...(i === 0 && unverified.length ? { _unverified: unverified.join(', ') } : {}) } }));
     btn.setAttribute('aria-busy', 'true');
     btn.disabled = true;
     try {
@@ -884,7 +904,7 @@ class PcBuilder {
       'שלום, אשמח לעזרה עם מחשב שהרכבתי באתר:',
       ...lines,
       `סה״כ: ${fmt(this.total())}`,
-      check.ok ? 'לפי האתר הכל תואם.' : `לפי האתר חסר: ${check.missing.map((k) => this.label(k)).join(', ') || 'בדיקת התאמה'}.`,
+      check.ok ? (check.unverified.length ? `לפי האתר אין אי־התאמה. לא אומת: ${check.unverified.join(', ')}.` : 'לפי האתר הכל תואם.') : `לפי האתר חסר: ${check.missing.map((k) => this.label(k)).join(', ') || 'בדיקת התאמה'}.`,
       this.shareUrl(),
     ].join('\n');
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
@@ -928,6 +948,7 @@ class PcBuilder {
       ? this.F.estimateBuild(this.sel, this.shownGames(), this.guided.res).filter((r) => r.fps !== null)
       : [];
     const wa = this.d.whatsappDisplay;
+    const quoteCheck = this.P.checkBuild(this.sel);
     const service = this.d.service || 'הרכבה, בדיקה ומשלוח עד הבית';
     this.quote.querySelector('[data-quote-body]').innerHTML = `
       <header class="pcb-quote__head">
@@ -952,7 +973,7 @@ class PcBuilder {
       </table>
       <ul class="pcb-quote__terms" role="list">
         <li>${html(this.d.delivery || 'אספקה עד 7 ימי עסקים')}, מיום התשלום.</li>
-        <li>המחשב מורכב ונבדק אצלנו לפני המשלוח. כל הרכיבים נבדקו להתאמה זה לזה.</li>
+        <li>המחשב מורכב ונבדק אצלנו לפני המשלוח. ${quoteCheck.unverified.length ? `הרכיבים נבדקו להתאמה זה לזה. נציג יאשר לפני ההרכבה: ${html(quoteCheck.unverified.join(', '))}.` : 'כל הרכיבים נבדקו להתאמה זה לזה.'}</li>
         ${pay ? `<li>תשלום: עד ${pay.count} תשלומים ללא ריבית${pay.max ? `, או עד ${pay.max} תשלומים בריבית` : ''}.</li>` : ''}
         <li>ההצעה בתוקף ${QUOTE_HOURS} שעות ובכפוף למלאי. המחירים כוללים מע״מ.</li>
         ${wa ? `<li>להזמנה ולשאלות בוואטסאפ: <span dir="ltr">${html(wa)}</span></li>` : ''}

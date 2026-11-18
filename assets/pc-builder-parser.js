@@ -20,6 +20,13 @@
    metafield gives it; a cooler with no rating fits processors up to UNRATED_COOLER_MAX only. applyChoice() drops the
    chosen parts a new choice no longer fits, sanitize() cleans a selection from a link or a saved build, and
    checkBuild().ok (isOrderable) is what the cart and the quote require.
+
+   Lior's six rules (lior()) add, from SPECS (verified maker data by SKU), a description and the title: card length,
+   cooler height and radiators against the case; cooler sockets and RAM clearance; ATX 3 for RTX 40/50; +100W headroom;
+   M.2 length; rear-connector and E-ATX cases. Both sides known and clashing: a hard reason (blocked). Soft advice
+   (BIOS update, an entry board under a hot processor, one DDR5 stick, XMP vs EXPO, the card maker's PSU, a Gen5
+   drive in a Gen4 slot, no USB-C header): notes. A side unknown: `unverified` ("לא אומת: נציג יאשר לפני ההרכבה"),
+   which never blocks the order and travels with it to the cart.
    ========================================================================== */
 
 export const STEPS = [
@@ -75,6 +82,123 @@ const GPU_TABLE = {
   'RX 9070': { watts: 220, score: 82 },
   'RX 9070 XT': { watts: 304, score: 88 },
 };
+
+/* ---------- verified specs, by the supplier's SKU ----------
+   What the titles never say (card length, case clearances, cooler height and sockets, the PSU's ATX version, a
+   board's internal headers), copied from the maker's own product page for these exact models (Nov 2026; every URL is
+   in .github/pc-builder/spec-sources.json). Only verified values: a model that is not here stays "not verified" in
+   the builder, never "fits". A colour variant shares its entry only when the maker's page covers both colours.
+     GPU     len, thick (mm), psu (maker's recommended PSU, W), pin16 (12V-2x6 / 16-pin power), rad (own radiator, mm)
+     case    gpu (max card length), cooler (max air-cooler height), rad (largest radiator per position), usbc (front
+             USB-C: 'gen1' | 'gen2' | 'gen2x2' | false), fans (included), hub (fan/ARGB hub included), ff, back
+     cooler  h (height with fans), sockets, ram (RAM height clearance with the front fan)
+     psu     atx3 (true: ATX 3.x; false: the maker lists an older ATX12V version)
+     board   usbc (front USB-C header), fans (system fan headers), argb (addressable LED headers), m2gen (fastest M.2) */
+const S = (o) => Object.freeze(o);
+const DESKTOP_SOCKETS = ['LGA1851', 'LGA1700', 'AM5', 'AM4'];
+export const SPECS = {
+  gpu: {
+    GVN50701220: S({ len: 327, thick: 56, psu: 750, pin16: true }), // RTX 5070 GAMING OC
+    GVN50701230: S({ len: 324, thick: 56, psu: 750, pin16: true }), // RTX 5070 AERO OC
+    GVN50701210: S({ len: 290, thick: 50, psu: 750, pin16: true }), // RTX 5070 EAGLE OC SFF
+    GVN50701250: S({ len: 290, thick: 50, psu: 750, pin16: true }), // RTX 5070 EAGLE OC ICE SFF
+    GVN50701200: S({ len: 282, thick: 50, psu: 750, pin16: true }), // RTX 5070 WINDFORCE OC SFF
+    GVN507T001: S({ len: 304, thick: 50, psu: 750, pin16: true }), // RTX 5070 Ti WINDFORCE SFF
+    GVN507T020: S({ len: 304, thick: 50, psu: 750, pin16: true }), // RTX 5070 Ti EAGLE OC SFF
+    GVN507T023: S({ len: 304, thick: 50, psu: 750, pin16: true }), // RTX 5070 Ti EAGLE OC ICE SFF
+    GVN50801605: S({ len: 304, thick: 50, psu: 850, pin16: true }), // RTX 5080 WINDFORCE OC SFF
+    GVN50801640: S({ len: 340, thick: 70, psu: 850, pin16: true }), // RTX 5080 GAMING OC
+    GVN50801630: S({ len: 304, thick: 50, psu: 850, pin16: true }), // RTX 5080 AERO OC SFF
+    GVN50801660: S({ len: 360, thick: 75, psu: 850, pin16: true }), // AORUS RTX 5080 MASTER
+    GVN50801665: S({ len: 360, thick: 75, psu: 850, pin16: true }), // AORUS RTX 5080 MASTER ICE
+    GVN50801670: S({ len: 220, thick: 40, psu: 850, pin16: true, rad: 360 }), // AORUS RTX 5080 XTREME WATERFORCE
+    'GVN5060-8120': S({ len: 208, thick: 40, psu: 550, pin16: false }), // RTX 5060 EAGLE OC
+    'GVN5060-8110': S({ len: 208, thick: 40, psu: 550, pin16: false }), // RTX 5060 EAGLE OC ICE
+    'GVN5060-8140': S({ len: 281, thick: 40, psu: 550, pin16: false }), // RTX 5060 GAMING OC
+    'GVN5060-8150': S({ len: 281, thick: 40, psu: 550, pin16: false }), // RTX 5060 AERO OC
+    'GVN5060-8160': S({ len: 182, thick: 36, psu: 550, pin16: false }), // RTX 5060 OC Low Profile
+    'GVN506T-820': S({ len: 215, thick: 40, psu: 650, pin16: false }), // RTX 5060 Ti EAGLE OC 8G
+    'GVN506T-830': S({ len: 281, thick: 40, psu: 650, pin16: false }), // RTX 5060 Ti GAMING OC 8G
+    'GVN506T-0825': S({ len: 208, thick: 40, psu: 650, pin16: false }), // RTX 5060 Ti WINDFORCE MAX OC 8G
+    'GVN506T-1625': S({ len: 208, thick: 40, psu: 650, pin16: false }), // RTX 5060 Ti WINDFORCE MAX OC 16G
+    'GVN5050-801': S({ len: 199, thick: 40, psu: 550, pin16: false }), // RTX 5050 WINDFORCE OC
+    'GVN5050-821': S({ len: 280, thick: 40, psu: 550, pin16: false }), // RTX 5050 GAMING OC
+    GVN30601221: S({ len: 198, thick: 39, psu: 550, pin16: false }), // RTX 3060 WINDFORCE OC 12G rev 2.0
+    GVN3050622: S({ len: 191, thick: 36, psu: 300, pin16: false }), // RTX 3050 WINDFORCE OC V2 6G
+    GVR9070201: S({ len: 288, thick: 56, psu: 850, pin16: false }), // RX 9070 XT GAMING OC
+    GVR9070222: S({ len: 339, thick: 59, psu: 850, pin16: false }), // AORUS RX 9070 XT ELITE
+    GVR9070010: S({ len: 288, thick: 50, psu: 750, pin16: false }), // RX 9070 GAMING OC
+    GVR9060X1600: S({ len: 281, thick: 40, psu: 450, pin16: false }), // RX 9060 XT GAMING OC 16G
+  },
+  case: {
+    'AN1-FLUX-M': S({ gpu: 405, cooler: 175, rad: { top: 360 }, usbc: 'gen2', fans: 6 }),
+    'AN1-C5AR': S({ gpu: 410, cooler: 160, rad: { top: 360, side: 280, bottom: 360 }, usbc: 'gen2', fans: 7 }),
+    'AN1-C5CAB': S({ gpu: 410, cooler: 160, rad: { top: 360, side: 280, bottom: 360 }, usbc: 'gen2', fans: 4 }),
+    'AN1-C5CAW': S({ gpu: 410, cooler: 160, rad: { top: 360, side: 280, bottom: 360 }, usbc: 'gen2', fans: 4 }),
+    'AN1-C3AR': S({ gpu: 415, cooler: 160, rad: { top: 360, side: 240 }, usbc: 'gen2', fans: 4 }),
+    'AN1-C3ARW': S({ gpu: 415, cooler: 160, rad: { top: 360, side: 240 }, usbc: 'gen2', fans: 4 }),
+    'AN1-C8-W': S({ gpu: 440, cooler: 175, rad: { top: 360, side: 360, bottom: 360 }, usbc: 'gen2' }),
+    'AN1-P30ARGB': S({ gpu: 405, cooler: 175, rad: { front: 240, top: 360 }, usbc: 'gen2', fans: 5 }),
+    'AN1-P30': S({ gpu: 405, cooler: 175, rad: { front: 240, top: 360 }, usbc: 'gen2', fans: 5 }),
+    'AN1-P7': S({ gpu: 405, cooler: 175, rad: { front: 240, top: 360 }, usbc: 'gen2', fans: 4 }),
+    'AN1-P20CE': S({ gpu: 375, cooler: 170, rad: { front: 360, top: 360 }, usbc: 'gen2', fans: 3 }),
+    'AN1-AX1000': S({ gpu: 420, cooler: 185, rad: { front: 360, top: 360 }, usbc: 'gen2', fans: 4, hub: true }),
+    'AN1-CXM': S({ gpu: 415, cooler: 155, rad: { top: 360, side: 240, bottom: 360 }, usbc: 'gen1', fans: 7, hub: true }),
+    'AN1-CX300ARB': S({ gpu: 420, cooler: 170, rad: { top: 360, side: 240 }, usbc: false, fans: 4 }),
+    'AN1-CX300ARW': S({ gpu: 420, cooler: 170, rad: { top: 360, side: 240 }, usbc: false, fans: 4 }),
+    'AN1-CX705A': S({ gpu: 430, cooler: 175, rad: { top: 360 }, usbc: 'gen1', fans: 5 }),
+    'AN1-CX200M-RE': S({ gpu: 330, cooler: 164, usbc: false, fans: 5 }),
+    'AN1-C2MA': S({ gpu: 415, cooler: 165, rad: { top: 360, side: 240 }, usbc: 'gen2', fans: 2 }),
+    'AN1-C2MA-W': S({ gpu: 415, cooler: 165, rad: { top: 360, side: 240 }, usbc: 'gen2', fans: 2 }),
+    'AN1-C6WD': S({ gpu: 450, cooler: 180, rad: { top: 360 }, usbc: 'gen2', fans: 3 }),
+    'AN1-C6WW': S({ gpu: 450, cooler: 180, rad: { top: 360 }, usbc: 'gen2', fans: 3 }),
+    'AN1-FLUX-RR': S({ gpu: 400, cooler: 180, rad: { top: 360 }, usbc: 'gen2', fans: 5 }),
+    '94CC500ST': S({ gpu: 410, cooler: 176, rad: { top: 360, side: 360 }, usbc: 'gen2', fans: 4 }),
+    '94CC500PI': S({ gpu: 410, cooler: 176 }),
+    '94CC201PI': S({ gpu: 410, cooler: 190, rad: { top: 360, side: 240 }, usbc: false, fans: 3 }),
+    '94CC102GI': S({ gpu: 410, cooler: 165 }),
+    '210-9011347': S({ gpu: 410, rad: { top: 360, side: 240 }, usbc: 'gen2x2', fans: 3, back: true }),
+    '210-9011348': S({ gpu: 410, rad: { top: 360, side: 240 }, usbc: 'gen2x2', fans: 3, back: true }),
+    '210-9011349': S({ gpu: 405, rad: { top: 360, front: 360, side: 360 }, usbc: 'gen2x2', ff: 'E-ATX', back: true }),
+    '210-9011350': S({ gpu: 405, rad: { top: 360, front: 360, side: 360 }, usbc: 'gen2x2', ff: 'E-ATX', back: true }),
+    '210-9011265': S({ gpu: 400, cooler: 180, rad: { top: 360, bottom: 360, side: 240 }, usbc: 'gen2', back: true }),
+  },
+  cooler: {
+    'AN3-A450FR': S({ h: 148, sockets: DESKTOP_SOCKETS }),
+    'AN3-F400A': S({ h: 157, sockets: DESKTOP_SOCKETS }),
+    'AN3-F400AW': S({ h: 157, sockets: DESKTOP_SOCKETS }),
+    'AN3-F620DP': S({ h: 157, sockets: DESKTOP_SOCKETS, ram: 40 }),
+    'AN3-F620DPW': S({ h: 157, sockets: DESKTOP_SOCKETS, ram: 40 }),
+    'CLM-F2127': S({ h: 152, sockets: DESKTOP_SOCKETS }), // Hyper 212 Spectrum V3
+    'CLM-F61266': S({ h: 159, sockets: DESKTOP_SOCKETS }), // Hyper 612 APEX
+    'DC-AK620DIGW': S({ h: 162, sockets: DESKTOP_SOCKETS }), // AK620 DIGITAL WH
+    'DC-AK620DIGSE': S({ sockets: DESKTOP_SOCKETS }), // AK620 DIGITAL SE (manual: sockets only)
+    'DC-AK620DIGWHSE': S({ sockets: DESKTOP_SOCKETS }),
+    'NH-D15': S({ h: 168, sockets: DESKTOP_SOCKETS }),
+    'NH-D15BK': S({ h: 168, sockets: DESKTOP_SOCKETS }),
+  },
+  psu: {
+    'CLM-P7015': S({ atx3: false }), // Elite NEX W700: ATX12V 2.41
+    '220-CX650278': S({ atx3: false }), // CX650 (CP-9020278): ATX12V v2.31
+    '94P10200': S({ atx3: true }), // GIGABYTE GAMING 750GM PG5 (series 750–1000W: ATX 3.1)
+    '94P10201': S({ atx3: true }),
+    '94P10202': S({ atx3: true }),
+    '94P10203': S({ atx3: true }),
+    '94P10206': S({ atx3: true }),
+    '94P10207': S({ atx3: true }),
+  },
+  board: {
+    '95B65030': S({ usbc: 'gen1', fans: 2, argb: 2, m2gen: 4 }), // B650M D3HP rev 1.3
+  },
+};
+
+/* What a platform guarantees for its fastest M.2 slot (AMD and Intel chipset specs), when the board is not listed:
+   A620, A520 and B550 have no PCIe 5.0; 12th to 14th gen Intel processors give M.2 PCIe 4.0 at most on H610 / B660 /
+   H670 / B760 / H770 boards; X870(E) and B850 boards always have a PCIe 5.0 M.2 slot. */
+const M2_GEN_BY_CHIPSET = { A620: 4, A520: 3, B550: 4, H610: 4, B660: 4, H670: 4, B760: 4, H770: 4, B850: 5, X870: 5 };
+
+/* LGA1851 keeps the LGA1700 cooler mounting (Intel), so a cooler listed for one fits the other. */
+const coolerFits = (sockets, socket) => sockets.includes(socket) || (socket === 'LGA1851' && sockets.includes('LGA1700')) || (socket === 'LGA1700' && sockets.includes('LGA1851'));
 
 const BRANDS = [
   ['AMD', /\bamd\b|\bryzen\b|\bradeon\b/i],
@@ -231,7 +355,7 @@ export function categorize(title) {
 /* ---------- per-kind readers ---------- */
 
 function parseCpu(t) {
-  const out = { socket: null, igpu: null, needsCooler: true, watts: null, score: null, model: null };
+  const out = { socket: null, igpu: null, needsCooler: true, watts: null, score: null, model: null, vendor: null, series: null, plus: false };
   const explicit = t.match(/\bLGA\s?(1851|1700)\b/i) || t.match(/\b(AM[45])\b/i);
   if (explicit) out.socket = normalizeSocket(explicit[1]);
 
@@ -249,12 +373,16 @@ function parseCpu(t) {
     gen = 3 + (+ultra[2] >= 250 ? 0.5 : 0);
     out.socket ||= 'LGA1851';
     out.model = `Core Ultra ${tier} ${ultra[2]}${suffix}`;
+    out.series = 'ultra2';
+    // Core Ultra 200S Plus ("250K Plus", "270K Plus"): newer than the first 800-series boards.
+    out.plus = /\bplus\b/i.test(t);
   } else if (!isAmd && core) {
     tier = +core[1];
     suffix = core[4].toUpperCase();
     gen = +core[2] - 12;
     out.socket ||= 'LGA1700';
     out.model = `Core i${tier}-${core[2]}${core[3]}${suffix}`;
+    out.series = `intel${core[2]}`;
   } else if (ryzen) {
     tier = +ryzen[1];
     const series = +ryzen[2];
@@ -262,6 +390,7 @@ function parseCpu(t) {
     gen = { 5: 0, 7: 2, 8: 1.5, 9: 3 }[series] ?? 0;
     out.socket ||= series === 5 ? 'AM4' : 'AM5';
     out.model = `Ryzen ${tier} ${series}${ryzen[3]}${suffix}`;
+    out.series = `ryzen${series}000`;
     // Ryzen 5000 desktop parts have no graphics unless they are G; 7000/9000 all have it; F never.
     if (/F/.test(suffix.replace(/X3D2?$/, ''))) out.igpu = false;
     else if (suffix.startsWith('G')) out.igpu = true;
@@ -289,6 +418,7 @@ function parseCpu(t) {
   const cores = t.match(/(\d{1,2})\s*(?:cores|crs|c\b)/i);
   if (tier) out.score = tier * 10 + gen * 8 + (/K/.test(suffix) || /X/.test(suffix) ? 3 : 0) + (cores ? Math.min(+cores[1], 24) * 0.3 : 0);
   out.x3d = /X3D/.test(suffix);
+  if (out.socket) out.vendor = /^AM/.test(out.socket) ? 'AMD' : 'Intel';
   return out;
 }
 
@@ -322,7 +452,11 @@ function parseBoard(t) {
 }
 
 function parseRam(t) {
-  const out = { memory: normalizeMemory(t), capacity: null, modules: 1, speed: null };
+  const out = { memory: normalizeMemory(t), capacity: null, modules: 1, speed: null, profile: null };
+  // The overclocking profile the title names: XMP (Intel), EXPO (AMD), both, or neither (null).
+  const xmp = /\bxmp\b/i.test(t);
+  const expo = /\bexpo\b/i.test(t);
+  out.profile = xmp && expo ? 'both' : xmp ? 'XMP' : expo ? 'EXPO' : null;
   const kit = t.match(/\b([248])\s?x\s?(\d{1,2})\s?(?:gb)?\b/i);
   if (kit) {
     out.modules = +kit[1];
@@ -361,7 +495,8 @@ function parseGpu(t) {
 }
 
 function parsePsu(t) {
-  const out = { watts: null, rating: null, atx3: false, modular: null };
+  // atx3: true when the title says ATX 3.x / PCIe 5.x / 12V-2x6; null (not known) otherwise, until SPECS says.
+  const out = { watts: null, rating: null, atx3: null, modular: null, formFactor: /\bsfx\b/i.test(t) ? 'SFX' : 'ATX' };
   let m;
   const w = t.match(/(\d{3,4})\s?w\b/i);
   if (w && +w[1] >= 300) out.watts = +w[1];
@@ -373,13 +508,18 @@ function parsePsu(t) {
   if (r) out.rating = r[1].charAt(0).toUpperCase() + r[1].slice(1).toLowerCase();
   // Model codes that carry the rating: Antec NE1000G (Gold) / NE1200P (Platinum).
   else if ((m = t.match(/\bNE\s?\d{3,4}\s?([GP])\b/i))) out.rating = m[1].toUpperCase() === 'G' ? 'Gold' : 'Platinum';
-  out.atx3 = /atx\s?3\.\d|pcie?\s?5\.\d|12v-?2x6|12vhpwr/i.test(t);
+  if (/atx\s?3(?:\.\d|\.?(?=\s|$))|pcie?\s?5\.\d|12v-?2x6|12vhpwr/i.test(t)) out.atx3 = true;
   out.modular = /full[\s-]?modular|fully modular|semi[\s-]?modular/i.test(t) ? true : /non[\s-]?modular|none modular|לא מודולרי/i.test(t) ? false : null;
   return out;
 }
 
 function parseCase(t) {
-  const out = { formFactor: null, backConnect: false };
+  const out = { formFactor: null, backConnect: false, gpuMax: null, coolerMax: null, rad: null, usbc: null, fans: null, hub: false, psu: /\bsfx\b/i.test(t) ? 'SFX' : 'ATX' };
+  if (/type-?c/i.test(t)) out.usbc = true; // a front USB-C port, generation not given
+  const fans = t.match(/\b(\d{1,2})\s?x\s?(?:1[24]0\s?mm\s?)?(?:a?rgb\s?)?(?:pwm\s?)?fans?\b/i);
+  if (fans) out.fans = +fans[1];
+  const rads = t.match(/\b\d\s?x\s?(240|280|360|420)\s?(?:mm\s?)?radiator/i);
+  if (rads) out.rad = { any: +rads[1] };
   if (/\be-?atx\b/i.test(t)) out.formFactor = 'E-ATX';
   else if (/\bmini-?itx\b/i.test(t)) out.formFactor = 'Mini-ITX';
   else if (/\bmicro[\s-]?atx\b|\bm-?atx\b|\bmatx\b|\bmini[\s-]?atx\b/i.test(t)) out.formFactor = 'mATX';
@@ -390,10 +530,13 @@ function parseCase(t) {
 }
 
 function parseCooler(t) {
-  const out = { type: 'air', tdp: null, radiator: null };
+  const out = { type: 'air', tdp: null, radiator: null, height: null, sockets: null, ramClearance: null, dual: false };
+  // Two towers (or two fans on one) sit over the memory slots: tall RAM may not fit.
+  out.dual = /\bdual\b|\b2\s?x\s?1[24]0\s?mm|\bnh-d15\b|\bak620\b/i.test(t);
   const rad = t.match(/\b(120|240|280|360|420)\b(?!\s*mm\s*(?:fan|pwm))/i);
   if (/נוזלי|liquid|\baio\b/i.test(t)) {
     out.type = 'liquid';
+    out.dual = false;
     if (rad) out.radiator = +rad[1];
   }
   const w = t.match(/(\d{2,3})\s?w\b/i);
@@ -403,7 +546,9 @@ function parseCooler(t) {
 }
 
 function parseStorage(t) {
-  const out = { kind: null, capacityGb: null, gen: null };
+  const out = { kind: null, capacityGb: null, gen: null, m2: null };
+  const m2 = t.match(/\b(2230|2242|2260|2280|22110)\b/);
+  if (m2) out.m2 = +m2[1];
   if (/nvme|m\.?2\b|\bgen\s?[345]\b|\b(9[89]0|9100)\s?(pro|evo)/i.test(t)) out.kind = 'NVMe';
   else if (/rpm|\bhdd\b|barracuda|skyhawk|purple|exos|\bmg\d|s300|3\.5/i.test(t)) out.kind = 'HDD';
   else if (/\bssd\b|2\.5/i.test(t)) out.kind = 'SSD';
@@ -469,12 +614,62 @@ export const REQUIRED_FACTS = {
 
 /* ---------- product → part ---------- */
 
-/** Reads one title (plus optional pc.* overrides) into a part's facts. */
-export function parseTitle(title, overrides = {}) {
+/* The product description, when the store wrote one ("כרטיס מסך באורך עד 405 מ״מ", "קירור אוויר למעבד עד 175 מ״מ",
+   "רדיאטור עד 360 מ״מ"): a case's clearances. */
+function readBody(category, facts, body) {
+  const t = String(body || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
+  if (!t.trim() || category !== 'case') return;
+  const mm = '\\s?(?:מ״מ|מ"מ|מ\'\'מ|mm)';
+  const grab = (re) => { const m = t.match(re); return m ? +m[1] : null; };
+  facts.gpuMax ??= grab(new RegExp(`כרטיס מסך באורך עד (\\d{3})${mm}`)) ?? grab(new RegExp(`gpu[^.\\d]{0,30}?(\\d{3})${mm}`, 'i'));
+  facts.coolerMax ??= grab(new RegExp(`קירור (?:אוויר )?(?:למעבד )?(?:בגובה )?עד (\\d{3})${mm}`)) ?? grab(new RegExp(`cpu cooler[^.\\d]{0,30}?(\\d{3})${mm}`, 'i'));
+  const rad = grab(new RegExp(`רדיאטור(?: בגודל)? עד (\\d{3})${mm}`));
+  if (rad && !facts.rad) facts.rad = { any: rad };
+}
+
+/* The verified table (SPECS) for this SKU, over what the title said. */
+function readSpecs(category, facts, sku) {
+  const spec = sku && SPECS[category] && SPECS[category][String(sku).trim()];
+  if (!spec) return false;
+  switch (category) {
+    case 'gpu':
+      Object.assign(facts, { length: spec.len, thickness: spec.thick, recPsu: spec.psu, pin16: spec.pin16, radiator: spec.rad || null });
+      break;
+    case 'case':
+      if (spec.gpu) facts.gpuMax = spec.gpu;
+      if (spec.cooler) facts.coolerMax = spec.cooler;
+      if (spec.rad) facts.rad = { ...spec.rad };
+      if (spec.usbc !== undefined) facts.usbc = spec.usbc;
+      if (spec.fans !== undefined) facts.fans = spec.fans;
+      if (spec.hub) facts.hub = true;
+      if (spec.ff) facts.formFactor = spec.ff;
+      if (spec.back) facts.backConnect = true;
+      break;
+    case 'cooler':
+      if (spec.h) facts.height = spec.h;
+      if (spec.sockets) facts.sockets = [...spec.sockets];
+      if (spec.ram) facts.ramClearance = spec.ram;
+      break;
+    case 'psu':
+      if (spec.atx3 !== undefined) facts.atx3 = spec.atx3;
+      break;
+    case 'board':
+      Object.assign(facts, { usbcHeader: spec.usbc ?? null, fanHeaders: spec.fans ?? null, argbHeaders: spec.argb ?? null, m2gen: spec.m2gen ?? null });
+      break;
+    default:
+  }
+  return true;
+}
+
+/** Reads one title (plus optional pc.* overrides, and the SKU and description when known) into a part's facts. */
+export function parseTitle(title, overrides = {}, { sku = null, body = null } = {}) {
   const raw = cleanTitle(title);
   const forced = overrides.category && String(overrides.category).trim().toLowerCase();
   const category = forced ? (forced === 'none' ? 'ignore' : forced) : categorize(raw);
   const facts = READERS[category] ? READERS[category](raw) : {};
+  const verified = readSpecs(category, facts, sku);
+  readBody(category, facts, body);
+  if (category === 'board' && facts.m2gen == null && facts.chipset) facts.m2gen = M2_GEN_BY_CHIPSET[facts.chipset.slice(0, 4)] ?? null;
   const fromMeta = [];
   const set = (key, value) => {
     if (value === null || value === undefined || value === '') return;
@@ -494,7 +689,7 @@ export function parseTitle(title, overrides = {}) {
     set('backConnect', bool(overrides.back_connect));
   }
   const missing = (REQUIRED_FACTS[category] || []).filter((k) => facts[k] === null || facts[k] === undefined);
-  return { category, facts, fromMeta, missing };
+  return { category, facts, fromMeta, missing, verified };
 }
 
 /** A Shopify product (products.json shape) → a part, or null when it cannot be sold (no available variant). */
@@ -502,7 +697,7 @@ export function toPart(product, overrides = {}) {
   const variants = product.variants || [];
   const variant = variants.find((v) => v.available !== false) || null;
   if (!variant) return null;
-  const { category, facts, fromMeta, missing } = parseTitle(product.title, overrides);
+  const { category, facts, fromMeta, missing, verified } = parseTitle(product.title, overrides, { sku: variant.sku, body: product.body_html });
   const image = (product.images && product.images[0] && (product.images[0].src || product.images[0])) || (variant.featured_image && variant.featured_image.src) || null;
   return {
     id: product.id,
@@ -517,6 +712,7 @@ export function toPart(product, overrides = {}) {
     facts,
     fromMeta,
     missing,
+    verified,
   };
 }
 
@@ -524,13 +720,18 @@ export function toPart(product, overrides = {}) {
 
 export const BASE_WATTS = 60; // board, memory, drives, fans
 
-/** Estimated peak draw of a selection, and the PSU size it calls for (×1.5, rounded up to 50 W, at least 450 W). */
+/* Headroom over the estimated peak draw (Lior: "PSU wattage meets requirements + 100W headroom"). */
+export const PSU_HEADROOM = 100;
+
+/** Estimated peak draw of a selection, and the PSU size it calls for: ×1.5 and at least draw + 100 W, rounded up to
+    50 W, at least 450 W. `card` is the graphics card maker's own recommendation, when known (advice, not a block). */
 export function powerOf(sel) {
   const cpu = sel.cpu?.facts?.watts || (sel.cpu ? 125 : 0);
   const gpu = sel.gpu ? sel.gpu.facts.watts || 250 : 0;
   const draw = BASE_WATTS + cpu + gpu;
-  const recommended = Math.max(450, Math.ceil((draw * 1.5) / 50) * 50);
-  return { draw, recommended, psu: sel.psu?.facts?.watts || null };
+  const up50 = (w) => Math.ceil(w / 50) * 50;
+  const recommended = Math.max(450, up50(draw * 1.5), up50(draw + PSU_HEADROOM));
+  return { draw, recommended, card: sel.gpu?.facts?.recPsu || null, psu: sel.psu?.facts?.watts || null };
 }
 
 const fmtW = (w) => `${w}W`;
@@ -552,6 +753,170 @@ const FACT_LABELS = {
 
 /* A cooler that does not state its rating is trusted only up to this (W). */
 export const UNRATED_COOLER_MAX = 150;
+
+/* What could not be checked for lack of data ("לא אומת"): the builder lets the order through, a representative checks
+   it before assembly. Short labels, listed together. */
+export const UNVERIFIED = {
+  gpuLength: 'אורך כרטיס המסך מול המארז',
+  coolerHeight: 'גובה הקירור מול המארז',
+  coolerSocket: 'התאמת הקירור לתושבת',
+  radiator: 'מקום לרדיאטור במארז',
+  ramClearance: 'גובה הזיכרון מתחת לקירור',
+  atx3: 'תקן ATX 3 של הספק',
+  usbc: 'חיבור USB-C פנימי בלוח',
+  fanHeaders: 'מחברי מאווררים ותאורה בלוח',
+  m2: 'חריץ M.2 בלוח',
+  memProfile: 'פרופיל XMP/EXPO של הזיכרון',
+};
+
+/* Processors newer than the first BIOS of a board family: the board may need an update first (we do it before
+   assembly). 13th/14th gen Intel on 600-series boards, Core Ultra 200S Plus on any 800-series board, Ryzen 8000/9000
+   on 600-series AM5 boards, and the newest Ryzen 9000 X3D parts (9850X3D, 9950X3D2) on any AM5 board. */
+function biosNote(cpu, board) {
+  const c = cpu.facts;
+  const chip = (board.facts.chipset || '').slice(0, 4);
+  if (!chip || c.socket !== board.facts.socket) return null;
+  const old600 = ['H610', 'B660', 'H670', 'Z690'].includes(chip);
+  const am5first = ['A620', 'B650', 'X670'].includes(chip);
+  const newest = /9850X3D|9950X3D2/.test(c.model || '');
+  if ((c.series === 'intel13' || c.series === 'intel14') && old600) return true;
+  if (c.series === 'ultra2' && c.plus) return true;
+  if ((c.series === 'ryzen9000' || c.series === 'ryzen8000') && am5first) return true;
+  return newest;
+}
+const BIOS_NOTE = 'ייתכן שהלוח יצטרך עדכון BIOS למעבד הזה. אנחנו מעדכנים לפני ההרכבה';
+const ENTRY_CHIPSETS = /^(H610|H810|A520|A620|B840)/;
+
+const RTX_ATX3 = /^RTX [45]0\d0/; // GeForce RTX 40 and 50 series
+const BASE_SPEED = { DDR4: 3200, DDR5: 5600 };
+const fmtMm = (n) => `${n} מ״מ`;
+
+/** The checks Lior's six rules add, for `part` against every other chosen part: hard reasons (both sides known and
+    they clash), advice (notes) and what could not be checked (unverified labels). */
+function lior(part, sel) {
+  const reasons = [];
+  const notes = [];
+  const unv = new Set();
+  const k = part.category;
+  const pick = (key) => (k === key ? part : sel[key]);
+  const cpu = pick('cpu');
+  const board = pick('board');
+  const ram = pick('ram');
+  const gpu = pick('gpu');
+  const storage = pick('storage');
+  const cooler = pick('cooler');
+  const psu = pick('psu');
+  const kase = pick('case');
+  const me = (key) => k === key;
+  const pair = (a, b) => (me(a) || me(b)) && pick(a) && pick(b);
+
+  // 1. CPU ⟷ board: BIOS, and an entry board under a 170W+ processor (no VRM data: the chipset tier is the hint).
+  if (pair('cpu', 'board')) {
+    if (biosNote(cpu, board)) notes.push(BIOS_NOTE);
+    if ((cpu.facts.watts || 0) >= 170 && ENTRY_CHIPSETS.test(board.facts.chipset || ''))
+      notes.push(`לוח בסיסי (${board.facts.chipset}) למעבד של ${fmtW(cpu.facts.watts)}: בעומס ממושך המעבד עלול לעבוד לאט יותר. לוח B, X או Z מתאים יותר`);
+  }
+
+  // 2. RAM: two sticks for fast DDR5; XMP for Intel, EXPO for AMD.
+  if (me('ram')) {
+    const f = ram.facts;
+    if (f.memory === 'DDR5' && (f.speed || 0) >= 6000 && f.modules === 1)
+      notes.push('מקל יחיד עובד בערוץ אחד. ב־DDR5 מהיר ערכה של 2 מקלות יציבה ומהירה יותר');
+    if (f.memory === 'DDR5' && (f.speed || 0) >= 6000 && f.modules >= 4)
+      notes.push('4 מקלות DDR5 במהירות 6000 ומעלה פחות יציבים. ערכה של 2 מקלות עדיפה');
+  }
+  if (pair('ram', 'cpu') && cpu.facts.vendor) {
+    const f = ram.facts;
+    const fast = f.speed && BASE_SPEED[f.memory] && f.speed > BASE_SPEED[f.memory];
+    if (cpu.facts.vendor === 'Intel' && f.profile === 'EXPO') notes.push(`הזיכרון מוגדר ל־EXPO של AMD. במעבד אינטל ייתכן שיעבוד במהירות נמוכה מ־${f.speed}MHz`);
+    else if (cpu.facts.vendor === 'AMD' && f.profile === 'XMP') notes.push('הזיכרון מוגדר ל־XMP של אינטל. ברוב לוחות AMD הוא עובד, ונגדיר אותו בהרכבה');
+    else if (!f.profile && fast) unv.add(UNVERIFIED.memProfile);
+  }
+
+  // 3. Graphics card ⟷ case (length, its own radiator) and PSU (ATX 3 for RTX 40/50, the maker's recommendation).
+  if (pair('gpu', 'case')) {
+    const len = gpu.facts.length;
+    const max = kase.facts.gpuMax;
+    if (len && max) {
+      if (len > max) reasons.push(me('gpu') ? `באורך ${fmtMm(len)}, והמארז שנבחר מקבל עד ${fmtMm(max)}` : `מקבל כרטיס מסך עד ${fmtMm(max)}, והכרטיס שנבחר באורך ${fmtMm(len)}`);
+    } else unv.add(UNVERIFIED.gpuLength);
+  }
+  if (pair('gpu', 'psu') && RTX_ATX3.test(gpu.facts.chip || '')) {
+    if (psu.facts.atx3 === false) reasons.push(me('gpu') ? 'כרטיס RTX 40/50 צריך ספק בתקן ATX 3, והספק שנבחר בתקן ישן' : 'בתקן ATX ישן, וכרטיס RTX 40/50 צריך ספק ATX 3');
+    else if (psu.facts.atx3 !== true) unv.add(UNVERIFIED.atx3);
+  }
+  if (pair('gpu', 'psu') && gpu.facts.recPsu && psu.facts.watts && psu.facts.watts < gpu.facts.recPsu)
+    notes.push(`יצרן כרטיס המסך ממליץ על ספק של ${fmtW(gpu.facts.recPsu)} לפחות`);
+
+  // 4. Cooler ⟷ processor (socket, TDP headroom), case (height, radiator) and RAM (clearance under a big tower).
+  if (pair('cooler', 'cpu')) {
+    const socks = cooler.facts.sockets;
+    if (socks && cpu.facts.socket) {
+      if (!coolerFits(socks, cpu.facts.socket)) reasons.push(me('cooler') ? `לא תומך בתושבת ${cpu.facts.socket}` : `תושבת ${cpu.facts.socket}, והקירור שנבחר לא תומך בה`);
+    } else unv.add(UNVERIFIED.coolerSocket);
+    const tdp = cooler.facts.tdp;
+    const w = cpu.facts.watts;
+    if (tdp && w && tdp + 10 >= w && tdp < w * 1.1) notes.push(`הקירור מדורג ל־${fmtW(tdp)} והמעבד מגיע ל־${fmtW(w)}: מרווח קטן, המאוורר יעבוד חזק בעומס`);
+  }
+  // Radiators the case must hold: the cooler's (an AIO) and the card's own (a water-cooled card), one place each.
+  const aio = cooler && cooler.facts.type === 'liquid' ? cooler.facts.radiator || 0 : null;
+  const cardRad = gpu?.facts.radiator || null;
+  const mine = me('case') || (me('cooler') && aio !== null) || (me('gpu') && cardRad);
+  if (kase && mine && (aio !== null || cardRad)) {
+    const wanted = [aio, cardRad].filter((r) => r !== null).sort((a, b) => b - a);
+    const rad = kase.facts.rad;
+    if (!rad || wanted.includes(0)) unv.add(UNVERIFIED.radiator);
+    else {
+      const slots = Object.values(rad).sort((a, b) => b - a);
+      // A size from a description ("רדיאטור עד 360 מ״מ") is one place, position not given.
+      const fits = rad.any ? wanted.length === 1 && wanted[0] <= rad.any : wanted.every((r, i) => (slots[i] || 0) >= r);
+      if (!fits) {
+        const what = wanted.length > 1 ? `שני רדיאטורים (${wanted.join(' ו־')} מ״מ)` : `רדיאטור ${wanted[0]} מ״מ`;
+        reasons.push(me('case') ? `אין מקום ל${what}` : `צריך מקום ל${what}, והמארז שנבחר לא מקבל`);
+      }
+    }
+  }
+  if (pair('cooler', 'case') && cooler.facts.type === 'air') {
+    const h = cooler.facts.height;
+    const max = kase.facts.coolerMax;
+    if (h && max) {
+      if (h > max) reasons.push(me('cooler') ? `בגובה ${fmtMm(h)}, והמארז שנבחר מקבל קירור עד ${fmtMm(max)}` : `מקבל קירור עד ${fmtMm(max)}, והקירור שנבחר בגובה ${fmtMm(h)}`);
+    } else unv.add(UNVERIFIED.coolerHeight);
+  }
+  if (pair('cooler', 'ram') && cooler.facts.type === 'air' && (cooler.facts.dual || cooler.facts.ramClearance)) {
+    const clear = cooler.facts.ramClearance;
+    const h = ram.facts.height;
+    if (clear && h) {
+      if (h > clear) reasons.push(me('cooler') ? `מקבל זיכרון בגובה עד ${fmtMm(clear)}, והזיכרון שנבחר בגובה ${fmtMm(h)}` : `בגובה ${fmtMm(h)}, והקירור שנבחר מקבל עד ${fmtMm(clear)}`);
+    } else unv.add(UNVERIFIED.ramClearance);
+  }
+
+  // 5. Storage ⟷ board: an M.2 drive's length, and PCIe 5.0 drives on a board without a PCIe 5.0 M.2 slot.
+  if (pair('storage', 'board') && storage.facts.kind === 'NVMe') {
+    const len = storage.facts.m2;
+    // Every desktop board's M.2 M-key slot takes 2280 and the shorter standard lengths; 22110 needs a board that says so.
+    if (!len || len > 2280) unv.add(UNVERIFIED.m2);
+    const gen = board.facts.m2gen;
+    if (storage.facts.gen === 5) {
+      if (gen && gen < 5) notes.push('ללוח אין חריץ M.2 בתקן PCIe 5.0: הדיסק יעבוד, במהירות נמוכה מהמרבית שלו');
+      else if (!gen) unv.add(UNVERIFIED.m2);
+    }
+  }
+
+  // 6. Case ⟷ system: PSU size, the board's USB-C header for the front port, fan and ARGB headers.
+  if (pair('case', 'psu') && kase.facts.psu === 'SFX' && psu.facts.formFactor === 'ATX')
+    reasons.push(me('case') ? 'מקבל ספק SFX בלבד, והספק שנבחר בגודל ATX' : 'ספק בגודל ATX, והמארז שנבחר מקבל SFX בלבד');
+  if (pair('case', 'board')) {
+    if (kase.facts.usbc) {
+      const header = board.facts.usbcHeader;
+      if (header === false) notes.push('ללוח אין חיבור פנימי ל־USB-C, ולכן שקע ה־USB-C בחזית המארז לא יעבוד');
+      else if (!header) unv.add(UNVERIFIED.usbc);
+    }
+    const fans = kase.facts.fans;
+    if (fans >= 4 && !kase.facts.hub && !(board.facts.fanHeaders >= fans)) unv.add(UNVERIFIED.fanHeaders);
+  }
+  return { reasons, notes, unverified: [...unv] };
+}
 
 /** Why `part` cannot go with what is already chosen (hard reasons), and what to double-check (soft). */
 export function fitOf(part, sel) {
@@ -615,7 +980,10 @@ export function fitOf(part, sel) {
     }
     default:
   }
-  return { ok: reasons.length === 0, reasons, notes };
+  const more = lior(part, sel);
+  reasons.push(...more.reasons);
+  notes.push(...more.notes);
+  return { ok: reasons.length === 0, reasons, notes, unverified: more.unverified };
 }
 
 /** Which steps the selection still needs. */
@@ -626,10 +994,12 @@ export function requiredSteps(sel) {
   return req;
 }
 
-/** The whole build: problems between chosen parts, what is missing, and notes to double-check. */
+/** The whole build: problems between chosen parts, what is missing, notes to double-check, and what could not be
+    checked for lack of data (`unverified`: a representative confirms it before assembly; the order still goes through). */
 export function checkBuild(sel) {
   const problems = [];
   const notes = [];
+  const unverified = new Set();
   // Each part against the parts of the steps before it only, so every clashing pair is reported once (the step order
   // puts every part after what it depends on: board after CPU, memory after board, PSU after CPU and card…).
   const before = {};
@@ -639,17 +1009,28 @@ export function checkBuild(sel) {
       const fit = fitOf(part, before);
       fit.reasons.forEach((r) => problems.push({ step: key, text: r }));
       fit.notes.forEach((n) => notes.push({ step: key, text: n }));
+      fit.unverified.forEach((u) => unverified.add(u));
       before[key] = part;
     }
   }
   // Notes that only show from the later side (memory to confirm on a board that does not say): ask the later part too.
   for (const key of STEP_KEYS) {
     if (key === 'extra' || !sel[key]) continue;
-    fitOf(sel[key], { ...sel, [key]: undefined }).notes.forEach((n) => notes.push({ step: key, text: n }));
+    const fit = fitOf(sel[key], { ...sel, [key]: undefined });
+    fit.notes.forEach((n) => notes.push({ step: key, text: n }));
+    fit.unverified.forEach((u) => unverified.add(u));
   }
   const missing = requiredSteps(sel).filter((k) => !sel[k]);
   const power = powerOf(sel);
-  return { ok: problems.length === 0 && missing.length === 0, problems, missing, notes: [...new Map(notes.map((n) => [n.text, n])).values()], power };
+  const order = Object.values(UNVERIFIED);
+  return {
+    ok: problems.length === 0 && missing.length === 0,
+    problems,
+    missing,
+    notes: [...new Map(notes.map((n) => [n.text, n])).values()],
+    unverified: [...unverified].sort((a, b) => order.indexOf(a) - order.indexOf(b)),
+    power,
+  };
 }
 
 /** The parts of the steps before `key`: what a part of that step must fit. */

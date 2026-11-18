@@ -7,6 +7,8 @@
 // The store's pictures (cdn.shopify.com, in the live fixture) are served from LIVE_IMGS (a folder of the files by their
 // name, e.g. 40907.jpg) when set; nothing is fetched from the network. FIXTURE names the fixture make-preview used.
 // Usage: LIVE_IMGS=/path/to/imgs [MORLEVI_IMGS=/path] PREFIX=v3- node .github/pc-builder/screenshot.cjs [out-dir]
+// ONLY=rules takes just Lior's compatibility rules (with FIXTURE=live-2026-11-18.json, whose SKUs the SPECS table
+// knows): a card too long for a case, blocked with its reason, and a build with advice and "לא אומת", at 390 and 1440.
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -127,6 +129,43 @@ async function shoot(browser, base, name, width, height, steps) {
     await p.click('[data-action="quote"]');
   };
   try {
+    if (process.env.ONLY === 'rules') {
+      const wide = [1440, 900];
+      const ids = (...skus) => skus.map((code) => fx.flatMap((p) => p.variants).find((v) => v.sku === code).id).join(',');
+      // RTX 5080 MASTER (360 mm): the Antec CX200M (cards up to 330 mm) is blocked at the case step.
+      const longCard = `?build=${ids('AMD-R79800X3DT', '95B850110', '2CK5-32603809', 'GVN50801660', 'KSSD-SNV3S1000', 'AN3-F400A', '94P10206')}`;
+      const caseStep = async (p) => {
+        await p.click('.pcb-progress__step[data-step="case"]');
+        await p.click('[data-action="toggle-blocked"]');
+        await p.waitForTimeout(150);
+      };
+      // Ryzen 5 8400F on an A620 board (BIOS), one DDR5 6000 stick, an RTX 5070 GAMING OC on a 650W PSU whose ATX version
+      // is unknown, in a case that is not in the table: advice and "לא אומת", and the order still goes through.
+      const notes = `?build=${ids('AMD-R58400FT', '95A62010', 'KF5-1166036010', 'GVN50701220', 'KSSD-SNV3S1000', 'AN3-F400A', 'AN2-CSK6502', 'AN1-VX310AR')}`;
+      const openSummary = async (p) => { if (!(await p.locator('.pcb--summary-open').count())) await p.click('[data-action="toggle-summary"]'); };
+      const boardStep = async (p) => { await p.click('.pcb-progress__step[data-step="board"]'); await p.waitForTimeout(150); };
+      await shoot(browser, base, 'phone-390-blocked', ...phone, { query: longCard, actions: [closeSummary, caseStep, scrollTo('.pcb-blocked', 76)], fullPage: false });
+      await shoot(browser, base, 'phone-390-notice', ...phone, { query: notes, actions: [openSummary, scrollTo('.pcb-sum__notes', 140)], fullPage: false });
+      await shoot(browser, base, 'phone-390-row-note', ...phone, { query: notes, actions: [closeSummary, boardStep, scrollTo('.pcb-row__note', 160)], fullPage: false });
+      await shoot(browser, base, 'desktop-1440-blocked', ...wide, { query: longCard, actions: [caseStep, scrollTo('.pcb-blocked', 420)], fullPage: false });
+      await shoot(browser, base, 'desktop-1440-notice', ...wide, {
+        query: notes,
+        actions: [boardStep, scrollTo('.pcb__tabs', 20)],
+        fullPage: false,
+        after: async (page, cart) => {
+          const state = await page.evaluate(() => ({
+            cart: document.querySelector('.pcb-sum__panel [data-action="add-to-cart"]').disabled,
+            unverified: document.querySelector('.pcb-sum__unverified')?.textContent.trim().replace(/\s+/g, ' '),
+          }));
+          console.log(`  notice build: cart disabled=${state.cart}; ${state.unverified}`);
+          await page.click('.pcb-sum__panel [data-action="add-to-cart"]');
+          await page.waitForTimeout(300);
+          const body = cart();
+          console.log(`  cart: ${body ? body.items.length : 0} items, _unverified on the first: ${body?.items[0]?.properties._unverified}`);
+        },
+      });
+      return;
+    }
     await shoot(browser, base, 'phone-390-1-start', ...phone, { fullPage: false });
     await shoot(browser, base, 'phone-390-2-games', ...phone, { actions: [games, scrollTo('.pcb-build.is-featured', 70)], fullPage: false });
     await shoot(browser, base, 'phone-390-3-summary', ...phone, { actions: [games, pickRecommended], fullPage: false });

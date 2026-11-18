@@ -1,0 +1,346 @@
+{
+ "checked": "2026-11-18",
+ "note": "Every value in SPECS (assets/pc-builder-parser.js) and the maker's page it was copied from. Cards: Card size L/W/H, Recommended PSU, Power Connectors. Cases: max GPU length, max CPU cooler height, radiator support, front I/O, included fans. Coolers: height, sockets, RAM clearance. PSUs: ATX12V version.",
+ "gpu": {
+  "GVN50701220": {
+   "model": "GV-N5070GAMING OC-12GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5070GAMING-OC-12GD/sp"
+  },
+  "GVN50801640": {
+   "model": "GV-N5080GAMING OC-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5080GAMING-OC-16GD/sp"
+  },
+  "GVN50801605": {
+   "model": "GV-N5080WF3OC-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5080WF3OC-16GD/sp"
+  },
+  "GVN507T020": {
+   "model": "GV-N507TEAGLE OC-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N507TEAGLE-OC-16GD/sp"
+  },
+  "GVN50701210": {
+   "model": "GV-N5070EAGLE OC-12GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5070EAGLE-OC-12GD/sp"
+  },
+  "GVN5060-8120": {
+   "model": "GV-N5060EAGLE OC-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5060EAGLE-OC-8GD/sp"
+  },
+  "GVR9070201": {
+   "model": "GV-R9070XTGAMING OC-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-R9070XTGAMING-OC-16GD/sp"
+  },
+  "GVN5060-8140": {
+   "model": "GV-N5060GAMING OC-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5060GAMING-OC-8GD/sp"
+  },
+  "GVN506T-830": {
+   "model": "GV-N506TGAMING OC-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N506TGAMING-OC-8GD/sp"
+  },
+  "GVN506T-820": {
+   "model": "GV-N506TEAGLE OC-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N506TEAGLE-OC-8GD/sp"
+  },
+  "GVR9060X1600": {
+   "model": "GV-R9060XTGAMING OC-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-R9060XTGAMING-OC-16GD/sp"
+  },
+  "GVN50801660": {
+   "model": "GV-N5080AORUS M-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5080AORUS-M-16GD/sp"
+  },
+  "GVN50701230": {
+   "model": "GV-N5070AERO OC-12GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5070AERO-OC-12GD/sp"
+  },
+  "GVN50701200": {
+   "model": "GV-N5070WF3OC-12GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5070WF3OC-12GD/sp"
+  },
+  "GVN507T001": {
+   "model": "GV-N507TWF3-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N507TWF3-16GD/sp"
+  },
+  "GVN50801630": {
+   "model": "GV-N5080AERO OC-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5080AERO-OC-16GD/sp"
+  },
+  "GVR9070010": {
+   "model": "GV-R9070GAMING OC-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-R9070GAMING-OC-16GD/sp"
+  },
+  "GVR9070222": {
+   "model": "GV-R9070XTAORUS E-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-R9070XTAORUS-E-16GD/sp"
+  },
+  "GVN50701250": {
+   "model": "GV-N5070EAGLEOC ICE-12GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5070EAGLEOC-ICE-12GD/sp"
+  },
+  "GVN507T023": {
+   "model": "GV-N507TEAGLEOC ICE-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N507TEAGLEOC-ICE-16GD/sp"
+  },
+  "GVN5060-8150": {
+   "model": "GV-N5060AERO OC-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5060AERO-OC-8GD/sp"
+  },
+  "GVN50801665": {
+   "model": "GV-N5080AORUSM ICE-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5080AORUSM-ICE-16GD/sp"
+  },
+  "GVN5050-801": {
+   "model": "GV-N5050WF2OC-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5050WF2OC-8GD/sp"
+  },
+  "GVN506T-1625": {
+   "model": "GV-N506TWF2MAX OC-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N506TWF2MAX-OC-16GD/sp"
+  },
+  "GVN5060-8110": {
+   "model": "GV-N5060EAGLEOC ICE-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5060EAGLEOC-ICE-8GD/sp"
+  },
+  "GVN5060-8160": {
+   "model": "GV-N5060OC-8GL",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5060OC-8GL/sp"
+  },
+  "GVN5050-821": {
+   "model": "GV-N5050GAMING OC-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5050GAMING-OC-8GD/sp"
+  },
+  "GVN506T-0825": {
+   "model": "GV-N506TWF2MAX OC-8GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N506TWF2MAX-OC-8GD/sp"
+  },
+  "GVN50801670": {
+   "model": "GV-N5080AORUSX W-16GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N5080AORUSX-W-16GD/sp"
+  },
+  "GVN3050622": {
+   "model": "GV-N3050WF2OCV2-6GD",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N3050WF2OCV2-6GD/sp"
+  },
+  "GVN30601221": {
+   "model": "GV-N3060WF2OC-12GD rev2.0",
+   "url": "https://www.gigabyte.com/Graphics-Card/GV-N3060WF2OC-12GD-rev-20/sp"
+  }
+ },
+ "case": {
+  "AN1-FLUX-M": {
+   "model": "Antec Flux M",
+   "url": "https://www.antec.com/product/case/flux-m"
+  },
+  "AN1-C5AR": {
+   "model": "Antec C5 ARGB",
+   "url": "https://www.antec.com/product/case/c5"
+  },
+  "AN1-C5CAB": {
+   "model": "Antec C5 Curve ARGB",
+   "url": "https://www.antec.com/product/case/c5-curve-argb"
+  },
+  "AN1-C5CAW": {
+   "model": "Antec C5 Curve ARGB",
+   "url": "https://www.antec.com/product/case/c5-curve-argb"
+  },
+  "AN1-C3AR": {
+   "model": "Antec C3 ARGB Black",
+   "url": "https://www.antec.com/product/case/c3"
+  },
+  "AN1-C3ARW": {
+   "model": "Antec C3 ARGB White",
+   "url": "https://www.antec.com/product/case/c3-white"
+  },
+  "AN1-C8-W": {
+   "model": "Antec C8 White",
+   "url": "https://www.antec.com/product/case/c8-white"
+  },
+  "AN1-P30ARGB": {
+   "model": "Antec P30 ARGB",
+   "url": "https://www.antec.com/product/case/p30-argb"
+  },
+  "AN1-P30": {
+   "model": "Antec P30 Air",
+   "url": "https://www.antec.com/product/case/p30-air"
+  },
+  "AN1-P20CE": {
+   "model": "Antec P20CE",
+   "url": "https://www.antec.com/product/case/p20ce"
+  },
+  "AN1-AX1000": {
+   "model": "Antec AX1000 ARGB",
+   "url": "https://www.antec.com/product/case/ax1000-argb"
+  },
+  "AN1-CXM": {
+   "model": "Antec CX Mirror",
+   "url": "https://www.antec.com/product/case/cx-mirror"
+  },
+  "AN1-CX300ARB": {
+   "model": "Antec CX300 ARGB",
+   "url": "https://www.antec.com/product/case/cx300-argb"
+  },
+  "AN1-CX300ARW": {
+   "model": "Antec CX300 ARGB",
+   "url": "https://www.antec.com/product/case/cx300-argb"
+  },
+  "AN1-CX705A": {
+   "model": "Antec CX705 ARGB",
+   "url": "https://www.antec.com/product/case/cx705-argb"
+  },
+  "AN1-CX200M-RE": {
+   "model": "Antec CX200M RGB Elite",
+   "url": "https://www.antec.com/product/case/cx200m-rgb-elite"
+  },
+  "AN1-C2MA": {
+   "model": "Antec C2M ARGB",
+   "url": "https://www.antec.com/product/case/c2m-argb"
+  },
+  "AN1-C2MA-W": {
+   "model": "Antec C2M ARGB",
+   "url": "https://www.antec.com/product/case/c2m-argb"
+  },
+  "AN1-C6WD": {
+   "model": "Antec C6 Wood",
+   "url": "https://www.antec.com/product/case/c6-wood"
+  },
+  "AN1-C6WW": {
+   "model": "Antec C6 Wood",
+   "url": "https://www.antec.com/product/case/c6-wood"
+  },
+  "AN1-FLUX-RR": {
+   "model": "Antec Flux Rear",
+   "url": "https://www.antec.com/product/case/flux-rear"
+  },
+  "AN1-P7": {
+   "model": "Antec P7S",
+   "url": "https://www.antec.com/product/case/p7s"
+  },
+  "94CC500ST": {
+   "model": "Gigabyte C500 Panoramic Stealth",
+   "url": "https://www.gigabyte.com/PC-Case/GB-C500P-ST/sp"
+  },
+  "94CC500PI": {
+   "model": "Gigabyte C500 Panoramic Stealth ICE",
+   "url": "https://www.gigabyte.com/Comparison/Consumer/Result/9?pids=9641,9723"
+  },
+  "94CC201PI": {
+   "model": "Gigabyte C201 Panoramic ICE",
+   "url": "https://www.gigabyte.com/PC-Case/GB-C201PI/sp"
+  },
+  "210-9011347": {
+   "model": "Corsair 2800X RS-R ARGB",
+   "url": "https://www.corsair.com/us/en/p/pc-cases/cc-9011347-ww/2800x-rs-r-argb-micro-atx-pc-case-cc-9011347-ww"
+  },
+  "210-9011348": {
+   "model": "Corsair 2800X RS-R ARGB",
+   "url": "https://www.corsair.com/us/en/p/pc-cases/cc-9011347-ww/2800x-rs-r-argb-micro-atx-pc-case-cc-9011347-ww"
+  },
+  "210-9011349": {
+   "model": "Corsair WARTHOG (E-ATX 305x277, reverse-connector boards)",
+   "url": "https://www.corsair.com/us/en/p/pc-cases/cc-9011349-ww/warthog-airflow-mid-tower-pc-case-black-cc-9011349-ww + https://www.corsair.com/us/en/explorer/diy-builder/cases/corsair-warthog-frame-4000d-more-alike-than-different/"
+  },
+  "210-9011350": {
+   "model": "Corsair WARTHOG (E-ATX 305x277, reverse-connector boards)",
+   "url": "https://www.corsair.com/us/en/p/pc-cases/cc-9011349-ww/warthog-airflow-mid-tower-pc-case-black-cc-9011349-ww + https://www.corsair.com/us/en/explorer/diy-builder/cases/corsair-warthog-frame-4000d-more-alike-than-different/"
+  },
+  "210-9011265": {
+   "model": "Corsair 2500X (mATX, reverse-connector boards)",
+   "url": "https://www.corsair.com/us/en/p/pc-cases/cc-9011265-ww/2500x-mid-tower-dual-chamber-pc-case-black-cc-9011265-ww"
+  },
+  "94CC102GI": {
+   "model": "Gigabyte C102 Glass ICE",
+   "url": "https://www.gigabyte.com/PC-Case/GB-C102GI-GLOBAL/sp"
+  }
+ },
+ "cooler": {
+  "AN3-A450FR": {
+   "model": "Antec A450 FRGB",
+   "url": "https://www.antec.com/product/cooling/a450-frgb"
+  },
+  "AN3-F400A": {
+   "model": "Antec F400 ARGB",
+   "url": "https://www.antec.com/product/cooling/f400-argb"
+  },
+  "AN3-F400AW": {
+   "model": "Antec F400 ARGB (white)",
+   "url": "https://www.antec.com/product/cooling/f400-argb"
+  },
+  "AN3-F620DP": {
+   "model": "Antec F620 Digital Pro",
+   "url": "https://www.antec.com/product/cooling/f620-digital-pro"
+  },
+  "AN3-F620DPW": {
+   "model": "Antec F620 Digital Pro White (same page, UPC listed)",
+   "url": "https://www.antec.com/product/cooling/f620-digital-pro"
+  },
+  "CLM-F2127": {
+   "model": "Cooler Master Hyper 212 Spectrum V3",
+   "url": "https://www.coolermaster.com/en-global/products/hyper-212-spectrum-v3.html"
+  },
+  "CLM-F61266": {
+   "model": "Cooler Master Hyper 612 APEX",
+   "url": "https://www.coolermaster.com/en-global/products/hyper-612-apex.html"
+  },
+  "DC-AK620DIGW": {
+   "model": "DeepCool AK620 DIGITAL WH (height); sockets from the AK620 DIGITAL page, LGA1851 shares the LGA1700 mount",
+   "url": "https://fr.deepcool.com/products/Cooling/cpuaircoolers/AK620-Digital-WH-Performance-CPU-Cooler-With-Status-Display-1851-1700-AM5/2024/17292.shtml"
+  },
+  "DC-AK620DIGSE": {
+   "model": "DeepCool AK620 DIGITAL SE (manual: sockets)",
+   "url": "https://www.deepcool.com/download/pdf/AK620_DIGITAL_SE_Series.pdf"
+  },
+  "DC-AK620DIGWHSE": {
+   "model": "DeepCool AK620 DIGITAL SE WH (manual: sockets)",
+   "url": "https://www.deepcool.com/download/pdf/AK620_DIGITAL_SE_Series.pdf"
+  },
+  "NH-D15": {
+   "model": "Noctua NH-D15",
+   "url": "https://noctua.at/en/nh-d15/specification"
+  },
+  "NH-D15BK": {
+   "model": "Noctua NH-D15 chromax.black",
+   "url": "https://noctua.at/en/nh-d15-chromax-black/specification"
+  }
+ },
+ "psu": {
+  "CLM-P7015": {
+   "model": "Cooler Master ELITE NEX White W700: ATX12V 2.41",
+   "url": "https://www.coolermaster.com/en-global/products/elite-nex-white-700.html"
+  },
+  "220-CX650278": {
+   "model": "Corsair CX650 CP-9020278: ATX12V v2.31",
+   "url": "https://www.corsair.com/se/sv/p/psu/cp-9020278-eu/cx-series-cx650-650-watt-80-plus-bronze-atx-power-supply-eu-cp-9020278-eu"
+  },
+  "94P10200": {
+   "model": "GIGABYTE GAMING GM PG5 series (750-1000W): fully modular ATX 3.1",
+   "url": "https://www.gigabyte.com/us/Power-Supply/GP-GME750GM-PG5"
+  },
+  "94P10201": {
+   "model": "GIGABYTE GAMING GM PG5 series (750-1000W): fully modular ATX 3.1",
+   "url": "https://www.gigabyte.com/us/Power-Supply/GP-GME750GM-PG5"
+  },
+  "94P10202": {
+   "model": "GIGABYTE GAMING GM PG5 series (750-1000W): fully modular ATX 3.1",
+   "url": "https://www.gigabyte.com/us/Power-Supply/GP-GME750GM-PG5"
+  },
+  "94P10203": {
+   "model": "GIGABYTE GAMING GM PG5 series (750-1000W): fully modular ATX 3.1",
+   "url": "https://www.gigabyte.com/us/Power-Supply/GP-GME750GM-PG5"
+  },
+  "94P10206": {
+   "model": "GIGABYTE GAMING GM PG5 series (750-1000W): fully modular ATX 3.1",
+   "url": "https://www.gigabyte.com/us/Power-Supply/GP-GME750GM-PG5"
+  },
+  "94P10207": {
+   "model": "GIGABYTE GAMING GM PG5 series (750-1000W): fully modular ATX 3.1",
+   "url": "https://www.gigabyte.com/us/Power-Supply/GP-GME750GM-PG5"
+  }
+ },
+ "board": {
+  "95B65030": {
+   "model": "Gigabyte B650M D3HP rev 1.3: USB Type-C header (USB 3.2 Gen 1), 2 system fan headers, 2 ARGB headers, 2 M.2 PCIe 4.0 (2280)",
+   "url": "https://www.gigabyte.com/Motherboard/B650M-D3HP-rev-13/sp"
+  }
+ }
+}
