@@ -273,6 +273,15 @@
             "image_fill": true
           }
         },
+        "circle-metziaon": {
+          "type": "circle",
+          "settings": {
+            "collection": "metziaon",
+            "image": "shopify://shop_images/metziaon-circle-round.png",
+            "label": "מציאון",
+            "image_fill": true
+          }
+        },
         "circle-direct-from-supplier": {
           "type": "circle",
           "settings": {
@@ -350,6 +359,7 @@
       "block_order": [
         "circle-black-november",
         "circle-direct-from-supplier",
+        "circle-metziaon",
         "circle-smartphones",
         "circle-tablets",
         "circle-smartwatches",
