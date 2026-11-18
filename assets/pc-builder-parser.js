@@ -573,26 +573,26 @@ export function requiredSteps(sel) {
 export function checkBuild(sel) {
   const problems = [];
   const notes = [];
+  // Each part against the parts of the steps before it only, so every clashing pair is reported once (the step order
+  // puts every part after what it depends on: board after CPU, memory after board, PSU after CPU and card…).
+  const before = {};
   for (const key of STEP_KEYS) {
-    const parts = key === 'extra' ? [] : sel[key] ? [sel[key]] : [];
-    for (const part of parts) {
-      const rest = { ...sel, [key]: undefined };
-      const fit = fitOf(part, rest);
+    const part = key === 'extra' ? null : sel[key];
+    if (part) {
+      const fit = fitOf(part, before);
       fit.reasons.forEach((r) => problems.push({ step: key, text: r }));
       fit.notes.forEach((n) => notes.push({ step: key, text: n }));
+      before[key] = part;
     }
   }
-  // Each pair is reported from both sides: keep one.
-  const seen = new Set();
-  const uniq = problems.filter((p) => {
-    const pair = [p.step, ...['cpu', 'board', 'ram', 'case', 'cooler', 'psu', 'gpu'].filter((k) => k !== p.step && p.text.includes(STEPS.find((s) => s.key === k).label))].sort().join('|');
-    if (seen.has(pair)) return false;
-    seen.add(pair);
-    return true;
-  });
+  // Notes that only show from the later side (memory to confirm on a board that does not say): ask the later part too.
+  for (const key of STEP_KEYS) {
+    if (key === 'extra' || !sel[key]) continue;
+    fitOf(sel[key], { ...sel, [key]: undefined }).notes.forEach((n) => notes.push({ step: key, text: n }));
+  }
   const missing = requiredSteps(sel).filter((k) => !sel[k]);
   const power = powerOf(sel);
-  return { ok: uniq.length === 0 && missing.length === 0, problems: uniq, missing, notes: [...new Map(notes.map((n) => [n.text, n])).values()], power };
+  return { ok: problems.length === 0 && missing.length === 0, problems, missing, notes: [...new Map(notes.map((n) => [n.text, n])).values()], power };
 }
 
 /* ---------- guided builds ----------

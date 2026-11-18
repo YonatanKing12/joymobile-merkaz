@@ -681,6 +681,10 @@ class PcBuilder {
   /* ---------- events ---------- */
 
   onClick(e) {
+    if (this.el.classList.contains('pcb--summary-open') && !e.target.closest('.pcb-sum')) {
+      this.toggleSummary(false);
+      return;
+    }
     const t = e.target.closest('[data-action], [data-mode-tab]');
     if (!t || !this.el.contains(t)) return;
     if (t.dataset.modeTab) {
@@ -757,6 +761,11 @@ class PcBuilder {
   }
 
   onKeydown(e) {
+    if (e.key === 'Escape' && this.el.classList.contains('pcb--summary-open')) {
+      this.toggleSummary(false);
+      this.$('[data-action="toggle-summary"]')?.focus();
+      return;
+    }
     // Tabs: arrow keys move between the two modes (RTL: the right arrow goes to the previous tab).
     const tab = e.target.closest('[data-mode-tab]');
     if (!tab || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;

@@ -847,10 +847,7 @@
 
 .pcb-sum__row {
   display: grid;
-  grid-template-columns: 5rem minmax(0, 1fr) auto;
-  grid-template-areas:
-    "k v p"
-    "k v edit";
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto auto;
   align-items: center;
   column-gap: var(--space-xs);
   padding-block: var(--space-2xs);
@@ -863,12 +860,10 @@
 }
 
 .pcb-sum__k {
-  grid-area: k;
   color: var(--color-muted);
 }
 
 .pcb-sum__v {
-  grid-area: v;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -880,7 +875,6 @@
 }
 
 .pcb-sum__p {
-  grid-area: p;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: end;
@@ -888,11 +882,10 @@
 }
 
 .pcb-sum__edit {
-  grid-area: edit;
-  justify-self: end;
   min-block-size: 1.5rem;
   min-inline-size: var(--tap-target);
   padding: 0;
+  text-align: end;
   border: 0;
   background: transparent;
   color: var(--color-brand-text);
@@ -1119,6 +1112,32 @@
     overflow: visible;
     padding: var(--space-lg);
     border: 0;
+  }
+}
+
+/* Wide screens: two columns of parts, each card in its compact (phone) layout. */
+@media (min-width: 1200px) {
+  .pcb-parts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pcb-part {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    grid-template-areas:
+      "img info"
+      "img buy";
+    align-items: start;
+  }
+
+  .pcb-part__img {
+    inline-size: 5rem;
+    block-size: 5rem;
+  }
+
+  .pcb-part__buy {
+    flex-direction: row;
+    align-items: center;
+    align-self: end;
   }
 }
 
