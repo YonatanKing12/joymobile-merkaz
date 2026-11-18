@@ -6,9 +6,14 @@
   the link resolves: `url`, else the page with the handle pc-builder, else /pages/pc-builder.
   Styles: assets/component-collection-pc-builder.css (linked here).
 
+  In a computers department (snippets/collection-department) the builder is a tile on the department's landing
+  page and a pill in the sub-category row of its leaves instead of this card: that snippet calls this one with
+  `format: 'data'`, which prints "<true|false>|<url>" (shown here? and the resolved link) and no markup.
+
   @param {collection} collection - The collection.
   @param {string} handles - Comma-separated collection handles that show the card.
   @param {string} [url] - Link override (the section setting).
+  @param {string} [format] - 'card' (default) or 'data' ("<show>|<url>", no markup).
 
   @example
   {% render 'collection-pc-builder', collection: collection, handles: section.settings.pc_builder_collections, url: section.settings.pc_builder_link %}
@@ -29,7 +34,9 @@
     assign cpb_url = pages['pc-builder'].url | default: '/pages/pc-builder'
   endif
 -%}
-{%- if cpb_show -%}
+{%- if format == 'data' -%}
+  {{- cpb_show }}|{{ cpb_url -}}
+{%- elsif cpb_show -%}
   {{ 'component-collection-pc-builder.css' | asset_url | stylesheet_tag }}
   <a class="collection-pcb" href="{{ cpb_url }}">
     <span class="collection-pcb__icon" aria-hidden="true">

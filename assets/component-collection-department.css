@@ -1,0 +1,353 @@
+/* Department navigation (snippets/collection-department) and the department's page details
+   (.collection--department, added by sections/main-collection when the snippet prints something):
+   - tiles of the sub-categories on the department page: two compact columns on phones (picture, name, count),
+     a row of picture tiles from 768px;
+   - a sideways-scrolling row of sibling pills on the categories under it (wrapped from 992px), the current one
+     filled navy, the first one back up to the parent;
+   - the PC builder in mint, as a tile or a pill;
+   - a lower banner from 992px, three-line titles, a smaller "ישר מהספק" disc and a quieter supplier delivery
+     line on the product cards, so long computer titles are readable and the cards stay calm.
+   Logical properties only (RTL). */
+
+.collection-dept {
+  margin-block: 0 var(--space-md);
+}
+
+/* ---------- Tiles ---------- */
+.collection-dept__heading {
+  margin-block: 0 var(--space-xs);
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+}
+
+.collection-dept__tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collection-dept__tile-item {
+  display: flex;
+  min-inline-size: 0;
+}
+
+.collection-dept__tile {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.625rem;
+  min-inline-size: 0;
+  min-block-size: 4rem;
+  padding: 0.4375rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 12px);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.collection-dept__media {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  overflow: hidden;
+  border-radius: var(--radius-sm, 8px);
+  background-color: color-mix(in srgb, var(--color-ink) 4%, var(--color-background));
+  color: var(--color-brand-text);
+  isolation: isolate;
+}
+
+.collection-dept__img {
+  inline-size: 100%;
+  block-size: 100%;
+  padding: 8%;
+  object-fit: contain;
+  mix-blend-mode: multiply; /* photos on white melt into the well, as on the product cards */
+}
+
+.collection-dept__text {
+  display: grid;
+  gap: 1px;
+  min-inline-size: 0;
+}
+
+.collection-dept__name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--text-md);
+  font-weight: 700;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.collection-dept__meta {
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-dept__tile--pcb {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-background));
+  background-color: var(--color-accent-soft, #e0fff2);
+}
+
+.collection-dept__tile--pcb .collection-dept__media {
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.collection-dept__tile--pcb .collection-dept__name {
+  color: var(--color-brand-text);
+}
+
+.collection-dept__tile:focus-visible,
+.collection-dept__pill:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .collection-dept__tile:hover {
+    border-color: var(--color-brand);
+    background-color: var(--color-hover-bg);
+  }
+
+  .collection-dept__tile:hover .collection-dept__name {
+    color: var(--color-brand-text);
+  }
+}
+
+@media (min-width: 768px) {
+  .collection-dept__tiles {
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  .collection-dept__tile {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 0.5rem 0.625rem;
+    text-align: center;
+  }
+
+  .collection-dept__media {
+    inline-size: 5.5rem;
+    block-size: 5.5rem;
+  }
+
+  .collection-dept__tile--pcb .collection-dept__media {
+    inline-size: 4rem;
+    block-size: 4rem;
+    margin-block: 0.75rem;
+  }
+
+  .collection-dept__tile--pcb .collection-dept__media svg {
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+  }
+
+  .collection-dept__text {
+    justify-items: center;
+  }
+
+  .collection-dept__meta {
+    white-space: normal;
+  }
+}
+
+/* ---------- Pills ---------- */
+.collection-dept__pills {
+  display: flex;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0 0 var(--space-2xs);
+  overflow-x: auto;
+  list-style: none;
+  scroll-padding-inline: var(--space-sm);
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.collection-dept__pills::-webkit-scrollbar {
+  display: none;
+}
+
+.collection-dept__pill-item {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+.collection-dept__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-block-size: var(--tap-target, 44px);
+  padding-inline: var(--space-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  line-height: var(--leading-tight);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.collection-dept__pill-icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.collection-dept__pill-icon svg {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+}
+
+.collection-dept__pill--up {
+  padding-inline-start: 0.625rem;
+  border-color: transparent;
+  background-color: var(--color-surface-soft);
+  font-weight: 700;
+}
+
+.collection-dept__pill[aria-current="page"] {
+  border-color: var(--color-ink);
+  background-color: var(--color-ink);
+  color: var(--color-background);
+  font-weight: 700;
+}
+
+.collection-dept__pill--pcb {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-background));
+  background-color: var(--color-accent-soft, #e0fff2);
+  color: var(--color-brand-text);
+  font-weight: 700;
+}
+
+@media (hover: hover) {
+  .collection-dept__pill:not([aria-current="page"]):hover {
+    border-color: var(--color-brand);
+    background-color: var(--color-hover-bg);
+    color: var(--color-brand-text);
+  }
+}
+
+@media (max-width: 991px) {
+  /* The row runs to the screen edges, so a cut-off pill shows there is more to scroll. */
+  .collection-dept--pills {
+    margin-inline: calc(var(--page-gutter, 15px) * -1);
+  }
+
+  .collection-dept__pills {
+    padding-inline: var(--page-gutter, 15px);
+  }
+
+  /* The way back up stays in view while the siblings scroll under it. */
+  .collection-dept__pill-item:first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    margin-inline-start: calc(var(--page-gutter, 15px) * -1);
+    padding-inline: var(--page-gutter, 15px) 0.25rem;
+    background-color: var(--color-background);
+  }
+
+  .collection-dept__pill-item:first-child::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: -0.75rem;
+    inline-size: 0.75rem;
+    background: linear-gradient(to left, var(--color-background), transparent);
+    pointer-events: none;
+  }
+
+  [dir="ltr"] .collection-dept__pill-item:first-child::after {
+    background: linear-gradient(to right, var(--color-background), transparent);
+  }
+
+  /* Phones: the banner's title band without the tagline, so the categories and products come sooner. */
+  .collection--department .collection__hero-copy {
+    padding: 0.625rem 1rem 0.75rem;
+  }
+
+  .collection--department .collection__hero-title {
+    font-size: 1.375rem;
+  }
+
+  .collection--department .collection__hero-subtitle {
+    display: none;
+  }
+}
+
+@media (min-width: 992px) {
+  .collection-dept__pills {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .collection-dept__pill {
+    min-block-size: 2.25rem;
+    font-size: var(--text-sm);
+  }
+}
+
+/* ---------- The department's page ---------- */
+/* A lower banner from 992px: the products start in the first screen. */
+@media (min-width: 992px) {
+  .collection--department .collection__banner--branded .collection__hero-media {
+    aspect-ratio: 1536 / 330;
+  }
+
+  .collection--department .collection__banner--branded .collection__banner-img {
+    object-fit: cover;
+    object-position: 50% 62%;
+  }
+
+  .collection--department .collection__hero-copy {
+    inset-block-end: clamp(1.25rem, 2.5vw, 2.25rem);
+  }
+
+  .collection--department .collection__hero-title {
+    font-size: clamp(1.75rem, 2.6vw, 2.5rem);
+  }
+}
+
+/* Product cards: three-line titles (model, CPU, memory), a smaller supplier disc, a quiet delivery line. */
+.collection--department .facets-layout__grid {
+  --card-title-lines: 3;
+}
+
+.collection--department .card-product .sale-badge--card {
+  --sale-badge-size: 2.75rem;
+  --sale-badge-inset: 0.375rem;
+}
+
+@media (min-width: 768px) {
+  .collection--department .card-product .sale-badge--card {
+    --sale-badge-size: 3.5rem;
+    --sale-badge-inset: 0.5rem;
+  }
+}
+
+.collection--department .card-product__stock--dropship {
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+.collection--department .card-product__stock--dropship::before {
+  box-shadow: none;
+}

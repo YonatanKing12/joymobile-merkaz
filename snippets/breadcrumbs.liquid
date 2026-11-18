@@ -8,7 +8,8 @@
   menu parent is the closest link above it in the menu that points somewhere else: for a
   third-level link ("Apple" under "לפי יצרן") its group's collection ("סמארטפונים"), and when
   the group points to the same collection, the top link; for a second-level link, the top
-  link, named as in the menu ("טאבלטים ושעונים" above "שעונים חכמים"). The catalogue
+  link, named as in the menu ("טאבלטים ושעונים" above "שעונים חכמים"); a third-level link whose group is a
+  category of its own (a different link from the top one) gets both: "מחשבים › רכיבי מחשב › כרטיסי מסך". The catalogue
   (/collections/all, the menu's "עוד") is never a parent. Collection pages and product
   pages both get it; a collection that isn't in the menu has none.
 
@@ -168,6 +169,8 @@
     assign crumb_target = crumb_collection.url | split: '?' | first
     assign crumb_parent_url = ''
     assign crumb_parent_title = ''
+    assign crumb_grand_url = ''
+    assign crumb_grand_title = ''
     assign crumb_found = false
     for crumb_top in crumb_menu.links
       if crumb_top.url == crumb_target
@@ -187,6 +190,11 @@
               # A group's own title is often a heading ("לפי יצרן"); the collection's title names the page.
               assign crumb_parent_url = crumb_group.url
               assign crumb_parent_title = crumb_group.object.title | default: crumb_group.title
+              # A group that is a category of its own ("רכיבי מחשב" under "מחשבים"): the top link above it too.
+              if crumb_top.url != crumb_group.url
+                assign crumb_grand_url = crumb_top.url
+                assign crumb_grand_title = crumb_top.title
+              endif
             else
               assign crumb_parent_url = crumb_top.url
               assign crumb_parent_title = crumb_top.title
@@ -205,6 +213,13 @@
     endfor
     if crumb_parent_url == crumb_catalog_url or crumb_parent_url == crumb_target
       assign crumb_parent_url = ''
+    endif
+    if crumb_grand_url == crumb_catalog_url or crumb_grand_url == crumb_target or crumb_parent_url == blank
+      assign crumb_grand_url = ''
+    endif
+    if crumb_grand_url != blank
+      assign crumb_names = crumb_names | append: crumb_sep | append: crumb_grand_title
+      assign crumb_urls = crumb_urls | append: crumb_sep | append: crumb_grand_url
     endif
     if crumb_parent_url != blank
       assign crumb_names = crumb_names | append: crumb_sep | append: crumb_parent_title

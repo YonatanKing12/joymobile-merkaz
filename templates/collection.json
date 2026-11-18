@@ -9,6 +9,7 @@
         "banner_pattern": "joy-mobile-category-[handle].png",
         "show_subcollections": true,
         "subcollections_menu": "main-menu",
+        "department_collections": "computers-gaming",
         "products_per_page": 24,
         "columns_desktop": "4",
         "columns_mobile": "2",

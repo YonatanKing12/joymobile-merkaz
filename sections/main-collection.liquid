@@ -164,12 +164,37 @@
 -%}
 
 {%- comment -%}
+  Department (snippets/collection-department): in the departments named in "קטגוריות מחלקה" (the computers), tiles
+  of the sub-categories on the department page and a row of sibling pills on the categories under it, both from the
+  menu, with the PC builder among them. They replace the plain sub-category row and the builder card below.
+{%- endcomment -%}
+{%- capture dept_nav -%}
+  {%- if section.settings.show_subcollections and section.settings.subcollections_menu != blank -%}
+    {%- render 'collection-department',
+      collection: collection,
+      menu: section.settings.subcollections_menu,
+      roots: section.settings.department_collections,
+      pcb_handles: section.settings.pc_builder_collections,
+      pcb_url: section.settings.pc_builder_link,
+      section_id: sid
+    -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- liquid
+  assign dept_nav = dept_nav | strip
+  assign dept_class = ''
+  if dept_nav contains 'data-dept-mode'
+    assign dept_class = ' collection--department'
+  endif
+-%}
+
+{%- comment -%}
   Sub-categories: the children of every menu link (levels 1 and 2) that points to this
   collection, deduplicated, in menu order — groups' links first (e.g. brands and price
   ranges of "סמארטפונים"), then sibling links of the top level. Nothing for leaf collections.
 {%- endcomment -%}
 {%- capture subnav_items -%}
-  {%- if section.settings.show_subcollections and section.settings.subcollections_menu != blank -%}
+  {%- if dept_class == blank and section.settings.show_subcollections and section.settings.subcollections_menu != blank -%}
     {%- assign sub_seen = '|' | append: results_url | append: '|' -%}
     {%- for sub_top in section.settings.subcollections_menu.links -%}
       {%- assign sub_parents = sub_top.links | where: 'url', results_url -%}
@@ -207,7 +232,7 @@
   #shopify-section-{{ section.id }} .collection__campaign img { display: block; width: 100%; height: auto; }
 {%- endstyle -%}
 
-<div class="collection page-width">
+<div class="collection page-width{{ dept_class }}">
   {%- if section.settings.show_breadcrumbs -%}
     {%- render 'breadcrumbs', class: 'collection__breadcrumbs' -%}
   {%- endif -%}
@@ -322,20 +347,24 @@
   </header>
   {%- endunless -%}
 
-  {%- if subnav_items != blank -%}
-    <nav class="collection__subnav" aria-label="{{ 'collections.subcollections_label' | t }}">
-      <ul class="collection__subnav-list" role="list">
-        {{- subnav_items -}}
-      </ul>
-    </nav>
-  {%- endif -%}
+  {%- if dept_class != blank -%}
+    {{- dept_nav -}}
+  {%- else -%}
+    {%- if subnav_items != blank -%}
+      <nav class="collection__subnav" aria-label="{{ 'collections.subcollections_label' | t }}">
+        <ul class="collection__subnav-list" role="list">
+          {{- subnav_items -}}
+        </ul>
+      </nav>
+    {%- endif -%}
 
-  {%- comment -%} Computers categories: a compact link to the PC builder (snippets/collection-pc-builder). {%- endcomment -%}
-  {%- render 'collection-pc-builder',
-    collection: collection,
-    handles: section.settings.pc_builder_collections,
-    url: section.settings.pc_builder_link
-  -%}
+    {%- comment -%} Computers categories: a compact link to the PC builder (snippets/collection-pc-builder). {%- endcomment -%}
+    {%- render 'collection-pc-builder',
+      collection: collection,
+      handles: section.settings.pc_builder_collections,
+      url: section.settings.pc_builder_link
+    -%}
+  {%- endif -%}
 
   {%- liquid
     # Nothing in stock and no filter of the shopper's: the empty state, not "no matches, clear the filters".
@@ -695,6 +724,13 @@
       "id": "subcollections_menu",
       "label": "תפריט לקטגוריות משנה",
       "default": "main-menu"
+    },
+    {
+      "type": "text",
+      "id": "department_collections",
+      "label": "קטגוריות מחלקה",
+      "default": "computers-gaming",
+      "info": "מזהי קטגוריות (handle), מופרדים בפסיקים. בדף המחלקה ובכל קטגוריה שיש לה קישורים משלה בתפריט מוצגים ריבועי קטגוריות עם תמונה ומספר מוצרים, ובקטגוריות שמתחתיה שורת קטגוריות אחיות. הכול מהתפריט שלמעלה. אפשר גם לסמן קטגוריה בשדה המטא custom.department."
     },
     {
       "type": "header",

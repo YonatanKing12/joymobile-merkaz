@@ -1,0 +1,295 @@
+{% doc %}
+  Department navigation on a collection page (sections/main-collection), driven by the menu and the section's
+  settings, never by fixed handles. A "department" is a collection named in the section setting
+  "קטגוריות מחלקה" (comma-separated handles, `roots`) or one whose metafield `custom.department` is true,
+  together with every collection below it in the menu (`menu`, the section's sub-category menu: by default the
+  main menu, the header's mega menu).
+
+  - The department page, and any collection under it that has links of its own in the menu ("רכיבי מחשב" with
+    its component categories), opens on TILES: the links below it (the same links, in the same order, as the
+    plain sub-category row: children of every menu link that points to the collection), each with a picture
+    (the collection's metafield `custom.tile_image`, else its featured image: the collection image, else its
+    first product's photo), the name and the number of products. A page link to the PC builder is a mint
+    tile with a PC icon; when the menu has none and the collection is one of the section's "קטגוריות עם כפתור
+    להרכבת מחשב", the builder tile is added at the end (snippets/collection-pc-builder, format 'data').
+  - A collection at the bottom of the department (no links of its own) gets a row of PILLS: first, back up to
+    its parent in the menu (the closest link above it that points elsewhere), then its siblings with the current
+    one highlighted (aria-current="page"), then the PC builder as above. On phones the row scrolls sideways and
+    starts on the current pill.
+  - Anything else (outside a department, or not in the menu) prints nothing, and the section keeps its plain
+    sub-category row and builder card.
+
+  The section adds `collection--department` to the page when this prints something (`data-dept-mode`), for the
+  department's compact banner and product cards (assets/component-collection-department.css, linked here).
+
+  @param {collection} collection - The collection.
+  @param {linklist} menu - The menu to walk (levels 1 to 3).
+  @param {string} roots - Comma-separated handles of the department pages.
+  @param {string} [pcb_handles] - The section's "קטגוריות עם כפתור להרכבת מחשב".
+  @param {string} [pcb_url] - The section's builder link override.
+  @param {string} section_id - The section id (unique element ids).
+
+  @example
+  {% render 'collection-department', collection: collection, menu: section.settings.subcollections_menu, roots: section.settings.department_collections, pcb_handles: section.settings.pc_builder_collections, pcb_url: section.settings.pc_builder_link, section_id: section.id %}
+{% enddoc %}
+{%- liquid
+  assign cd_url = collection.url | split: '?' | first
+
+  # The department pages, as ",handle," tokens.
+  assign cd_roots = ','
+  assign cd_root_list = roots | split: ','
+  for cd_root in cd_root_list
+    assign cd_root = cd_root | strip | downcase
+    if cd_root != blank
+      assign cd_roots = cd_roots | append: cd_root | append: ','
+    endif
+  endfor
+
+  # Where the collection sits in the menu: its first link, and the links above it.
+  assign cd_depth = 0
+  assign cd_l1 = nil
+  assign cd_l2 = nil
+  if menu != blank
+    for cd_a in menu.links
+      if cd_a.url == cd_url
+        assign cd_depth = 1
+        assign cd_l1 = cd_a
+        break
+      endif
+      for cd_b in cd_a.links
+        if cd_b.url == cd_url
+          assign cd_depth = 2
+          assign cd_l1 = cd_a
+          break
+        endif
+        for cd_c in cd_b.links
+          if cd_c.url == cd_url
+            assign cd_depth = 3
+            assign cd_l1 = cd_a
+            assign cd_l2 = cd_b
+            break
+          endif
+        endfor
+        if cd_depth > 0
+          break
+        endif
+      endfor
+      if cd_depth > 0
+        break
+      endif
+    endfor
+  endif
+
+  # In a department: the collection itself, or a collection link above it, is a department page.
+  assign cd_in = false
+  assign cd_token = ',' | append: collection.handle | append: ','
+  if cd_roots contains cd_token or collection.metafields.custom.department.value == true
+    assign cd_in = true
+  endif
+  if cd_in == false and cd_depth > 1 and cd_l1.type == 'collection_link'
+    assign cd_token = ',' | append: cd_l1.object.handle | append: ','
+    if cd_roots contains cd_token or cd_l1.object.metafields.custom.department.value == true
+      assign cd_in = true
+    endif
+  endif
+  if cd_in == false
+    if cd_depth == 3 and cd_l2.type == 'collection_link'
+      assign cd_token = ',' | append: cd_l2.object.handle | append: ','
+      if cd_roots contains cd_token or cd_l2.object.metafields.custom.department.value == true
+        assign cd_in = true
+      endif
+    endif
+  endif
+
+  # The links below the collection (the plain sub-category row's rule in sections/main-collection).
+  assign cd_children = '' | split: ''
+  if cd_in and menu != blank
+    for cd_top in menu.links
+      assign cd_parents = cd_top.links | where: 'url', cd_url
+      if cd_top.url == cd_url
+        assign cd_parents = cd_parents | concat: cd_top.links
+      endif
+      for cd_parent in cd_parents
+        if cd_parent.url == cd_url
+          assign cd_children = cd_children | concat: cd_parent.links
+        else
+          assign cd_more = cd_top.links | where: 'url', cd_parent.url
+          assign cd_children = cd_children | concat: cd_more
+        endif
+      endfor
+    endfor
+  endif
+
+  # The parent (the closest link above that points elsewhere) and the siblings, for a collection with no links below.
+  assign cd_parent_link = nil
+  assign cd_siblings = '' | split: ''
+  if cd_in and cd_children.size == 0
+    if cd_depth == 3 and cd_l2.url != cd_url
+      assign cd_parent_link = cd_l2
+    elsif cd_depth >= 2 and cd_l1.url != cd_url
+      assign cd_parent_link = cd_l1
+    endif
+    if cd_parent_link != nil
+      assign cd_siblings = cd_parent_link.links
+    endif
+  endif
+
+  assign cd_mode = ''
+  if cd_children.size > 0
+    assign cd_mode = 'tiles'
+  elsif cd_siblings.size > 0
+    assign cd_mode = 'pills'
+  endif
+
+  # The PC builder: its link, and whether this collection offers it.
+  assign cd_pcb_show = false
+  assign cd_pcb_url = ''
+  if cd_mode != blank
+    capture cd_pcb
+      render 'collection-pc-builder', collection: collection, handles: pcb_handles, url: pcb_url, format: 'data'
+    endcapture
+    assign cd_pcb = cd_pcb | strip | split: '|'
+    if cd_pcb[0] == 'true'
+      assign cd_pcb_show = true
+    endif
+    assign cd_pcb_url = cd_pcb[1]
+  endif
+  assign cd_items = cd_children
+  if cd_mode == 'pills'
+    assign cd_items = cd_siblings
+  endif
+  # The menu already links to the builder: no second one.
+  for cd_item in cd_items
+    if cd_item.url == cd_pcb_url
+      assign cd_pcb_show = false
+      break
+    endif
+  endfor
+
+  assign cd_seen = '|' | append: cd_url | append: '|'
+  if cd_mode == 'pills'
+    assign cd_seen = '|'
+  endif
+-%}
+{%- capture cd_pcb_svg -%}
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <rect x="6" y="2.5" width="12" height="18" rx="2"/>
+    <path d="M9 6h4M9 8.5h4"/>
+    <circle cx="12" cy="14" r="3"/>
+    <path d="M8.5 21.5v.5M15.5 21.5v.5"/>
+  </svg>
+{%- endcapture -%}
+{%- if cd_mode == 'tiles' -%}
+  {{ 'component-collection-department.css' | asset_url | stylesheet_tag }}
+  <nav class="collection-dept collection-dept--tiles" aria-labelledby="DeptHeading-{{ section_id }}" data-dept-mode="tiles">
+    <h2 class="collection-dept__heading" id="DeptHeading-{{ section_id }}">{{ 'collections.department.heading' | t }}</h2>
+    <ul class="collection-dept__tiles" role="list">
+      {%- for cd_item in cd_items -%}
+        {%- liquid
+          assign cd_token = '|' | append: cd_item.url | append: '|'
+          if cd_seen contains cd_token
+            continue
+          endif
+          assign cd_seen = cd_seen | append: cd_item.url | append: '|'
+          assign cd_is_pcb = false
+          if cd_item.url == cd_pcb_url
+            assign cd_is_pcb = true
+          endif
+          assign cd_img = nil
+          assign cd_count = nil
+          if cd_item.type == 'collection_link' and cd_item.object != blank
+            assign cd_img = cd_item.object.metafields.custom.tile_image.value | default: cd_item.object.featured_image
+            assign cd_count = cd_item.object.products_count
+          endif
+        -%}
+        <li class="collection-dept__tile-item">
+          <a class="collection-dept__tile{% if cd_is_pcb %} collection-dept__tile--pcb{% endif %}" href="{{ cd_item.url }}">
+            <span class="collection-dept__media" aria-hidden="true">
+              {%- if cd_is_pcb -%}
+                {{- cd_pcb_svg -}}
+              {%- elsif cd_img != blank -%}
+                {%- render 'image', image: cd_img, widths: '64,96,128,192', sizes: '(min-width: 768px) 88px, 52px', decorative: true, class: 'collection-dept__img' -%}
+              {%- else -%}
+                {%- render 'icon', name: 'tag', size: 22 -%}
+              {%- endif -%}
+            </span>
+            <span class="collection-dept__text">
+              <span class="collection-dept__name">{{ cd_item.title | escape }}</span>
+              {%- if cd_is_pcb -%}
+                <span class="collection-dept__meta">{{ 'collections.department.pc_builder_line' | t }}</span>
+              {%- elsif cd_count != nil -%}
+                <span class="collection-dept__meta">{{ 'collections.list.count' | t: count: cd_count }}</span>
+              {%- endif -%}
+            </span>
+          </a>
+        </li>
+      {%- endfor -%}
+      {%- if cd_pcb_show -%}
+        <li class="collection-dept__tile-item">
+          <a class="collection-dept__tile collection-dept__tile--pcb" href="{{ cd_pcb_url }}">
+            <span class="collection-dept__media" aria-hidden="true">{{ cd_pcb_svg }}</span>
+            <span class="collection-dept__text">
+              <span class="collection-dept__name">{{ 'collections.pc_builder.title' | t }}</span>
+              <span class="collection-dept__meta">{{ 'collections.department.pc_builder_line' | t }}</span>
+            </span>
+          </a>
+        </li>
+      {%- endif -%}
+    </ul>
+  </nav>
+{%- elsif cd_mode == 'pills' -%}
+  {{ 'component-collection-department.css' | asset_url | stylesheet_tag }}
+  <nav class="collection-dept collection-dept--pills" aria-label="{{ 'collections.subcollections_label' | t }}" data-dept-mode="pills">
+    <ul class="collection-dept__pills" role="list">
+      <li class="collection-dept__pill-item">
+        <a class="collection-dept__pill collection-dept__pill--up" href="{{ cd_parent_link.url }}">
+          {%- render 'icon', name: 'chevron-right', size: 16, class: 'collection-dept__pill-icon' -%}
+          <span class="visually-hidden">{{ 'collections.department.back' | t }} </span>
+          {{- cd_parent_link.title | escape -}}
+        </a>
+      </li>
+      {%- for cd_item in cd_items -%}
+        {%- liquid
+          assign cd_token = '|' | append: cd_item.url | append: '|'
+          if cd_seen contains cd_token or cd_item.url == cd_parent_link.url
+            continue
+          endif
+          assign cd_seen = cd_seen | append: cd_item.url | append: '|'
+        -%}
+        <li class="collection-dept__pill-item">
+          <a
+            class="collection-dept__pill{% if cd_item.url == cd_pcb_url %} collection-dept__pill--pcb{% endif %}"
+            href="{{ cd_item.url }}"
+            {% if cd_item.url == cd_url %}
+              aria-current="page"
+            {% endif %}
+          >
+            {%- if cd_item.url == cd_pcb_url -%}
+              <span class="collection-dept__pill-icon" aria-hidden="true">{{ cd_pcb_svg }}</span>
+            {%- endif -%}
+            {{- cd_item.title | escape -}}
+          </a>
+        </li>
+      {%- endfor -%}
+      {%- if cd_pcb_show -%}
+        <li class="collection-dept__pill-item">
+          <a class="collection-dept__pill collection-dept__pill--pcb" href="{{ cd_pcb_url }}">
+            <span class="collection-dept__pill-icon" aria-hidden="true">{{ cd_pcb_svg }}</span>
+            {{- 'collections.pc_builder.title' | t -}}
+          </a>
+        </li>
+      {%- endif -%}
+    </ul>
+  </nav>
+  <script>
+    (() => {
+      // Phones: start the row on the current pill (centred), without scrolling the page.
+      const list = document.currentScript.previousElementSibling.querySelector('.collection-dept__pills');
+      const current = list && list.querySelector('[aria-current="page"]');
+      if (!current || list.scrollWidth <= list.clientWidth) return;
+      const r = current.getBoundingClientRect();
+      const l = list.getBoundingClientRect();
+      list.scrollLeft += r.left + r.width / 2 - (l.left + l.width / 2);
+    })();
+  </script>
+{%- endif -%}
