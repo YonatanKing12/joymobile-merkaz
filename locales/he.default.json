@@ -761,7 +761,24 @@
     "badge": "משלוח עד {{ days }} ימי עסקים",
     "line": "המוצר נשלח ישירות מהספק",
     "cart": "נשלח ישירות מהספק · משלוח עד {{ days }} ימי עסקים",
-    "stock": "זמין להזמנה מהספק"
+    "stock": "זמין להזמנה מהספק",
+    "pdp": {
+      "steps_label": "הדרך אליכם",
+      "step_order": "מזמינים היום",
+      "step_ship": "יוצא מהספק",
+      "step_arrive": "אצלך עד",
+      "days": "{{ days }} ימי עסקים",
+      "installments": "{{ count }} תשלומים ללא ריבית",
+      "per_month": "{{ amount }} לחודש",
+      "installments_max": "או עד {{ count }} תשלומים",
+      "warranty": "אחריות {{ months }}",
+      "assembly_lead": "בונים מחשב?",
+      "assembly": "הרכבה ובדיקה חינם",
+      "trust_secure": "תשלום מאובטח",
+      "trust_invoice": "חשבונית מס",
+      "trust_whatsapp": "שאלות בוואטסאפ",
+      "facts": "נתונים עיקריים"
+    }
   },
   "deposit": {
     "legend": "איך תרצו לשלם?",

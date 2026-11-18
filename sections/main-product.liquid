@@ -173,8 +173,23 @@
             whatsapp: block.settings.soldout_whatsapp,
             whatsapp_label: block.settings.soldout_whatsapp_label
           -%}
-          {%- render 'dropship', product: product, part: 'line' -%}
+          {%- unless block.settings.dropship_panel -%}
+            {%- render 'dropship', product: product, part: 'line' -%}
+          {%- endunless -%}
         </div>
+        {%- comment -%}
+          "דרופשיפינג": the way to the customer, payments, warranty and trust (snippets/dropship-pdp), its own row
+          under the price and the buttons (at 1200+ they share one row).
+        {%- endcomment -%}
+        {%- if block.settings.dropship_panel -%}
+          {%- capture dropship_html -%}
+            {%- render 'dropship-pdp', product: product, variant: current_variant, block: block -%}
+          {%- endcapture -%}
+          {%- assign dropship_html = dropship_html | strip -%}
+          {%- if dropship_html != blank -%}
+            <div class="product-block product-block--dropship">{{ dropship_html }}</div>
+          {%- endif -%}
+        {%- endif -%}
 
       {%- when 'addons' -%}
         {%- comment -%}
@@ -211,6 +226,21 @@
         {%- endif -%}
 
       {%- when 'info_lines' -%}
+        {%- liquid
+          # "דרופשיפינג" card under the buttons (snippets/dropship-pdp) carries the warranty and the payment line.
+          assign lines_warranty = block.settings.show_warranty
+          assign lines_payment = block.settings.payment_text
+          if buy_block.settings.dropship_panel
+            capture lines_dropship
+              render 'dropship', product: product, part: 'days'
+            endcapture
+            assign lines_dropship = lines_dropship | strip
+            if lines_dropship != blank
+              assign lines_warranty = false
+              assign lines_payment = ''
+            endif
+          endif
+        -%}
         <div class="product-block product-block--lines" {{ block.shopify_attributes }}>
           {%- render 'product-trust',
             part: 'lines',
@@ -222,9 +252,9 @@
             pickup_label: block.settings.pickup_label,
             show_address: block.settings.show_address,
             pickup_note: block.settings.pickup_note,
-            show_warranty: block.settings.show_warranty,
+            show_warranty: lines_warranty,
             warranty_fallback: block.settings.warranty_fallback,
-            payment_text: block.settings.payment_text,
+            payment_text: lines_payment,
             show_pickup: block.settings.show_pickup_availability
           -%}
         </div>
@@ -1043,6 +1073,49 @@
           "id": "soldout_whatsapp_label",
           "label": "טקסט הקישור",
           "default": "לבירור זמינות בוואטסאפ"
+        },
+        {
+          "type": "header",
+          "content": "מוצרים שנשלחים מהספק"
+        },
+        {
+          "type": "checkbox",
+          "id": "dropship_panel",
+          "label": "כרטיס משלוח ותשלום מתחת לכפתורים",
+          "info": "במוצר דרופשיפינג: מזמינים היום → יוצא מהספק → אצלך עד תאריך (לפי ימי העסקים של הספק), תשלומים, אחריות כשיש נתונים, הרכבה חינם ברכיבי מחשב ונתונים עיקריים מהשם. האחריות ו״תשלום מאובטח״ עוברים מהשורות לכרטיס.",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "dropship_source_text",
+          "label": "שורת המקור",
+          "default": "חדש באריזה המקורית, נשלח אליכם ישירות מהספק"
+        },
+        {
+          "type": "number",
+          "id": "dropship_installments_free",
+          "label": "תשלומים ללא ריבית",
+          "info": "הסכום לחודש מחושב מהמחיר. 0 מסתיר את השורה.",
+          "default": 4
+        },
+        {
+          "type": "number",
+          "id": "dropship_installments_max",
+          "label": "תשלומים לכל היותר (בריבית)",
+          "default": 12
+        },
+        {
+          "type": "textarea",
+          "id": "dropship_holidays",
+          "label": "חגים שאינם ימי עסקים",
+          "info": "תאריך בכל שורה, בתבנית 2027-04-22. שישי ושבת לא נספרים תמיד.",
+          "default": "2027-04-22\n2027-04-28\n2027-05-12\n2027-06-11\n2027-10-02\n2027-10-03\n2027-10-11\n2027-10-16\n2027-10-23"
+        },
+        {
+          "type": "url",
+          "id": "dropship_pc_link",
+          "label": "קישור הרכבת מחשב",
+          "info": "ברכיבי מחשב. ריק: עמוד pc-builder."
         }
       ]
     },

@@ -45,7 +45,12 @@
             "show_cart": true,
             "button_shape": "pill",
             "soldout_whatsapp": true,
-            "soldout_whatsapp_label": "לבירור זמינות בוואטסאפ"
+            "soldout_whatsapp_label": "לבירור זמינות בוואטסאפ",
+            "dropship_panel": true,
+            "dropship_source_text": "חדש באריזה המקורית, נשלח אליכם ישירות מהספק",
+            "dropship_installments_free": 4,
+            "dropship_installments_max": 12,
+            "dropship_holidays": "2027-04-22\n2027-04-28\n2027-05-12\n2027-06-11\n2027-10-02\n2027-10-03\n2027-10-11\n2027-10-16\n2027-10-23"
           }
         },
         "wishlist": {
