@@ -132,17 +132,28 @@ test('3a. GPU ⟷ case: card length against the case', () => {
   assert.equal(removed[0].step, 'gpu');
 });
 
-test('3b. GPU ⟷ PSU: +100W headroom, ATX 3 for RTX 40/50, the card maker\'s PSU as advice', () => {
+test('3b. GPU ⟷ PSU: +100W headroom, a 12V-2x6 card on an ATX 3 PSU, the card maker\'s PSU as advice', () => {
   for (const cpu of liveParts.filter((p) => p.category === 'cpu'))
     for (const gpu of liveParts.filter((p) => p.category === 'gpu')) {
       const p = powerOf({ cpu, gpu });
       assert.ok(p.recommended >= p.draw + PSU_HEADROOM, `${cpu.title} + ${gpu.title}`);
     }
   const rtx = sku('GVN50701220'); // RTX 5070 GAMING OC, 16-pin, maker says 750W
-  blocks(rtx, sku('CLM-P7015'), /ATX/); // Elite NEX W700: ATX12V 2.41
-  blocks(sku('GVN5060-8120'), sku('220-CX650278'), /ATX/); // RTX 50 on the CX650 (ATX12V 2.31)
+  blocks(rtx, sku('CLM-P7015'), /12V-2x6/); // 16-pin card on the Elite NEX W700: ATX12V 2.41
+  blocks(sku('GVN50801640'), sku('220-CX650278'), /12V-2x6/); // RTX 5080 (16-pin) on the CX650 (ATX12V 2.31)
+  // An 8-pin RTX 50 on an ATX12V 2.x PSU: allowed, with a notice (RTX 5060 + Corsair CX650).
+  const r5060 = sku('GVN5060-8120'); // RTX 5060 EAGLE OC, 8-pin
+  for (const f of both(r5060, sku('220-CX650278'))) {
+    assert.equal(f.ok, true, f.reasons.join(' | '));
+    assert.deepEqual(f.unverified, []);
+    assert.match(f.notes.join(' '), /ATX ישן/);
+  }
+  // An 8-pin card does not need ATX 3: an unknown PSU standard is not flagged.
+  assert.ok(!both(r5060, sku('AN2-CSK6502')).some((f) => f.unverified.includes(UNVERIFIED.atx3)));
   passes(rtx, sku('220-RM850X270')); // RM850x ATX 3.1
   unverified(rtx, sku('AN2-CSK6502'), UNVERIFIED.atx3); // CSK 650DC: the title does not say
+  // An RTX 40/50 card whose connector is not verified, on an ATX12V 2.x PSU: a representative checks.
+  unverified(sku('GVN5060-8108'), sku('220-CX650278'), UNVERIFIED.gpuPower);
   assert.match(noteOf(rtx, sku('AN2-CSK6502')).join(' '), /750W/);
   // Not RTX 40/50: no ATX 3 rule.
   passes(sku('GVR9070201'), sku('94P10202'));

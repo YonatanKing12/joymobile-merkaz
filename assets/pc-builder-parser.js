@@ -22,7 +22,7 @@
    checkBuild().ok (isOrderable) is what the cart and the quote require.
 
    Lior's six rules (lior()) add, from SPECS (verified maker data by SKU), a description and the title: card length,
-   cooler height and radiators against the case; cooler sockets and RAM clearance; ATX 3 for RTX 40/50; +100W headroom;
+   cooler height and radiators against the case; cooler sockets and RAM clearance; 12V-2x6 cards on ATX 3 PSUs; +100W headroom;
    M.2 length; rear-connector and E-ATX cases. Both sides known and clashing: a hard reason (blocked). Soft advice
    (BIOS update, an entry board under a hot processor, one DDR5 stick, XMP vs EXPO, the card maker's PSU, a Gen5
    drive in a Gen4 slot, no USB-C header): notes. A side unknown: `unverified` ("לא אומת: נציג יאשר לפני ההרכבה"),
@@ -763,6 +763,7 @@ export const UNVERIFIED = {
   radiator: 'מקום לרדיאטור במארז',
   ramClearance: 'גובה הזיכרון מתחת לקירור',
   atx3: 'תקן ATX 3 של הספק',
+  gpuPower: 'מחבר החשמל של כרטיס המסך מול הספק',
   usbc: 'חיבור USB-C פנימי בלוח',
   fanHeaders: 'מחברי מאווררים ותאורה בלוח',
   m2: 'חריץ M.2 בלוח',
@@ -833,7 +834,7 @@ function lior(part, sel) {
     else if (!f.profile && fast) unv.add(UNVERIFIED.memProfile);
   }
 
-  // 3. Graphics card ⟷ case (length, its own radiator) and PSU (ATX 3 for RTX 40/50, the maker's recommendation).
+  // 3. Graphics card ⟷ case (length, its own radiator) and PSU (the 12V-2x6 connector, the maker's recommendation).
   if (pair('gpu', 'case')) {
     const len = gpu.facts.length;
     const max = kase.facts.gpuMax;
@@ -841,9 +842,18 @@ function lior(part, sel) {
       if (len > max) reasons.push(me('gpu') ? `באורך ${fmtMm(len)}, והמארז שנבחר מקבל עד ${fmtMm(max)}` : `מקבל כרטיס מסך עד ${fmtMm(max)}, והכרטיס שנבחר באורך ${fmtMm(len)}`);
     } else unv.add(UNVERIFIED.gpuLength);
   }
-  if (pair('gpu', 'psu') && RTX_ATX3.test(gpu.facts.chip || '')) {
-    if (psu.facts.atx3 === false) reasons.push(me('gpu') ? 'כרטיס RTX 40/50 צריך ספק בתקן ATX 3, והספק שנבחר בתקן ישן' : 'בתקן ATX ישן, וכרטיס RTX 40/50 צריך ספק ATX 3');
-    else if (psu.facts.atx3 !== true) unv.add(UNVERIFIED.atx3);
+  // A card on a 12VHPWR / 12V-2x6 connector needs it on the PSU: an ATX12V 2.x unit (verified) has none, so it blocks.
+  // An RTX 40/50 card on 8-pin connectors works on any PSU with enough watts: an older one gets a notice.
+  if (pair('gpu', 'psu')) {
+    const pin16 = gpu.facts.pin16;
+    const rtx = RTX_ATX3.test(gpu.facts.chip || '');
+    const atx3 = psu.facts.atx3;
+    if (pin16 === true) {
+      if (atx3 === false) reasons.push(me('gpu') ? 'הכרטיס מתחבר במחבר 12V-2x6 (16 פין), והספק שנבחר בתקן ATX ישן בלי המחבר הזה' : 'בתקן ATX ישן בלי מחבר 12V-2x6 (16 פין), וכרטיס המסך שנבחר צריך אותו');
+      else if (atx3 !== true) unv.add(UNVERIFIED.atx3);
+    } else if (pin16 === false) {
+      if (rtx && atx3 === false) notes.push('הספק בתקן ATX ישן. הכרטיס מתחבר במחברי 8 פין ויעבוד איתו; ספק ATX 3 עמיד יותר לקפיצות הצריכה של RTX 40/50');
+    } else if (rtx && atx3 !== true) unv.add(atx3 === false ? UNVERIFIED.gpuPower : UNVERIFIED.atx3);
   }
   if (pair('gpu', 'psu') && gpu.facts.recPsu && psu.facts.watts && psu.facts.watts < gpu.facts.recPsu)
     notes.push(`יצרן כרטיס המסך ממליץ על ספק של ${fmtW(gpu.facts.recPsu)} לפחות`);
