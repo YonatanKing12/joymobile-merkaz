@@ -3,12 +3,13 @@
     "main": {
       "type": "pc-builder",
       "settings": {
-        "heading": "מרכיבים מחשב",
+        "heading": "מרכיב מחשבים",
         "default_mode": "guided",
         "budget_min": 3500,
         "budget_max": 20000,
         "budget_default": 6000,
-        "include_os": true
+        "include_os": true,
+        "collection": "pc-builder-parts"
       }
     }
   },
