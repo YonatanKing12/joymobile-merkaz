@@ -4,7 +4,9 @@
 // Every file name starts with PREFIX (default "v2-"). Besides the pictures it checks, and prints, what must hold:
 // horizontal overflow, targets under 44px on phones (24px elsewhere), script errors, the cart call, the strict
 // compatibility rules on a shared link with a clashing pair, and a PDF of the printed quote.
-// Usage: MORLEVI_IMGS=/path/to/imgs node .github/pc-builder/screenshot.cjs [out-dir]
+// The store's pictures (cdn.shopify.com, in the live fixture) are served from LIVE_IMGS (a folder of the files by their
+// name, e.g. 40907.jpg) when set; nothing is fetched from the network. FIXTURE names the fixture make-preview used.
+// Usage: LIVE_IMGS=/path/to/imgs [MORLEVI_IMGS=/path] PREFIX=v3- node .github/pc-builder/screenshot.cjs [out-dir]
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -13,8 +15,12 @@ const { chromium } = require('playwright');
 const repo = path.join(__dirname, '../..');
 const out = path.resolve(process.argv[2] || path.join(__dirname, 'screenshots'));
 const imgs = process.env.MORLEVI_IMGS;
-const prefix = process.env.PREFIX ?? 'v2-';
+const liveImgs = process.env.LIVE_IMGS;
+const fixtureName = process.env.FIXTURE || 'live-products.json';
+const prefix = process.env.PREFIX ?? 'v3-';
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
+
+const fx = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', fixtureName), 'utf8')).products;
 
 const server = http.createServer((req, res) => {
   const file = path.join(repo, decodeURIComponent(new URL(req.url, 'http://x').pathname));
@@ -36,6 +42,12 @@ async function shoot(browser, base, name, width, height, steps) {
     const code = decodeURIComponent(route.request().url().split('/').pop());
     const file = imgs && path.join(imgs, code);
     if (file && fs.existsSync(file)) route.fulfill({ path: file, contentType: 'image/jpeg' });
+    else route.abort();
+  });
+  await page.route('https://cdn.shopify.com/**', (route) => {
+    const name = decodeURIComponent(new URL(route.request().url()).pathname.split('/').pop());
+    const file = liveImgs && path.join(liveImgs, name);
+    if (file && fs.existsSync(file)) route.fulfill({ path: file, contentType: types[path.extname(file).toLowerCase()] || 'image/jpeg' });
     else route.abort();
   });
   let cartBody = null;
@@ -118,6 +130,8 @@ async function shoot(browser, base, name, width, height, steps) {
     await shoot(browser, base, 'phone-390-1-start', ...phone, { fullPage: false });
     await shoot(browser, base, 'phone-390-2-games', ...phone, { actions: [games, scrollTo('.pcb-build.is-featured', 70)], fullPage: false });
     await shoot(browser, base, 'phone-390-3-summary', ...phone, { actions: [games, pickRecommended], fullPage: false });
+    // The bar closed over the chosen build: total, state, and the interest-free payments line.
+    await shoot(browser, base, 'phone-390-3b-bar', ...phone, { actions: [games, pickRecommended, closeSummary, scrollTo('.pcb-build.is-featured', 70)], fullPage: false });
     await shoot(browser, base, 'phone-390-4-step', ...phone, {
       actions: [pickRecommended, closeSummary, async (p) => { await p.click('[data-mode-tab="steps"]'); await p.click('.pcb-progress__step[data-step="board"]'); }, scrollTo('.pcb-progress', 76)],
       fullPage: false,
@@ -153,11 +167,15 @@ async function shoot(browser, base, name, width, height, steps) {
         if (body) {
           const ids = new Set(body.items.map((i) => i.properties._build_id));
           console.log(`  cart: ${body.items.length} items, build ids ${[...ids].join(',')}, הרכבה=${body.items.every((i) => i.properties['הרכבה'] === 'כן')}`);
+          // Every line must be a variant of the fixture (the store's own ids, for the live snapshot).
+          const variants = new Map(fx.flatMap((p) => p.variants.map((v) => [v.id, `${p.title} (₪${Math.round(v.price)})`])));
+          const unknown = body.items.filter((i) => !variants.has(i.id));
+          console.log(`  cart variant ids in ${fixtureName}: ${body.items.length - unknown.length}/${body.items.length}`);
+          for (const i of body.items) console.log(`    ${i.id} ${variants.get(i.id) || 'UNKNOWN'}`);
         } else console.log('  cart: NO REQUEST');
       },
     });
     // Strict: a shared link with an AM5 processor and an Intel board loads without the board, and cannot be ordered.
-    const fx = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/products.json'), 'utf8')).products;
     const find = (re) => fx.find((p) => re.test(p.title)).variants[0].id;
     const bad = [find(/Ryzen 7 9800X3D/), find(/Z890 EAGLE/), find(/^(זכרון|ז\.).*DDR4/)].join(',');
     await shoot(browser, base, 'phone-390-9-bad-link', ...phone, {

@@ -2,6 +2,8 @@
 // minimal stand-in for Liquid, enough for this one section; it fails loudly on any tag it does not know), the theme's
 // base CSS and tokens, and the fixture JSON as the data source. Serve the repository root over HTTP (ES modules do not
 // load from file://) and open /.github/pc-builder/preview.html; screenshot.cjs does exactly that.
+// The data: FIXTURE (a file in fixtures/), by default live-products.json, the store's own pc-builder-parts collection
+// (a snapshot of /collections/pc-builder-parts/products.json); products.json is the full supplier list.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,7 +28,7 @@ body = body.replace(/\{%-? endif -?%\}/g, '');
 
 const values = {
   uid: 'pcb-preview',
-  source: './fixtures/products.json?page={page}',
+  source: `./fixtures/${process.env.FIXTURE || 'live-products.json'}?page={page}`,
   budget_min: settings.budget_min,
   budget_max: settings.budget_max,
   budget_default: settings.budget_default,
@@ -89,4 +91,4 @@ ${body}
 </html>
 `;
 writeFileSync(join(here, 'preview.html'), page);
-console.log('wrote .github/pc-builder/preview.html');
+console.log(`wrote .github/pc-builder/preview.html (data: fixtures/${process.env.FIXTURE || 'live-products.json'})`);

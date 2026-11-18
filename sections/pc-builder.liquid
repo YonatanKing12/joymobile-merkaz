@@ -13,6 +13,8 @@
   - FPS: assets/pc-builder-fps.js (data-fps-src), an editable table of estimates, always shown as "הערכה בלבד".
   - Quote: a printable dialog (moved under <body> so the print stylesheet can print it alone); compare: up to 3
     builds saved in localStorage ("pcb-compare-v1").
+  - Payments: "או 4 תשלומים של ₪X ללא ריבית" (X = total / 4 rounded up) on each guided build, under the summary total,
+    in the phone bar and in the quote, with "אפשר גם עד 12 תשלומים (בריבית)" (no monthly sum); both numbers are settings.
   - WhatsApp: the section's number, else the theme setting "מספר וואטסאפ" (snippets/whatsapp-url).
   - The harness that checks the parser and previews the page without a store is in .github/pc-builder.
 {%- endcomment -%}
@@ -60,6 +62,8 @@
   data-delivery="{{ section.settings.delivery_text | escape }}"
   data-budget-default="{{ budget_default }}"
   data-include-os="{{ section.settings.include_os }}"
+  data-installments-free="{{ section.settings.installments_free }}"
+  data-installments-max="{{ section.settings.installments_max }}"
   data-default-mode="{{ section.settings.default_mode }}"
 >
   <header class="pcb__intro">
@@ -145,6 +149,7 @@
           <button type="button" class="pcb-sum__toggle" data-action="toggle-summary" aria-expanded="false" aria-controls="{{ uid }}-sum-panel">
             <span class="pcb-sum__toggle-total"><span class="visually-hidden">סה״כ </span><span data-total>₪0</span></span>
             <span class="pcb-sum__state" data-summary-chip>עוד לא נבחרו רכיבים</span>
+            <span class="pcb-sum__toggle-pay" data-pay-bar hidden></span>
             <svg class="pcb-sum__chev" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
             <span class="visually-hidden">פרטי המחשב</span>
           </button>
@@ -157,6 +162,7 @@
           </div>
           <div data-summary-body></div>
           <p class="pcb-sum__total"><span>סה״כ</span> <strong data-total>₪0</strong></p>
+          <p class="pcb-pay pcb-sum__pay" data-pay hidden></p>
           <p class="pcb-sum__vat">כולל מע״מ{% if section.settings.service_text != blank %} · {{ section.settings.service_text | escape }}{% endif %}</p>
           <div class="pcb-sum__actions">
             <button type="button" class="button button--full button--large" data-action="add-to-cart" disabled>הוספה לסל</button>
@@ -281,6 +287,24 @@
       "id": "whatsapp_number",
       "label": "מספר וואטסאפ לנציג",
       "info": "ריק: המספר מהגדרות התבנית (מספר וואטסאפ)."
+    },
+    {
+      "type": "header",
+      "content": "תשלומים"
+    },
+    {
+      "type": "number",
+      "id": "installments_free",
+      "label": "תשלומים ללא ריבית",
+      "info": "מוצג ליד כל מחיר: ״או 4 תשלומים של ₪X ללא ריבית״ (הסכום מחולק ומעוגל למעלה לשקל). 0 מסתיר את השורה.",
+      "default": 4
+    },
+    {
+      "type": "number",
+      "id": "installments_max",
+      "label": "מספר התשלומים המרבי (בריבית)",
+      "info": "שורה קטנה: ״אפשר גם עד 12 תשלומים (בריבית)״, בלי סכום חודשי. ריק, או לא יותר מהתשלומים ללא ריבית: לא מוצג.",
+      "default": 12
     },
     {
       "type": "header",

@@ -11,8 +11,8 @@
    Compatibility is strict: an incompatible part can never be chosen, a new choice removes the later parts it no
    longer fits (notice + undo), a shared link or a saved build is cleaned on load, and the cart and the quote need a
    complete build that passes every check (validated again right before /cart/add.js).
-   The summary (a slim bar on phones) holds the parts, the total, the power estimate, an FPS estimate, the cart,
-   WhatsApp and a "more" menu: printable quote, save for comparison (localStorage, up to 3), compare, link, clear.
+   The summary (a slim bar on phones) holds the parts, the total with its payments (section settings: interest-free
+   payments, most payments), the power estimate, an FPS estimate, the cart, WhatsApp and a "more" menu: printable quote, save for comparison (localStorage, up to 3), compare, link, clear.
    The selection lives in the URL (?build=<variant ids>), so a link brings back the same computer.
    ========================================================================== */
 
@@ -363,6 +363,7 @@ class PcBuilder {
           <article class="pcb-build${b.key === 'recommended' ? ' is-featured' : ''}${selected ? ' is-selected' : ''}" aria-labelledby="${this.uid}-b-${b.key}">
             <h3 class="pcb-build__tier" id="${this.uid}-b-${b.key}">${html(b.label)}</h3>
             <p class="pcb-build__price">${fmt(b.total)}${over ? ' <span class="pcb-build__over">מעל התקציב</span>' : ''}</p>
+            ${this.pay(b.total) ? `<p class="pcb-pay pcb-build__pay">${this.payText(b.total)}</p>` : ''}
             <dl class="pcb-build__specs">${main}${gfx}</dl>
             ${rest.length ? `<details class="pcb-build__more"><summary>ועוד ${rest.length} רכיבים <span class="visually-hidden">(${html(rest.map((k) => this.label(k)).join(', '))})</span></summary><dl class="pcb-build__specs">${rest.map(row).join('')}</dl></details>` : ''}
             ${fps}
@@ -381,6 +382,18 @@ class PcBuilder {
 
   label(key) {
     return this.P.STEPS.find((s) => s.key === key)?.label || key;
+  }
+
+  /** Payments for a total (section settings: interest-free payments, most payments), or null. */
+  pay(total) {
+    return this.P.installmentsOf(total, this.d.installmentsFree, this.d.installmentsMax);
+  }
+
+  /** "או 4 תשלומים של ₪1,481 ללא ריבית", and under it, smaller, "אפשר גם עד 12 תשלומים (בריבית)". */
+  payText(total) {
+    const p = this.pay(total);
+    if (!p) return '';
+    return `או ${p.count} תשלומים של <span class="pcb-pay__n">${fmt(p.each)}</span> ללא ריבית${p.max ? `<span class="pcb-pay__more">אפשר גם עד ${p.max} תשלומים (בריבית)</span>` : ''}`;
   }
 
   brief(part) {
@@ -655,6 +668,18 @@ class PcBuilder {
       ${count && this.sel.cpu ? this.fpsTable(this.sel) : ''}`;
     const totalText = fmt(total);
     for (const t of this.el.querySelectorAll('[data-total]')) t.textContent = totalText;
+    // Payments: the full line (and the 12-payment note) under the total, the short one in the phone bar.
+    const pay = count ? this.pay(total) : null;
+    const payBox = this.$('[data-pay]');
+    if (payBox) {
+      payBox.innerHTML = pay ? this.payText(total) : '';
+      payBox.hidden = !pay;
+    }
+    const payBar = this.$('[data-pay-bar]');
+    if (payBar) {
+      payBar.textContent = pay ? `או ${pay.count} תשלומים של ${fmt(pay.each)} ללא ריבית` : '';
+      payBar.hidden = !pay;
+    }
     const chip = this.$('[data-summary-chip]');
     if (chip) {
       chip.textContent = !count ? 'עוד לא נבחרו רכיבים' : check.ok ? 'מוכן להזמנה' : check.problems.length ? 'יש אי־התאמה' : `חסרים ${check.missing.length} רכיבים`;
@@ -871,6 +896,7 @@ class PcBuilder {
     const total = this.total();
     const vatRate = Number(this.d.vat) || 0;
     const vat = vatRate ? total - total / (1 + vatRate / 100) : 0;
+    const pay = this.pay(total);
     const number = `${now.getFullYear() % 100}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
     const rows = this.selectedList().map((p) => `<tr>
         <th scope="row">${html(p.category === 'extra' ? 'תוספת' : this.label(p.category))}</th>
@@ -900,11 +926,13 @@ class PcBuilder {
         <tfoot>
           <tr class="pcb-quote__total"><th scope="row" colspan="2">סה״כ לתשלום, כולל מע״מ</th><td class="pcb-quote__num">${fmt(total)}</td></tr>
           ${vat ? `<tr class="pcb-quote__vat"><th scope="row" colspan="2">מתוך הסכום מע״מ ${vatRate}%</th><td class="pcb-quote__num">${fmt(vat)}</td></tr>` : ''}
+          ${pay ? `<tr class="pcb-quote__vat pcb-quote__pay"><th scope="row" colspan="2">או ${pay.count} תשלומים ללא ריבית</th><td class="pcb-quote__num">${pay.count} × ${fmt(pay.each)}</td></tr>` : ''}
         </tfoot>
       </table>
       <ul class="pcb-quote__terms" role="list">
         <li>${html(this.d.delivery || 'אספקה עד 7 ימי עסקים')}, מיום התשלום.</li>
         <li>המחשב מורכב ונבדק אצלנו לפני המשלוח. כל הרכיבים נבדקו להתאמה זה לזה.</li>
+        ${pay ? `<li>תשלום: עד ${pay.count} תשלומים ללא ריבית${pay.max ? `, או עד ${pay.max} תשלומים בריבית` : ''}.</li>` : ''}
         <li>ההצעה בתוקף ${QUOTE_HOURS} שעות ובכפוף למלאי. המחירים כוללים מע״מ.</li>
         ${wa ? `<li>להזמנה ולשאלות בוואטסאפ: <span dir="ltr">${html(wa)}</span></li>` : ''}
       </ul>

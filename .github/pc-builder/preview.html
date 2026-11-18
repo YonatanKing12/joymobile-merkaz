@@ -64,7 +64,7 @@
   data-pc-builder
   data-parser-src="../../assets/pc-builder-parser.js"
   data-fps-src="../../assets/pc-builder-fps.js"
-  data-source="./fixtures/products.json?page={page}"
+  data-source="./fixtures/live-products.json?page={page}"
   data-whatsapp="972500000000"
   data-whatsapp-display="050-0000000"
   data-shop-name="JOY Mobile"
@@ -73,6 +73,8 @@
   data-delivery="אספקה עד 7 ימי עסקים"
   data-budget-default="6000"
   data-include-os="true"
+  data-installments-free="4"
+  data-installments-max="12"
   data-default-mode="guided"
 >
   <header class="pcb__intro">
@@ -149,6 +151,7 @@
           <button type="button" class="pcb-sum__toggle" data-action="toggle-summary" aria-expanded="false" aria-controls="pcb-preview-sum-panel">
             <span class="pcb-sum__toggle-total"><span class="visually-hidden">סה״כ </span><span data-total>₪0</span></span>
             <span class="pcb-sum__state" data-summary-chip>עוד לא נבחרו רכיבים</span>
+            <span class="pcb-sum__toggle-pay" data-pay-bar hidden></span>
             <svg class="pcb-sum__chev" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
             <span class="visually-hidden">פרטי המחשב</span>
           </button>
@@ -161,6 +164,7 @@
           </div>
           <div data-summary-body></div>
           <p class="pcb-sum__total"><span>סה״כ</span> <strong data-total>₪0</strong></p>
+          <p class="pcb-pay pcb-sum__pay" data-pay hidden></p>
           <p class="pcb-sum__vat">כולל מע״מ · הרכבה, בדיקה ומשלוח עד הבית חינם</p>
           <div class="pcb-sum__actions">
             <button type="button" class="button button--full button--large" data-action="add-to-cart" disabled>הוספה לסל</button>

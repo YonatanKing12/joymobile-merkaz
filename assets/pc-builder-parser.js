@@ -158,13 +158,33 @@ const normalizeMemory = (v) => {
    for processors, or when no other maker is named. */
 export function brandOf(title, vendor = '', category = null) {
   const platform = (name) => name === 'AMD' || name === 'Intel';
+  // The product's vendor, when the store set a real one (most live parts have it: "Gigabyte", "PNY", "Western
+  // Digital"), in the spelling the filters use. The store's own name ("Joy Mobile Merkaz") is never a brand.
+  const v = String(vendor || '').trim();
+  if (v && !/joy\s*mobile|ג׳וי|ג'וי/i.test(v)) {
+    for (const [name, re] of BRANDS) if (re.test(v)) return name;
+    return v;
+  }
   if (category === 'cpu') for (const [name, re] of BRANDS) if (platform(name) && re.test(title)) return name;
   for (const [name, re] of BRANDS) if (!platform(name) && re.test(title)) return name;
   for (const [name, re] of BRANDS) if (re.test(title)) return name;
-  // The store's own name is the vendor of every imported part ("Joy Mobile Merkaz"): never a brand.
-  if (vendor && vendor.trim() && !/joy\s*mobile|ג׳וי/i.test(vendor)) return vendor.trim();
-  const latin = title.match(/[A-Za-z][A-Za-z0-9-]+/);
-  return latin ? latin[0].charAt(0).toUpperCase() + latin[0].slice(1).toLowerCase() : 'אחר';
+  // Else the first Latin word that is not a size, a colour or a filler ("12cm With Cable" has no maker).
+  const latin = [...String(title).matchAll(/\b[A-Za-z][A-Za-z0-9-]+/g)].map((m) => m[0]).find((w) => !STOP_WORDS.test(w));
+  return latin ? latin.charAt(0).toUpperCase() + latin.slice(1).toLowerCase() : 'אחר';
+}
+
+const STOP_WORDS = /^(with|for|and|the|of|to|in|black|white|rgb|argb|usb|type-?c?|pc|cpu|gpu|led|fan|fans|cable|pack|mini|pro|new|gaming)$/i;
+
+/* Titles do not always open with the Hebrew kind: "Antec | Atom V550 | ספק כוח", "Gigabyte B650M D3HP לוח אם". The
+   separators go, and the first Hebrew run moves to the front ("ספק כוח Antec Atom V550"), so the kind is read the
+   same way and the short name (from the first Latin word) is the model. */
+export function cleanTitle(title) {
+  let s = String(title || '').replace(/\s*[|｜•·]\s*/g, ' ').replace(/\s+/g, ' ').trim();
+  if (s && !/^[\u0590-\u05FF]/.test(s)) {
+    const heb = s.match(/(?:^|\s)([\u0590-\u05FF][\u0590-\u05FF.״"׳'\s-]*[\u0590-\u05FF.])(?=\s|$)/);
+    if (heb) s = `${heb[1].trim()} ${(s.slice(0, heb.index) + s.slice(heb.index + heb[0].length)).replace(/\s+/g, ' ').trim()}`.trim();
+  }
+  return s;
 }
 
 /* ---------- category ---------- */
@@ -173,7 +193,7 @@ export function brandOf(title, vendor = '', category = null) {
    Returns a step key, 'system' (a whole computer or laptop: not a part) or 'ignore' (spare panels, adapters, cables,
    tools), or null when nothing matched. */
 export function categorize(title) {
-  const t = ` ${String(title || '').replace(/\s+/g, ' ').trim()} `;
+  const t = ` ${cleanTitle(title)} `;
   const s = t.trim();
   const starts = (re) => re.test(s);
 
@@ -186,7 +206,9 @@ export function categorize(title) {
   if (starts(/^(מאוורר|מאורר)/) && /\btdp\b/i.test(t)) return 'cooler';
   if (starts(/^(מאוורר|מאורר|מאווררים)/)) return 'extra';
   if (starts(/^מעבד/)) return 'cpu';
-  if (starts(/^לוח\s/)) return 'board';
+  // "לוח אם", "לוח לאינטל", "לוח למעבדי", "לוח לבן עם מחברי חשמל מאחור", "לוח Gigabyte…"; not "לוח מקשים" or a
+  // crimping tool ("לוחץ", above).
+  if (starts(/^לוח\s(?:אם|עם|דור|אינטל|לאינטל|למעבד|למעבדי|לבן|שחור|[A-Za-z])/)) return 'board';
   if (starts(/^(ז\.|זכרון|זיכרון)/)) return 'ram';
   if (starts(/^(כרטיס מסך|כ\.\s?מסך)/)) return 'gpu';
   if (starts(/^דיסק/)) return 'storage';
@@ -340,6 +362,7 @@ function parseGpu(t) {
 
 function parsePsu(t) {
   const out = { watts: null, rating: null, atx3: false, modular: null };
+  let m;
   const w = t.match(/(\d{3,4})\s?w\b/i);
   if (w && +w[1] >= 300) out.watts = +w[1];
   else {
@@ -348,6 +371,8 @@ function parsePsu(t) {
   }
   const r = t.match(/\b(titanium|platinum|gold|silver|bronze|white)\b/i);
   if (r) out.rating = r[1].charAt(0).toUpperCase() + r[1].slice(1).toLowerCase();
+  // Model codes that carry the rating: Antec NE1000G (Gold) / NE1200P (Platinum).
+  else if ((m = t.match(/\bNE\s?\d{3,4}\s?([GP])\b/i))) out.rating = m[1].toUpperCase() === 'G' ? 'Gold' : 'Platinum';
   out.atx3 = /atx\s?3\.\d|pcie?\s?5\.\d|12v-?2x6|12vhpwr/i.test(t);
   out.modular = /full[\s-]?modular|fully modular|semi[\s-]?modular/i.test(t) ? true : /non[\s-]?modular|none modular|לא מודולרי/i.test(t) ? false : null;
   return out;
@@ -388,6 +413,11 @@ function parseStorage(t) {
   else if (gb) out.capacityGb = +gb[1];
   const g = t.match(/gen\s?([345])\b/i) || t.match(/pcie\s?([345])\.0/i);
   if (g) out.gen = +g[1];
+  else if (out.kind === 'NVMe') {
+    // "up to 7250 Read", "3500/2400MB/s": the read speed says the generation.
+    const read = t.match(/\b(\d{4,5})\s?(?:\/|mb|read)/i);
+    if (read) out.gen = +read[1] >= 10000 ? 5 : +read[1] >= 4500 ? 4 : 3;
+  }
   return out;
 }
 
@@ -441,7 +471,7 @@ export const REQUIRED_FACTS = {
 
 /** Reads one title (plus optional pc.* overrides) into a part's facts. */
 export function parseTitle(title, overrides = {}) {
-  const raw = String(title || '').replace(/\s+/g, ' ').trim();
+  const raw = cleanTitle(title);
   const forced = overrides.category && String(overrides.category).trim().toLowerCase();
   const category = forced ? (forced === 'none' ? 'ignore' : forced) : categorize(raw);
   const facts = READERS[category] ? READERS[category](raw) : {};
@@ -478,11 +508,11 @@ export function toPart(product, overrides = {}) {
     id: product.id,
     variantId: variant.id,
     handle: product.handle,
-    title: String(product.title || '').replace(/\s+/g, ' ').trim(),
+    title: cleanTitle(product.title),
     price: num(variant.price) || 0,
     image,
     sku: variant.sku || null,
-    brand: brandOf(product.title || '', product.vendor, category),
+    brand: brandOf(cleanTitle(product.title), product.vendor, category),
     category,
     facts,
     fromMeta,
@@ -662,6 +692,17 @@ export function applyChoice(sel, part) {
   return { sel: { ...out, extra: [...(sel.extra || [])] }, removed };
 }
 
+/** Payments (the owner: interest-free up to 4, up to 12 with interest). `free` interest-free payments of the total
+    divided and rounded up to whole shekels; `max` only when it is more than `free` (no monthly sum is claimed for it,
+    since the interest is the card company's). Null when there is nothing to show. */
+export function installmentsOf(total, free, max) {
+  const n = Math.floor(Number(free) || 0);
+  const t = Number(total) || 0;
+  if (n < 2 || t <= 0) return null;
+  const m = Math.floor(Number(max) || 0);
+  return { count: n, each: Math.ceil(t / n), max: m > n ? m : null };
+}
+
 /** Whether a selection may go to the cart (or into a quote): complete for its required steps, and every pair fits. */
 export const isOrderable = (sel) => checkBuild(sel).ok;
 
@@ -684,6 +725,11 @@ export const TIERS = [
 ];
 
 const RATING_RANK = { White: 0, Bronze: 1, Silver: 2, Gold: 3, Platinum: 4, Titanium: 5 };
+const BOARD_VALUE_CAP = 1300;
+const CASE_VALUE_CAP = 700;
+/* From this target up, a guided build gets a full-chipset board (not H/A) and an 80 Plus Gold PSU, when the collection
+   has one that fits: a ₪10,000 computer is not built on the cheapest board and supply. */
+export const PREMIUM_TARGET = 9000;
 
 function scoreOf(part, use) {
   const f = part.facts;
@@ -693,19 +739,22 @@ function scoreOf(part, use) {
     case 'ram': return (f.capacity || 0) * 2 + (f.speed || 0) / 400;
     case 'storage': return Math.min(f.capacityGb || 0, 4000) / 50 + (f.gen || 3) * 4;
     case 'psu': return (RATING_RANK[f.rating] ?? 1) * 10 + (f.atx3 ? 3 : 0) + Math.min(f.watts || 0, 1200) / 100;
-    case 'case': return part.price / 50 - (/no\s*fans?|בלי מאווררים|ללא מאווררים/i.test(part.title) ? 15 : 0);
-    default: return part.price / 50; // board, cooler: the dearer one is the better-made one
+    // Past a point a dearer case or board buys looks and ports, not speed: the upgrade loop stops there.
+    case 'case': return Math.min(part.price, CASE_VALUE_CAP) / 50 - (/no\s*fans?|בלי מאווררים|ללא מאווררים/i.test(part.title) ? 15 : 0);
+    case 'board': return Math.min(part.price, BOARD_VALUE_CAP) / 50;
+    default: return part.price / 50; // cooler: the dearer one is the better-made one
   }
 }
 
 /* Guided builds only: an unlocked or 170W+ processor goes on a board of a full chipset (Z/X/B), not an entry one (H/A).
-   A cooler that does not state its rating is trusted up to 150W only, and a PSU needs an 80 Plus Bronze rating or better.
+   A guided build uses only coolers that state their rating (the step-by-step list still offers an unrated one for a
+   processor up to 150W), and a PSU needs an 80 Plus Bronze rating or better.
    Coolers and PSUs are never "upgraded": the cheapest that carries the processor and the card is the right one. */
 const suits = (key, cpu, part) => {
+  if (key === 'cooler') return !!part.facts.tdp;
+  if (key === 'psu') return (RATING_RANK[part.facts.rating] ?? 0) >= 1;
   if (!cpu) return true;
   if (key === 'board') return (cpu.facts.watts || 0) < 170 || !/^[HA]/.test(part.facts.chipset || '');
-  if (key === 'cooler') return !!part.facts.tdp || (cpu.facts.watts || 0) <= 150;
-  if (key === 'psu') return (RATING_RANK[part.facts.rating] ?? 0) >= 1;
   return true;
 };
 
@@ -723,7 +772,8 @@ function poolsFor(byCat, use, target) {
   const u = USES[use];
   const ramMin = use === 'office' || target < (use === 'work' ? 5000 : 7000) ? 16 : 32;
   const ramMax = use === 'work' && target >= 12000 ? 64 : use === 'office' ? 32 : 32;
-  const boards = byCat.board.filter((b) => b.facts.socket && b.facts.memory && b.facts.formFactor);
+  // Rear-connector boards are a choice of looks that also ties the case: the step-by-step list has them, guided builds don't.
+  const boards = byCat.board.filter((b) => b.facts.socket && b.facts.memory && b.facts.formFactor && !b.facts.backConnect);
   let cpus = byCat.cpu.filter((c) => c.facts.socket && c.facts.igpu !== null && boards.some((b) => b.facts.socket === c.facts.socket));
   // An office computer: a processor with graphics (no card to buy); nothing unlocked, no 9-series, under 170W.
   if (!u.gpu && cpus.some((c) => c.facts.igpu)) cpus = cpus.filter((c) => c.facts.igpu && (c.facts.watts || 0) < 170 && !/\dKF?$/.test(c.facts.model || '') && !/(?:i|Ultra |Ryzen )9/.test(c.facts.model || ''));
@@ -741,6 +791,14 @@ function poolsFor(byCat, use, target) {
     psu: byCat.psu.filter((p) => p.facts.watts),
   };
   for (const [k, list] of Object.entries(pools)) pools[k] = list.filter((p) => !p.missing?.length).sort((a, b) => a.price - b.price);
+  if (target >= PREMIUM_TARGET) {
+    const full = pools.board.filter((b) => !/^[HA]/.test(b.facts.chipset || ''));
+    // Only on sockets that keep a board: a socket left without one would just drop out of the build.
+    const sockets = new Set(full.map((b) => b.facts.socket));
+    if (full.length) pools.board = pools.board.filter((b) => !/^[HA]/.test(b.facts.chipset || '') || !sockets.has(b.facts.socket));
+    const gold = pools.psu.filter((p) => (RATING_RANK[p.facts.rating] ?? 0) >= RATING_RANK.Gold);
+    if (gold.length) pools.psu = gold;
+  }
   const range = {};
   for (const [k, list] of Object.entries(pools)) {
     const s = list.map((p) => scoreOf(p, use));

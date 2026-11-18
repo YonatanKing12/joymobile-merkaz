@@ -4,13 +4,18 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { applyChoice, brandOf, categorize, checkBuild, earlierOf, fitOf, isOrderable, parseTitle, planBuilds, powerOf, sanitize, STEP_KEYS, toPart } from '../../assets/pc-builder-parser.js';
+import { applyChoice, brandOf, categorize, checkBuild, cleanTitle, earlierOf, fitOf, installmentsOf, isOrderable, parseTitle, planBuilds, powerOf, PREMIUM_TARGET, sanitize, STEP_KEYS, toPart } from '../../assets/pc-builder-parser.js';
 import { aimScore, cpuClassOf, estimateBuild, estimateFps, fpsText, GAMES, GPU_FPS, igpuOf, targetFor } from '../../assets/pc-builder-fps.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixture = JSON.parse(readFileSync(join(here, 'fixtures/products.json'), 'utf8')).products;
 const facts = (title, o) => parseTitle(title, o).facts;
 const fixtureParts = fixture.map((p) => toPart(p)).filter((p) => p && STEP_KEYS.includes(p.category));
+// The store's own collection (a snapshot of joymobile.co.il/collections/pc-builder-parts/products.json, 422 parts with
+// their real product and variant ids and vendors).
+const live = JSON.parse(readFileSync(join(here, 'fixtures/live-products.json'), 'utf8')).products;
+const liveParts = live.map((p) => toPart(p)).filter((p) => p && STEP_KEYS.includes(p.category));
+const liveVariants = new Set(live.flatMap((p) => p.variants.map((v) => v.id)));
 let nextId = 1;
 const part = (title, price = 100, overrides = {}) => toPart({ id: nextId, title, vendor: 'Joy Mobile Merkaz', variants: [{ id: nextId++ * 10, price: String(price), available: true }], images: [] }, overrides);
 
@@ -329,4 +334,137 @@ test('games-first: with games and a resolution, the builds buy frames up to the 
   // A budget too small for the target still gives the best it can, within the budget.
   const low = planBuilds(fixtureParts, { use: 'gaming', budget: 4000, includeOs: true, aim: { score: (sel) => aimScore(sel, ['cyberpunk'], '4k') } });
   for (const b of low) assert.equal(b.check.ok, true);
+});
+
+
+/* ---------- the live collection ---------- */
+
+test('live: every title is read, and only three boards lack a fact (their memory type)', () => {
+  assert.ok(live.length >= 400, `snapshot has ${live.length} products`);
+  assert.deepEqual(live.filter((p) => categorize(p.title) === null).map((p) => p.title), []);
+  const missing = liveParts.filter((p) => p.missing.length);
+  assert.deepEqual(missing.map((p) => `${p.category}:${p.missing.join(',')}`), ['board:memory', 'board:memory', 'board:memory']);
+  for (const p of missing) {
+    assert.equal(p.facts.socket, 'LGA1700', 'LGA1700 boards come in DDR4 and DDR5');
+    assert.equal(fitOf(p, {}).ok, false, `${p.title}: blocked until pc.memory says`);
+  }
+  // Tools and adapters are not parts: the crimping tools ("לוחץ") are not boards.
+  const ignored = live.filter((p) => categorize(p.title) === 'ignore').map((p) => p.title);
+  assert.ok(ignored.some((t) => t.startsWith('לוחץ')));
+  assert.ok(ignored.every((t) => /^(לוחץ|ספק כח ממותג)/.test(t)), ignored.join(' | '));
+  // Counts per step, so a parser change that moves parts between steps shows up here.
+  const count = (k) => liveParts.filter((p) => p.category === k).length;
+  assert.deepEqual(Object.fromEntries(STEP_KEYS.map((k) => [k, count(k)])), { cpu: 48, board: 104, ram: 71, gpu: 42, storage: 34, cooler: 23, psu: 43, case: 38, os: 4, extra: 12 });
+});
+
+test('live: rear-connector boards ("לוח לבן עם מחברי חשמל מאחור…") and their cases', () => {
+  const boards = liveParts.filter((p) => p.category === 'board' && p.facts.backConnect);
+  assert.ok(boards.length >= 2);
+  assert.ok(boards.some((b) => b.title.startsWith('לוח לבן עם מחברי חשמל מאחור')));
+  const cases = liveParts.filter((p) => p.category === 'case');
+  for (const b of boards) {
+    assert.equal(b.facts.socket, 'AM5');
+    const ok = cases.filter((c) => fitOf(c, { board: b }).ok);
+    assert.ok(ok.length && ok.every((c) => c.facts.backConnect), 'only STEALTH cases');
+  }
+});
+
+test('titles that do not open with the Hebrew kind', () => {
+  assert.equal(cleanTitle('Antec | Atom V550 | ספק כוח'), 'ספק כוח Antec Atom V550');
+  const psu = parseTitle('Antec | Atom V550 | ספק כוח');
+  assert.equal(psu.category, 'psu');
+  assert.equal(psu.facts.watts, 550);
+  assert.equal(categorize('Gigabyte | B650M D3HP | לוח אם'), 'board');
+  assert.equal(parseTitle('Gigabyte B650M D3HP DDR5 לוח אם').facts.socket, 'AM5');
+  assert.equal(categorize('Intel | Core Ultra 5 245K | מעבד'), 'cpu');
+  assert.equal(categorize('Corsair | Vengeance 32GB 2x16 DDR5 6000 | זיכרון לנייח'), 'ram');
+  assert.equal(categorize('לוחץ כבל רשת עם מנגנון ראצט CAT7 LUGGAR'), 'ignore');
+  assert.equal(categorize('Luggar | לוחץ כבל RJ-45'), 'ignore');
+  assert.equal(categorize('לוח מקשים אלחוטי'), null, 'not a motherboard');
+  assert.equal(categorize('כבל מאריך לספק כוח 24 פין'), 'ignore');
+  const part = toPart({ id: 1, title: 'Antec | Atom V550 | ספק כוח', vendor: 'Antec', variants: [{ id: 2, price: '199', available: true }] });
+  assert.equal(part.title, 'ספק כוח Antec Atom V550', 'shown and sent without the separators');
+  assert.equal(part.brand, 'Antec');
+  // Ratings and generations the titles carry in model codes or speeds.
+  assert.equal(parseTitle('ספק כוח Antec NE1000G M ATX3.1 1000W PCIE5.1 PSU Full-Modular').facts.rating, 'Gold');
+  assert.equal(parseTitle('דיסק פנימי Samsung 990 EVO PLUS 1TB up to 7250 Read 6300 Write').facts.gen, 4);
+  assert.equal(parseTitle('דיסק פנימי Lexar SSD NM620 512GB M.2 NVMe 3500/2400MB/s').facts.gen, 3);
+});
+
+test('live: the vendor is the brand, in the filter spelling; the store name never is', () => {
+  const byTitle = (re) => liveParts.find((p) => re.test(p.title));
+  assert.equal(byTitle(/NVIDIA RTX A400/).brand, 'PNY');
+  assert.equal(byTitle(/^לוח אם B860M GAMING WIFI6/).brand, 'Gigabyte');
+  assert.equal(byTitle(/WD 2TB Purple/).brand, 'WD');
+  assert.ok(!liveParts.some((p) => /joy/i.test(p.brand)));
+  assert.equal(brandOf('מאוורר 12cm With Cable and Gril', 'Joy Mobile Merkaz', 'extra') !== 'Cm', true);
+});
+
+test('live: strict compatibility holds for any mix of real parts', () => {
+  for (const p of liveParts.filter((x) => x.missing.length)) assert.equal(fitOf(p, {}).ok, false);
+  const by = Object.fromEntries(['cpu', 'board', 'ram', 'gpu', 'cooler', 'psu', 'case'].map((k) => [k, liveParts.filter((p) => p.category === k)]));
+  for (let i = 0; i < 400; i++) {
+    const pick = {};
+    for (const [k, list] of Object.entries(by)) pick[k] = list[(i * 7919 + k.length * 104729 + i * i) % list.length];
+    const clean = sanitize({ ...pick, extra: [] }).sel;
+    assert.equal(checkBuild(clean).problems.length, 0, `random build ${i}`);
+    // Choosing any part on top keeps the selection clean.
+    const extraPick = liveParts[(i * 31) % liveParts.length];
+    if (extraPick.category !== 'extra' && fitOf(extraPick, earlierOf(clean, extraPick.category)).ok)
+      assert.equal(checkBuild(applyChoice(clean, extraPick).sel).problems.length, 0, `choice ${i}`);
+  }
+});
+
+test('live: guided builds at ₪4,000 / 6,000 / 10,000 / 15,000 are complete, compatible and real', () => {
+  for (const use of ['gaming', 'work', 'office']) {
+    for (const budget of [4000, 6000, 10000, 15000]) {
+      const builds = planBuilds(liveParts, { use, budget, includeOs: true });
+      const floor = Math.min(...builds.map((b) => b.total));
+      for (const b of builds) {
+        const tag = `${use} ${budget} ${b.key}`;
+        assert.equal(b.check.ok, true, `${tag}: ${JSON.stringify(b.check.problems)} ${b.check.missing}`);
+        assert.ok(b.parts.os && b.parts.os.facts.language === 'he', `${tag}: Hebrew Windows`);
+        for (const p of Object.values(b.parts)) {
+          assert.ok(liveVariants.has(p.variantId), `${tag}: ${p.title} is a live variant`);
+          assert.deepEqual(p.missing, [], `${tag}: ${p.title}`);
+        }
+        if (floor <= b.target) assert.ok(b.total <= b.target + 1, `${tag}: ${b.total} > ${b.target}`);
+        assert.ok(b.parts.cooler ? b.parts.cooler.facts.tdp >= b.parts.cpu.facts.watts - 10 : b.parts.cpu.facts.needsCooler === false, `${tag}: a rated cooler`);
+        assert.ok(['Bronze', 'Silver', 'Gold', 'Platinum', 'Titanium'].includes(b.parts.psu.facts.rating), `${tag}: 80 Plus PSU`);
+        assert.ok(!b.parts.board.facts.backConnect, `${tag}: a regular board`);
+        if (b.target >= PREMIUM_TARGET) {
+          assert.ok(!/^[HA]/.test(b.parts.board.facts.chipset), `${tag}: full chipset, got ${b.parts.board.facts.chipset}`);
+          assert.ok(['Gold', 'Platinum', 'Titanium'].includes(b.parts.psu.facts.rating), `${tag}: Gold PSU`);
+        }
+        if (use === 'office') assert.ok(!b.parts.gpu, `${tag}: graphics on the processor`);
+        else assert.ok(b.parts.gpu, `${tag}: a graphics card`);
+      }
+      assert.ok(builds[0].total <= builds[1].total && builds[1].total <= builds[2].total + 1, `${use} ${budget}: tiers in order`);
+    }
+  }
+  // More money buys a faster card for gaming.
+  const gpuAt = (budget) => planBuilds(liveParts, { use: 'gaming', budget, includeOs: true })[1].parts.gpu.facts.score;
+  assert.ok(gpuAt(4000) < gpuAt(6000) && gpuAt(6000) < gpuAt(10000) && gpuAt(10000) < gpuAt(15000));
+});
+
+test('live: every real card and processor has an FPS estimate; games-first reaches 1440p targets at ₪8,000', () => {
+  for (const p of liveParts.filter((x) => x.category === 'gpu')) assert.ok(GPU_FPS[p.facts.chip], p.facts.chip);
+  for (const p of liveParts.filter((x) => x.category === 'cpu')) assert.ok(cpuClassOf(p), p.title);
+  const games = ['cyberpunk', 'warzone'];
+  const aimed = planBuilds(liveParts, { use: 'gaming', budget: 8000, includeOs: true, aim: { score: (sel) => aimScore(sel, games, '1440p') } });
+  for (const b of aimed) assert.equal(b.check.ok, true);
+  assert.ok(estimateBuild(aimed[1].parts, games, '1440p').every((r) => r.meets));
+});
+
+/* ---------- payments ---------- */
+
+test('payments: interest-free up to 4 (rounded up to whole shekels), up to 12 with interest, no monthly sum for 12', () => {
+  assert.deepEqual(installmentsOf(5924, 4, 12), { count: 4, each: 1481, max: 12 });
+  assert.deepEqual(installmentsOf(5925, 4, 12), { count: 4, each: 1482, max: 12 }, 'rounded up');
+  assert.deepEqual(installmentsOf(10001, '4', '12'), { count: 4, each: 2501, max: 12 }, 'settings arrive as strings');
+  assert.equal(installmentsOf(5924, 4, 4).max, null, 'no "up to" line when it is not more');
+  assert.equal(installmentsOf(5924, 4, '').max, null);
+  assert.equal(installmentsOf(5924, 0, 12), null, '0 hides the line');
+  assert.equal(installmentsOf(0, 4, 12), null);
+  assert.equal(installmentsOf(5924, 3, 10).each, 1975);
 });
