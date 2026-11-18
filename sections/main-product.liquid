@@ -300,6 +300,16 @@
           endif
         when 'tab_custom'
           assign tab_body = block.settings.content
+          # "דרופשיפינג" (snippets/dropship): the tab's text for products the supplier ships, with [days].
+          if block.settings.dropship_content != blank
+            capture tab_dropship_days
+              render 'dropship', product: product, part: 'days'
+            endcapture
+            assign tab_dropship_days = tab_dropship_days | strip
+            if tab_dropship_days != blank
+              assign tab_body = block.settings.dropship_content | replace: '[days]', tab_dropship_days
+            endif
+          endif
           if block.settings.page != blank and block.settings.page.content != blank
             assign tab_body = tab_body | append: block.settings.page.content
           endif
@@ -1182,6 +1192,13 @@
           "label": "רק במוצרים הפטורים ממע״מ",
           "info": "לטקסט שמבטיח מחיר ללא מע״מ: השורה לא מוצגת כשהדגם חייב במס ב-Shopify (למשל מוצרי הקופה).",
           "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "hide_dropship",
+          "label": "לא במוצרים שנשלחים מהספק",
+          "info": "לטקסט שמבטיח זמן משלוח של החנות: השורה לא מוצגת במוצר דרופשיפינג, שזמן האספקה שלו כבר מוצג ליד המחיר.",
+          "default": false
         }
       ]
     },
@@ -1233,6 +1250,12 @@
           "type": "page",
           "id": "page",
           "label": "או תוכן מעמוד"
+        },
+        {
+          "type": "richtext",
+          "id": "dropship_content",
+          "label": "תוכן במוצרים שנשלחים מהספק",
+          "info": "במקום התוכן שלמעלה, במוצר דרופשיפינג. [days] מוחלף בימי האספקה של הספק."
         }
       ]
     }

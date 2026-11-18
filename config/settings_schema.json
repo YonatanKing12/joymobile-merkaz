@@ -655,6 +655,13 @@
         "default": false
       },
       {
+        "type": "checkbox",
+        "id": "badge_tax_free_hide_dropship",
+        "label": "בלי התגית הצהובה על מוצרים שנשלחים מהספק",
+        "info": "מוצר דרופשיפינג (תגית ״דרופשיפינג״ או זמן אספקה מהספק) לא מקבל אותה. שדה המטא custom.best_price (כן/לא) קובע למוצר בודד, גם כאן.",
+        "default": true
+      },
+      {
         "type": "header",
         "content": "הצגת המחיר"
       },

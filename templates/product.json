@@ -93,7 +93,8 @@
           "settings": {
             "text": "משלוח עד הבית תוך 7 ימי עסקים",
             "use_warranty": false,
-            "tax_free_only": false
+            "tax_free_only": false,
+            "hide_dropship": true
           }
         },
         "trust_service": {
@@ -121,7 +122,8 @@
           "settings": {
             "heading": "משלוח",
             "content": "<p>ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪. כל המחירים כוללים מע״מ.</p><p>כל הפרטים ב<a href=\"/pages/shipping\">עמוד המשלוחים</a>.</p>",
-            "page": ""
+            "page": "",
+            "dropship_content": "<p>המוצר נשלח עד הבית ישירות מהספק, תוך עד [days] ימי עסקים. משלוח 24 ₪, וחינם בהזמנה מעל 3,000 ₪. כל המחירים כוללים מע״מ.</p><p>כל הפרטים ב<a href=\"/pages/shipping\">עמוד המשלוחים</a>.</p>"
           }
         },
         "tab_terms": {

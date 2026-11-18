@@ -1522,3 +1522,18 @@ html.no-js .product-wishlist {
   background-color: var(--color-brand);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand) 18%, transparent);
 }
+
+/* "דרופשיפינג" at 1200+: in the one-row purchase box the delivery pill sits under the price, on one line
+   (beside it, in the price's 10rem, it broke into four narrow lines). */
+@media (min-width: 1200px) {
+  .product__buy > .product-block--price:has(.dropship-badge):has(+ .product-block--buy) {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    max-width: 12rem;
+  }
+
+  .product-block--price:has(+ .product-block--buy) .dropship-badge {
+    white-space: nowrap;
+  }
+}

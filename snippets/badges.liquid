@@ -7,6 +7,8 @@
     store can print e.g. BEST PRICE / מחיר ג'וי): with the badge setting `badge_show_tax_free`
     on, on every product when `badge_tax_free_all` is on, else only when the variant is not
     taxable in Shopify (`taxable == false`) and `tax_free_labels` is on, the price snippet's rule.
+    Not on drop-ship products while `badge_tax_free_hide_dropship` is on; `custom.best_price`
+    (boolean), when set, wins: true shows it, false hides it.
   - Sold out: the product (or the passed variant) is not available.
   - Last units: the variant tracks inventory in Shopify (`inventory_management ==
     'shopify'`) and 0 < inventory_quantity <= `settings.badge_low_stock_threshold`
@@ -51,6 +53,24 @@
     elsif settings.tax_free_labels and badge_variant.taxable == false
       assign badge_tax_free = true
     endif
+  endif
+
+  # "BEST PRICE / מחיר ג׳וי" promises a price. A drop-ship product (snippets/dropship) is priced from the
+  # supplier's list, not checked against the market, so it gets no badge (theme setting
+  # badge_tax_free_hide_dropship). custom.best_price (boolean) decides per product when it is set.
+  if badge_tax_free and settings.badge_tax_free_hide_dropship
+    capture badge_dropship
+      render 'dropship', product: product, part: 'days'
+    endcapture
+    if badge_dropship != blank
+      assign badge_tax_free = false
+    endif
+  endif
+  assign badge_best_price = product.metafields.custom.best_price.value
+  if settings.badge_show_tax_free and badge_best_price == true
+    assign badge_tax_free = true
+  elsif badge_best_price == false
+    assign badge_tax_free = false
   endif
 
   assign badge_channel = ''

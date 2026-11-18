@@ -23,7 +23,8 @@
 
   part 'box' — "למה לקוחות קונים אצלנו": heading, the section's `trust_point` blocks (a block
   with "use_warranty" prints the product's warranty and disappears when there is none; one with
-  "tax_free_only" is skipped when the variant is taxable), an optional image and a WhatsApp link
+  "tax_free_only" is skipped when the variant is taxable, one with "hide_dropship" on drop-ship
+  products), an optional image and a WhatsApp link
   that carries the product title and URL.
 
   Styles: assets/section-main-product.css (lines, box) and assets/component-pickup.css (pickup).
@@ -248,6 +249,10 @@
         {%- endif -%}
         {%- comment -%} "ללא מע״מ" is only true for VAT-exempt variants (data-model.md §12.4). {%- endcomment -%}
         {%- if pt_block.settings.tax_free_only and pt_variant.taxable -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- comment -%} A store-wide delivery promise ("תוך 7 ימי עסקים") is not the supplier's time. {%- endcomment -%}
+        {%- if pt_block.settings.hide_dropship and pt_dropship != blank -%}
           {%- continue -%}
         {%- endif -%}
         {%- liquid
