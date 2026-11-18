@@ -277,7 +277,7 @@
           "type": "circle",
           "settings": {
             "collection": "metziaon",
-            "image": "shopify://shop_images/metziaon-circle-round.png",
+            "image": "shopify://shop_images/metziaon-circle-v2.png",
             "label": "מציאון",
             "image_fill": true
           }
