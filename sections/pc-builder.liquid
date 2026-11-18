@@ -58,8 +58,9 @@
 <link rel="modulepreload" href="{{ 'pc-builder-parser.js' | asset_url }}">
 <link rel="modulepreload" href="{{ 'pc-builder-fps.js' | asset_url }}">
 {%- if source != blank -%}
+  {%- assign pcb_page_token = '{' | append: 'page' | append: '}' -%}
   {%- for page in (1..source_pages) %}
-    <link rel="preload" as="fetch" crossorigin href="{{ source | replace: '{page}', page | escape }}">
+    <link rel="preload" as="fetch" crossorigin href="{{ source | replace: pcb_page_token, page | escape }}">
   {%- endfor -%}
 {%- endif %}
 {% # theme-check-enable AssetPreload %}
