@@ -354,12 +354,22 @@
             "image": "shopify://shop_images/exec-1ff75f9d-4bb8-475e-a078-7ee45fa4f049.png",
             "label": "שמע ואוזניות"
           }
+        },
+        "circle-pc-builder": {
+          "type": "circle",
+          "settings": {
+            "image": "shopify://shop_images/pc-builder-circle-round.png",
+            "label": "מרכיב מחשבים",
+            "link": "shopify://pages/pc-builder",
+            "image_fill": true
+          }
         }
       },
       "block_order": [
         "circle-black-november",
         "circle-direct-from-supplier",
         "circle-metziaon",
+        "circle-pc-builder",
         "circle-smartphones",
         "circle-tablets",
         "circle-smartwatches",
@@ -380,6 +390,30 @@
         "padding_bottom": 27,
         "ss_visibility": "all",
         "ss_background": "linear-gradient(89deg, rgba(224, 255, 242, 1), rgba(224, 254, 241, 1) 100%)",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
+      }
+    },
+    "pc-builder-promo": {
+      "type": "pc-builder-promo",
+      "settings": {
+        "heading": "בונים מחשב בדקות",
+        "text": "שלוש הצעות לפי תקציב, רק רכיבים תואמים, הרכבה ומשלוח חינם",
+        "button_label": "להרכבת מחשב",
+        "link": "shopify://pages/pc-builder",
+        "padding_top": 24,
+        "padding_bottom": 8,
+        "ss_visibility": "all",
+        "ss_background": "",
         "ss_text_color": "",
         "ss_heading_color": "",
         "ss_accent_color": "",
@@ -831,6 +865,7 @@
     "hero",
     "usp",
     "categories",
+    "pc-builder-promo",
     "products-smartphones",
     "promo-banners",
     "products-tablets",

@@ -29,6 +29,7 @@ body = body.replace(/\{%-? endif -?%\}/g, '');
 const values = {
   uid: 'pcb-preview',
   source: `./fixtures/${process.env.FIXTURE || 'live-products.json'}?page={page}`,
+  source_pages: '1',
   budget_min: settings.budget_min,
   budget_max: settings.budget_max,
   budget_default: settings.budget_default,

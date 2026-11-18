@@ -1,0 +1,111 @@
+/* PC builder promo (sections/pc-builder-promo): a compact navy band with a mint disc, a heading, one line and the
+   theme's green button. Phones: disc and heading in a row, the line under them, a full-width button; from 768px one
+   row with the button at the end. Navy is the header's colour, so the band reads as part of the site's chrome. */
+
+.pcb-promo {
+  padding-block: var(--pcb-promo-pad-top, 24px) var(--pcb-promo-pad-bottom, 8px);
+}
+
+.pcb-promo__card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-sm) var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-card);
+  background:
+    radial-gradient(120% 160% at 100% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 55%),
+    var(--color-header-bg);
+  color: var(--color-header-text);
+}
+
+.pcb-promo__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.pcb-promo__text {
+  display: grid;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.pcb-promo__heading {
+  margin: 0;
+  color: inherit;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+}
+
+.pcb-promo__line {
+  margin: 0;
+  color: color-mix(in srgb, var(--color-header-text) 78%, transparent);
+  font-size: var(--text-md);
+  line-height: 1.45;
+}
+
+.pcb-promo__button {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.pcb-promo__button .icon {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.pcb-promo__button:focus-visible {
+  outline: 2px solid var(--color-focus-on-dark);
+  outline-offset: 3px;
+}
+
+@media (min-width: 768px) {
+  .pcb-promo__card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
+  }
+
+  .pcb-promo__icon {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .pcb-promo__icon svg {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .pcb-promo__heading {
+    font-size: var(--text-3xl);
+  }
+
+  .pcb-promo__line {
+    font-size: var(--text-lg);
+  }
+
+  .pcb-promo__button {
+    grid-column: auto;
+    width: auto;
+    min-width: 11rem;
+  }
+}
+
+@media (min-width: 768px) and (hover: hover) {
+  .pcb-promo__button:hover .icon {
+    translate: -2px 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pcb-promo__button .icon {
+    transition: translate var(--duration-fast) var(--ease-out);
+  }
+}

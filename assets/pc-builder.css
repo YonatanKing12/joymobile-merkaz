@@ -14,6 +14,9 @@
   --pcb-line: var(--color-border);
   --pcb-line-strong: var(--color-border-strong);
   --pcb-bar-h: calc(var(--tap-target) + 2 * var(--space-xs) + 1px);
+  /* No text under 13px in the builder: the theme's two smallest sizes (11 and 12px on phones) are raised here. */
+  --text-2xs: 0.8125rem;
+  --text-xs: 0.8125rem;
   padding-block: var(--space-lg) var(--section-space);
   color: var(--color-ink);
 }
@@ -104,6 +107,18 @@
 .pcb:not(.pcb--ready) .pcb__panel,
 .pcb:not(.pcb--ready) .pcb-sum {
   visibility: hidden;
+}
+
+/* Until the parts arrive the builds are empty: hold their place, so the footer does not show and then jump away
+   (a layout shift of 0.22 on phones). The builds fill more than a screen on phones and about 30rem from 768px. */
+.pcb:not(.pcb--ready, .pcb--error) .pcb-builds {
+  min-block-size: 100svh;
+}
+
+@media (min-width: 768px) {
+  .pcb:not(.pcb--ready, .pcb--error) .pcb-builds {
+    min-block-size: min(100svh, 30rem);
+  }
 }
 
 .pcb--error .pcb__panel,
@@ -924,6 +939,13 @@
     --pcb-bar-h: calc(var(--tap-target) + 2 * var(--space-xs) + 1px);
     --floating-offset-bottom: calc(var(--cookie-offset, 0px) + var(--buybar-offset));
     padding-block-end: calc(var(--buybar-offset) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* The open summary sheet covers the page: the floating buttons (accessibility, back to top, wishlist) and Heyy's
+     chat bubble step aside until it closes, so none of them lands on the sheet's rows or its cart button.
+     !important: the back-to-top button's scroll-driven reveal animation sets its visibility. */
+  body:has(.pcb--summary-open) :is(.a11y-trigger, .floating-actions, .floating-actions__top, .heyy-live-chat-button-container) {
+    visibility: hidden !important;
   }
 
   .pcb--summary-open::after {

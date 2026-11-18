@@ -136,3 +136,32 @@ body:has(> #shop-hcaptcha-badge-container) .floating-actions__stack {
     scroll-padding-block-end: calc(20px + 55px + 2 * var(--space-xs) + 3.375rem);
   }
 }
+
+/* The Heyy live-chat bubble (third-party, loaded on idle by layout/theme.liquid). Heyy fixes its 56px bubble 16px
+   from the bottom right corner (our inline-start corner, where the back-to-top stack is) with an inline style, so
+   the theme's offsets need !important:
+   - It moves up with the UI that sticks to the bottom (--floating-offset-bottom: the cookie banner, the product
+     page's phone buy bar, the PC builder's summary bar), and above Shopify's hCaptcha badge, which shares its corner.
+     Before, it covered the PC builder's total and the cookie banner's corner.
+   - The back-to-top stack moves up above it instead of sliding under it.
+   - It hides while a drawer is open, as the WhatsApp bubble does (and under the PC builder's open summary sheet,
+     assets/pc-builder.css). */
+body .heyy-live-chat-button-container {
+  bottom: calc(16px + var(--floating-offset-bottom, 0px) + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+body:has(> #shop-hcaptcha-badge-container) .heyy-live-chat-button-container {
+  bottom: calc(20px + 55px + var(--space-xs) + var(--floating-offset-bottom, 0px) + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+body:has(.heyy-live-chat-button-container) .floating-actions__stack {
+  bottom: calc(16px + 56px + var(--space-sm) + var(--floating-offset-bottom, 0px) + env(safe-area-inset-bottom, 0px));
+}
+
+body:has(> #shop-hcaptcha-badge-container):has(.heyy-live-chat-button-container) .floating-actions__stack {
+  bottom: calc(20px + 55px + var(--space-xs) + 56px + var(--space-sm) + var(--floating-offset-bottom, 0px) + env(safe-area-inset-bottom, 0px));
+}
+
+html.scroll-locked .heyy-live-chat-button-container {
+  visibility: hidden;
+}

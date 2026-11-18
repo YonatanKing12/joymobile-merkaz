@@ -116,8 +116,10 @@ class PcBuilder {
 
   async start() {
     try {
-      [this.P, this.F] = await Promise.all([import(this.d.parserSrc), import(this.d.fpsSrc)]);
-      await this.load();
+      // The parts download alongside the two modules (the section preloads them), not after them.
+      let products;
+      [this.P, this.F, products] = await Promise.all([import(this.d.parserSrc), import(this.d.fpsSrc), this.fetchProducts()]);
+      this.load(products);
     } catch (err) {
       console.error('[pc-builder]', err);
       this.say('לא הצלחנו לטעון את רשימת הרכיבים. אפשר לרענן את העמוד או לפנות אלינו בוואטסאפ.', true);
@@ -132,19 +134,38 @@ class PcBuilder {
 
   /* ---------- data ---------- */
 
-  async load() {
-    const overrides = JSON.parse(this.$('[data-pcb-overrides]')?.textContent || '{}');
+  /**
+   * Every product of the collection, 250 a page. The pages the collection's count calls for (data-pages) are fetched
+   * at once, with the same URLs as the section's preload links (so no extra header: it would not match them); pages
+   * past those, if the count was low, follow one by one until a page comes back short or brings nothing new.
+   */
+  async fetchProducts() {
     const source = this.d.source;
     if (!source) throw new Error('no collection');
-    const seen = new Map();
-    for (let page = 1; page <= 40; page++) {
-      const res = await fetch(source.replace('{page}', page), { headers: { Accept: 'application/json' } });
+    const get = async (page) => {
+      const res = await fetch(source.replace('{page}', page));
       if (!res.ok) throw new Error(`products.json ${res.status}`);
-      const { products = [] } = await res.json();
+      return (await res.json()).products || [];
+    };
+    const seen = new Map();
+    const add = (products) => {
       let added = 0;
       for (const p of products) if (!seen.has(p.id)) { seen.set(p.id, p); added++; }
-      if (products.length < 250 || !added) break;
+      return added;
+    };
+    const first = Math.min(Math.max(Number(this.d.pages) || 1, 1), 40);
+    const pages = await Promise.all(Array.from({ length: first }, (_, i) => get(i + 1)));
+    let more = true;
+    for (const products of pages) more = add(products) > 0 && products.length >= 250;
+    for (let page = first + 1; more && page <= 40; page++) {
+      const products = await get(page);
+      more = add(products) > 0 && products.length >= 250;
     }
+    return seen;
+  }
+
+  load(seen) {
+    const overrides = JSON.parse(this.$('[data-pcb-overrides]')?.textContent || '{}');
     for (const product of seen.values()) {
       const part = this.P.toPart(product, overrides[product.id] || {});
       if (!part || !this.P.STEP_KEYS.includes(part.category)) continue;
