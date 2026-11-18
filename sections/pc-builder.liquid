@@ -1,0 +1,437 @@
+{%- comment -%}
+  "מרכיב מחשבים": the PC builder page (templates/page.pc-builder.json). The shell, the guided form and the summary are
+  rendered here; assets/pc-builder.js fills them with the parts of the section's collection (every product of it,
+  read client-side from /collections/<handle>/products.json, 250 a page) and assets/pc-builder-parser.js reads what
+  each part is and what it fits from its title (the supplier's drop-ship parts come with no type or vendor).
+  - Overrides: a product metafield in the "pc" namespace wins over the title (category, socket, memory, form_factor,
+    watts, cooler_tdp, igpu, needs_cooler, back_connect; see the parser's header). They are printed below as JSON,
+    only for products that have one (the first 250 products of the collection).
+  - Cart: one /cart/add.js call with every part, each with the properties _build_id (the same for the whole computer)
+    and "הרכבה: כן", then the cart page.
+  - WhatsApp: the section's number, else the theme setting "מספר וואטסאפ" (snippets/whatsapp-url).
+  - The harness that checks the parser and previews the page without a store is in .github/pc-builder.
+{%- endcomment -%}
+{%- render 'section-style', section: section -%}
+{{ 'pc-builder.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'pc-builder.js' | asset_url }}"></script>
+{%- liquid
+  assign coll = section.settings.collection
+  assign root = routes.root_url
+  if root != '/'
+    assign root = root | append: '/'
+  endif
+  if coll != blank
+    assign source = root | append: 'collections/' | append: coll.handle | append: '/products.json?limit=250&page={page}'
+  endif
+  capture wa_url
+    render 'whatsapp-url', phone: section.settings.whatsapp_number
+  endcapture
+  assign wa_digits = wa_url | strip | remove: 'https://wa.me/'
+  assign uid = 'pcb-' | append: section.id
+  assign budget_min = section.settings.budget_min | default: 3500
+  assign budget_max = section.settings.budget_max | default: 20000
+  assign budget_default = section.settings.budget_default | default: 6000
+  if budget_default < budget_min or budget_default > budget_max
+    assign budget_default = budget_min | plus: budget_max | divided_by: 2
+  endif
+-%}
+
+<div
+  class="pcb page-width"
+  id="{{ uid }}"
+  data-pc-builder
+  data-parser-src="{{ 'pc-builder-parser.js' | asset_url }}"
+  {% if source != blank %}data-source="{{ source }}"{% endif %}
+  data-whatsapp="{{ wa_digits | escape }}"
+  data-budget-default="{{ budget_default }}"
+  data-include-os="{{ section.settings.include_os }}"
+  data-default-mode="{{ section.settings.default_mode }}"
+>
+  <header class="pcb__intro">
+    {%- if section.settings.heading != blank -%}
+      <h1 class="pcb__heading">{{ section.settings.heading | escape }}</h1>
+    {%- endif -%}
+    {%- if section.settings.intro != blank -%}
+      <p class="pcb__lead">{{ section.settings.intro | escape }}</p>
+    {%- endif -%}
+    <ul class="pcb__promises" role="list">
+      {%- if section.settings.service_text != blank -%}
+        <li class="pcb__promise">
+          <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>
+          <span>{{ section.settings.service_text | escape }}</span>
+        </li>
+      {%- endif -%}
+      {%- if section.settings.delivery_text != blank -%}
+        <li class="pcb__promise">
+          <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+          <span>{{ section.settings.delivery_text | escape }}</span>
+        </li>
+      {%- endif -%}
+      <li class="pcb__promise">
+        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>
+        <span>כל רכיב נבדק מול האחרים: מוצגים רק רכיבים שמתאימים</span>
+      </li>
+    </ul>
+  </header>
+
+  {%- if coll == blank -%}
+    <p class="pcb-empty">
+      {%- if request.design_mode -%}
+        יש לבחור בהגדרות הסקשן את הקולקציה שמכילה את רכיבי המחשב.
+      {%- else -%}
+        מרכיב המחשבים יהיה זמין בקרוב. בינתיים אפשר לפנות אלינו בוואטסאפ ונרכיב לכם הצעה.
+      {%- endif -%}
+    </p>
+  {%- else -%}
+    <div class="pcb__tabs" role="tablist" aria-label="איך מרכיבים">
+      <button type="button" role="tab" class="pcb__tab" id="{{ uid }}-tab-guided" aria-controls="{{ uid }}-guided" aria-selected="true" data-mode-tab="guided">
+        <span class="pcb__tab-title">עזרו לי לבחור</span>
+        <span class="pcb__tab-sub">שלוש הצעות לפי שימוש ותקציב</span>
+      </button>
+      <button type="button" role="tab" class="pcb__tab" id="{{ uid }}-tab-steps" aria-controls="{{ uid }}-steps" aria-selected="false" tabindex="-1" data-mode-tab="steps">
+        <span class="pcb__tab-title">אני בוחר בעצמי</span>
+        <span class="pcb__tab-sub">רכיב אחרי רכיב, רק מה שמתאים</span>
+      </button>
+    </div>
+
+    <div class="pcb__body">
+      <div class="pcb__main">
+        <p class="pcb__status" data-status role="status">טוענים את רשימת הרכיבים…</p>
+
+        <div class="pcb__panel" role="tabpanel" id="{{ uid }}-guided" aria-labelledby="{{ uid }}-tab-guided" data-panel="guided">
+          <form class="pcb-guided" data-guided-form novalidate onsubmit="return false">
+            <fieldset class="pcb-guided__uses">
+              <legend class="pcb-guided__legend">למה המחשב?</legend>
+              <div class="pcb-guided__choices">
+                <label class="pcb-choice">
+                  <input type="radio" name="use" value="gaming" checked>
+                  <span class="pcb-choice__box">
+                    <span class="pcb-choice__title">גיימינג</span>
+                    <span class="pcb-choice__sub">משחקים חדשים ברזולוציה גבוהה</span>
+                  </span>
+                </label>
+                <label class="pcb-choice">
+                  <input type="radio" name="use" value="work">
+                  <span class="pcb-choice__box">
+                    <span class="pcb-choice__title">עבודה ועריכה</span>
+                    <span class="pcb-choice__sub">עריכת וידאו, תלת־ממד ותכנות</span>
+                  </span>
+                </label>
+                <label class="pcb-choice">
+                  <input type="radio" name="use" value="office">
+                  <span class="pcb-choice__box">
+                    <span class="pcb-choice__title">משרד ולימודים</span>
+                    <span class="pcb-choice__sub">אופיס, דפדפן, זום ולימודים</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+            <div class="pcb-guided__budget">
+              <div class="pcb-guided__budget-head">
+                <label class="pcb-guided__legend" for="{{ uid }}-budget">תקציב</label>
+                <output class="pcb-guided__budget-out" for="{{ uid }}-budget" data-budget-out>₪{{ budget_default }}</output>
+              </div>
+              <input class="pcb-range" type="range" id="{{ uid }}-budget" name="budget" min="{{ budget_min }}" max="{{ budget_max }}" step="100" value="{{ budget_default }}">
+              <div class="pcb-guided__budget-scale" aria-hidden="true"><span>₪{{ budget_min }}</span><span>₪{{ budget_max }}</span></div>
+            </div>
+            <label class="checkbox pcb-guided__os">
+              <input type="checkbox" name="include_os"{% if section.settings.include_os %} checked{% endif %}>
+              <span>כולל Windows 11 בעברית</span>
+            </label>
+          </form>
+          <h2 class="visually-hidden">ההצעות שלנו</h2>
+          <div class="pcb-builds" data-builds aria-live="polite"></div>
+        </div>
+
+        <div class="pcb__panel" role="tabpanel" id="{{ uid }}-steps" aria-labelledby="{{ uid }}-tab-steps" data-panel="steps" hidden>
+          <nav class="pcb-stepnav" data-stepnav aria-label="שלבי ההרכבה"></nav>
+          <div data-step-body></div>
+        </div>
+      </div>
+
+      <aside class="pcb-sum" aria-labelledby="{{ uid }}-sum-h">
+        <div class="pcb-sum__bar">
+          <button type="button" class="pcb-sum__toggle" data-action="toggle-summary" aria-expanded="false" aria-controls="{{ uid }}-sum-panel">
+            <span class="pcb-sum__toggle-total"><span class="visually-hidden">סה״כ </span><span data-total>₪0</span></span>
+            <span class="pcb-sum__chip" data-summary-chip>עוד לא נבחרו רכיבים</span>
+            <svg class="pcb-sum__chev" aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
+            <span class="visually-hidden">פרטי המחשב</span>
+          </button>
+          <button type="button" class="button button--accent pcb-sum__bar-cart" data-action="add-to-cart" disabled>לסל</button>
+        </div>
+        <div class="pcb-sum__panel" id="{{ uid }}-sum-panel" data-summary-panel tabindex="-1">
+          <div class="pcb-sum__head">
+            <h2 class="pcb-sum__title" id="{{ uid }}-sum-h">המחשב שלכם</h2>
+            <span class="pcb-sum__count" data-count></span>
+          </div>
+          <div data-summary-body></div>
+          <ul class="pcb-sum__promises" role="list">
+            {%- if section.settings.service_text != blank -%}<li>{{ section.settings.service_text | escape }}</li>{%- endif -%}
+            {%- if section.settings.delivery_text != blank -%}<li>{{ section.settings.delivery_text | escape }}</li>{%- endif -%}
+          </ul>
+          <p class="pcb-sum__total"><span>סה״כ</span> <strong data-total>₪0</strong></p>
+          <p class="pcb-sum__vat">המחירים כוללים מע״מ</p>
+          <div class="pcb-sum__actions">
+            <button type="button" class="button button--accent button--full button--large" data-action="add-to-cart" disabled>הוספת המחשב לסל</button>
+            <p class="pcb-sum__note" data-cart-note hidden></p>
+            <p class="form-message form-message--error" data-cart-error role="alert" hidden></p>
+            {%- if wa_digits != blank -%}
+              <button type="button" class="button button--full pcb-sum__wa" data-action="whatsapp" disabled>
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.5-.3Z"/></svg>
+                שליחה לנציג בוואטסאפ
+              </button>
+            {%- endif -%}
+            <div class="pcb-sum__links">
+              <button type="button" class="link" data-action="share" disabled><span data-share-label>העתקת קישור למחשב</span></button>
+              <button type="button" class="link" data-action="clear">ניקוי הבחירה</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <p class="visually-hidden" data-live aria-live="polite"></p>
+    <noscript><p class="pcb-empty">כדי להרכיב מחשב צריך לאפשר JavaScript בדפדפן. אפשר גם לפנות אלינו בוואטסאפ.</p></noscript>
+    <script type="application/json" data-pcb-overrides>
+      {
+      {%- assign first = true -%}
+      {%- paginate coll.products by 250 -%}
+        {%- for product in coll.products -%}
+          {%- assign pc = product.metafields.pc -%}
+          {%- if pc.category != blank or pc.socket != blank or pc.memory != blank or pc.form_factor != blank or pc.watts != blank or pc.cooler_tdp != blank or pc.igpu != blank or pc.needs_cooler != blank or pc.back_connect != blank -%}
+            {%- unless first %},{% endunless -%}
+            {%- assign first = false -%}
+            "{{ product.id }}": {"category": {{ pc.category.value | json }}, "socket": {{ pc.socket.value | json }}, "memory": {{ pc.memory.value | json }}, "form_factor": {{ pc.form_factor.value | json }}, "watts": {{ pc.watts.value | json }}, "cooler_tdp": {{ pc.cooler_tdp.value | json }}, "igpu": {{ pc.igpu.value | json }}, "needs_cooler": {{ pc.needs_cooler.value | json }}, "back_connect": {{ pc.back_connect.value | json }} }
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endpaginate -%}
+      }
+    </script>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "מרכיב מחשבים",
+  "class": "section-pc-builder",
+  "tag": "section",
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer",
+      "aside"
+    ]
+  },
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "קולקציית הרכיבים",
+      "info": "קולקציה אחת עם כל הרכיבים (מעבדים, לוחות, זיכרון, כרטיסי מסך, אחסון, קירור, ספקים, מארזים, מערכות הפעלה ותוספות). סוג הרכיב והתאימות נקראים משם המוצר; שדה מטא pc.* גובר על השם."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "מרכיבים מחשב"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "טקסט פתיחה",
+      "default": "בוחרים לבד או מקבלים שלוש הצעות לפי שימוש ותקציב. אנחנו מרכיבים, בודקים ושולחים עד הבית."
+    },
+    {
+      "type": "text",
+      "id": "service_text",
+      "label": "שורת שירות",
+      "default": "הרכבה, בדיקה ומשלוח עד הבית — חינם"
+    },
+    {
+      "type": "text",
+      "id": "delivery_text",
+      "label": "שורת אספקה",
+      "default": "אספקה עד 7 ימי עסקים"
+    },
+    {
+      "type": "text",
+      "id": "whatsapp_number",
+      "label": "מספר וואטסאפ לנציג",
+      "info": "ריק: המספר מהגדרות התבנית (מספר וואטסאפ)."
+    },
+    {
+      "type": "header",
+      "content": "הצעות לפי תקציב"
+    },
+    {
+      "type": "select",
+      "id": "default_mode",
+      "label": "מה נפתח קודם",
+      "options": [
+        {
+          "value": "guided",
+          "label": "שלוש הצעות לפי תקציב"
+        },
+        {
+          "value": "steps",
+          "label": "בחירה שלב אחר שלב"
+        }
+      ],
+      "default": "guided"
+    },
+    {
+      "type": "number",
+      "id": "budget_min",
+      "label": "תקציב מינימלי (₪)",
+      "default": 3500
+    },
+    {
+      "type": "number",
+      "id": "budget_max",
+      "label": "תקציב מקסימלי (₪)",
+      "default": 20000
+    },
+    {
+      "type": "number",
+      "id": "budget_default",
+      "label": "תקציב התחלתי (₪)",
+      "default": 6000
+    },
+    {
+      "type": "checkbox",
+      "id": "include_os",
+      "label": "ההצעות כוללות Windows 11 כברירת מחדל",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "עיצוב הסקשן"
+    },
+    {
+      "type": "paragraph",
+      "content": "כל מה שנשאר ריק לוקח את העיצוב הכללי של האתר (הגדרות התבנית › צבעים, טיפוגרפיה)."
+    },
+    {
+      "type": "select",
+      "id": "ss_visibility",
+      "label": "איפה להציג את הסקשן",
+      "options": [
+        {
+          "value": "all",
+          "label": "במחשב ובטלפון"
+        },
+        {
+          "value": "desktop",
+          "label": "רק במחשב"
+        },
+        {
+          "value": "mobile",
+          "label": "רק בטלפון"
+        }
+      ],
+      "default": "all"
+    },
+    {
+      "type": "color_background",
+      "id": "ss_background",
+      "label": "רקע",
+      "info": "צבע אחיד או מעבר צבעים (גרדיאנט)."
+    },
+    {
+      "type": "color",
+      "id": "ss_text_color",
+      "label": "צבע טקסט"
+    },
+    {
+      "type": "color",
+      "id": "ss_heading_color",
+      "label": "צבע כותרות"
+    },
+    {
+      "type": "color",
+      "id": "ss_accent_color",
+      "label": "צבע הדגשה",
+      "info": "קישורים, אייקונים ופרטים צבעוניים."
+    },
+    {
+      "type": "color",
+      "id": "ss_button_bg",
+      "label": "צבע כפתורים"
+    },
+    {
+      "type": "color",
+      "id": "ss_button_text",
+      "label": "צבע טקסט בכפתורים"
+    },
+    {
+      "type": "range",
+      "id": "ss_text_scale",
+      "label": "גודל טקסט",
+      "min": 80,
+      "max": 130,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "select",
+      "id": "ss_radius",
+      "label": "פינות של כפתורים וכרטיסים",
+      "options": [
+        {
+          "value": "theme",
+          "label": "כמו בשאר האתר"
+        },
+        {
+          "value": "square",
+          "label": "ישרות"
+        },
+        {
+          "value": "soft",
+          "label": "מעוגלות מעט"
+        },
+        {
+          "value": "round",
+          "label": "מעוגלות"
+        },
+        {
+          "value": "pill",
+          "label": "עגולות לגמרי"
+        }
+      ],
+      "default": "theme"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_heading_font",
+      "label": "פונט אחר לכותרות",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_heading_font",
+      "label": "פונט כותרות",
+      "info": "פונטים עם עברית: Assistant, Rubik, Frank Ruhl Libre.",
+      "default": "assistant_n7",
+      "visible_if": "{{ section.settings.ss_custom_heading_font }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_body_font",
+      "label": "פונט אחר לטקסט",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_body_font",
+      "label": "פונט טקסט",
+      "default": "assistant_n4",
+      "visible_if": "{{ section.settings.ss_custom_body_font }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "מרכיב מחשבים"
+    }
+  ]
+}
+{% endschema %}
