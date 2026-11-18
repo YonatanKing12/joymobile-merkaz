@@ -4,11 +4,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { brandOf, categorize, checkBuild, fitOf, parseTitle, planBuilds, powerOf, STEP_KEYS, toPart } from '../../assets/pc-builder-parser.js';
+import { applyChoice, brandOf, categorize, checkBuild, earlierOf, fitOf, isOrderable, parseTitle, planBuilds, powerOf, sanitize, STEP_KEYS, toPart } from '../../assets/pc-builder-parser.js';
+import { aimScore, cpuClassOf, estimateBuild, estimateFps, fpsText, GAMES, GPU_FPS, igpuOf, targetFor } from '../../assets/pc-builder-fps.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixture = JSON.parse(readFileSync(join(here, 'fixtures/products.json'), 'utf8')).products;
 const facts = (title, o) => parseTitle(title, o).facts;
+const fixtureParts = fixture.map((p) => toPart(p)).filter((p) => p && STEP_KEYS.includes(p.category));
 let nextId = 1;
 const part = (title, price = 100, overrides = {}) => toPart({ id: nextId, title, vendor: 'Joy Mobile Merkaz', variants: [{ id: nextId++ * 10, price: String(price), available: true }], images: [] }, overrides);
 
@@ -166,4 +168,165 @@ test('guided builds are complete, compatible and within the target', () => {
       assert.ok(builds[0].total <= builds[1].total && builds[1].total <= builds[2].total + 1, `${use} ${budget}: tiers in order`);
     }
   }
+});
+
+/* ---------- strict compatibility ---------- */
+
+const am5 = () => ({
+  cpu: part('מעבד AMD Ryzen 7 9800X3D ZEN5 AM5 8 Cores 16 Threads up to 5.2Ghz', 1600),
+  board: part('לוח אם GIGABYTE B850M DS3H DDR5 MICRO-ATX AM5 2.5GBE LAN', 650),
+  ram: part('זכרון לנייח Corsair Vengeance 32GB 2X16 DDR5 6000 C38', 900),
+  gpu: part('כרטיס מסך Gigabyte GeForce RTX 5070 AERO OC 12G', 3900),
+  storage: part('דיסק פנימי Kingston NV3 1TB NVME GEN 4.0 M.2 2280', 300),
+  cooler: part('קירור למעבד Antec F400 ARGB Black 205W 120mm PWM 4 Heatpipes', 120),
+  psu: part('ספק כוח Corsair RM850x 850W Gold ATX 3.1 Fully Modular', 500),
+  case: part('מארז Antec C5 ARGB Mid-Tower ATX', 300),
+});
+
+test('changing an earlier part drops the later parts that no longer fit, with the reason', () => {
+  const sel = { ...am5(), extra: [] };
+  assert.equal(isOrderable(sel), true, JSON.stringify(checkBuild(sel).problems));
+  const intel = part('מעבד Intel Core Ultra 7 265K 20 Cores up to 5.5GHz LGA1851 Box', 1200);
+  const { sel: next, removed } = applyChoice(sel, intel);
+  assert.equal(next.cpu, intel);
+  assert.deepEqual(removed.map((r) => r.step), ['board', 'cooler'], 'the AM5 board and the 205W cooler (the 265K reaches 250W) go; DDR5 memory and the rest still fit');
+  assert.match(removed[0].reason, /LGA1851/);
+  assert.match(removed[1].reason, /205W/);
+  assert.equal(checkBuild(next).problems.length, 0);
+  assert.equal(isOrderable(next), false, 'a build without a board cannot be ordered');
+  // A weaker PSU after a big card: the card wins, the PSU goes.
+  const big = part('כרטיס מסך Gigabyte GeForce RTX 5080 GAMING OC 16G', 6000);
+  const small = part('ספק CORSAIR CX650 Non modular 650W 80 Plus Bronze PSU', 250);
+  const withSmall = applyChoice(sel, small);
+  assert.deepEqual(withSmall.removed.map((r) => r.step), []);
+  const after = applyChoice(withSmall.sel, big);
+  assert.deepEqual(after.removed.map((r) => r.step), ['psu']);
+  // A DDR4 board pulls out DDR5 memory.
+  const am4 = applyChoice(sel, part('מעבד AMD Ryzen 5 5600 6 Cores AM4 Box', 400));
+  assert.ok(am4.removed.some((r) => r.step === 'board'));
+  assert.ok(am4.removed.some((r) => r.step === 'ram'), 'DDR5 memory does not go with an AM4 processor');
+});
+
+test('a shared link or a saved build with a bad pair is cleaned in step order', () => {
+  const s = am5();
+  const intelBoard = part('לוח אם Gigabyte Z790 EAGLE ATX DDR5 2.5GB Lan', 700);
+  const ddr4 = part('זכרון לנייח Kingston Fury Beast DDR4 16GB 3200Mhz C16', 300);
+  const tiny = part('מארז Antec ST10M TG Mini Tower Micro-Atx Black Glass Side Panel', 150);
+  const atx = part('לוח אם GIGABYTE B850 GAMING X WIFI6E ATX DDR5 AM5 BT 2.5 GBE LAN', 800);
+  const { sel, removed } = sanitize({ ...s, board: intelBoard, ram: ddr4, extra: [] });
+  assert.equal(sel.cpu, s.cpu, 'the earlier step wins');
+  assert.ok(!sel.board && !sel.ram);
+  assert.deepEqual(removed.map((r) => r.step), ['board', 'ram']);
+  const caseClash = sanitize({ ...s, board: atx, case: tiny, extra: [] });
+  assert.deepEqual(caseClash.removed.map((r) => r.step), ['case']);
+  // Whatever goes in, what comes out has no problem pair.
+  for (let i = 0; i < 200; i++) {
+    const pick = {};
+    for (const k of ['cpu', 'board', 'ram', 'gpu', 'cooler', 'psu', 'case']) {
+      const list = fixtureParts.filter((p) => p.category === k);
+      pick[k] = list[(i * 7919 + k.length * 104729) % list.length];
+    }
+    const clean = sanitize({ ...pick, extra: [] }).sel;
+    assert.equal(checkBuild(clean).problems.length, 0, `random build ${i}`);
+  }
+});
+
+test('unknown facts never pass: a board without its memory type, an unrated cooler on a hot processor', () => {
+  const unknown = part('לוח Gigabyte B760M AORUS ELITE WIFI 6E GEN 5 mATX BT', 700);
+  assert.deepEqual(unknown.missing, ['memory']);
+  const i5 = part('מעבד Intel Core i5-14400F 10 Cores LGA1700 Box', 600);
+  assert.equal(fitOf(unknown, {}).ok, false, 'blocked even on its own');
+  assert.equal(fitOf(unknown, { cpu: i5 }).ok, false);
+  assert.match(fitOf(unknown, { cpu: i5 }).reasons[0], /סוג זיכרון/);
+  assert.equal(sanitize({ cpu: i5, board: unknown, extra: [] }).sel.board, undefined);
+  // A pc.memory metafield confirms it.
+  const confirmed = toPart({ id: 1, title: unknown.title, variants: [{ id: 2, price: '700', available: true }] }, { memory: 'DDR5' });
+  assert.equal(fitOf(confirmed, { cpu: i5 }).ok, true);
+  assert.equal(fitOf(part('זכרון לנייח Corsair Vengeance 32GB 2X16 DDR5 6000 C38', 900), { cpu: i5, board: confirmed }).ok, true);
+  // Every fixture part with a missing fact is blocked in every step.
+  for (const p of fixtureParts.filter((x) => x.missing.length)) assert.equal(fitOf(p, {}).ok, false, p.title);
+  // A cooler without a rating: fine up to 150W, not for a 250W processor (either order).
+  const unrated = part('Cooler Master Hyper 212 3DHP ARGB Black Edition CPU Air Cooler', 150);
+  assert.equal(unrated.facts.tdp, null);
+  const hot = part('מעבד Intel Core Ultra 9 285K 24 Cores LGA1851 Tray', 2200);
+  assert.ok(hot.facts.watts > 150);
+  assert.equal(fitOf(unrated, { cpu: hot }).ok, false);
+  assert.equal(fitOf(hot, { cooler: unrated }).ok, false);
+  assert.equal(fitOf(unrated, { cpu: part('מעבד AMD Ryzen 5 7600X AM5 Tray', 600) }).ok, true);
+});
+
+test('orderable: complete for its required steps and no problem pair', () => {
+  const s = am5();
+  assert.equal(isOrderable({ ...s, extra: [] }), true);
+  const { gpu, ...noCard } = s;
+  assert.equal(isOrderable({ ...noCard, extra: [] }), true, '9800X3D has graphics: a card is optional');
+  const f = part('מעבד AMD Ryzen 5 7500F 6 Cores AM5 Tray', 500);
+  assert.equal(isOrderable({ ...noCard, cpu: f, extra: [] }), false, 'an F processor needs a card');
+  assert.deepEqual(checkBuild({ ...noCard, cpu: f }).missing, ['gpu']);
+  const { cooler, ...noCooler } = s;
+  assert.equal(isOrderable({ ...noCooler, extra: [] }), false, 'a processor without a cooler in the box needs one');
+  const stealth = part('לוח אם עם מחברי חשמל מאחור Gigabyte B850 A STEALTH AM5 DDR5 WIFI7', 900);
+  assert.equal(isOrderable({ ...s, board: stealth, extra: [] }), false, 'rear-connector board in a regular case');
+  // earlierOf: only the steps before.
+  assert.deepEqual(Object.keys(earlierOf(s, 'psu')), ['cpu', 'board', 'ram', 'gpu', 'storage', 'cooler']);
+});
+
+/* ---------- FPS estimates ---------- */
+
+test('every graphics card and processor in the supplier list has an estimate', () => {
+  for (const p of fixtureParts.filter((x) => x.category === 'gpu')) assert.ok(GPU_FPS[p.facts.chip], p.facts.chip);
+  for (const p of fixtureParts.filter((x) => x.category === 'cpu')) {
+    assert.ok(cpuClassOf(p), p.title);
+    if (p.facts.igpu) assert.ok(igpuOf(p), p.facts.model);
+    else assert.equal(igpuOf(p), null);
+  }
+  for (const [chip, row] of Object.entries(GPU_FPS))
+    for (const g of GAMES) {
+      const [a, b] = row[g.key];
+      assert.ok(a > 0 && b > 0 && b <= a, `${chip} ${g.key}: 1440p not above 1080p`);
+    }
+});
+
+test('FPS lookup: the card, the processor cap, the game cap, 4K', () => {
+  const cpu = (title) => part(title, 500);
+  const gpu = (title) => part(title, 2000);
+  const x3d = cpu('מעבד AMD Ryzen 7 9800X3D ZEN5 AM5 8 Cores 16 Threads up to 5.2Ghz');
+  const i3 = cpu('מעבד Intel Core i3-14100 4 Cores LGA1700 Box');
+  const r5070 = gpu('כרטיס מסך Gigabyte GeForce RTX 5070 AERO OC 12G');
+  const r5080 = gpu('כרטיס מסך Gigabyte GeForce RTX 5080 GAMING OC 16G');
+  assert.deepEqual(estimateFps({ cpu: x3d, gpu: r5070 }, 'cyberpunk', '1080p'), { fps: 115, bound: 'gpu' });
+  assert.deepEqual(estimateFps({ cpu: x3d, gpu: r5070 }, 'cyberpunk', '1440p'), { fps: 80, bound: 'gpu' });
+  assert.deepEqual(estimateFps({ cpu: x3d, gpu: r5070 }, 'cyberpunk', '4k'), { fps: 40, bound: 'gpu' });
+  assert.deepEqual(estimateFps({ cpu: i3, gpu: r5080 }, 'cs2', '1080p'), { fps: 180, bound: 'cpu' }, 'an entry processor holds back an esports title');
+  assert.deepEqual(estimateFps({ cpu: x3d, gpu: r5080 }, 'fc', '1080p'), { fps: 240, bound: 'game' });
+  // No card: the processor's own graphics; none at all for an F part.
+  assert.equal(estimateFps({ cpu: i3 }, 'valorant', '1080p').fps, 31);
+  assert.equal(estimateFps({ cpu: cpu('מעבד AMD Ryzen 5 7500F 6 Cores AM5 Tray') }, 'valorant', '1080p'), null);
+  assert.equal(fpsText(12), '<30');
+  assert.equal(fpsText(null), '—');
+  assert.equal(targetFor('cs2', '1080p'), 144);
+  assert.equal(targetFor('cs2', '4k'), 60);
+  const rows = estimateBuild({ cpu: x3d, gpu: r5070 }, ['cs2', 'cyberpunk'], '1440p');
+  assert.deepEqual(rows.map((r) => [r.key, r.meets]), [['cs2', true], ['cyberpunk', true]]);
+  assert.equal(estimateBuild({ cpu: x3d, gpu: r5070 }, [], '1080p').length, GAMES.length, 'no games chosen: all of them');
+  assert.equal(aimScore({ cpu: x3d, gpu: r5070 }, ['cyberpunk'], '1440p'), 1);
+  assert.ok(aimScore({ cpu: i3 }, ['cyberpunk'], '1440p') < 0.1);
+});
+
+test('games-first: with games and a resolution, the builds buy frames up to the target', () => {
+  const games = ['cyberpunk', 'warzone'];
+  const res = '1440p';
+  const aim = { score: (sel) => aimScore(sel, games, res) };
+  const plain = planBuilds(fixtureParts, { use: 'gaming', budget: 8000, includeOs: true });
+  const aimed = planBuilds(fixtureParts, { use: 'gaming', budget: 8000, includeOs: true, aim });
+  for (const b of aimed) {
+    assert.equal(b.check.ok, true, `${b.key}: ${JSON.stringify(b.check.problems)}`);
+    assert.ok(b.total <= b.target + 1, `${b.key} within its target`);
+  }
+  const score = (b) => aimScore(b.parts, games, res);
+  aimed.forEach((b, i) => assert.ok(score(b) >= score(plain[i]) - 1e-9, `${b.key}: aiming never lowers the frame rate`));
+  assert.ok(estimateBuild(aimed[1].parts, games, res).every((r) => r.meets), 'the recommended 8,000 build meets 60/90 FPS at 1440p');
+  // A budget too small for the target still gives the best it can, within the budget.
+  const low = planBuilds(fixtureParts, { use: 'gaming', budget: 4000, includeOs: true, aim: { score: (sel) => aimScore(sel, ['cyberpunk'], '4k') } });
+  for (const b of low) assert.equal(b.check.ok, true);
 });

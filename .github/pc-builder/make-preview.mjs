@@ -31,7 +31,10 @@ const values = {
   budget_max: settings.budget_max,
   budget_default: settings.budget_default,
   'wa_digits | escape': '972500000000',
+  'wa_display | escape': '050-0000000',
+  'shop.name | escape': 'JOY Mobile',
   "'pc-builder-parser.js' | asset_url": '../../assets/pc-builder-parser.js',
+  "'pc-builder-fps.js' | asset_url": '../../assets/pc-builder-fps.js',
 };
 body = body.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (m, expr) => {
   if (expr in values) return values[expr];

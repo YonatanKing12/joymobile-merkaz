@@ -15,6 +15,11 @@
      pc.igpu          true | false                                      (CPU has graphics)
      pc.needs_cooler  true | false                                      (CPU sold without a cooler)
      pc.back_connect  true | false                                      (board with rear connectors; a case for them)
+
+   Strict compatibility: a part missing a fact its checks need (REQUIRED_FACTS) never fits anything until a pc.*
+   metafield gives it; a cooler with no rating fits processors up to UNRATED_COOLER_MAX only. applyChoice() drops the
+   chosen parts a new choice no longer fits, sanitize() cleans a selection from a link or a saved build, and
+   checkBuild().ok (isOrderable) is what the cart and the quote require.
    ========================================================================== */
 
 export const STEPS = [
@@ -476,6 +481,7 @@ export function toPart(product, overrides = {}) {
     title: String(product.title || '').replace(/\s+/g, ' ').trim(),
     price: num(variant.price) || 0,
     image,
+    sku: variant.sku || null,
     brand: brandOf(product.title || '', product.vendor, category),
     category,
     facts,
@@ -499,11 +505,32 @@ export function powerOf(sel) {
 
 const fmtW = (w) => `${w}W`;
 
+/* Facts in words, for the reason a part with a missing fact cannot be chosen. */
+const FACT_LABELS = {
+  socket: 'תושבת',
+  memory: 'סוג זיכרון',
+  formFactor: 'גודל',
+  watts: 'הספק',
+  igpu: 'גרפיקה מובנית',
+  capacity: 'נפח',
+  capacityGb: 'נפח',
+  chip: 'דגם',
+  kind: 'סוג',
+  type: 'סוג',
+  edition: 'גרסה',
+};
+
+/* A cooler that does not state its rating is trusted only up to this (W). */
+export const UNRATED_COOLER_MAX = 150;
+
 /** Why `part` cannot go with what is already chosen (hard reasons), and what to double-check (soft). */
 export function fitOf(part, sel) {
   const reasons = [];
   const notes = [];
   const f = part.facts;
+  // Strict: a part whose title (and pc.* metafields) does not give a fact the checks need is never matched blindly.
+  if (part.missing && part.missing.length)
+    reasons.push(`חסר בשם המוצר: ${[...new Set(part.missing.map((k) => FACT_LABELS[k] || k))].join(', ')}. נציג יכול לבדוק בשבילכם`);
   const cpu = part.category === 'cpu' ? part : sel.cpu;
   const board = part.category === 'board' ? part : sel.board;
   const ram = part.category === 'ram' ? part : sel.ram;
@@ -520,13 +547,13 @@ export function fitOf(part, sel) {
         if (ram && ram.facts.memory && f.memory && ram.facts.memory !== f.memory) reasons.push(`הלוח תומך ב-${f.memory}, והזיכרון שנבחר הוא ${ram.facts.memory}`);
         if (kase && kase.facts.formFactor && f.formFactor && ffRank(f.formFactor) > ffRank(kase.facts.formFactor)) reasons.push(`לוח ${f.formFactor} לא נכנס למארז ${kase.facts.formFactor}`);
         if (kase && f.backConnect && !kase.facts.backConnect) reasons.push('לוח עם מחברים מאחור צריך מארז שתומך בזה');
-        if (!f.memory) notes.push('סוג הזיכרון של הלוח לא מצוין בשם המוצר');
       }
       if (part.category === 'cpu') {
         const mem = ram?.facts.memory;
         const need = f.socket ? SOCKET_MEMORY[f.socket] : null;
         if (!board && mem && need && mem !== need) reasons.push(`המעבד עובד עם ${need}, והזיכרון שנבחר הוא ${mem}`);
         if (cooler && cooler.facts.tdp && f.watts && cooler.facts.tdp + 10 < f.watts) reasons.push(`המעבד מגיע ל-${fmtW(f.watts)}, והקירור שנבחר מתאים עד ${fmtW(cooler.facts.tdp)}`);
+        if (cooler && !cooler.facts.tdp && f.watts > UNRATED_COOLER_MAX) reasons.push(`המעבד מגיע ל-${fmtW(f.watts)}, ודירוג הקירור שנבחר לא מצוין`);
       }
       break;
     }
@@ -536,7 +563,6 @@ export function fitOf(part, sel) {
         const need = SOCKET_MEMORY[cpu.facts.socket];
         if (need && need !== f.memory) reasons.push(`המעבד שנבחר עובד עם ${need}`);
       }
-      if (board && !board.facts.memory) notes.push('יש לוודא שסוג הזיכרון מתאים ללוח');
       break;
     }
     case 'case': {
@@ -546,6 +572,7 @@ export function fitOf(part, sel) {
     }
     case 'cooler': {
       if (cpu && cpu.facts.watts && f.tdp && f.tdp + 10 < cpu.facts.watts) reasons.push(`מתאים עד ${fmtW(f.tdp)}, והמעבד שנבחר מגיע ל-${fmtW(cpu.facts.watts)}`);
+      if (cpu && cpu.facts.watts > UNRATED_COOLER_MAX && !f.tdp) reasons.push(`הדירוג לא מצוין, והמעבד שנבחר מגיע ל-${fmtW(cpu.facts.watts)}`);
       break;
     }
     case 'psu':
@@ -594,6 +621,49 @@ export function checkBuild(sel) {
   const power = powerOf(sel);
   return { ok: problems.length === 0 && missing.length === 0, problems, missing, notes: [...new Map(notes.map((n) => [n.text, n])).values()], power };
 }
+
+/** The parts of the steps before `key`: what a part of that step must fit. */
+export function earlierOf(sel, key) {
+  const out = {};
+  for (const k of STEP_KEYS) {
+    if (k === key) break;
+    if (k !== 'extra' && sel[k]) out[k] = sel[k];
+  }
+  return out;
+}
+
+/** Keeps, in step order, only the parts that fit everything kept before them (a shared link, a saved build, the
+    last check before the cart). Returns the clean selection and what was dropped, with the reason. */
+export function sanitize(sel) {
+  const kept = {};
+  const removed = [];
+  for (const k of STEP_KEYS) {
+    if (k === 'extra' || !sel[k]) continue;
+    const fit = fitOf(sel[k], kept);
+    if (fit.ok) kept[k] = sel[k];
+    else removed.push({ step: k, part: sel[k], reason: fit.reasons[0] });
+  }
+  return { sel: { ...kept, extra: [...(sel.extra || [])] }, removed };
+}
+
+/** Chooses `part` and drops every other chosen part that no longer fits it (the new choice wins). */
+export function applyChoice(sel, part) {
+  const key = part.category;
+  const kept = { [key]: part };
+  const removed = [];
+  for (const k of STEP_KEYS) {
+    if (k === key || k === 'extra' || !sel[k]) continue;
+    const fit = fitOf(sel[k], kept);
+    if (fit.ok) kept[k] = sel[k];
+    else removed.push({ step: k, part: sel[k], reason: fit.reasons[0] });
+  }
+  const out = {};
+  for (const k of STEP_KEYS) if (k !== 'extra' && kept[k]) out[k] = kept[k];
+  return { sel: { ...out, extra: [...(sel.extra || [])] }, removed };
+}
+
+/** Whether a selection may go to the cart (or into a quote): complete for its required steps, and every pair fits. */
+export const isOrderable = (sel) => checkBuild(sel).ok;
 
 /* ---------- guided builds ----------
    Start from the cheapest complete, compatible computer for the use, then keep taking the upgrade that adds the most
@@ -670,7 +740,7 @@ function poolsFor(byCat, use, target) {
     case: byCat.case.filter((c) => c.facts.formFactor),
     psu: byCat.psu.filter((p) => p.facts.watts),
   };
-  for (const list of Object.values(pools)) list.sort((a, b) => a.price - b.price);
+  for (const [k, list] of Object.entries(pools)) pools[k] = list.filter((p) => !p.missing?.length).sort((a, b) => a.price - b.price);
   const range = {};
   for (const [k, list] of Object.entries(pools)) {
     const s = list.map((p) => scoreOf(p, use));
@@ -703,7 +773,10 @@ function repair(sel, pools, use, keep) {
   return out;
 }
 
-function valueOf(sel, use, range) {
+/* With games chosen, closing the gap to their target frame rates is worth more than anything else the budget buys. */
+export const AIM_WEIGHT = 800;
+
+function valueOf(sel, use, range, aim) {
   const w = USES[use].weights;
   const norm = {};
   let v = 0;
@@ -715,14 +788,15 @@ function valueOf(sel, use, range) {
   }
   // Balance: a strong card held back by a weak processor (or the other way round) is money badly spent.
   if (norm.gpu !== undefined && norm.cpu !== undefined && USES[use].gpu) v -= 3 * Math.max(0, Math.abs(norm.gpu - norm.cpu) - 35);
+  if (aim && aim.score) v += AIM_WEIGHT * aim.score(sel);
   return v;
 }
 
 /** Keeps taking the upgrade with the most value per shekel while the total stays within `budget`. */
-function upgrade(start, pools, range, use, budget) {
+function upgrade(start, pools, range, use, budget, aim) {
   let best = start;
   for (let round = 0; round < 60; round++) {
-    const base = valueOf(best, use, range);
+    const base = valueOf(best, use, range, aim);
     const cost0 = sum(best);
     let pickSel = null;
     let pickRate = 0;
@@ -738,7 +812,7 @@ function upgrade(start, pools, range, use, budget) {
         if (!trial || !fitOf(cand, { ...trial, [key]: undefined }).ok || !suits(key, trial.cpu, cand)) continue;
         const cost = sum(trial);
         if (cost > budget) continue;
-        const gain = valueOf(trial, use, range) - base;
+        const gain = valueOf(trial, use, range, aim) - base;
         if (gain <= 0) continue;
         const rate = cost <= cost0 ? Infinity : gain / (cost - cost0);
         if (rate > pickRate) {
@@ -754,7 +828,7 @@ function upgrade(start, pools, range, use, budget) {
 }
 
 /** One build for `target` shekels. */
-export function planBuild(byCat, { use = 'gaming', target = 6000, includeOs = true } = {}) {
+export function planBuild(byCat, { use = 'gaming', target = 6000, includeOs = true, aim = null } = {}) {
   const { pools, range } = poolsFor(byCat, use, target);
   let os = null;
   if (includeOs) {
@@ -776,9 +850,9 @@ export function planBuild(byCat, { use = 'gaming', target = 6000, includeOs = tr
   let best = null;
   let bestValue = -Infinity;
   for (const start of starts.values()) {
-    const sel = upgrade(start, pools, range, use, budget);
+    const sel = upgrade(start, pools, range, use, budget, aim);
     // Over the budget whatever we do: the cheapest one wins.
-    const value = sum(sel) > budget ? -1e9 - sum(sel) : valueOf(sel, use, range);
+    const value = sum(sel) > budget ? -1e9 - sum(sel) : valueOf(sel, use, range, aim);
     if (value > bestValue || (value === bestValue && sum(sel) < sum(best))) {
       best = sel;
       bestValue = value;
@@ -787,12 +861,13 @@ export function planBuild(byCat, { use = 'gaming', target = 6000, includeOs = tr
   return withOs(best);
 }
 
-/** Three builds (חסכוני / מומלץ / חזק) for a use and a budget; each one passes checkBuild. */
-export function planBuilds(parts, { use = 'gaming', budget = 6000, includeOs = true } = {}) {
+/** Three builds (חסכוני / מומלץ / חזק) for a use and a budget; each one passes checkBuild. `aim` (optional):
+    { score(sel) → 0…1 }, how close a selection comes to the chosen games' target frame rates (pc-builder-fps.js). */
+export function planBuilds(parts, { use = 'gaming', budget = 6000, includeOs = true, aim = null } = {}) {
   const byCat = groupParts(parts);
   return TIERS.map((tier) => {
     const target = budget * tier.factor;
-    const sel = planBuild(byCat, { use, target, includeOs });
+    const sel = planBuild(byCat, { use, target, includeOs, aim });
     const ordered = Object.fromEntries(ORDER.filter((k) => sel[k]).map((k) => [k, sel[k]]));
     return { ...tier, target, parts: ordered, total: sum(ordered), check: checkBuild(ordered) };
   });
