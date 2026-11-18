@@ -1,0 +1,18 @@
+{
+  "sections": {
+    "main": {
+      "type": "pc-builder",
+      "settings": {
+        "heading": "מרכיבים מחשב",
+        "default_mode": "guided",
+        "budget_min": 3500,
+        "budget_max": 20000,
+        "budget_default": 6000,
+        "include_os": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
