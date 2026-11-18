@@ -330,6 +330,13 @@
     </nav>
   {%- endif -%}
 
+  {%- comment -%} Computers categories: a compact link to the PC builder (snippets/collection-pc-builder). {%- endcomment -%}
+  {%- render 'collection-pc-builder',
+    collection: collection,
+    handles: section.settings.pc_builder_collections,
+    url: section.settings.pc_builder_link
+  -%}
+
   {%- liquid
     # Nothing in stock and no filter of the shopper's: the empty state, not "no matches, clear the filters".
     assign nothing_listed = false
@@ -792,6 +799,23 @@
       "id": "empty_collections",
       "label": "קטגוריות מומלצות",
       "limit": 8
+    },
+    {
+      "type": "header",
+      "content": "מרכיב מחשבים"
+    },
+    {
+      "type": "text",
+      "id": "pc_builder_collections",
+      "label": "קטגוריות עם כפתור ״להרכבת מחשב״",
+      "info": "מזהי הקטגוריות (handle), מופרדים בפסיקים. ריק: הכפתור לא מוצג.",
+      "default": "computers-gaming, computers-laptops, computers-desktops, pc-cpu, pc-motherboards, pc-ram, pc-gpu, pc-storage, pc-psu, pc-cases, pc-cooling, pc-laptops, pc-desktops, pc-monitors, pc-peripherals, pc-software, pc-builder-parts"
+    },
+    {
+      "type": "url",
+      "id": "pc_builder_link",
+      "label": "קישור הכפתור",
+      "info": "ריק: עמוד מרכיב המחשבים (pc-builder)."
     },
     {
       "type": "header",

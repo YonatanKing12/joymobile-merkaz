@@ -1,0 +1,49 @@
+{% doc %}
+  "להרכבת מחשב" on the computers categories: one compact link card near the top of the collection page
+  (sections/main-collection, under the sub-category links) that leads to the PC builder page.
+  A small mint disc with a PC tower, the title, one short line and a chevron; the whole card is the link
+  (at least 44px tall). Rendered only when the collection's handle is in `handles` (comma separated) and
+  the link resolves: `url`, else the page with the handle pc-builder, else /pages/pc-builder.
+  Styles: assets/component-collection-pc-builder.css (linked here).
+
+  @param {collection} collection - The collection.
+  @param {string} handles - Comma-separated collection handles that show the card.
+  @param {string} [url] - Link override (the section setting).
+
+  @example
+  {% render 'collection-pc-builder', collection: collection, handles: section.settings.pc_builder_collections, url: section.settings.pc_builder_link %}
+{% enddoc %}
+{%- liquid
+  assign cpb_show = false
+  assign cpb_handles = handles | split: ','
+  for cpb_handle in cpb_handles
+    assign cpb_probe = cpb_handle | strip | downcase
+    if cpb_probe != blank and cpb_probe == collection.handle
+      assign cpb_show = true
+      break
+    endif
+  endfor
+
+  assign cpb_url = url
+  if cpb_url == blank
+    assign cpb_url = pages['pc-builder'].url | default: '/pages/pc-builder'
+  endif
+-%}
+{%- if cpb_show -%}
+  {{ 'component-collection-pc-builder.css' | asset_url | stylesheet_tag }}
+  <a class="collection-pcb" href="{{ cpb_url }}">
+    <span class="collection-pcb__icon" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+        <rect x="6" y="2.5" width="12" height="18" rx="2"/>
+        <path d="M9 6h4M9 8.5h4"/>
+        <circle cx="12" cy="14" r="3"/>
+        <path d="M8.5 21.5v.5M15.5 21.5v.5"/>
+      </svg>
+    </span>
+    <span class="collection-pcb__text">
+      <span class="collection-pcb__title">{{ 'collections.pc_builder.title' | t }}</span>
+      <span class="collection-pcb__line">{{ 'collections.pc_builder.text' | t }}</span>
+    </span>
+    {%- render 'icon', name: 'chevron-left', size: 18, class: 'collection-pcb__chevron' -%}
+  </a>
+{%- endif -%}

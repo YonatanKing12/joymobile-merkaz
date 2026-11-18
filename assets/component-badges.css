@@ -305,6 +305,12 @@
   }
 }
 
+/* "ישר מהספק" (drop-ship products): the same disc and motion, with the glow in the artwork's orange and navy. */
+.sale-badge--supplier {
+  --sale-glow: #ff7a1a;
+  --sale-glow-deep: #0b2a7a;
+}
+
 /* Phones (cards ≈155–175px wide): a smaller disc, about a third of the well. */
 @container card-product (max-width: 200px) {
   .sale-badge--card {

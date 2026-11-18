@@ -1,0 +1,87 @@
+/* "להרכבת מחשב" on the computers categories (snippets/collection-pc-builder): one calm link card under the
+   sub-category links. Light surface, thin border, a small mint disc, the title in the brand's green, one short
+   line and a chevron at the inline end. The whole card is the target (44px at least). */
+
+.collection-pcb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-block-size: var(--tap-target, 44px);
+  margin-block: 0 var(--space-md);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-soft);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.collection-pcb__icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.collection-pcb__text {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+}
+
+.collection-pcb__title {
+  color: var(--color-brand-text);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+}
+
+.collection-pcb__line {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.collection-pcb__chevron {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-brand-text);
+}
+
+.collection-pcb:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .collection-pcb:hover {
+    border-color: var(--color-brand);
+    background-color: var(--color-hover-bg);
+  }
+}
+
+@media (min-width: 768px) {
+  .collection-pcb {
+    display: inline-flex;
+    max-width: 100%;
+    padding-inline: var(--space-md);
+  }
+
+  .collection-pcb__line {
+    font-size: var(--text-md);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .collection-pcb {
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+}
