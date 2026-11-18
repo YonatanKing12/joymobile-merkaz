@@ -127,8 +127,9 @@
       "with_vat": "מחיר כולל מע״מ",
       "saving": "חוסכים {{ amount }} לעומת המחיר בארץ",
       "saving_short": "חוסכים {{ amount }}",
-      "regular": "מחיר רגיל",
+      "regular": "מחיר קודם",
       "sale": "מחיר מבצע",
+      "discount_percent": "{{ percent }}% הנחה",
       "from": "החל מ־{{ price }}",
       "sold_out": "אזל מהמלאי"
     },

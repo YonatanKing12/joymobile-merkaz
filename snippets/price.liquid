@@ -22,10 +22,17 @@
   zero. Theme settings `price_show_saving` (product page) and `price_show_saving_card` (cards).
   Not with "החל מ־": that amount belongs to another variant than the stored price.
 
+  Discount (compare-at): when the variant's compare_at_price is above its price (and the theme setting
+  `price_show_compare` is on, not with "החל מ־"), the previous price is struck through in muted grey, the
+  new price is the bold amount, and a pill shows the percentage off, rounded down so it never overstates
+  ("-23%", aria-hidden, with "23% הנחה" for screen readers). Cards and the product page draw the same
+  pill above the amount; the product page adds "חוסכים ₪X" (the two stored amounts' difference) under it.
+  The pill is skipped under 1% (a ₪1 drop on a ₪1,000 item reads as a gimmick); the strike-through stays.
+
   Markup classes (styled by Track F's assets/component-price.css; baseline in
   docs/rebuild/reports/liquid-core-component-css.css): .price, .price--card | .price--product,
   .price--on-sale, .price--sold-out, .price__main, .price__label, .price__amount,
-  .price__compare, .price__tax-free, .price__note, .price__vat, .price__vat-label,
+  .price__compare, .price__off, .price__discount, .price__tax-free, .price__note, .price__vat, .price__vat-label,
   .price__vat-amount, .price__saving, .price__sold-out. The amount is not wrapped in <bdi>: in the RTL
   flow "4,299 ₪" shows the shekel sign to the left of the number, as on the live site.
 
@@ -69,6 +76,15 @@
   assign on_sale = false
   if settings.price_show_compare and show_from == false and compare_amount > amount
     assign on_sale = true
+  endif
+
+  assign discount_pct = 0
+  assign discount_display = ''
+  if on_sale
+    # Cents are integers, so the division rounds down: the pill never claims more than the real saving.
+    assign discount_cents = compare_amount | minus: amount
+    assign discount_pct = discount_cents | times: 100 | divided_by: compare_amount
+    assign discount_display = discount_cents | money_without_trailing_zeros
   endif
 
   assign is_tax_free = false
@@ -140,11 +156,17 @@
     </span>
     {%- if on_sale -%}
       <s class="price__compare"><span class="visually-hidden">{{ 'products.price.regular' | t }} </span>{{ compare_amount | money_without_trailing_zeros }}</s>
+      {%- if discount_pct >= 1 -%}
+        <span class="price__off"><span aria-hidden="true" dir="ltr">-{{ discount_pct }}%</span><span class="visually-hidden">{{ 'products.price.discount_percent' | t: percent: discount_pct }}</span></span>
+      {%- endif -%}
     {%- endif -%}
     {%- if show_chip -%}
       <span class="price__tax-free" lang="en">{{ 'products.price.tax_free' | t }}</span>
     {%- endif -%}
   </div>
+  {%- if on_sale and price_context == 'product' and discount_display != blank -%}
+    <p class="price__discount">{{ 'products.price.saving_short' | t: amount: discount_display }}</p>
+  {%- endif -%}
   {%- if saving_display != blank -%}
     <p class="price__saving">
       {%- if price_context == 'card' -%}

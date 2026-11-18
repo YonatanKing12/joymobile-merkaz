@@ -69,3 +69,7 @@ Theme Check: 0 שגיאות ו-0 אזהרות (`shopify theme check`).
 
 בדיקות ותצוגה מקדימה בלי חנות: `.github/pc-builder` (`node coverage.mjs` לכיסוי המפענח על שמות הספק, `node --test parser.test.mjs`, ו־`preview.html` עם `screenshot.cjs`).
 
+
+## מחיר לפני הנחה (compare-at)
+
+כשלווריאנט יש ״מחיר לפני הנחה״ גבוה מהמחיר (`compare_at_price`, ובהגדרות ה-theme `price_show_compare` פועל), `snippets/price` מציג בשורה עליונה את המחיר הקודם מחוק באפור ועיגול אחוז ההנחה (״-23%״, מעוגל כלפי מטה, לא מוצג מתחת ל־1%), ומתחתיו את המחיר החדש בולט באדום עמוק. בדף המוצר נוסף מתחת למחיר ״חוסכים ₪X״. לקוראי מסך: ״מחיר מבצע״, ״מחיר קודם״ ו״X% הנחה״. העיצוב ב־`assets/component-price.css`. מחיר לפני הנחה נקבע מהדשבורד (preview_price_update עם `compare_at`) ורק לפי מחיר אמיתי קודם.

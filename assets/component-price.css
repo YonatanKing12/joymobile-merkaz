@@ -89,8 +89,67 @@
   font-weight: 700;
 }
 
+/* Discount (compare-at above the price): the old price struck through in muted grey with the percentage
+   pill beside it on a first line, then the new price, bold, in the deal red; on the product page the
+   saving ("חוסכים ₪X") under it. One deep red for the price and the pill (white on it is 6.5:1). The DOM
+   keeps the new price first for screen readers ("מחיר מבצע", then "מחיר קודם"); `order` draws the
+   old price above it. */
+.price--on-sale {
+  --price-deal: #b3261e;
+}
+
+.price--on-sale .price__main {
+  align-items: center;
+  row-gap: 0.125rem;
+}
+
 .price--on-sale .price__amount {
-  color: var(--color-sale);
+  flex-basis: 100%;
+  order: 3;
+  color: var(--price-deal);
+}
+
+.price--on-sale .price__compare {
+  order: 1;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  text-decoration-line: line-through;
+  text-decoration-thickness: 1px;
+  text-decoration-color: currentColor;
+}
+
+.price__off {
+  display: inline-flex;
+  align-items: center;
+  order: 2;
+  padding: 0.0625rem 0.4375rem;
+  border-radius: var(--radius-pill);
+  background: var(--price-deal, #b3261e);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.price__discount {
+  align-self: flex-start;
+  margin: 0.25rem 0 0;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: #fdeceb;
+  color: var(--price-deal, #b3261e);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.price--on-sale.price--sold-out {
+  --price-deal: var(--color-muted);
 }
 
 .price--sold-out .price__amount {
@@ -127,6 +186,10 @@
 
 .price--card .price__compare {
   font-size: var(--text-sm);
+}
+
+.price--card .price__off {
+  font-size: var(--text-2xs);
 }
 
 /* Card: a compact chip in the TAX FREE colours (navy on mint), sized to its text. */

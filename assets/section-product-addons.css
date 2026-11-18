@@ -431,7 +431,7 @@ product-addons:has([data-pa-check]:checked) .pa__hint {
   display: none;
 }
 
-.product__price--addons :is(.price__compare, .price__saving, .price__vat, .price__note) {
+.product__price--addons :is(.price__compare, .price__off, .price__discount, .price__saving, .price__vat, .price__note) {
   display: none;
 }
 
