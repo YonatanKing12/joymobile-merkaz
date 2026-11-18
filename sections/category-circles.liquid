@@ -1,5 +1,7 @@
 {%- comment -%}
-  Category circles carousel. Each block = collection + optional custom image + optional label.
+  Category circles carousel. Each block = collection + optional custom image + optional label + optional link (a
+  page that is not a collection, e.g. the PC builder; it wins over the collection's URL, and a block with a link and
+  an image needs no collection).
   Default look is a disc with a 2px ring in the brand green (--color-brand).
   The owner may upload a frame image ("מסגרת לעיגול קטגוריה") that is drawn over every circle box;
   with a frame the ring is dropped, so the two never stack. Collection images are product photos on white, so the
@@ -96,7 +98,7 @@
             if circle_label == blank
               assign circle_label = 'home.categories.placeholder' | t
             endif
-            assign circle_url = circle_collection.url | default: routes.collections_url
+            assign circle_url = block.settings.link | default: circle_collection.url | default: routes.collections_url
             # The fill image is the disc's full size, not its inscribed square (119px on phones, 127px at 1440).
             assign circle_fill = false
             assign circle_sizes = '(min-width: 1200px) 110px, (min-width: 768px) 100px, 90px'
@@ -397,6 +399,12 @@
           "id": "label",
           "label": "כיתוב",
           "info": "לא חובה. ברירת המחדל: שם הקטגוריה."
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור",
+          "info": "לא חובה. ברירת המחדל: עמוד הקטגוריה. לעיגול שמוביל לעמוד אחר (למשל מרכיב המחשבים) בוחרים תמונה וכיתוב ומשאירים את הקטגוריה ריקה."
         },
         {
           "type": "checkbox",

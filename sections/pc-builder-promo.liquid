@@ -1,0 +1,242 @@
+{%- comment -%}
+  PC builder promo: one compact navy band that leads to the "מרכיב מחשבים" page (templates/page.pc-builder.json).
+  A mint disc with a PC tower, a heading, one line and a button; the button is the only link. Phones: the disc and
+  the heading share a row, the line under them and a full-width button at the bottom; from 768px it is one row with
+  the button at the end. Link: the setting, else the page with the handle pc-builder; with neither it renders nothing.
+  Styles: assets/section-pc-builder-promo.css.
+{%- endcomment -%}
+{%- liquid
+  assign promo_url = section.settings.link
+  if promo_url == blank
+    assign promo_url = pages['pc-builder'].url
+  endif
+-%}
+{%- if promo_url != blank -%}
+  {%- render 'section-style', section: section -%}
+  {%- style -%}
+    #shopify-section-{{ section.id }} {
+      --pcb-promo-pad-top: {{ section.settings.padding_top }}px;
+      --pcb-promo-pad-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  {%- endstyle -%}
+  {{ 'section-pc-builder-promo.css' | asset_url | stylesheet_tag }}
+
+  <div class="pcb-promo">
+    <div class="page-width">
+      <div class="pcb-promo__card">
+        <span class="pcb-promo__icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+            <rect x="6" y="2.5" width="12" height="18" rx="2"/>
+            <path d="M9 6h4M9 8.5h4"/>
+            <circle cx="12" cy="14" r="3"/>
+            <path d="M8.5 21.5v.5M15.5 21.5v.5"/>
+          </svg>
+        </span>
+        <div class="pcb-promo__text">
+          {%- if section.settings.heading != blank -%}
+            <h2 class="pcb-promo__heading">{{ section.settings.heading | escape }}</h2>
+          {%- endif -%}
+          {%- if section.settings.text != blank -%}
+            <p class="pcb-promo__line">{{ section.settings.text | escape }}</p>
+          {%- endif -%}
+        </div>
+        {%- if section.settings.button_label != blank -%}
+          <a class="button button--accent pcb-promo__button" href="{{ promo_url }}">
+            {{- section.settings.button_label | escape -}}
+            {%- render 'icon', name: 'chevron-left', size: 18 -%}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "קידום מרכיב מחשבים",
+  "tag": "section",
+  "class": "section-pc-builder-promo",
+  "disabled_on": {
+    "groups": [
+      "header",
+      "aside"
+    ]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "בונים מחשב בדקות"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "שורת הסבר",
+      "default": "שלוש הצעות לפי תקציב, רק רכיבים תואמים, הרכבה ומשלוח חינם"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "טקסט הכפתור",
+      "default": "להרכבת מחשב"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "קישור",
+      "info": "ריק: עמוד מרכיב המחשבים (pc-builder)."
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "ריווח עליון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "ריווח תחתון",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "עיצוב הסקשן"
+    },
+    {
+      "type": "paragraph",
+      "content": "כל מה שנשאר ריק לוקח את העיצוב הכללי של האתר (הגדרות התבנית › צבעים, טיפוגרפיה)."
+    },
+    {
+      "type": "select",
+      "id": "ss_visibility",
+      "label": "איפה להציג את הסקשן",
+      "options": [
+        {
+          "value": "all",
+          "label": "במחשב ובטלפון"
+        },
+        {
+          "value": "desktop",
+          "label": "רק במחשב"
+        },
+        {
+          "value": "mobile",
+          "label": "רק בטלפון"
+        }
+      ],
+      "default": "all"
+    },
+    {
+      "type": "color_background",
+      "id": "ss_background",
+      "label": "רקע",
+      "info": "צבע אחיד או מעבר צבעים (גרדיאנט)."
+    },
+    {
+      "type": "color",
+      "id": "ss_text_color",
+      "label": "צבע טקסט"
+    },
+    {
+      "type": "color",
+      "id": "ss_heading_color",
+      "label": "צבע כותרות"
+    },
+    {
+      "type": "color",
+      "id": "ss_accent_color",
+      "label": "צבע הדגשה",
+      "info": "קישורים, אייקונים ופרטים צבעוניים."
+    },
+    {
+      "type": "color",
+      "id": "ss_button_bg",
+      "label": "צבע כפתורים"
+    },
+    {
+      "type": "color",
+      "id": "ss_button_text",
+      "label": "צבע טקסט בכפתורים"
+    },
+    {
+      "type": "range",
+      "id": "ss_text_scale",
+      "label": "גודל טקסט",
+      "min": 80,
+      "max": 130,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "select",
+      "id": "ss_radius",
+      "label": "פינות של כפתורים וכרטיסים",
+      "options": [
+        {
+          "value": "theme",
+          "label": "כמו בשאר האתר"
+        },
+        {
+          "value": "square",
+          "label": "ישרות"
+        },
+        {
+          "value": "soft",
+          "label": "מעוגלות מעט"
+        },
+        {
+          "value": "round",
+          "label": "מעוגלות"
+        },
+        {
+          "value": "pill",
+          "label": "עגולות לגמרי"
+        }
+      ],
+      "default": "theme"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_heading_font",
+      "label": "פונט אחר לכותרות",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_heading_font",
+      "label": "פונט כותרות",
+      "info": "פונטים עם עברית: Assistant, Rubik, Frank Ruhl Libre.",
+      "default": "assistant_n7",
+      "visible_if": "{{ section.settings.ss_custom_heading_font }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "ss_custom_body_font",
+      "label": "פונט אחר לטקסט",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "ss_body_font",
+      "label": "פונט טקסט",
+      "default": "assistant_n4",
+      "visible_if": "{{ section.settings.ss_custom_body_font }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "קידום מרכיב מחשבים"
+    }
+  ]
+}
+{% endschema %}
