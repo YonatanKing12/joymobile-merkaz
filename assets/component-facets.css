@@ -249,6 +249,52 @@
   }
 }
 
+/* Long lists: the values after the first 8 fold under "עוד X אפשרויות" (snippets/facets). */
+.facets__more > .facets__list .facets__item:first-child .facets__option {
+  border-block-start: 1px solid var(--color-border);
+}
+
+.facets__more-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-target);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+  list-style: none;
+}
+
+.facets__more-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.facets__more[open] > .facets__more-toggle {
+  order: 1;
+}
+
+.facets__more[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.facets__more-hide,
+.facets__more[open] .facets__more-show {
+  display: none;
+}
+
+.facets__more[open] .facets__more-hide {
+  display: inline;
+}
+
+@media (hover: hover) {
+  .facets__more-toggle:hover {
+    color: var(--color-brand-text);
+  }
+}
+
 /* Values that would return nothing (count 0) are disabled. */
 .facets__option:has(.facets__checkbox:disabled),
 .facets__option[aria-disabled="true"] {
@@ -719,8 +765,14 @@
     font-size: var(--text-sm);
   }
 
-  .facets__item + .facets__item .facets__option {
+  .facets__item + .facets__item .facets__option,
+  .facets__more > .facets__list .facets__item:first-child .facets__option {
     border-block-start: 0;
+  }
+
+  .facets__more-toggle {
+    min-block-size: 1.75rem;
+    font-size: var(--text-sm);
   }
 
   .facets__count {

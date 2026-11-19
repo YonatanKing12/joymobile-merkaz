@@ -720,6 +720,8 @@
     "active_heading": "בחרת לסנן לפי:",
     "remove": "הסרת הסינון {{ label }}",
     "clear_all": "נקה הכל",
+    "show_more": "עוד {{ count }} אפשרויות",
+    "show_less": "פחות אפשרויות",
     "apply": {
       "one": "הצגת תוצאה אחת",
       "two": "הצגת {{ count }} תוצאות",
@@ -749,7 +751,7 @@
       "relevance": "רלוונטיות",
       "manual": "מומלצים",
       "best_selling": "הנמכרים ביותר",
-      "title_ascending": "שם",
+      "title_ascending": "א׳ עד ת׳",
       "title_descending": "שם (ת׳–א׳)",
       "price_ascending": "מהזול ליקר",
       "price_descending": "מהיקר לזול",

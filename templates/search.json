@@ -8,7 +8,7 @@
         "columns_desktop": "4",
         "columns_mobile": "2",
         "show_count": true,
-        "enable_filtering": false,
+        "enable_filtering": true,
         "open_groups": "first",
         "enable_sorting": true,
         "show_popular_searches": true,

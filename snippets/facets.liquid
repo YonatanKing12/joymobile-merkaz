@@ -23,7 +23,7 @@
 
   Classes: .facets, __header, __heading, __close, __form, __region, __active, __group,
   __summary, __summary-text, __summary-count, __fieldset, __list, __item, __option,
-  __checkbox, __swatch, __image, __value, __count, __price, __price-field, __price-label,
+  __checkbox, __swatch, __image, __value, __count, __more, __more-toggle, __price, __price-field, __price-label,
   __price-control, __price-input, __currency, __price-sep, __hint, __footer, __apply.
 
   @param {object} results - The `collection` or `search` object.
@@ -92,8 +92,12 @@
         {%- endfor -%}
       {%- endif -%}
 
+      {%- comment -%}
+        Categories keep the in-stock filter (layout/theme.liquid); the search orders sold-out products last with
+        options[unavailable_products] instead, so its form must not add the filter.
+      {%- endcomment -%}
       {%- assign fc_stock = results.filters | where: 'param_name', 'filter.v.availability' | first -%}
-      {%- if fc_stock -%}
+      {%- if fc_stock and request.page_type == 'collection' -%}
         <input type="hidden" name="filter.v.availability" value="1">
       {%- endif -%}
 
@@ -211,47 +215,49 @@
                 </div>
                 <p class="facets__hint" id="{{ fc_group_id }}-hint">{{ 'facets.price.max_hint' | t: price: fc_max_money }}</p>
               {%- else -%}
-                <ul class="facets__list" role="list">
-                  {%- for value in filter.values -%}
-                    {%- liquid
-                      assign fc_value_id = value.value | url_encode | replace: '%', '' | replace: '.', '-' | replace: '+', '-'
-                      assign fc_value_id = fc_group_id | append: '-' | append: fc_value_id
-                      assign fc_disabled = false
-                      if value.count == 0 and value.active == false
-                        assign fc_disabled = true
+                {%- liquid
+                  # Long lists (brands in a big category): the first values, then "עוד X אפשרויות". Opens by
+                  # itself when a value further down is checked.
+                  assign fc_limit = 8
+                  assign fc_extra = filter.values.size | minus: fc_limit
+                  if fc_extra < 3
+                    assign fc_limit = filter.values.size
+                    assign fc_extra = 0
+                  endif
+                  assign fc_more_open = false
+                  if fc_extra > 0
+                    for value in filter.values offset: fc_limit
+                      if value.active
+                        assign fc_more_open = true
+                        break
                       endif
-                    -%}
-                    <li class="facets__item">
-                      <label class="facets__option" for="{{ fc_value_id }}">
-                        <input
-                          class="facets__checkbox"
-                          type="checkbox"
-                          id="{{ fc_value_id }}"
-                          name="{{ value.param_name }}"
-                          value="{{ value.value | escape }}"
-                          {% if value.active %}
-                            checked
-                          {% endif %}
-                          {% if fc_disabled %}
-                            disabled
-                          {% endif %}
-                        >
-                        {%- if filter.presentation == 'swatch' -%}
-                          {%- if value.swatch.image != blank -%}
-                            {%- render 'image', image: value.swatch.image, widths: '48', sizes: '20px', decorative: true, class: 'facets__swatch facets__swatch--image' -%}
-                          {%- elsif value.swatch.color != blank -%}
-                            <span class="facets__swatch" style="--swatch-color: {{ value.swatch.color }}" aria-hidden="true"></span>
-                          {%- endif -%}
-                        {%- elsif filter.presentation == 'image' and value.image != blank -%}
-                          {%- render 'image', image: value.image, widths: '48,96', sizes: '24px', decorative: true, class: 'facets__image' -%}
-                        {%- endif -%}
-                        <span class="facets__value">{{ value.label | escape }}</span>
-                        <span class="facets__count" aria-hidden="true">({{ value.count }})</span>
-                        <span class="visually-hidden">, {{ 'facets.value_count' | t: count: value.count }}</span>
-                      </label>
-                    </li>
+                    endfor
+                  endif
+                -%}
+                <ul class="facets__list" role="list">
+                  {%- for value in filter.values limit: fc_limit -%}
+                    {%- render 'facet-value', value: value, filter: filter, group_id: fc_group_id -%}
                   {%- endfor -%}
                 </ul>
+                {%- if fc_extra > 0 -%}
+                  <details
+                    class="facets__more"
+                    id="{{ fc_group_id }}-more"
+                    {% if fc_more_open %}
+                      open
+                    {% endif %}
+                  >
+                    <summary class="facets__more-toggle">
+                      <span class="facets__more-show">{{ 'facets.show_more' | t: count: fc_extra }}</span>
+                      <span class="facets__more-hide">{{ 'facets.show_less' | t }}</span>
+                    </summary>
+                    <ul class="facets__list facets__list--more" role="list">
+                      {%- for value in filter.values offset: fc_limit -%}
+                        {%- render 'facet-value', value: value, filter: filter, group_id: fc_group_id -%}
+                      {%- endfor -%}
+                    </ul>
+                  </details>
+                {%- endif -%}
               {%- endif -%}
             </fieldset>
           </details>

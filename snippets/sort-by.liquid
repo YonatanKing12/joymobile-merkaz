@@ -7,8 +7,9 @@
   <facet-filters> (@theme/facets) re-renders it in place.
 
   Options shown, when the store offers them: the default order (labelled "מומלצים" for
-  manual/best-selling, "רלוונטיות" on search), price low→high, price high→low, name and
-  newest; the current order is always included. Labels live in `facets.sort.*`.
+  manual/best-selling, "רלוונטיות" on search), best selling (when it is not already the
+  default), price low→high, price high→low, A to Z and newest; the current order is always
+  included. Labels live in `facets.sort.*`.
 
   The caller wraps this in its `[data-swap]` region (the sort links change with the filters).
 
@@ -31,7 +32,7 @@
   assign sb_available = results.sort_options | map: 'value' | join: ','
   assign sb_available = ',' | append: sb_available | append: ','
 
-  assign sb_values = sb_default | append: ',price-ascending,price-descending,title-ascending,created-descending'
+  assign sb_values = sb_default | append: ',best-selling,price-ascending,price-descending,title-ascending,created-descending'
   assign sb_token = ',' | append: sb_current | append: ','
   assign sb_check = ',' | append: sb_values | append: ','
   unless sb_check contains sb_token

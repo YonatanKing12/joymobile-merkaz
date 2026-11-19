@@ -1,0 +1,50 @@
+{% doc %}
+  One value of a list or boolean storefront filter, as a checkbox row with its product
+  count (snippets/facets). Swatch filters get a colour dot or picture, image filters a
+  small picture. Ids are stable (group id + value) so @theme/facets can restore focus
+  after a swap.
+
+  @param {object} value - The filter value.
+  @param {object} filter - The filter the value belongs to.
+  @param {string} group_id - Element id of the filter group.
+
+  @example
+  {% render 'facet-value', value: value, filter: filter, group_id: fc_group_id %}
+{% enddoc %}
+{%- liquid
+  assign fv_id = value.value | url_encode | replace: '%', '' | replace: '.', '-' | replace: '+', '-'
+  assign fv_id = group_id | append: '-' | append: fv_id
+  assign fv_disabled = false
+  if value.count == 0 and value.active == false
+    assign fv_disabled = true
+  endif
+-%}
+<li class="facets__item">
+  <label class="facets__option" for="{{ fv_id }}">
+    <input
+      class="facets__checkbox"
+      type="checkbox"
+      id="{{ fv_id }}"
+      name="{{ value.param_name }}"
+      value="{{ value.value | escape }}"
+      {% if value.active %}
+        checked
+      {% endif %}
+      {% if fv_disabled %}
+        disabled
+      {% endif %}
+    >
+    {%- if filter.presentation == 'swatch' -%}
+      {%- if value.swatch.image != blank -%}
+        {%- render 'image', image: value.swatch.image, widths: '48', sizes: '20px', decorative: true, class: 'facets__swatch facets__swatch--image' -%}
+      {%- elsif value.swatch.color != blank -%}
+        <span class="facets__swatch" style="--swatch-color: {{ value.swatch.color }}" aria-hidden="true"></span>
+      {%- endif -%}
+    {%- elsif filter.presentation == 'image' and value.image != blank -%}
+      {%- render 'image', image: value.image, widths: '48,96', sizes: '24px', decorative: true, class: 'facets__image' -%}
+    {%- endif -%}
+    <span class="facets__value">{{ value.label | escape }}</span>
+    <span class="facets__count" aria-hidden="true">({{ value.count }})</span>
+    <span class="visually-hidden">, {{ 'facets.value_count' | t: count: value.count }}</span>
+  </label>
+</li>
