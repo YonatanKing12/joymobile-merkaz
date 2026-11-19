@@ -7,6 +7,13 @@
    (sections/main-product moves it), so it reads as part of the purchase and not as another strip
    of the page. Its column width varies with the place and the screen, hence the auto-fill grid
    below rather than a fixed column count. */
+/* The card, a pill or a panel is out of view while it has no tile (assets/product-addons.js): the
+   display values below must never bring back an element the script hid. */
+.pa[hidden],
+.pa [hidden] {
+  display: none !important;
+}
+
 .pa {
   display: block;
   margin-block-start: var(--space-lg);
@@ -121,12 +128,6 @@
 .pa-card {
   min-width: 0;
   display: flex; /* so every tile in a row is the height of the tallest, not of its own title */
-}
-
-.pa-card--loading {
-  height: 5.25rem;
-  border-radius: var(--radius-card, 16px);
-  background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-background));
 }
 
 /* The whole tile is one <label> around a real checkbox: space selects it, Tab reaches it, and a
@@ -289,12 +290,6 @@
   }
 }
 
-.pa__empty {
-  padding-block: var(--space-md);
-  color: var(--color-muted);
-  font-size: var(--text-md);
-}
-
 /* ---------- The bar ---------- */
 .pa__bar {
   display: flex;
@@ -404,10 +399,6 @@ product-addons:has([data-pa-check]:checked) .pa__hint {
     scroll-snap-align: start;
   }
 
-  .pa-card--loading {
-    height: 6rem;
-  }
-
   .pa__submit {
     width: 100%;
     min-width: 0;
@@ -482,10 +473,6 @@ product-addons:has([data-pa-check]:checked) .pa__hint {
 .pa--carousel .pa-card {
   flex: 0 0 13rem;
   scroll-snap-align: start;
-}
-
-.pa--carousel .pa-card--loading {
-  height: 19rem;
 }
 
 .pa--carousel .pa-card__label {

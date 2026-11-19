@@ -195,13 +195,15 @@
         {%- comment -%}
           "השלימו את הערכה": ticked accessories are added by the buy buttons above, together with the
           device (snippets/product-addons.liquid). Nothing is printed for products without accessory
-          groups, so the block leaves no gap there.
+          groups, or whose reviewed accessories are all unavailable, so the block leaves no gap there.
+          A card whose tiles still come from search is printed hidden, and so is this wrapper:
+          assets/product-addons.js shows both with the first tile, and never when none comes.
         {%- endcomment -%}
         {%- capture addons_html -%}
           {%- render 'product-addons', product: product, variant: current_variant, section_id: section.id, layout: block.settings.layout -%}
         {%- endcapture -%}
         {%- if addons_html != blank -%}
-          <div class="product-block product-block--addons" {{ block.shopify_attributes }}>{{ addons_html }}</div>
+          <div class="product-block product-block--addons"{% if addons_html contains 'data-pa-state="loading"' %} hidden{% endif %} {{ block.shopify_attributes }}>{{ addons_html }}</div>
         {%- endif -%}
 
       {%- when 'wishlist' -%}

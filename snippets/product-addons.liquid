@@ -8,9 +8,10 @@
   buttons show a "+N" badge while something is ticked. Only when the device itself is sold out does
   the module show its own button, so a case can still be bought for a phone the shopper already has.
 
-  The shell only: a pill per group and an empty panel carrying that group's search query. The tiles
-  come from sections/product-addons rendered against /search, fetched by assets/product-addons.js
-  when the block first comes near the viewport. A product page nobody scrolls costs nothing.
+  The shell only: a pill per group and an empty panel carrying that group's search query, all printed
+  hidden. The tiles come from sections/product-addons rendered against /search, fetched by
+  assets/product-addons.js when the block first comes near the viewport; the card shows only once a
+  group has a tile, and never shows at all when none has. A product page nobody scrolls costs nothing.
 
   The model comes off the product title (snippets/accessory-model), so
   "Apple iPhone 17 Pro Max 2TB כחול – יבואן רשמי" asks for "iPhone 17 Pro Max".
@@ -44,7 +45,84 @@
   endif
 -%}
 
-{%- if pa_group_list.size > 0 -%}
+{%- comment -%}
+  The pills and panels are built first, so a group with nothing to offer prints nothing at all and a
+  device with no accessories prints no card. Reviewed devices (custom.joy_addon_products) know their
+  tiles here: a group without one is left out, and with no group left the snippet prints nothing, so
+  sections/main-product prints no block either. Search groups only know after the page asks /search,
+  so their card and pills are printed hidden and assets/product-addons.js shows a pill when its group
+  has a tile, and the card with the first one. A customer never sees an empty or "nothing fits" card.
+{%- endcomment -%}
+{%- liquid
+  assign pa_tabs_html = ''
+  assign pa_panels_html = ''
+  assign pa_shown = 0
+-%}
+{%- for pa_group in pa_group_list -%}
+  {%- liquid
+    assign pa_parts = pa_group | split: '|'
+    assign pa_key = 'g' | append: forloop.index
+    assign pa_label = pa_parts[0]
+    # Everything after "label|word|" is the query, even if a title ever carries a "|" itself.
+    assign pa_prefix = pa_parts[0] | append: '|' | append: pa_parts[1] | append: '|'
+    assign pa_query = pa_group | remove_first: pa_prefix | strip
+  -%}
+  {%- capture pa_direct_result -%}
+    {%- if pa_direct -%}
+      {%- assign pa_tag = pa_query | remove_first: 'tag:' -%}
+      {%- render 'verified-addon-cards', candidates: product.metafields.custom.joy_addon_products.value, tag: pa_tag, parent_id: product.id, context: 'product', limit: 4 -%}
+    {%- endif -%}
+  {%- endcapture -%}
+  {%- liquid
+    assign pa_direct_count = pa_direct_result | split: '|||' | first | plus: 0
+    assign pa_direct_prefix = pa_direct_count | append: '|||'
+    assign pa_direct_cards = pa_direct_result | remove_first: pa_direct_prefix
+    if pa_direct and pa_direct_count < 1
+      continue
+    endif
+    assign pa_shown = pa_shown | plus: 1
+    assign pa_open = false
+    if pa_direct and pa_shown == 1
+      assign pa_open = true
+    endif
+  -%}
+  {%- capture pa_tabs_html -%}
+    {{- pa_tabs_html -}}
+    <button
+      class="pa__tab"
+      type="button"
+      role="tab"
+      id="PaTab-{{ pa_uid }}-{{ pa_key }}"
+      aria-controls="PaPanel-{{ pa_uid }}-{{ pa_key }}"
+      aria-selected="{{ pa_open }}"
+      tabindex="{% if pa_open %}0{% else %}-1{% endif %}"
+      {% unless pa_direct %}hidden{% endunless %}
+    >
+      <span class="pa__tab-label">{{ pa_label | escape }}</span>
+      <span class="pa__tab-count" data-pa-tab-count hidden></span>
+    </button>
+  {%- endcapture -%}
+  {%- capture pa_panels_html -%}
+    {{- pa_panels_html -}}
+    <div
+      class="pa__panel"
+      role="tabpanel"
+      id="PaPanel-{{ pa_uid }}-{{ pa_key }}"
+      aria-labelledby="PaTab-{{ pa_uid }}-{{ pa_key }}"
+      data-pa-panel
+      data-pa-query="{{ pa_query | escape }}"
+      {% if pa_direct %}data-pa-loaded="true" data-pa-count="{{ pa_direct_count }}"{% endif %}
+      {% unless pa_open %}hidden{% endunless %}
+    >
+      <ul class="pa__list" role="list" data-pa-list data-rec-list>
+        {%- if pa_direct -%}{{- pa_direct_cards -}}{%- endif -%}
+      </ul>
+      <p class="pa__swipe" data-pa-swipe hidden></p>
+    </div>
+  {%- endcapture -%}
+{%- endfor -%}
+
+{%- if pa_shown > 0 -%}
   {{ 'section-product-addons.css' | asset_url | stylesheet_tag }}
   <script type="module" src="{{ 'product-addons.js' | asset_url }}"></script>
 
@@ -65,6 +143,8 @@
     data-pa-base="{{ pa_variant.price }}"
     data-pa-available="{{ pa_variant.available }}"
     data-pa-money="{{ shop.money_format | escape }}"
+    data-pa-state="{% if pa_direct %}ready{% else %}loading{% endif %}"
+    {% unless pa_direct %}hidden{% endunless %}
   >
     <div class="pa__head">
       <h2 class="pa__heading">{{ 'products.addons.heading' | t }}</h2>
@@ -73,69 +153,10 @@
     </div>
 
     <div class="pa__tabs" role="tablist" aria-label="{{ 'products.addons.heading' | t }}">
-      {%- for pa_group in pa_group_list -%}
-        {%- liquid
-          assign pa_parts = pa_group | split: '|'
-          assign pa_key = 'g' | append: forloop.index
-          assign pa_label = pa_parts[0]
-        -%}
-        <button
-          class="pa__tab"
-          type="button"
-          role="tab"
-          id="PaTab-{{ pa_uid }}-{{ pa_key }}"
-          aria-controls="PaPanel-{{ pa_uid }}-{{ pa_key }}"
-          aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
-          tabindex="{% if forloop.first %}0{% else %}-1{% endif %}"
-        >
-          <span class="pa__tab-label">{{ pa_label | escape }}</span>
-          <span class="pa__tab-count" data-pa-tab-count hidden></span>
-        </button>
-      {%- endfor -%}
+      {{- pa_tabs_html -}}
     </div>
 
-    {%- for pa_group in pa_group_list -%}
-      {%- liquid
-        assign pa_parts = pa_group | split: '|'
-        assign pa_key = 'g' | append: forloop.index
-        # Everything after "label|word|" is the query, even if a title ever carries a "|" itself.
-        assign pa_prefix = pa_parts[0] | append: '|' | append: pa_parts[1] | append: '|'
-        assign pa_query = pa_group | remove_first: pa_prefix | strip
-      -%}
-      {%- capture pa_direct_result -%}
-        {%- if pa_direct -%}
-          {%- assign pa_tag = pa_query | remove_first: 'tag:' -%}
-          {%- render 'verified-addon-cards', candidates: product.metafields.custom.joy_addon_products.value, tag: pa_tag, parent_id: product.id, context: 'product', limit: 4 -%}
-        {%- endif -%}
-      {%- endcapture -%}
-      {%- liquid
-        assign pa_direct_count = pa_direct_result | split: '|||' | first | plus: 0
-        assign pa_direct_prefix = pa_direct_count | append: '|||'
-        assign pa_direct_cards = pa_direct_result | remove_first: pa_direct_prefix
-      -%}
-      <div
-        class="pa__panel"
-        role="tabpanel"
-        id="PaPanel-{{ pa_uid }}-{{ pa_key }}"
-        aria-labelledby="PaTab-{{ pa_uid }}-{{ pa_key }}"
-        data-pa-panel
-        data-pa-query="{{ pa_query | escape }}"
-        {% if pa_direct %}data-pa-loaded="true" data-pa-count="{{ pa_direct_count }}"{% endif %}
-        {% unless forloop.first %}hidden{% endunless %}
-      >
-        <ul class="pa__list" role="list" data-pa-list data-rec-list>
-          {%- if pa_direct -%}
-            {{- pa_direct_cards -}}
-          {%- else -%}
-          {%- for pa_skeleton in (1..4) -%}
-            <li class="pa-card pa-card--loading" aria-hidden="true"></li>
-          {%- endfor -%}
-          {%- endif -%}
-        </ul>
-        <p class="pa__empty" data-pa-empty hidden>{{ 'products.addons.empty' | t }}</p>
-        <p class="pa__swipe" data-pa-swipe hidden></p>
-      </div>
-    {%- endfor -%}
+    {{- pa_panels_html -}}
 
     {%- comment -%}
       Carousel layout only (CSS hides it in the grid): a thumbnail of each chosen accessory, in the

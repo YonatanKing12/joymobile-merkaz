@@ -14,8 +14,11 @@
  *
  * Nothing is fetched until the module nears the viewport; then every group loads, one after another.
  * What fits differs per device and changes as stock comes and goes, so the card shapes itself to the
- * answer: a group that comes back empty loses its pill, the first group with tiles opens, and a
- * device with nothing to offer in any group shows no card at all. A page nobody scrolls costs nothing.
+ * answer. It is printed hidden and shows with the first tile; a pill shows only once its group has a
+ * tile, and the first such group opens. A group that comes back empty, or whose request still fails
+ * after its retry, never shows, and a device with nothing in any group shows no card at all: the
+ * owner's rule is that a customer never sees an empty or "nothing fits" card. A page nobody scrolls
+ * costs nothing.
  *
  * Every price on a tile is server-rendered. The running total has to add numbers, so it cannot be,
  * and it is printed with the shop's own money_format string handed over in data-pa-money — which is
@@ -90,13 +93,17 @@ class ProductAddons extends HTMLElement {
       this.priceObserver.observe(this.priceLive, { childList: true });
     }
 
-    /* The groups load when the module is near the viewport, not on page load. */
+    /* The groups load when the module is near the viewport, not on page load. A hidden card (it is
+       printed hidden until it has a tile) never intersects, so the nearest laid-out ancestor is
+       watched instead: the buy column it sits in. */
     this.observer = new IntersectionObserver((entries) => {
       if (!entries.some((e) => e.isIntersecting)) return;
       this.observer.disconnect();
       this.loadAll();
     }, { rootMargin: '300px' });
-    this.observer.observe(this);
+    let watched = this;
+    while (watched.parentElement && !watched.getClientRects().length) watched = watched.parentElement;
+    this.observer.observe(watched);
 
     /* Carousel layout: the swipe hint shows only while the row is wider than the card, so four cards
        that all fit on a wide screen don't ask for a swipe. A hidden panel's row measures 0 and the
@@ -133,6 +140,7 @@ class ProductAddons extends HTMLElement {
   /* What the product form adds alongside the device. Each line carries where it came from in hidden
      properties (assets/rec-tracking.js): this module, the device's handle and the tile's place in its group. */
   selectedItems() {
+    if (this.hidden) return [];
     return this.checked.map((c) => ({
       id: Number(c.closest('[data-pa-item]').dataset.paVariant),
       quantity: 1,
@@ -191,7 +199,10 @@ class ProductAddons extends HTMLElement {
     }
     if (e.type === 'click') {
       const tab = e.target.closest('[role="tab"]');
-      if (tab) this.activate(tab, false);
+      if (tab) {
+        this.activate(tab, false);
+        this.retryFailed();
+      }
       return;
     }
     /* RTL: ArrowLeft moves forward along the row, ArrowRight back. */
@@ -206,6 +217,7 @@ class ProductAddons extends HTMLElement {
     if (!next) return;
     e.preventDefault();
     this.activate(next, true);
+    this.retryFailed();
   }
 
   activate(tab, focus) {
@@ -233,14 +245,15 @@ class ProductAddons extends HTMLElement {
 
   /* One retry on an empty answer. The search endpoint returns an empty result set under a burst of
      requests — measured: the same four queries came back 0, then 4 on every one of four later
-     rounds. Without the retry a single blip would leave "no accessories" on a group that has four,
-     for the rest of the visit, because the panel would already be marked loaded. */
+     rounds. Without the retry a single blip would hide a group that has four for the rest of the
+     visit, because the panel would already be marked loaded.
+     The panel ends 'true' (answered; data-pa-count says how many tiles) or 'failed' (the request
+     failed twice). Neither an empty nor a failed group is ever shown (prune). */
   async load(panel, attempt = 0) {
     if (!panel || panel.dataset.paLoaded === 'true') return;
     if (attempt === 0 && panel.dataset.paLoaded === 'pending') return;
     panel.dataset.paLoaded = 'pending';
     const list = panel.querySelector('[data-pa-list]');
-    const empty = panel.querySelector('[data-pa-empty]');
     const ctrl = new AbortController();
     (this.controllers ||= []).push(ctrl);
 
@@ -258,21 +271,20 @@ class ProductAddons extends HTMLElement {
       panel.dataset.paLoaded = 'true';
       panel.dataset.paCount = String(items.length);
       this.fitSwipe(panel);
-      if (!items.length) {
-        list.hidden = true;
-        if (empty) empty.hidden = false;
-      }
     } catch (error) {
-      if (error.name === 'AbortError') return;
+      if (error.name === 'AbortError') {
+        if (panel.dataset.paLoaded === 'pending') panel.dataset.paLoaded = '';
+        return;
+      }
       if (attempt < 1) {
         await new Promise((r) => setTimeout(r, 700));
         return this.load(panel, attempt + 1);
       }
-      /* Left unmarked, so pressing the pill again tries once more. */
-      panel.dataset.paLoaded = '';
+      /* Out of view, pill and panel (prune). A press on another pill asks again, unseen (retryFailed). */
+      panel.dataset.paLoaded = 'failed';
+      panel.dataset.paCount = '0';
+      panel.dataset.paTries = String((Number(panel.dataset.paTries) || 0) + 1);
       list.innerHTML = '';
-      list.hidden = true;
-      if (empty) empty.hidden = false;
     }
     this.prune();
     this.refresh();
@@ -292,17 +304,23 @@ class ProductAddons extends HTMLElement {
     }
   }
 
-  /* Shape the card to what this device actually has. A group whose search came back empty loses its
-     pill; if the open group is one of them, the first group that has tiles (or has not answered yet)
-     opens instead. When every group has answered and none has a tile, the whole card goes. A group
-     whose request failed keeps its pill and its note, so pressing it tries again. */
+  /* Shape the card to what this device actually has: only a group that has answered with at least
+     one tile has a pill and a panel. One still loading, empty, or failed is out of view, so the row
+     never shows a pill that leads nowhere. If the open group is not shown, the first shown one opens.
+     The card itself shows only while some group has a tile, and with it the block's wrapper in
+     sections/main-product; otherwise both are hidden (display: none, so no box and no gap) and nothing
+     is ticked, so the buy buttons add the device alone. data-pa-state says which: loading, ready or
+     empty (every group answered empty or failed), for anyone debugging the page. */
   prune() {
     const panelOf = (tab) => document.getElementById(tab.getAttribute('aria-controls'));
-    const isEmpty = (panel) => panel?.dataset.paLoaded === 'true' && panel.dataset.paCount === '0';
+    const filled = (panel) => panel?.dataset.paLoaded === 'true' && Number(panel.dataset.paCount) > 0
+      && !!panel.querySelector('[data-pa-item]');
     this.allTabs.forEach((tab) => {
-      if (!isEmpty(panelOf(tab))) return;
-      tab.hidden = true;
-      panelOf(tab).hidden = true;
+      const panel = panelOf(tab);
+      const show = filled(panel);
+      tab.hidden = !show;
+      if (show) return;
+      if (panel) panel.hidden = true;
       if (tab.getAttribute('aria-selected') === 'true') {
         tab.setAttribute('aria-selected', 'false');
         tab.tabIndex = -1;
@@ -310,12 +328,33 @@ class ProductAddons extends HTMLElement {
     });
     const visible = this.tabs;
     if (visible.length && !visible.some((tab) => tab.getAttribute('aria-selected') === 'true')) {
-      const filled = visible.find((tab) => Number(panelOf(tab)?.dataset.paCount) > 0);
-      this.activate(filled || visible[0], false);
+      this.activate(visible[0], false);
     }
-    const done = this.panels.every((panel) => panel.dataset.paLoaded === 'true');
-    this.hidden = done && !visible.length;
-    if (this.hidden) this.checked.forEach((c) => { c.checked = false; });
+    const show = visible.length > 0;
+    const settled = this.panels.every((panel) => ['true', 'failed'].includes(panel.dataset.paLoaded));
+    this.hidden = !show;
+    this.dataset.paState = show ? 'ready' : settled ? 'empty' : 'loading';
+    this.root?.querySelectorAll?.('.product-block--addons').forEach((block) => { block.hidden = !show; });
+    if (!show) this.checked.forEach((c) => { c.checked = false; });
+  }
+
+  /* A group whose request failed twice is out of view. A press on a shown pill asks those groups once
+     more, one at a time and unseen: one that now has tiles gains its pill, one that does not stays
+     out of view. Three tries per group a visit at most. */
+  async retryFailed() {
+    if (this.retrying) return;
+    const failed = this.panels.filter((p) => p.dataset.paLoaded === 'failed' && (Number(p.dataset.paTries) || 0) < 3);
+    if (!failed.length) return;
+    this.retrying = true;
+    try {
+      for (const panel of failed) {
+        if (!this.isConnected) return;
+        panel.dataset.paLoaded = '';
+        await this.load(panel);
+      }
+    } finally {
+      this.retrying = false;
+    }
   }
 
   money(cents) {
