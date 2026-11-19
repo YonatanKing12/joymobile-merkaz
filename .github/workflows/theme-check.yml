@@ -27,8 +27,8 @@ jobs:
         run: python3 -m unittest discover -s .github/storefront-remediation -p 'test_admin_*.py' -v
       - name: Cookie consent failures, retries, and withdrawal
         run: node --test .github/scripts/cookie-consent.test.cjs
-      - name: PC builder parser (supplier titles, compatibility, guided builds)
-        run: node --test .github/pc-builder/parser.test.mjs .github/pc-builder/rules.test.mjs
+      - name: PC builder parser (supplier titles, compatibility, guided builds, quantities, search)
+        run: node --test .github/pc-builder/parser.test.mjs .github/pc-builder/rules.test.mjs .github/pc-builder/quantity.test.mjs
       - name: JSON validity (templates, config, locales)
         run: |
           for f in templates/*.json config/*.json locales/*.json sections/*.json; do

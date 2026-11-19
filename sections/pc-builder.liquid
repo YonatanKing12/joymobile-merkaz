@@ -5,10 +5,13 @@
   up to 4, are preloaded here and fetched at once) and assets/pc-builder-parser.js reads what
   each part is and what it fits from its title (the supplier's drop-ship parts come with no type or vendor).
   - Overrides: a product metafield in the "pc" namespace wins over the title (category, socket, memory, form_factor,
-    watts, cooler_tdp, igpu, needs_cooler, back_connect; see the parser's header). They are printed below as JSON,
-    only for products that have one (the first 250 products of the collection).
-  - Cart: one /cart/add.js call with every part, each with the properties _build_id (the same for the whole computer)
-    and "הרכבה: כן", then the cart page.
+    watts, cooler_tdp, igpu, needs_cooler, back_connect; for quantities ram_slots, max_memory, m2_slots, sata_ports,
+    pcie_x16, cpu_sockets, pcie_8pin, pcie_16pin; see the parser's header). They are printed below as JSON, only for
+    products that have one (the first 250 products of the collection).
+  - Search and quantities: each step filters its list as the customer types; memory kits, two graphics cards, two
+    processors (dual-socket boards only), several drives and fan packs go to the cart with their quantity.
+  - Cart: one /cart/add.js call with every part and its quantity, each with the properties _build_id (the same for
+    the whole computer) and "הרכבה: כן", then the cart page.
   - Strict compatibility: a part that does not fit the parts of the steps before it cannot be chosen; choosing a part
     removes the later ones it no longer fits (with a notice and an undo); the cart and the quote need a complete build.
   - FPS: assets/pc-builder-fps.js (data-fps-src), an editable table of estimates, always shown as "הערכה בלבד".
@@ -238,10 +241,14 @@
       {%- paginate coll.products by 250 -%}
         {%- for product in coll.products -%}
           {%- assign pc = product.metafields.pc -%}
-          {%- if pc.category != blank or pc.socket != blank or pc.memory != blank or pc.form_factor != blank or pc.watts != blank or pc.cooler_tdp != blank or pc.igpu != blank or pc.needs_cooler != blank or pc.back_connect != blank -%}
+          {%- assign pc_slots = false -%}
+          {%- if pc.ram_slots != blank or pc.max_memory != blank or pc.m2_slots != blank or pc.sata_ports != blank or pc.pcie_x16 != blank or pc.cpu_sockets != blank or pc.pcie_8pin != blank or pc.pcie_16pin != blank -%}
+            {%- assign pc_slots = true -%}
+          {%- endif -%}
+          {%- if pc_slots or pc.category != blank or pc.socket != blank or pc.memory != blank or pc.form_factor != blank or pc.watts != blank or pc.cooler_tdp != blank or pc.igpu != blank or pc.needs_cooler != blank or pc.back_connect != blank -%}
             {%- unless first %},{% endunless -%}
             {%- assign first = false -%}
-            "{{ product.id }}": {"category": {{ pc.category.value | json }}, "socket": {{ pc.socket.value | json }}, "memory": {{ pc.memory.value | json }}, "form_factor": {{ pc.form_factor.value | json }}, "watts": {{ pc.watts.value | json }}, "cooler_tdp": {{ pc.cooler_tdp.value | json }}, "igpu": {{ pc.igpu.value | json }}, "needs_cooler": {{ pc.needs_cooler.value | json }}, "back_connect": {{ pc.back_connect.value | json }} }
+            "{{ product.id }}": {"category": {{ pc.category.value | json }}, "socket": {{ pc.socket.value | json }}, "memory": {{ pc.memory.value | json }}, "form_factor": {{ pc.form_factor.value | json }}, "watts": {{ pc.watts.value | json }}, "cooler_tdp": {{ pc.cooler_tdp.value | json }}, "igpu": {{ pc.igpu.value | json }}, "needs_cooler": {{ pc.needs_cooler.value | json }}, "back_connect": {{ pc.back_connect.value | json }}, "ram_slots": {{ pc.ram_slots.value | json }}, "max_memory": {{ pc.max_memory.value | json }}, "m2_slots": {{ pc.m2_slots.value | json }}, "sata_ports": {{ pc.sata_ports.value | json }}, "pcie_x16": {{ pc.pcie_x16.value | json }}, "cpu_sockets": {{ pc.cpu_sockets.value | json }}, "pcie_8pin": {{ pc.pcie_8pin.value | json }}, "pcie_16pin": {{ pc.pcie_16pin.value | json }} }
           {%- endif -%}
         {%- endfor -%}
       {%- endpaginate -%}

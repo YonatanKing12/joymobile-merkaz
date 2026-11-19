@@ -12,7 +12,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '../..');
 const src = readFileSync(join(repo, 'sections/pc-builder.liquid'), 'utf8');
 const schema = JSON.parse(src.split('{% schema %}')[1].split('{% endschema %}')[0]);
-const settings = Object.fromEntries(schema.settings.filter((s) => s.id).map((s) => [s.id, s.default ?? '']));
+// The schema defaults, then the page template's own values (Eilat: VAT 0, its budget range and texts).
+const template = JSON.parse(readFileSync(join(repo, 'templates/page.pc-builder.json'), 'utf8').replace(/^\/\*[\s\S]*?\*\/\s*/, ''));
+const own = Object.values(template.sections || {}).find((s) => s.type === 'pc-builder')?.settings || {};
+const settings = { ...Object.fromEntries(schema.settings.filter((s) => s.id).map((s) => [s.id, s.default ?? ''])), ...own };
 const data = JSON.parse(readFileSync(join(repo, 'config/settings_data.json'), 'utf8').replace(/^\/\*[\s\S]*?\*\/\s*/, ''));
 const theme = data.current && typeof data.current === 'object' ? data.current : data.presets?.Default || {};
 
@@ -24,6 +27,8 @@ body = body.replace(/(<script type="application\/json" data-pcb-overrides>)[\s\S
 // Conditions that are all true with the defaults.
 body = body.replace(/\{%-? if (section\.settings\.\w+ != blank|source != blank|wa_digits != blank) -?%\}/g, '');
 body = body.replace(/\{% if section\.settings\.include_os %\} checked\{% endif %\}/g, settings.include_os ? ' checked' : '');
+// "כולל מע״מ" or, with VAT 0 (Eilat), "מחירי אילת, ללא מע״מ".
+body = body.replace(/\{% if section\.settings\.vat_percent > 0 %\}([^{]*)\{% else %\}([^{]*)\{% endif %\}/g, (m, yes, no) => (Number(settings.vat_percent) > 0 ? yes : no));
 body = body.replace(/\{%-? endif -?%\}/g, '');
 
 const values = {

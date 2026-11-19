@@ -272,8 +272,9 @@ test('orderable: complete for its required steps and no problem pair', () => {
   assert.equal(isOrderable({ ...noCooler, extra: [] }), false, 'a processor without a cooler in the box needs one');
   const stealth = part('לוח אם עם מחברי חשמל מאחור Gigabyte B850 A STEALTH AM5 DDR5 WIFI7', 900);
   assert.equal(isOrderable({ ...s, board: stealth, extra: [] }), false, 'rear-connector board in a regular case');
-  // earlierOf: only the steps before.
-  assert.deepEqual(Object.keys(earlierOf(s, 'psu')), ['cpu', 'board', 'ram', 'gpu', 'storage', 'cooler']);
+  // earlierOf: only the steps before (and the quantities, which the PSU check needs).
+  assert.deepEqual(Object.keys(earlierOf(s, 'psu')).filter((k) => k !== 'qty'), ['cpu', 'board', 'ram', 'gpu', 'storage', 'cooler']);
+  assert.deepEqual(earlierOf({ ...s, qty: { [s.gpu.id]: 2 } }, 'psu').qty, { [s.gpu.id]: 2 });
 });
 
 /* ---------- FPS estimates ---------- */

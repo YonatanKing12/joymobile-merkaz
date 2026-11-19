@@ -13,7 +13,11 @@
    complete build that passes every check (validated again right before /cart/add.js).
    The summary (a slim bar on phones) holds the parts, the total with its payments (section settings: interest-free
    payments, most payments), the power estimate, an FPS estimate, the cart, WhatsApp and a "more" menu: printable quote, save for comparison (localStorage, up to 3), compare, link, clear.
-   The selection lives in the URL (?build=<variant ids>), so a link brings back the same computer.
+   The selection lives in the URL (?build=<variant ids>, "<id>x2" for two of a part), so a link brings back the same computer.
+   Each step has a search box (title, maker, model, chipset, socket, capacity; Hebrew or English; arrow keys move from
+   it into the list). Quantities: two processors (dual-socket boards only), memory kits, two graphics cards, several
+   drives and fan packs, held within the board's slots (assets/pc-builder-parser.js: qtyLimit); the power estimate,
+   the totals, the quote and the cart count them.
    ========================================================================== */
 
 const html = (s) =>
@@ -38,7 +42,12 @@ const withoutBrand = (part) => {
 };
 
 /* Each step's name with the article, and "to" it: "לוח האם הוסר כי אינו מתאים למעבד החדש". */
-const DEFINITE = { cpu: 'המעבד', board: 'לוח האם', ram: 'הזיכרון', gpu: 'כרטיס המסך', storage: 'האחסון', cooler: 'הקירור', psu: 'ספק הכוח', case: 'המארז', os: 'מערכת ההפעלה' };
+const DEFINITE = { cpu: 'המעבד', board: 'לוח האם', ram: 'הזיכרון', gpu: 'כרטיס המסך', storage: 'האחסון', cooler: 'הקירור', psu: 'ספק הכוח', case: 'המארז', os: 'מערכת ההפעלה', extra: 'התוספת' };
+/* What one unit is called, for "2 ערכות", "2 כרטיסי מסך". */
+const UNITS = { cpu: ['מעבד', 'מעבדים'], ram: ['ערכת זיכרון', 'ערכות זיכרון', 'f'], gpu: ['כרטיס מסך', 'כרטיסי מסך'], storage: ['דיסק', 'דיסקים'], fan: ['חבילת מאווררים', 'חבילות מאווררים', 'f'] };
+/* Examples in each step's search box. */
+const SEARCH_HINTS = { cpu: 'למשל i5 14400F או רייזן 7', board: 'למשל B850M או AM5', ram: 'למשל 32GB DDR5', gpu: 'למשל RTX 5070', storage: 'למשל 1TB NVMe', cooler: 'למשל נוזלי 360', psu: 'למשל 750W Gold', case: 'למשל ATX לבן', os: 'למשל Pro', extra: 'למשל מאוורר' };
+const emptySel = () => ({ extra: [], drives: [], qty: {} });
 const TO = { cpu: 'למעבד', board: 'ללוח האם', ram: 'לזיכרון', gpu: 'לכרטיס המסך', storage: 'לאחסון', cooler: 'לקירור', psu: 'לספק הכוח', case: 'למארז' };
 const andList = (items) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} ו${items[items.length - 1]}`);
 
@@ -82,8 +91,9 @@ class PcBuilder {
     this.uid = el.id || 'pcb';
     this.parts = [];
     this.byVariant = new Map();
-    this.sel = { extra: [] };
+    this.sel = emptySel();
     this.step = 'cpu';
+    this.qtyMsg = null;
     this.filters = {};
     this.showBlocked = {};
     this.shown = {};
@@ -178,29 +188,39 @@ class PcBuilder {
     this.say('');
   }
 
-  /** Variant ids → a clean selection: unknown or sold-out ids are skipped, clashing parts dropped in step order. */
+  /** Variant ids ("123" or "123x2") → a clean selection: unknown or sold-out ids are skipped, clashing parts dropped
+      in step order, a second drive kept as an added one, and quantities held within the board's limits. */
   fromIds(ids) {
-    const raw = { extra: [] };
+    const raw = emptySel();
     let gone = 0;
-    for (const id of ids) {
-      const part = this.byVariant.get(String(id));
+    for (const token of ids) {
+      const [, id, n] = String(token).match(/^(\d+)(?:x(\d{1,2}))?$/i) || [];
+      const part = id && this.byVariant.get(id);
       if (!part) { gone++; continue; }
+      if (Number(n) > 1) raw.qty[part.id] = Number(n);
       if (part.category === 'extra') { if (!raw.extra.includes(part)) raw.extra.push(part); }
+      else if (part.category === 'storage' && raw.storage && raw.storage !== part) { if (!raw.drives.includes(part)) raw.drives.push(part); }
       else raw[part.category] = part;
     }
-    const { sel, removed } = this.P.sanitize(raw);
-    return { sel, removed, gone };
+    const { sel, removed, adjusted } = this.P.sanitize(raw);
+    return { sel, removed, gone, adjusted };
+  }
+
+  /** The URL form of a selection: variant ids, "x2" after a part chosen twice. */
+  idsOf(sel = this.sel) {
+    return this.P.lines(sel).map((l) => `${l.part.variantId}${l.qty > 1 ? `x${l.qty}` : ''}`);
   }
 
   restore() {
     const q = new URLSearchParams(location.search);
     const ids = (q.get('build') || '').split(/[,\s]+/).filter(Boolean);
     if (ids.length) {
-      const { sel, removed, gone } = this.fromIds(ids);
+      const { sel, removed, gone, adjusted } = this.fromIds(ids);
       this.sel = sel;
       const lines = [];
       if (gone) lines.push('חלק מהרכיבים בקישור כבר לא זמינים באתר.');
       if (removed.length) lines.push(`בקישור היו רכיבים שלא מתאימים זה לזה: ${this.removedText(removed)}`);
+      if (adjusted.length) lines.push(this.adjustedText(adjusted));
       if (lines.length) this.setNotice(lines.join(' '));
     }
     const mode = q.get('mode') || (ids.length ? 'steps' : this.d.defaultMode || 'guided');
@@ -228,11 +248,29 @@ class PcBuilder {
   }
 
   selectedList(sel = this.sel) {
-    return [...this.P.STEP_KEYS.filter((k) => k !== 'extra').map((k) => sel[k]).filter(Boolean), ...(sel.extra || [])];
+    return this.P.lines(sel).map((l) => l.part);
   }
 
+  /** Every unit counted: two cards are two prices. */
   total(sel = this.sel) {
-    return this.selectedList(sel).reduce((s, p) => s + p.price, 0);
+    return this.P.lines(sel).reduce((s, l) => s + l.part.price * l.qty, 0);
+  }
+
+  /** How many units the build has (two kits of memory count as two). */
+  units(sel = this.sel) {
+    return this.P.lines(sel).reduce((n, l) => n + l.qty, 0);
+  }
+
+  /** "2 ערכות זיכרון", or for one the bare name ("כרטיס מסך"). */
+  unitsText(part, n) {
+    const u = UNITS[this.P.qtyKind(part)] || ['יחידה', 'יחידות', 'f'];
+    return n === 1 ? u[0] : `${n} ${u[1]}`;
+  }
+
+  /** "2 ערכות זיכרון", and for one "כרטיס מסך אחד" / "ערכת זיכרון אחת". */
+  countText(part, n) {
+    const u = UNITS[this.P.qtyKind(part)] || ['יחידה', 'יחידות', 'f'];
+    return n === 1 ? `${u[0]} ${u[2] === 'f' ? 'אחת' : 'אחד'}` : `${n} ${u[1]}`;
   }
 
   firstOpenStep() {
@@ -241,7 +279,7 @@ class PcBuilder {
 
   syncUrl() {
     const u = new URL(location.href);
-    const ids = this.selectedList().map((p) => p.variantId);
+    const ids = this.idsOf();
     if (ids.length) u.searchParams.set('build', ids.join(','));
     else u.searchParams.delete('build');
     u.searchParams.set('mode', this.mode);
@@ -274,6 +312,14 @@ class PcBuilder {
     const names = andList(removed.map((r) => DEFINITE[r.step] || this.label(r.step)));
     const one = removed.length === 1;
     return `${names} ${one ? 'הוסר כי אינו מתאים' : 'הוסרו כי אינם מתאימים'} ${key ? `${TO[key] || this.label(key)} החדש` : 'לשאר הרכיבים'}.`;
+  }
+
+  /** "כמות הזיכרון ירדה ל־1: ללוח 2 חריצי זיכרון." for each quantity a new choice or a link had to lower. */
+  adjustedText(adjusted) {
+    return adjusted.map((a) => {
+      const what = a.step === 'storage' ? `הדיסק ${this.brief(a.part)}` : a.step === 'extra' ? shortName(a.part.title) : DEFINITE[a.step] || this.label(a.step);
+      return a.to ? `הכמות של ${what} ירדה ל־${a.to}. ${a.reason || ''}` : `${what} הוסר, כי אין לו מקום. ${a.reason || ''}`;
+    }).join(' ').trim();
   }
 
   setNotice(text, undo = null) {
@@ -431,6 +477,12 @@ class PcBuilder {
     }
   }
 
+  /** "2 × 16GB DDR4 3200MHz" when there are two. */
+  briefQty(part, sel = this.sel) {
+    const n = this.P.qtyOf(sel, part);
+    return `${n > 1 ? `${n} × ` : ''}${this.brief(part)}`;
+  }
+
   /** At most three key facts, in words. */
   specs(part) {
     const f = part.facts;
@@ -452,6 +504,7 @@ class PcBuilder {
 
   stepState(key) {
     if (key === 'extra') return this.sel.extra.length ? `${this.sel.extra.length} נבחרו` : 'לא חובה';
+    if (key === 'storage' && this.sel.drives.length) return `${this.sel.drives.length + 1} דיסקים נבחרו`;
     if (this.sel[key]) return 'נבחר';
     return this.P.requiredSteps(this.sel).includes(key) ? 'חובה' : 'לא חובה';
   }
@@ -485,14 +538,21 @@ class PcBuilder {
     const earlier = this.P.earlierOf(this.sel, key);
     const ok = [];
     const blocked = [];
+    // Storage, with a drive already chosen: a row adds one more drive (nothing is replaced).
+    const adding = key === 'storage' && !!this.sel.storage;
     for (const part of list) {
       if (key === 'extra') { ok.push({ part, drops: [] }); continue; }
       const fit = this.P.fitOf(part, earlier);
       if (!fit.ok) { blocked.push({ part, fit }); continue; }
-      const drops = this.sel[key] === part ? [] : this.P.applyChoice(this.sel, part).removed;
+      const drops = adding || this.sel[key] === part ? [] : this.P.applyChoice(this.sel, part).removed;
       ok.push({ part, drops, fit });
     }
     return { ok, blocked };
+  }
+
+  /** The step's search query, and whether a part matches it. */
+  query(key = this.step) {
+    return (this.filters[key] && this.filters[key].q) || '';
   }
 
   stepHtml(key) {
@@ -500,18 +560,10 @@ class PcBuilder {
     const index = this.P.STEPS.indexOf(step);
     const required = this.P.requiredSteps(this.sel).includes(key);
     const { ok, blocked } = this.candidates(key);
-    const f = (this.filters[key] ||= { brand: '', max: '', sort: 'popular' });
+    const f = (this.filters[key] ||= { brand: '', max: '', sort: 'popular', q: '' });
     const brands = [...new Set(ok.map((c) => c.part.brand))].sort((a, b) => a.localeCompare(b));
     const prices = ok.map((c) => c.part.price).sort((a, b) => a - b);
     const caps = this.priceCaps(prices);
-    let shown = ok.filter((c) => (!f.brand || c.part.brand === f.brand) && (!f.max || c.part.price <= Number(f.max)));
-    if (f.sort === 'price-asc') shown.sort((a, b) => a.part.price - b.part.price);
-    else if (f.sort === 'price-desc') shown.sort((a, b) => b.part.price - a.part.price);
-    else shown.sort((a, b) => this.rank(b.part) - this.rank(a.part) || a.part.price - b.part.price);
-    const matching = shown.length;
-    const limit = this.shown[key] || PAGE_SIZE;
-    const more = matching - limit;
-    shown = shown.slice(0, limit);
     const hint = this.stepHint(key, required);
     const id = `${this.uid}-${key}`;
     const optional = !required
@@ -523,6 +575,15 @@ class PcBuilder {
           <h2 class="pcb-step__title" id="${id}-h" tabindex="-1">${html(step.title)}${required ? '' : ' <span class="pcb-step__opt">לא חובה</span>'}</h2>
           ${hint ? `<p class="pcb-step__hint">${html(hint)}</p>` : ''}
         </div>
+        ${ok.length + blocked.length > 4 ? `
+        <div class="pcb-search" role="search">
+          <label class="visually-hidden" for="${id}-q">חיפוש ${html(step.label)} לפי שם, מותג, דגם, תושבת או נפח</label>
+          <svg class="pcb-search__icon" aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input class="pcb-search__input" type="search" id="${id}-q" data-search value="${html(f.q)}" placeholder="חיפוש ${html(step.label)}: ${html(SEARCH_HINTS[key] || '')}" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" dir="auto" aria-controls="${id}-list" aria-describedby="${id}-meta">
+          <button type="button" class="pcb-search__clear" data-action="clear-search"${f.q ? '' : ' hidden'} aria-label="ניקוי החיפוש">
+            <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>` : ''}
         ${ok.length > 6 ? `
         <div class="pcb-filters" role="group" aria-label="סינון ${html(step.label)}">
           <div class="pcb-filters__field">
@@ -548,18 +609,7 @@ class PcBuilder {
             </select></div>
           </div>
         </div>` : ''}
-        <p class="pcb-step__meta" aria-live="polite">${matching} מתאימים${f.brand || f.max ? ' לסינון' : ''}</p>
-        ${shown.length ? `<ul class="pcb-list" role="list">${shown.map((c) => this.partHtml(c.part, key, null, c.drops, c.fit)).join('')}</ul>` : '<p class="pcb-empty">אין מוצרים שמתאימים לסינון. אפשר לנקות את הסינון או לשנות רכיב קודם.</p>'}
-        ${more > 0 ? `<button type="button" class="button button--outline pcb-list__more" data-action="more">עוד ${Math.min(more, PAGE_SIZE)}</button>` : ''}
-        ${blocked.length ? `
-          <div class="pcb-blocked">
-            <button type="button" class="pcb-blocked__toggle" data-action="toggle-blocked" aria-expanded="${!!this.showBlocked[key]}" aria-controls="${id}-blocked">
-              ${blocked.length} לא מתאימים לרכיבים שבחרתם · <span class="pcb-blocked__why">${this.showBlocked[key] ? 'הסתרה' : 'למה?'}</span>
-            </button>
-            <ul class="pcb-list pcb-list--blocked" role="list" id="${id}-blocked"${this.showBlocked[key] ? '' : ' hidden'}>
-              ${this.showBlocked[key] ? blocked.map((c) => this.partHtml(c.part, key, c.fit.reasons)).join('') : ''}
-            </ul>
-          </div>` : ''}
+        <div data-step-list>${this.stepListHtml(key, { ok, blocked })}</div>
         <div class="pcb-step__nav">
           ${index > 0 ? `<button type="button" class="button button--outline" data-action="prev"><span class="visually-hidden">הקודם: </span>${html(this.P.STEPS[index - 1].label)}</button>` : '<span></span>'}
           ${optional}
@@ -568,12 +618,104 @@ class PcBuilder {
       </div>`;
   }
 
+  /** The list part of a step (rows, "more", the blocked ones): redrawn alone while the customer types a search. */
+  stepListHtml(key, { ok, blocked } = this.candidates(key)) {
+    const f = this.filters[key] || {};
+    const id = `${this.uid}-${key}`;
+    const q = (f.q || '').trim();
+    const found = (c) => this.P.matchesQuery(c.part, q);
+    let shown = ok.filter((c) => (!f.brand || c.part.brand === f.brand) && (!f.max || c.part.price <= Number(f.max)) && found(c));
+    const blockedShown = q ? blocked.filter(found) : blocked;
+    if (f.sort === 'price-asc') shown.sort((a, b) => a.part.price - b.part.price);
+    else if (f.sort === 'price-desc') shown.sort((a, b) => b.part.price - a.part.price);
+    else shown.sort((a, b) => this.rank(b.part) - this.rank(a.part) || a.part.price - b.part.price);
+    // The chosen parts first, so their quantity is at hand.
+    const chosen = (p) => (key === 'storage' ? this.P.drivesOf(this.sel).includes(p) : key === 'extra' ? this.sel.extra.includes(p) : this.sel[key] === p);
+    shown.sort((a, b) => chosen(b.part) - chosen(a.part));
+    const matching = shown.length;
+    const limit = this.shown[key] || PAGE_SIZE;
+    const more = matching - limit;
+    shown = shown.slice(0, limit);
+    const filtered = f.brand || f.max;
+    const meta = `${matching} מתאימים${q ? ` לחיפוש ״${q}״` : filtered ? ' לסינון' : ''}`;
+    const empty = q
+      ? `<div class="pcb-empty"><p>לא מצאנו ${html(this.label(key))} שמתאים לחיפוש ״${html(q)}״${filtered ? ' ולסינון' : ''}. אפשר לנסות דגם, מותג או נפח אחר.</p><button type="button" class="link" data-action="clear-search">ניקוי החיפוש</button></div>`
+      : '<p class="pcb-empty">אין מוצרים שמתאימים לסינון. אפשר לנקות את הסינון או לשנות רכיב קודם.</p>';
+    return `
+        <p class="pcb-step__meta" id="${id}-meta">${html(meta)}</p>
+        ${shown.length ? `<ul class="pcb-list" role="list" id="${id}-list">${shown.map((c) => this.partHtml(c.part, key, null, c.drops, c.fit)).join('')}</ul>` : empty}
+        ${more > 0 ? `<button type="button" class="button button--outline pcb-list__more" data-action="more">עוד ${Math.min(more, PAGE_SIZE)}</button>` : ''}
+        ${blockedShown.length ? `
+          <div class="pcb-blocked">
+            <button type="button" class="pcb-blocked__toggle" data-action="toggle-blocked" aria-expanded="${!!this.showBlocked[key]}" aria-controls="${id}-blocked">
+              ${blockedShown.length} לא מתאימים לרכיבים שבחרתם · <span class="pcb-blocked__why">${this.showBlocked[key] ? 'הסתרה' : 'למה?'}</span>
+            </button>
+            <ul class="pcb-list pcb-list--blocked" role="list" id="${id}-blocked"${this.showBlocked[key] ? '' : ' hidden'}>
+              ${this.showBlocked[key] ? blockedShown.map((c) => this.partHtml(c.part, key, c.fit.reasons)).join('') : ''}
+            </ul>
+          </div>` : ''}`;
+  }
+
+  /** Redraws the list only (the search box keeps its focus and what is being typed), and says how many were found. */
+  renderStepList() {
+    const box = this.$('[data-step-list]');
+    if (!box) return;
+    box.innerHTML = this.stepListHtml(this.step);
+    const clear = this.$('.pcb-search [data-action="clear-search"]');
+    if (clear) clear.hidden = !this.query();
+    clearTimeout(this.searchSay);
+    this.searchSay = setTimeout(() => this.announce(this.$('.pcb-step__meta')?.textContent || ''), 600);
+  }
+
+  /** The quantity control of a chosen part, and the line that says what limits it. */
+  qtyHtml(part, key) {
+    const kind = this.P.qtyKind(part);
+    if (!kind) return '';
+    const n = this.P.qtyOf(this.sel, part);
+    const lim = this.P.qtyLimit(this.sel, part);
+    const atMax = n >= Math.max(lim.max, 1);
+    const id = `${this.uid}-q-${part.id}`;
+    const name = `${part.brand} ${withoutBrand(part)}`;
+    const msg = this.qtyMsg && this.qtyMsg.id === part.id ? this.qtyMsg.text : '';
+    // The line under the control: what the customer just ran into, else (two or more, or an assumed limit) the limit.
+    let line = msg;
+    if (!line && n > 1) {
+      if (kind === 'gpu') line = 'רוב המשחקים לא מנצלים שני כרטיסי מסך. מתאים בעיקר לרינדור, לבינה מלאכותית ולעבודה עם כמה מסכים.';
+      else if (kind === 'cpu') line = lim.reason || '';
+      else line = atMax ? `זה המקסימום: ${lim.reason || ''}` : lim.assumed ? lim.reason : '';
+    }
+    if (!msg && n > 1 && window.theme?.eilatHardware?.enabled === true)
+      line = `${line ? `${line} ` : ''}באתר אילת יש מגבלה של פריט חומרה אחד בהזמנה. אם הרכיב מסווג כחומרה, הכמות תיבדק בהוספה לסל.`;
+    const minus = n <= 1;
+    return `<div class="pcb-qty" role="group" aria-labelledby="${id}-l ${this.uid}-p-${part.id}">
+        <span class="pcb-qty__label" id="${id}-l">כמות</span>
+        <button type="button" class="pcb-qty__btn" data-action="qty" data-id="${part.id}" data-delta="-1"${minus ? ' disabled' : ''} aria-label="להוריד ${html(this.unitsText(part, 1))}: ${html(name)}">
+          <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
+        </button>
+        <output class="pcb-qty__n" id="${id}" aria-live="polite">${n}</output>
+        <button type="button" class="pcb-qty__btn" data-action="qty" data-id="${part.id}" data-delta="1"${atMax ? ' aria-disabled="true"' : ''} aria-label="להוסיף ${html(this.unitsText(part, 1))}: ${html(name)}"${line ? ` aria-describedby="${id}-m"` : ''}>
+          <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+      ${line ? `<p class="pcb-qty__msg${msg ? ' is-limit' : ''}" id="${id}-m">${html(line)}</p>` : ''}`;
+  }
+
   stepHint(key, required) {
     const cpu = this.sel.cpu;
     switch (key) {
       case 'cpu': return 'מתחילים במעבד. בשלבים הבאים מוצגים רק רכיבים שמתאימים לו.';
       case 'board': return cpu ? `לוחות לתושבת ${cpu.facts.socket}.` : 'כדאי לבחור קודם מעבד.';
-      case 'ram': return this.sel.board?.facts.memory ? `הלוח עובד עם ${this.sel.board.facts.memory}.` : cpu ? `המעבד עובד עם ${({ AM4: 'DDR4', AM5: 'DDR5', LGA1851: 'DDR5' })[cpu.facts.socket] || 'DDR4 או DDR5, לפי הלוח'}.` : '';
+      case 'ram': {
+        const L = this.P.boardLimits(this.sel.board);
+        const slots = this.sel.board ? ` ${L.ramSlots.known ? `ללוח ${L.ramSlots.max} חריצי זיכרון` : `אפשר עד ${L.ramSlots.max} מקלות`}: אחרי הבחירה אפשר לשנות כמות.` : '';
+        return (this.sel.board?.facts.memory ? `הלוח עובד עם ${this.sel.board.facts.memory}.` : cpu ? `המעבד עובד עם ${({ AM4: 'DDR4', AM5: 'DDR5', LGA1851: 'DDR5' })[cpu.facts.socket] || 'DDR4 או DDR5, לפי הלוח'}.` : '') + slots;
+      }
+      case 'storage': {
+        if (!this.sel.storage) return 'אפשר לבחור כמה דיסקים: אחרי הבחירה הראשונה כל דיסק נוסף מתווסף.';
+        const L = this.P.boardLimits(this.sel.board);
+        const u = this.P.usageOf(this.sel);
+        return `ללוח ${L.m2Slots.max} חריצי M.2 (${u.m2} בשימוש) ו־${L.sataPorts.max} חיבורי SATA (${u.sata} בשימוש)${L.m2Slots.known && L.sataPorts.known ? '' : ', לפי ברירת מחדל: נציג יאשר'}.`;
+      }
       case 'gpu': return cpu && cpu.facts.igpu === false ? 'למעבד אין גרפיקה מובנית, ולכן צריך כרטיס מסך.' : required ? '' : 'למעבד יש גרפיקה מובנית. כרטיס מסך נדרש למשחקים ולעבודה גרפית.';
       case 'cooler': return cpu ? (cpu.facts.needsCooler === false ? 'המעבד מגיע עם קירור.' : `המעבד מגיע בלי קירור. מוצגים קירורים שמתאימים ל־${cpu.facts.watts}W.`) : '';
       case 'psu': {
@@ -605,7 +747,12 @@ class PcBuilder {
 
   partHtml(part, key, reasons, drops = [], fit = null) {
     const isExtra = key === 'extra';
-    const selected = isExtra ? this.sel.extra.includes(part) : this.sel[key] === part;
+    const isDrive = key === 'storage';
+    const selected = isExtra ? this.sel.extra.includes(part) : isDrive ? this.P.drivesOf(this.sel).includes(part) : this.sel[key] === part;
+    // Storage with a drive chosen: the other rows add a drive (when there is room), the chosen ones can be removed.
+    const adding = isDrive && !selected && !!this.sel.storage;
+    const can = adding ? this.P.canAddDrive(this.sel, part) : null;
+    const n = selected ? this.P.qtyOf(this.sel, part) : 1;
     const blocked = !!reasons;
     const id = `${this.uid}-p-${part.id}`;
     const chips = this.specs(part);
@@ -627,11 +774,17 @@ class PcBuilder {
           ${blocked ? `<p class="pcb-row__why"><span class="visually-hidden">לא מתאים: </span>${reasons.map(html).join('. ')}</p>` : ''}
           ${note ? `<p class="pcb-row__note${fit.notes[0] ? '' : ' is-unverified'}">${html(note)}</p>` : ''}
           ${dropText ? `<p class="pcb-row__drop" id="${id}-d">${html(dropText)}</p>` : ''}
+          ${selected && !blocked ? this.qtyHtml(part, key) : ''}
+          ${can && !can.ok && this.qtyMsg?.id === part.id ? `<p class="pcb-qty__msg is-limit" id="${id}-m">${html(this.qtyMsg.text)}</p>` : ''}
         </div>
-        <p class="pcb-row__price">${fmt(part.price)}</p>
+        <p class="pcb-row__price">${fmt(part.price * n)}${n > 1 ? `<span class="pcb-row__each">${n} × ${fmt(part.price)}</span>` : ''}</p>
         ${blocked
           ? ''
-          : `<button type="button" class="pcb-row__pick${selected ? ' is-on' : ''}" data-action="choose" data-id="${part.id}" aria-pressed="${selected}" aria-describedby="${id}${dropText ? ` ${id}-d` : ''}">
+          : adding
+            ? `<button type="button" class="pcb-row__pick" data-action="add-drive" data-id="${part.id}"${can.ok ? '' : ' aria-disabled="true"'} aria-describedby="${id}">הוספה</button>`
+            : isDrive && selected
+              ? `<button type="button" class="pcb-row__pick is-on" data-action="remove-drive" data-id="${part.id}" aria-describedby="${id}"><span aria-hidden="true">נבחר</span><span class="visually-hidden">הסרה</span></button>`
+              : `<button type="button" class="pcb-row__pick${selected ? ' is-on' : ''}" data-action="choose" data-id="${part.id}" aria-pressed="${selected}" aria-describedby="${id}${dropText ? ` ${id}-d` : ''}">
               ${selected ? (isExtra ? 'נוסף' : 'נבחר') : isExtra ? 'הוספה' : 'בחירה'}</button>`}
       </li>`;
   }
@@ -670,7 +823,7 @@ class PcBuilder {
     if (!box) return;
     const check = this.P.checkBuild(this.sel);
     const required = this.P.requiredSteps(this.sel);
-    const count = this.selectedList().length;
+    const count = this.units();
     const total = this.total();
     const orderable = count > 0 && check.ok;
     const rows = this.P.STEPS.filter((s) => s.key !== 'extra')
@@ -678,16 +831,24 @@ class PcBuilder {
       .map((s) => {
         const p = this.sel[s.key];
         const bad = check.problems.some((x) => x.step === s.key);
+        const added = s.key === 'storage' ? this.sel.drives.map((d) => `<li class="pcb-sum__extra">
+          <span class="pcb-sum__k">אחסון נוסף</span>
+          <span class="pcb-sum__v">${html(this.briefQty(d))}</span>
+          <span class="pcb-sum__p">${fmt(d.price * this.P.qtyOf(this.sel, d))}</span>
+          <button type="button" class="pcb-sum__x" data-action="remove-drive" data-id="${d.id}" aria-label="הסרת ${html(shortName(d.title))}">
+            <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </li>`).join('') : '';
         return `<li><button type="button" class="pcb-sum__row${bad ? ' is-bad' : ''}${p ? '' : ' is-empty'}" data-action="go-step" data-step="${s.key}">
           <span class="pcb-sum__k">${html(s.label)}</span>
-          <span class="pcb-sum__v">${p ? html(this.brief(p)) : 'לבחירה'}</span>
-          <span class="pcb-sum__p">${p ? fmt(p.price) : ''}</span>
-        </button></li>`;
+          <span class="pcb-sum__v">${p ? html(this.briefQty(p)) : 'לבחירה'}</span>
+          <span class="pcb-sum__p">${p ? fmt(p.price * this.P.qtyOf(this.sel, p)) : ''}</span>
+        </button></li>${added}`;
       })
       .concat(this.sel.extra.map((p) => `<li class="pcb-sum__extra">
           <span class="pcb-sum__k">תוספת</span>
-          <span class="pcb-sum__v">${html(shortName(p.title))}</span>
-          <span class="pcb-sum__p">${fmt(p.price)}</span>
+          <span class="pcb-sum__v">${this.P.qtyOf(this.sel, p) > 1 ? `${this.P.qtyOf(this.sel, p)} × ` : ''}${html(shortName(p.title))}</span>
+          <span class="pcb-sum__p">${fmt(p.price * this.P.qtyOf(this.sel, p))}</span>
           <button type="button" class="pcb-sum__x" data-action="remove-extra" data-id="${p.id}" aria-label="הסרת ${html(shortName(p.title))}">
             <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
           </button>
@@ -698,12 +859,13 @@ class PcBuilder {
     if (!count) state = '<p class="pcb-sum__state-line">בחרו מפרט מוכן או רכיבים, והבדיקה תופיע כאן.</p>';
     else if (check.ok) state = `<p class="pcb-sum__state-line is-ok">${check.unverified.length ? 'לא נמצאה אי־התאמה' : 'כל הרכיבים תואמים'}</p>`;
     else if (check.problems.length) state = `<div class="pcb-sum__state-line is-warn"><p>יש רכיבים שלא מתאימים</p><ul role="list">${check.problems.map((p) => `<li>${html(this.label(p.step))}: ${html(p.text)}</li>`).join('')}</ul></div>`;
+    // Two processors or two cards: the power line says so ("2 כרטיסי מסך").
     else state = `<p class="pcb-sum__state-line">חסר: ${html(check.missing.map((k) => this.label(k)).join(', '))}</p>`;
     box.innerHTML = `
       ${rows ? `<ul class="pcb-sum__list" role="list">${rows}</ul>` : ''}
       ${state}
       ${count ? this.notesHtml(check) : ''}
-      ${count && this.sel.cpu ? `<p class="pcb-sum__power">צריכה משוערת ${pw.draw}W${pw.psu ? ` מתוך ספק ${pw.psu}W` : ` · מומלץ ספק ${pw.recommended}W`}</p>` : ''}
+      ${count && this.sel.cpu ? `<p class="pcb-sum__power">צריכה משוערת ${pw.draw}W${pw.gpus > 1 ? ` עם ${pw.gpus} כרטיסי מסך` : ''}${pw.psu ? ` מתוך ספק ${pw.psu}W` : ` · מומלץ ספק ${pw.recommended}W`}</p>` : ''}
       ${count && this.sel.cpu ? this.fpsTable(this.sel) : ''}`;
     const totalText = fmt(total);
     for (const t of this.el.querySelectorAll('[data-total]')) t.textContent = totalText;
@@ -721,7 +883,7 @@ class PcBuilder {
     }
     const chip = this.$('[data-summary-chip]');
     if (chip) {
-      chip.textContent = !count ? 'עוד לא נבחרו רכיבים' : check.ok ? 'מוכן להזמנה' : check.problems.length ? 'יש אי־התאמה' : `חסרים ${check.missing.length} רכיבים`;
+      chip.textContent = !count ? 'עוד לא נבחרו רכיבים' : check.ok ? 'מוכן להזמנה' : check.problems.length ? 'יש אי־התאמה' : check.missing.length === 1 ? 'חסר רכיב אחד' : `חסרים ${check.missing.length} רכיבים`;
       chip.className = `pcb-sum__state${count && check.ok ? ' is-ok' : ''}`;
     }
     const countEl = this.$('[data-count]');
@@ -745,7 +907,7 @@ class PcBuilder {
     const key = part.category;
     if (key === 'extra') {
       const i = this.sel.extra.indexOf(part);
-      if (i >= 0) this.sel.extra.splice(i, 1);
+      if (i >= 0) { this.sel.extra.splice(i, 1); delete this.sel.qty[part.id]; }
       else this.sel.extra.push(part);
       this.announce(i >= 0 ? 'התוספת הוסרה' : 'התוספת נוספה');
       this.renderSteps();
@@ -753,13 +915,19 @@ class PcBuilder {
       this.syncUrl();
       return;
     }
+    if (key === 'storage' && this.sel.storage && this.sel.storage !== part) {
+      if (this.P.drivesOf(this.sel).includes(part)) this.removeDrive(part);
+      else this.addDrive(part);
+      return;
+    }
     // Never choose what does not fit the earlier steps (the button is not there, but a stale page could still ask).
     if (!this.P.fitOf(part, this.P.earlierOf(this.sel, key)).ok) return;
     const before = this.sel;
-    const { sel, removed } = this.P.applyChoice(this.sel, part);
+    const { sel, removed, adjusted } = this.P.applyChoice(this.sel, part);
     this.sel = sel;
-    if (removed.length) {
-      const text = this.removedText(removed, key);
+    this.qtyMsg = null;
+    if (removed.length || adjusted.length) {
+      const text = [removed.length ? this.removedText(removed, key) : '', this.adjustedText(adjusted)].filter(Boolean).join(' ');
       this.setNotice(text, before);
       this.announce(text);
     } else {
@@ -769,6 +937,75 @@ class PcBuilder {
     const next = removed.length ? removed[0].step : this.nextStep(key);
     if (next) this.goStep(next, true);
     else this.renderSteps();
+    this.renderSummary();
+    this.syncUrl();
+  }
+
+  /** + or − on a chosen part. Past the limit nothing changes and the row says why (a dual-socket board for two
+      processors, the board's slots…); a larger quantity that a later part no longer fits drops it, with undo. */
+  changeQty(part, delta) {
+    const n = this.P.qtyOf(this.sel, part);
+    const lim = this.P.qtyLimit(this.sel, part);
+    if (delta > 0 && n >= Math.max(lim.max, 1)) {
+      const text = part.category === 'cpu' ? lim.reason : `אי אפשר יותר מ${lim.max > 1 ? '־' : ''}${this.countText(part, Math.max(lim.max, 1))}: ${lim.reason}`;
+      this.qtyMsg = { id: part.id, text };
+      this.announce(text);
+      this.renderSteps();
+      this.focusQty(part, 1);
+      return;
+    }
+    const before = this.sel;
+    const { sel, removed, adjusted } = this.P.setQty(this.sel, part, n + delta);
+    this.sel = sel;
+    this.qtyMsg = null;
+    const now = this.P.qtyOf(sel, part);
+    if (removed.length) {
+      // "ספק הכוח הוסר כי אינו מתאים ל־2 כרטיסי מסך. בשלב ״ספק כוח״ מוצגים ספקים שמתאימים."
+      const names = andList(removed.map((r) => DEFINITE[r.step] || this.label(r.step)));
+      const one = removed.length === 1;
+      const text = `${names} ${one ? 'הוסר כי אינו מתאים' : 'הוסרו כי אינם מתאימים'} ל־${this.unitsText(part, now)}. ${this.adjustedText(adjusted)}`.trim();
+      this.setNotice(text, before);
+      this.announce(text);
+    } else {
+      if (adjusted.length) this.setNotice(this.adjustedText(adjusted), before);
+      this.announce(`כמות: ${now}`);
+    }
+    this.renderSteps();
+    this.renderSummary();
+    this.syncUrl();
+    this.focusQty(part, delta);
+  }
+
+  focusQty(part, delta) {
+    const btn = this.$(`[data-action="qty"][data-id="${part.id}"][data-delta="${delta > 0 ? 1 : -1}"]`);
+    if (btn && !btn.disabled) btn.focus();
+    else this.$(`[data-action="qty"][data-id="${part.id}"]:not(:disabled)`)?.focus();
+  }
+
+  addDrive(part) {
+    const res = this.P.addDrive(this.sel, part);
+    if (res.refused) {
+      this.qtyMsg = { id: part.id, text: res.refused };
+      this.announce(res.refused);
+      this.renderStepList();
+      this.$(`[data-action="add-drive"][data-id="${part.id}"]`)?.focus();
+      return;
+    }
+    this.sel = res.sel;
+    this.qtyMsg = null;
+    this.setNotice(res.adjusted?.length ? this.adjustedText(res.adjusted) : null);
+    this.announce(`נוסף דיסק: ${shortName(part.title)}`);
+    this.renderSteps();
+    this.renderSummary();
+    this.syncUrl();
+    this.$(`[data-action="remove-drive"][data-id="${part.id}"]`)?.focus();
+  }
+
+  removeDrive(part) {
+    this.sel = this.P.removeDrive(this.sel, part);
+    this.qtyMsg = null;
+    this.announce(`הדיסק הוסר: ${shortName(part.title)}`);
+    if (this.mode === 'steps') this.renderSteps();
     this.renderSummary();
     this.syncUrl();
   }
@@ -799,7 +1036,7 @@ class PcBuilder {
   useBuild(key, edit) {
     const b = this.builds.find((x) => x.key === key);
     if (!b) return;
-    const { sel, removed } = this.P.sanitize({ ...b.parts, extra: [] });
+    const { sel, removed } = this.P.sanitize({ ...b.parts, ...emptySel() });
     this.sel = sel;
     this.setNotice(removed.length ? this.removedText(removed) : null);
     this.announce(`נבחר המפרט ה${b.label}: ${fmt(b.total)}`);
@@ -839,10 +1076,10 @@ class PcBuilder {
 
   /** The last check before an order or a quote: the selection is cleaned again and must be complete. */
   revalidate() {
-    const { sel, removed } = this.P.sanitize(this.sel);
-    if (removed.length) {
+    const { sel, removed, adjusted } = this.P.sanitize(this.sel);
+    if (removed.length || adjusted.length) {
       this.sel = sel;
-      this.setNotice(this.removedText(removed));
+      this.setNotice([removed.length ? this.removedText(removed) : '', this.adjustedText(adjusted)].filter(Boolean).join(' '));
       this.renderAll();
     }
     return this.P.isOrderable(this.sel) && this.selectedList().length > 0;
@@ -858,11 +1095,13 @@ class PcBuilder {
       }
       return;
     }
-    const parts = this.selectedList();
+    const lines = this.P.lines(this.sel);
+    const parts = lines.map((l) => l.part);
     const id = this.buildId();
     const unverified = this.P.checkBuild(this.sel).unverified;
     // What could not be checked travels with the order (hidden from the customer, shown to the team in the admin).
-    const items = parts.map((p, i) => ({ id: p.variantId, quantity: 1, properties: { _build_id: id, 'הרכבה': 'כן', ...(i === 0 && unverified.length ? { _unverified: unverified.join(', ') } : {}) } }));
+    // Each part once, with its quantity (two cards: one line of 2).
+    const items = lines.map((l, i) => ({ id: l.part.variantId, quantity: l.qty, properties: { _build_id: id, 'הרכבה': 'כן', ...(i === 0 && unverified.length ? { _unverified: unverified.join(', ') } : {}) } }));
     btn.setAttribute('aria-busy', 'true');
     btn.disabled = true;
     try {
@@ -890,7 +1129,7 @@ class PcBuilder {
     const u = new URL(location.href);
     u.search = '';
     u.hash = '';
-    u.searchParams.set('build', this.selectedList(sel).map((p) => p.variantId).join(','));
+    u.searchParams.set('build', this.idsOf(sel).join(','));
     u.searchParams.set('mode', 'steps');
     return u.toString();
   }
@@ -898,7 +1137,7 @@ class PcBuilder {
   whatsapp() {
     const phone = this.d.whatsapp;
     if (!phone) return;
-    const lines = this.selectedList().map((p) => `• ${p.category === 'extra' ? 'תוספת' : this.label(p.category)}: ${shortName(p.title)} (${fmt(p.price)})`);
+    const lines = this.P.lines(this.sel).map((l) => `• ${l.step === 'extra' ? 'תוספת' : this.label(l.step)}: ${l.qty > 1 ? `${l.qty} × ` : ''}${shortName(l.part.title)} (${l.qty > 1 ? `${l.qty} × ${fmt(l.part.price)} = ` : ''}${fmt(l.part.price * l.qty)})`);
     const check = this.P.checkBuild(this.sel);
     const text = [
       'שלום, אשמח לעזרה עם מחשב שהרכבתי באתר:',
@@ -939,10 +1178,10 @@ class PcBuilder {
     const vat = vatRate ? total - total / (1 + vatRate / 100) : 0;
     const pay = this.pay(total);
     const number = `${now.getFullYear() % 100}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-    const rows = this.selectedList().map((p) => `<tr>
-        <th scope="row">${html(p.category === 'extra' ? 'תוספת' : this.label(p.category))}</th>
-        <td>${html(shortName(p.title))}${p.sku ? `<span class="pcb-quote__sku">מק״ט ${html(p.sku)}</span>` : ''}</td>
-        <td class="pcb-quote__num">${fmt(p.price)}</td>
+    const rows = this.P.lines(this.sel).map(({ step, part: p, qty }) => `<tr>
+        <th scope="row">${html(step === 'extra' ? 'תוספת' : this.label(step))}</th>
+        <td>${qty > 1 ? `<b>${qty} × </b>` : ''}${html(shortName(p.title))}${p.sku ? `<span class="pcb-quote__sku">מק״ט ${html(p.sku)}${qty > 1 ? ` · ${qty} יחידות של ${fmt(p.price)}` : ''}</span>` : qty > 1 ? `<span class="pcb-quote__sku">${qty} יחידות של ${fmt(p.price)}</span>` : ''}</td>
+        <td class="pcb-quote__num">${fmt(p.price * qty)}</td>
       </tr>`).join('');
     const fps = this.F.graphicsOf(this.sel) && this.guided.use === 'gaming'
       ? this.F.estimateBuild(this.sel, this.shownGames(), this.guided.res).filter((r) => r.fps !== null)
@@ -989,7 +1228,7 @@ class PcBuilder {
   /* ---------- compare ---------- */
 
   saveForCompare() {
-    const ids = this.selectedList().map((p) => String(p.variantId));
+    const ids = this.idsOf();
     if (!ids.length) return;
     const key = ids.slice().sort().join(',');
     let list = this.saved.filter((s) => s.ids.slice().sort().join(',') !== key);
@@ -1018,11 +1257,12 @@ class PcBuilder {
   loadSaved(i) {
     const s = this.saved[i];
     if (!s) return;
-    const { sel, removed, gone } = this.fromIds(s.ids);
+    const { sel, removed, gone, adjusted } = this.fromIds(s.ids);
     this.sel = sel;
     const lines = [];
     if (gone) lines.push('חלק מהרכיבים כבר לא זמינים באתר.');
     if (removed.length) lines.push(this.removedText(removed));
+    if (adjusted.length) lines.push(this.adjustedText(adjusted));
     this.setNotice(lines.length ? lines.join(' ') : null);
     this.compare?.close();
     this.goStep(this.firstOpenStep() || 'cpu', true);
@@ -1045,10 +1285,10 @@ class PcBuilder {
       return { s, sel, removed, gone, check: this.P.checkBuild(sel), total: this.total(sel) };
     });
     const keys = this.P.STEPS.map((s) => s.key).filter((k) => k !== 'extra' && builds.some((b) => b.sel[k]));
-    const cell = (b, k) => (b.sel[k] ? html(this.brief(b.sel[k])) : '<span class="pcb-cmp__none">—</span>');
+    const cell = (b, k) => (b.sel[k] ? html(this.briefQty(b.sel[k], b.sel)) + (k === 'storage' && b.sel.drives.length ? ` <span class="pcb-cmp__sub">ועוד ${b.sel.drives.length} דיסקים</span>` : '') : '<span class="pcb-cmp__none">—</span>');
     const row = (label, cells, same) => `<tr${same ? ' class="is-same"' : ''}><th scope="row">${label}</th>${cells.map((c) => `<td>${c}</td>`).join('')}</tr>`;
     const partRows = keys.map((k) => {
-      const vals = builds.map((b) => (b.sel[k] ? b.sel[k].variantId : null));
+      const vals = builds.map((b) => (b.sel[k] ? `${b.sel[k].variantId}x${this.P.qtyOf(b.sel, b.sel[k])}${k === 'storage' ? b.sel.drives.map((d) => d.variantId).join() : ''}` : null));
       return row(html(this.label(k)), builds.map((b) => cell(b, k)), builds.length > 1 && vals.every((v) => v === vals[0]));
     }).join('');
     const extras = builds.some((b) => b.sel.extra.length) ? row('תוספות', builds.map((b) => (b.sel.extra.length ? `${b.sel.extra.length}` : '—'))) : '';
@@ -1103,6 +1343,17 @@ class PcBuilder {
     const part = () => this.parts.find((p) => String(p.id) === t.dataset.id);
     switch (t.dataset.action) {
       case 'choose': { const p = part(); if (p) this.choose(p); break; }
+      case 'qty': { const p = part(); if (p) this.changeQty(p, Number(t.dataset.delta) || 0); break; }
+      case 'add-drive': { const p = part(); if (p) this.addDrive(p); break; }
+      case 'remove-drive': { const p = part(); if (p) this.removeDrive(p); break; }
+      case 'clear-search': {
+        (this.filters[this.step] ||= {}).q = '';
+        const input = this.$('[data-search]');
+        if (input) input.value = '';
+        this.renderStepList();
+        input?.focus();
+        break;
+      }
       case 'go-step':
         this.goStep(t.dataset.step, true);
         if (matchMedia('(max-width: 991px)').matches) this.toggleSummary(false);
@@ -1128,6 +1379,7 @@ class PcBuilder {
       case 'remove-extra': {
         const p = part();
         this.sel.extra = this.sel.extra.filter((x) => x !== p);
+        if (p) delete this.sel.qty[p.id];
         this.renderSummary();
         if (this.mode === 'steps') this.renderSteps();
         this.syncUrl();
@@ -1154,7 +1406,8 @@ class PcBuilder {
       case 'load-saved': e.preventDefault(); this.loadSaved(Number(t.dataset.index)); break;
       case 'remove-saved': this.removeSaved(Number(t.dataset.index)); break;
       case 'clear':
-        this.sel = { extra: [] };
+        this.sel = emptySel();
+        this.qtyMsg = null;
         this.setNotice(null);
         this.toggleMore(false);
         this.renderAll();
@@ -1167,7 +1420,7 @@ class PcBuilder {
   onChange(e) {
     const t = e.target;
     if (t.dataset.filter) {
-      (this.filters[this.step] ||= {})[t.dataset.filter] = t.value;
+      (this.filters[this.step] ||= { q: '' })[t.dataset.filter] = t.value;
       this.shown[this.step] = PAGE_SIZE;
       const id = t.id;
       this.renderSteps();
@@ -1178,6 +1431,13 @@ class PcBuilder {
   }
 
   onInput(e) {
+    if (e.target.matches('[data-search]')) {
+      (this.filters[this.step] ||= { brand: '', max: '', sort: 'popular' }).q = e.target.value;
+      this.shown[this.step] = PAGE_SIZE;
+      clearTimeout(this.searchTimer);
+      this.searchTimer = setTimeout(() => this.renderStepList(), 60);
+      return;
+    }
     if (e.target.name === 'budget') {
       this.showBudget();
       clearTimeout(this.budgetTimer);
@@ -1185,7 +1445,49 @@ class PcBuilder {
     }
   }
 
+  /** The search box and the list: ↓ from the box to the first part, ↑/↓ between parts, Home/End, ↑ from the first
+      part back to the box; Enter in the box goes to the first part; Escape clears the box. */
+  searchKeys(e) {
+    const t = e.target;
+    const box = this.$('[data-search]');
+    if (!box) return false;
+    const picks = () => [...this.el.querySelectorAll('[data-step-list] .pcb-list:not(.pcb-list--blocked) .pcb-row__pick')];
+    if (t === box) {
+      if (e.key === 'Escape' && box.value) {
+        e.preventDefault();
+        e.stopPropagation();
+        box.value = '';
+        this.filters[this.step].q = '';
+        this.renderStepList();
+        return true;
+      }
+      if (e.key === 'ArrowDown' || (e.key === 'Enter' && !e.isComposing)) {
+        clearTimeout(this.searchTimer);
+        this.renderStepList();
+        const first = picks()[0];
+        if (first) { e.preventDefault(); first.focus(); first.scrollIntoView({ block: 'nearest' }); }
+        return true;
+      }
+      return false;
+    }
+    const pick = t.closest?.('.pcb-row__pick');
+    if (!pick || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return false;
+    const list = picks();
+    const i = list.indexOf(pick);
+    if (i < 0) return false;
+    e.preventDefault();
+    let next = null;
+    if (e.key === 'Home') next = list[0];
+    else if (e.key === 'End') next = list[list.length - 1];
+    else if (e.key === 'ArrowDown') next = list[Math.min(i + 1, list.length - 1)];
+    else next = i === 0 ? box : list[i - 1];
+    next.focus();
+    next.scrollIntoView?.({ block: 'nearest' });
+    return true;
+  }
+
   onKeydown(e) {
+    if (this.searchKeys(e)) return;
     if (e.key === 'Escape') {
       const more = this.$('[data-action="toggle-more"]');
       if (more?.getAttribute('aria-expanded') === 'true') {

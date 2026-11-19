@@ -15,6 +15,15 @@
      pc.igpu          true | false                                      (CPU has graphics)
      pc.needs_cooler  true | false                                      (CPU sold without a cooler)
      pc.back_connect  true | false                                      (board with rear connectors; a case for them)
+   Quantities (several of a part) read these, all optional (pc.* number metafields):
+     pc.ram_slots     number    (board: memory slots)          pc.max_memory  number (board: most memory it takes, GB)
+     pc.m2_slots      number    (board: M.2 slots)             pc.sata_ports  number (board: SATA ports)
+     pc.pcie_x16      number    (board: PCIe x16 length slots) pc.cpu_sockets number (board: processor sockets, 2 = dual)
+     pc.pcie_8pin     number    (PSU: PCIe 8-pin connectors it has; graphics card: the 8-pin inputs it needs)
+     pc.pcie_16pin    number    (PSU: 12V-2x6 connectors it has; graphics card: 1 when it takes one)
+   Without them a board gets safe defaults (BOARD_DEFAULTS): up to 4 memory modules, 2 M.2, 4 SATA, 2 x16 slots and one
+   socket (a Mini-ITX board: 2 modules and one x16 slot, which the size itself fixes). Past what every board has
+   (BOARD_SURE) a default is "לא אומת", never a block; a known value that is exceeded blocks.
 
    Strict compatibility: a part missing a fact its checks need (REQUIRED_FACTS) never fits anything until a pc.*
    metafield gives it; a cooler with no rating fits processors up to UNRATED_COOLER_MAX only. applyChoice() drops the
@@ -423,6 +432,7 @@ function parseCpu(t) {
 }
 
 function parseBoard(t) {
+  let m;
   const out = { socket: null, memory: null, formFactor: null, chipset: null, backConnect: false, wifi: false };
   const chip = t.match(/\b([abhxz])(\d{3})(e)?([mi])?\b/i);
   let chipM = false;
@@ -448,6 +458,13 @@ function parseBoard(t) {
   else if (out.chipset) out.formFactor = 'ATX';
   out.backConnect = /stealth|מחברי חשמל מאחור|back[\s-]?connect/i.test(t);
   out.wifi = /wi-?fi|\bwf\s?\d|\bax\b/i.test(t);
+  // Slot counts, only when the title says them ("4XM.2 Slots", "4 x DIMM", "6 x SATA", "Dual CPU").
+  out.ramSlots = (m = t.match(/\b([2468])\s?x\s?(?:ddr[45]\s?)?dimm/i)) ? +m[1] : null;
+  out.m2Slots = (m = t.match(/\b([1-8])\s?x\s?m\.?2\b/i)) ? +m[1] : null;
+  out.sataPorts = (m = t.match(/\b([1-9])\s?x\s?sata/i)) ? +m[1] : null;
+  out.pcieX16 = (m = t.match(/\b([1-4])\s?x\s?pcie?\s?(?:[345]\.0\s?)?x16\b/i)) ? +m[1] : null;
+  out.cpuSockets = /\bdual[\s-]?(?:cpu|socket|processor)\b|\b2\s?x\s?(?:lga|sp[35]|socket)/i.test(t) ? 2 : null;
+  out.maxMemory = null;
   return out;
 }
 
@@ -575,7 +592,7 @@ function parseOs(t) {
 
 function parseExtra(t) {
   let kind = 'other';
-  if (/^(מאוורר|מאורר|מאווררים)/.test(t)) kind = 'fan';
+  if (/^(מאוורר|מאורר|מאווררים)/.test(t)) return { kind: 'fan', fans: +((t.match(/\b([2-9])\s?(?:pk|pack|fan pack)\b|\b([2-9])\s?x\s?1[24]0/i) || []).slice(1).find(Boolean) || 1) };
   else if (/^משחה/.test(t)) kind = 'paste';
   else if (/^מסך|\bmonitor\b/i.test(t)) kind = 'monitor';
   else if (/^(מקלדת|סט)/.test(t) || /\bkeyboard\b/i.test(t)) kind = 'keyboard';
@@ -687,6 +704,24 @@ export function parseTitle(title, overrides = {}, { sku = null, body = null } = 
     set('igpu', bool(overrides.igpu));
     set('needsCooler', bool(overrides.needs_cooler));
     set('backConnect', bool(overrides.back_connect));
+    const count = (v) => { const n = num(v); return n !== null && n >= 0 ? Math.floor(n) : null; };
+    if (category === 'board') {
+      set('ramSlots', count(overrides.ram_slots) || null);
+      set('maxMemory', count(overrides.max_memory) || null);
+      set('m2Slots', count(overrides.m2_slots));
+      set('sataPorts', count(overrides.sata_ports));
+      set('pcieX16', count(overrides.pcie_x16) || null);
+      set('cpuSockets', count(overrides.cpu_sockets) || null);
+    }
+    if (category === 'psu') {
+      set('eightPin', count(overrides.pcie_8pin));
+      set('pin16Count', count(overrides.pcie_16pin));
+    }
+    if (category === 'gpu') {
+      set('eightPin', count(overrides.pcie_8pin));
+      const p16 = count(overrides.pcie_16pin);
+      if (p16 !== null) set('pin16', p16 > 0);
+    }
   }
   const missing = (REQUIRED_FACTS[category] || []).filter((k) => facts[k] === null || facts[k] === undefined);
   return { category, facts, fromMeta, missing, verified };
@@ -724,14 +759,24 @@ export const BASE_WATTS = 60; // board, memory, drives, fans
 export const PSU_HEADROOM = 100;
 
 /** Estimated peak draw of a selection, and the PSU size it calls for: ×1.5 and at least draw + 100 W, rounded up to
-    50 W, at least 450 W. `card` is the graphics card maker's own recommendation, when known (advice, not a block). */
+    50 W, at least 450 W. `card` is the graphics card maker's own recommendation, when known (advice, not a block).
+    Quantities count: two processors or two cards draw twice; drives past the first, memory modules past two and
+    added case fans add a few watts each. */
 export function powerOf(sel) {
-  const cpu = sel.cpu?.facts?.watts || (sel.cpu ? 125 : 0);
-  const gpu = sel.gpu ? sel.gpu.facts.watts || 250 : 0;
-  const draw = BASE_WATTS + cpu + gpu;
+  const q = (key) => (sel[key] ? qtyOf(sel, sel[key]) : 0);
+  const cpu = (sel.cpu?.facts?.watts || (sel.cpu ? 125 : 0)) * Math.max(q('cpu'), 1);
+  const gpuW = sel.gpu ? sel.gpu.facts.watts || 250 : 0;
+  const gpus = q('gpu');
+  const gpu = gpuW * gpus;
+  const drives = drivesOf(sel).flatMap((d) => Array(qtyOf(sel, d)).fill(d)).slice(1);
+  const modules = sel.ram ? (sel.ram.facts.modules || 1) * q('ram') : 0;
+  const fans = (sel.extra || []).filter((p) => p.facts?.kind === 'fan').reduce((n, p) => n + (p.facts.fans || 1) * qtyOf(sel, p), 0);
+  const more = drives.reduce((w, d) => w + (d.facts.kind === 'HDD' ? 8 : 4), 0) + Math.max(0, modules - 2) * 4 + fans * 2;
+  const draw = BASE_WATTS + cpu + gpu + more;
   const up50 = (w) => Math.ceil(w / 50) * 50;
   const recommended = Math.max(450, up50(draw * 1.5), up50(draw + PSU_HEADROOM));
-  return { draw, recommended, card: sel.gpu?.facts?.recPsu || null, psu: sel.psu?.facts?.watts || null };
+  const rec = sel.gpu?.facts?.recPsu || null;
+  return { draw, recommended, card: rec && gpus > 1 ? up50(rec + gpuW * (gpus - 1)) : rec, psu: sel.psu?.facts?.watts || null, gpus };
 }
 
 const fmtW = (w) => `${w}W`;
@@ -768,6 +813,12 @@ export const UNVERIFIED = {
   fanHeaders: 'מחברי מאווררים ותאורה בלוח',
   m2: 'חריץ M.2 בלוח',
   memProfile: 'פרופיל XMP/EXPO של הזיכרון',
+  ramSlots: 'מספר חריצי הזיכרון בלוח',
+  maxMemory: 'נפח הזיכרון המרבי של הלוח',
+  m2Slots: 'מספר חריצי ה־M.2 בלוח',
+  sataPorts: 'מספר חיבורי ה־SATA בלוח',
+  pcieX16: 'חריץ PCIe x16 שני בלוח ומקום לשני כרטיסים',
+  gpuConnectors: 'מחברי החשמל בספק לשני כרטיסי המסך',
 };
 
 /* Processors newer than the first BIOS of a board family: the board may need an update first (we do it before
@@ -857,6 +908,24 @@ function lior(part, sel) {
   }
   if (pair('gpu', 'psu') && gpu.facts.recPsu && psu.facts.watts && psu.facts.watts < gpu.facts.recPsu)
     notes.push(`יצרן כרטיס המסך ממליץ על ספק של ${fmtW(gpu.facts.recPsu)} לפחות`);
+  // The power connectors every card needs, times the number of cards, against what the PSU has (pc.pcie_8pin,
+  // pc.pcie_16pin). Two cards and a count not known: a representative checks it.
+  if (pair('gpu', 'psu')) {
+    const n = qtyOf(sel, gpu) || 1;
+    const both = n > 1 ? `ל־${n} כרטיסי מסך` : 'לכרטיס המסך';
+    let known = false;
+    if (gpu.facts.pin16 === true && psu.facts.pin16Count != null) {
+      known = true;
+      const has = psu.facts.pin16Count === 1 ? 'מחבר 12V-2x6 אחד' : `${psu.facts.pin16Count} מחברי 12V-2x6`;
+      if (psu.facts.pin16Count < n) reasons.push(me('psu') ? `יש בו ${has}, ו${both} צריך ${n}` : `צריך ${n} מחברי 12V-2x6, ובספק שנבחר יש ${has}`);
+    } else if (gpu.facts.pin16 === false && gpu.facts.eightPin && psu.facts.eightPin != null) {
+      known = true;
+      const need = gpu.facts.eightPin * n;
+      const has = psu.facts.eightPin === 1 ? 'מחבר PCIe אחד של 8 פין' : `${psu.facts.eightPin} מחברי PCIe של 8 פין`;
+      if (psu.facts.eightPin < need) reasons.push(me('psu') ? `יש בו ${has}, ו${both} צריך ${need}` : `צריך ${need} מחברי PCIe של 8 פין, ובספק שנבחר יש ${has}`);
+    }
+    if (n > 1 && !known) unv.add(UNVERIFIED.gpuConnectors);
+  }
 
   // 4. Cooler ⟷ processor (socket, TDP headroom), case (height, radiator) and RAM (clearance under a big tower).
   if (pair('cooler', 'cpu')) {
@@ -1012,7 +1081,7 @@ export function checkBuild(sel) {
   const unverified = new Set();
   // Each part against the parts of the steps before it only, so every clashing pair is reported once (the step order
   // puts every part after what it depends on: board after CPU, memory after board, PSU after CPU and card…).
-  const before = {};
+  const before = { qty: sel.qty || {} };
   for (const key of STEP_KEYS) {
     const part = key === 'extra' ? null : sel[key];
     if (part) {
@@ -1022,7 +1091,19 @@ export function checkBuild(sel) {
       fit.unverified.forEach((u) => unverified.add(u));
       before[key] = part;
     }
+    if (key === 'storage' && sel.drives?.length) before.drives = sel.drives;
   }
+  // Added drives: each against the board (M.2 length, PCIe 5.0 slot), like the main one.
+  for (const d of sel.drives || []) {
+    const fit = fitOf(d, { board: sel.board, qty: sel.qty });
+    fit.reasons.forEach((r) => problems.push({ step: 'storage', text: r }));
+    fit.notes.forEach((n) => notes.push({ step: 'storage', text: n }));
+    fit.unverified.forEach((u) => unverified.add(u));
+  }
+  const qc = checkQuantities(sel);
+  problems.push(...qc.problems);
+  notes.push(...qc.notes);
+  qc.unverified.forEach((u) => unverified.add(u));
   // Notes that only show from the later side (memory to confirm on a board that does not say): ask the later part too.
   for (const key of STEP_KEYS) {
     if (key === 'extra' || !sel[key]) continue;
@@ -1043,12 +1124,14 @@ export function checkBuild(sel) {
   };
 }
 
-/** The parts of the steps before `key`: what a part of that step must fit. */
+/** The parts of the steps before `key`: what a part of that step must fit (with the quantities, and the added drives
+    once the storage step is behind). */
 export function earlierOf(sel, key) {
-  const out = {};
+  const out = { qty: { ...(sel.qty || {}) } };
   for (const k of STEP_KEYS) {
     if (k === key) break;
     if (k !== 'extra' && sel[k]) out[k] = sel[k];
+    if (k === 'storage' && sel.drives?.length) out.drives = [...sel.drives];
   }
   return out;
 }
@@ -1056,7 +1139,7 @@ export function earlierOf(sel, key) {
 /** Keeps, in step order, only the parts that fit everything kept before them (a shared link, a saved build, the
     last check before the cart). Returns the clean selection and what was dropped, with the reason. */
 export function sanitize(sel) {
-  const kept = {};
+  const kept = { qty: { ...(sel.qty || {}) } };
   const removed = [];
   for (const k of STEP_KEYS) {
     if (k === 'extra' || !sel[k]) continue;
@@ -1064,13 +1147,48 @@ export function sanitize(sel) {
     if (fit.ok) kept[k] = sel[k];
     else removed.push({ step: k, part: sel[k], reason: fit.reasons[0] });
   }
-  return { sel: { ...kept, extra: [...(sel.extra || [])] }, removed };
+  // Added drives: storage parts the checks can read, each once, never the main drive again.
+  const drives = [];
+  for (const d of sel.drives || []) {
+    if (!d || d.category !== 'storage' || d === kept.storage || drives.includes(d)) continue;
+    if (d.missing?.length) removed.push({ step: 'storage', part: d, reason: fitOf(d, {}).reasons[0] });
+    else drives.push(d);
+  }
+  // A removed main drive: the first added one takes its place.
+  if (!kept.storage && drives.length && !removed.some((r) => r.step === 'storage' && r.part === sel.storage)) kept.storage = drives.shift();
+  const out = finish(kept, drives, sel.extra);
+  return { sel: out.sel, removed, adjusted: out.adjusted };
+}
+
+/** The selection object in step order, with the added drives, the extras and the quantities (unused ones pruned,
+    the rest held within what the board and the other parts allow). */
+function finish(kept, drives, extra) {
+  const out = {};
+  for (const k of STEP_KEYS) if (k !== 'extra' && kept[k]) out[k] = kept[k];
+  out.drives = [...(drives || [])];
+  out.extra = [...(extra || [])];
+  out.qty = {};
+  for (const { part } of lines({ ...out, qty: {} })) {
+    const n = Math.floor(Number(kept.qty?.[part.id]) || 1);
+    if (n > 1 && QTY_STEPS.includes(qtyKind(part))) out.qty[part.id] = n;
+  }
+  return clampQty(out);
 }
 
 /** Chooses `part` and drops every other chosen part that no longer fits it (the new choice wins). */
 export function applyChoice(sel, part) {
   const key = part.category;
-  const kept = { [key]: part };
+  // The new part starts at one; the part it replaces gives up its quantity.
+  const qty = { ...(sel.qty || {}) };
+  if (sel[key] && sel[key] !== part) delete qty[sel[key].id];
+  delete qty[part.id];
+  return settle(sel, key, part, qty);
+}
+
+/** `part` (of step `key`) wins: every other chosen part that no longer fits it, with the quantities `qty`, is dropped,
+    and the quantities are held within the new limits. */
+function settle(sel, key, part, qty) {
+  const kept = { [key]: part, qty, drives: sel.drives || [] };
   const removed = [];
   for (const k of STEP_KEYS) {
     if (k === key || k === 'extra' || !sel[k]) continue;
@@ -1078,9 +1196,243 @@ export function applyChoice(sel, part) {
     if (fit.ok) kept[k] = sel[k];
     else removed.push({ step: k, part: sel[k], reason: fit.reasons[0] });
   }
-  const out = {};
-  for (const k of STEP_KEYS) if (k !== 'extra' && kept[k]) out[k] = kept[k];
-  return { sel: { ...out, extra: [...(sel.extra || [])] }, removed };
+  const drives = (sel.drives || []).filter((d) => d !== kept.storage);
+  if (!kept.storage && drives.length) kept.storage = drives.shift();
+  const out = finish(kept, drives, sel.extra);
+  return { sel: out.sel, removed, adjusted: out.adjusted };
+}
+
+/* ---------- quantities ----------
+   Several of one part: two processors (a dual-socket board only), memory kits up to the board's slots and capacity,
+   two graphics cards (the board's x16 slots, the PSU's watts and connectors), drives up to the board's M.2 slots and
+   SATA ports (several different drives too: sel.drives), and fan packs. A selection keeps them in sel.qty, by product
+   id (a missing entry is one). */
+
+export const QTY_STEPS = ['cpu', 'ram', 'gpu', 'storage', 'fan'];
+/* The kind of quantity a part takes: its step, or 'fan' for an extra that is case fans; null when it is one only. */
+export const qtyKind = (part) => (part?.category === 'extra' ? (part.facts?.kind === 'fan' ? 'fan' : null) : QTY_STEPS.includes(part?.category) ? part.category : null);
+export const qtyOf = (sel, part) => Math.max(1, Math.floor(Number(sel?.qty?.[part?.id]) || 1));
+export const MAX_GPUS = 2;
+export const MAX_FAN_PACKS = 6;
+
+/* What a board has when it does not say (pc.* metafields, the title), and what every desktop board has for sure. */
+export const BOARD_DEFAULTS = { ramSlots: 4, m2Slots: 2, sataPorts: 4, pcieX16: 2, cpuSockets: 1 };
+export const BOARD_SURE = { ramSlots: 2, m2Slots: 1, sataPorts: 2, pcieX16: 1 };
+const MEMORY_MAX = { DDR4: 128, DDR5: 192 };
+
+/** The board's limits: { max, known } per kind. No board chosen yet: the defaults, not known. */
+export function boardLimits(board) {
+  const f = board?.facts || {};
+  const itx = f.formFactor === 'Mini-ITX';
+  const val = (k, itxValue) => (f[k] != null ? { max: f[k], known: true } : itx && itxValue != null ? { max: itxValue, known: true } : { max: BOARD_DEFAULTS[k], known: false });
+  const ramSlots = val('ramSlots', 2);
+  const perSlot = (MEMORY_MAX[f.memory] || MEMORY_MAX.DDR5) / 4;
+  return {
+    ramSlots,
+    maxMemory: f.maxMemory ? { max: f.maxMemory, known: true } : { max: perSlot * ramSlots.max, known: false },
+    m2Slots: val('m2Slots'),
+    sataPorts: val('sataPorts'),
+    pcieX16: val('pcieX16', 1),
+    cpuSockets: f.cpuSockets ? { max: f.cpuSockets, known: true } : { max: 1, known: false },
+  };
+}
+
+/** The selection's parts, each with its quantity, in step order: the main drive then the added ones, extras last. */
+export function lines(sel) {
+  const out = [];
+  for (const k of STEP_KEYS) {
+    if (k === 'extra') continue;
+    if (sel[k]) out.push({ step: k, part: sel[k], qty: qtyOf(sel, sel[k]) });
+    if (k === 'storage') for (const d of sel.drives || []) out.push({ step: 'storage', part: d, qty: qtyOf(sel, d), added: true });
+  }
+  for (const p of sel.extra || []) out.push({ step: 'extra', part: p, qty: qtyOf(sel, p) });
+  return out;
+}
+
+export const drivesOf = (sel) => [sel.storage, ...(sel.drives || [])].filter(Boolean);
+/* An M.2 drive (NVMe, or an M.2 SATA stick) takes an M.2 slot; a 2.5" SSD or a hard disk a SATA port. */
+export const isM2 = (d) => d.facts.kind === 'NVMe' || !!d.facts.m2;
+
+/** How many drives, modules, cards… the selection uses. */
+export function usageOf(sel) {
+  let m2 = 0;
+  let sata = 0;
+  for (const d of drivesOf(sel)) {
+    if (isM2(d)) m2 += qtyOf(sel, d);
+    else sata += qtyOf(sel, d);
+  }
+  const ram = sel.ram;
+  return {
+    m2,
+    sata,
+    modules: ram ? (ram.facts.modules || 1) * qtyOf(sel, ram) : 0,
+    memoryGb: ram ? (ram.facts.capacity || 0) * qtyOf(sel, ram) : 0,
+    gpus: sel.gpu ? qtyOf(sel, sel.gpu) : 0,
+    cpus: sel.cpu ? qtyOf(sel, sel.cpu) : 0,
+  };
+}
+
+const DUAL_CPU = '2 מעבדים אפשר רק בלוח אם עם שתי תושבות (לוח לשרתים ולתחנות עבודה).';
+
+/** The most of `part` the selection allows, the other parts as they are: { max, reason, assumed }. `reason` says
+    what sets the limit (in Hebrew, for the customer); `assumed` is true when it comes from a default. A part not yet
+    chosen (an added drive) counts from zero. */
+export function qtyLimit(sel, part) {
+  const kind = qtyKind(part);
+  const board = sel.board;
+  const L = boardLimits(board);
+  switch (kind) {
+    case 'cpu': {
+      if (L.cpuSockets.max >= 2) return { max: Math.min(L.cpuSockets.max, 2), reason: `ללוח שבחרתם ${L.cpuSockets.max} תושבות.`, assumed: false };
+      return { max: 1, reason: `${DUAL_CPU} ${board ? 'הלוח שבחרתם הוא לתושבת אחת.' : 'עדיין לא נבחר לוח כזה.'}`, assumed: false };
+    }
+    case 'ram': {
+      const modules = part.facts.modules || 1;
+      const bySlots = Math.floor(L.ramSlots.max / modules);
+      const byCap = part.facts.capacity ? Math.floor(L.maxMemory.max / part.facts.capacity) : Infinity;
+      const max = Math.max(1, Math.min(bySlots, byCap));
+      const slots = L.ramSlots.known
+        ? `ללוח ${L.ramSlots.max} חריצי זיכרון`
+        : `עד ${L.ramSlots.max} מקלות זיכרון (${board ? 'מספר החריצים בלוח לא ידוע לנו, נציג יאשר' : 'עוד לא נבחר לוח'})`;
+      const reason = byCap < bySlots
+        ? `הלוח תומך בעד ${L.maxMemory.max}GB זיכרון${L.maxMemory.known ? '' : ' (הערכה, נציג יאשר)'}.`
+        : `${slots}${modules > 1 ? `, והערכה היא ${modules} מקלות` : ''}.`;
+      return { max, reason, assumed: byCap < bySlots ? !L.maxMemory.known : !L.ramSlots.known };
+    }
+    case 'gpu': {
+      const max = Math.max(1, Math.min(MAX_GPUS, L.pcieX16.max));
+      const reason = max < MAX_GPUS
+        ? 'ללוח יש חריץ PCIe x16 אחד, ולכן אפשר כרטיס מסך אחד.'
+        : `אפשר עד ${MAX_GPUS} כרטיסי מסך${L.pcieX16.known ? '' : ' (חריץ x16 שני בלוח: נציג יאשר)'}.`;
+      return { max, reason, assumed: !L.pcieX16.known };
+    }
+    case 'storage': {
+      const u = usageOf(sel);
+      const mine = drivesOf(sel).includes(part) ? qtyOf(sel, part) : 0;
+      const m2 = isM2(part);
+      const lim = m2 ? L.m2Slots : L.sataPorts;
+      const used = (m2 ? u.m2 : u.sata) - mine;
+      const name = m2 ? 'חריצי M.2' : 'חיבורי SATA';
+      const reason = `${lim.known ? `ללוח ${lim.max} ${name}` : `עד ${lim.max} ${name} (${board ? 'הלוח לא מפרט, נציג יאשר' : 'עוד לא נבחר לוח'})`}${used ? `, ו־${used} כבר בשימוש` : ''}.`;
+      return { max: Math.max(0, lim.max - used), reason, assumed: !lim.known };
+    }
+    case 'fan': return { max: MAX_FAN_PACKS, reason: `אפשר עד ${MAX_FAN_PACKS} חבילות.`, assumed: false };
+    default: return { max: 1, reason: null, assumed: false };
+  }
+}
+
+/** Holds every quantity within its limit, from the last drive back; an added drive that has no room left goes.
+    Returns the selection and what changed ({ step, part, from, to, reason }). */
+export function clampQty(sel) {
+  const out = { ...sel, qty: { ...(sel.qty || {}) }, drives: [...(sel.drives || [])] };
+  const adjusted = [];
+  const set = (step, part, to, reason) => {
+    const from = qtyOf(out, part);
+    if (to >= 1) {
+      if (to > 1) out.qty[part.id] = to;
+      else delete out.qty[part.id];
+    } else {
+      delete out.qty[part.id];
+      out.drives = out.drives.filter((d) => d !== part);
+    }
+    adjusted.push({ step, part, from, to: Math.max(to, 0), reason });
+  };
+  for (const key of ['cpu', 'ram', 'gpu']) {
+    const p = out[key];
+    if (!p) continue;
+    const lim = qtyLimit(out, p);
+    if (qtyOf(out, p) > lim.max) set(key, p, lim.max, lim.reason);
+  }
+  for (const d of drivesOf(out).reverse()) {
+    const lim = qtyLimit(out, d);
+    if (qtyOf(out, d) <= lim.max) continue;
+    // The main drive stays (at one): if even that does not fit, checkBuild reports it.
+    const floor = d === out.storage ? 1 : 0;
+    set('storage', d, Math.max(lim.max, floor), lim.reason);
+  }
+  for (const p of out.extra || []) {
+    const lim = qtyLimit(out, p);
+    if (qtyOf(out, p) > lim.max) set('extra', p, lim.max, lim.reason);
+  }
+  return { sel: out, adjusted };
+}
+
+/** Sets the quantity of a chosen part. Past its limit it stops at the limit (`limited` holds the reason); a larger
+    quantity that a later part no longer fits (two cards and the PSU) drops that part, as a new choice would. */
+export function setQty(sel, part, n) {
+  const lim = qtyLimit(sel, part);
+  const want = Math.max(1, Math.floor(Number(n) || 1));
+  const to = Math.min(want, Math.max(lim.max, 1));
+  const qty = { ...(sel.qty || {}) };
+  if (to > 1) qty[part.id] = to;
+  else delete qty[part.id];
+  const key = part.category === 'extra' || (part.category === 'storage' && sel.storage !== part) ? null : part.category;
+  const res = key ? settle(sel, key, part, qty) : { ...clampQty({ ...sel, qty }), removed: [] };
+  return { ...res, qty: to, limited: want > to ? lim.reason : null };
+}
+
+/** Whether `part` can be added as one more drive: { ok, reason }. */
+export function canAddDrive(sel, part) {
+  if (part.category !== 'storage') return { ok: false, reason: null };
+  if (drivesOf(sel).includes(part)) return { ok: false, reason: 'הדיסק כבר נבחר. אפשר לשנות את הכמות שלו.' };
+  if (part.missing?.length) return { ok: false, reason: fitOf(part, {}).reasons[0] };
+  const lim = qtyLimit(sel, part);
+  if (lim.max < 1) return { ok: false, reason: `אין מקום לעוד דיסק: ${lim.reason}` };
+  return { ok: true, reason: null };
+}
+
+/** Adds a drive: the main one when there is none, else one more (sel.drives). */
+export function addDrive(sel, part) {
+  if (!sel.storage) return applyChoice(sel, part);
+  const can = canAddDrive(sel, part);
+  if (!can.ok) return { sel, removed: [], adjusted: [], refused: can.reason };
+  const out = clampQty({ ...sel, drives: [...(sel.drives || []), part] });
+  return { sel: out.sel, removed: [], adjusted: out.adjusted };
+}
+
+/** Removes a drive; the first added drive takes the main drive's place. */
+export function removeDrive(sel, part) {
+  const qty = { ...(sel.qty || {}) };
+  delete qty[part.id];
+  let drives = (sel.drives || []).filter((d) => d !== part);
+  let storage = sel.storage === part ? null : sel.storage;
+  if (!storage && drives.length) [storage, ...drives] = drives;
+  const out = { ...sel, qty, drives };
+  if (storage) out.storage = storage;
+  else delete out.storage;
+  return clampQty(out).sel;
+}
+
+/** What the quantities add to the build check: problems (a known limit exceeded), notes and what to confirm. */
+export function checkQuantities(sel) {
+  const problems = [];
+  const notes = [];
+  const unverified = new Set();
+  const L = boardLimits(sel.board);
+  const u = usageOf(sel);
+  for (const { step, part, qty } of lines(sel)) {
+    const lim = qtyLimit(sel, part);
+    const over = step === 'storage' ? qty > lim.max : qty > Math.max(lim.max, 1);
+    if (over && lim.reason) problems.push({ step, text: `${qty > 1 ? `כמות ${qty}: ` : ''}${lim.reason}` });
+  }
+  if (sel.board) {
+    if (u.modules > BOARD_SURE.ramSlots && !L.ramSlots.known) unverified.add(UNVERIFIED.ramSlots);
+    if (u.memoryGb > 64 && !L.maxMemory.known) unverified.add(UNVERIFIED.maxMemory);
+    if (u.m2 > BOARD_SURE.m2Slots && !L.m2Slots.known) unverified.add(UNVERIFIED.m2Slots);
+    if (u.sata > BOARD_SURE.sataPorts && !L.sataPorts.known) unverified.add(UNVERIFIED.sataPorts);
+    if (u.gpus > BOARD_SURE.pcieX16 && !L.pcieX16.known) unverified.add(UNVERIFIED.pcieX16);
+  }
+  if (u.gpus > 1) notes.push({ step: 'gpu', text: 'רוב המשחקים לא מנצלים שני כרטיסי מסך (בכרטיסים החדשים אין SLI או CrossFire). שני כרטיסים מתאימים בעיקר לרינדור, לבינה מלאכותית ולעבודה עם כמה מסכים' });
+  if (sel.ram && qtyOf(sel, sel.ram) > 1) {
+    notes.push({ step: 'ram', text: 'שתי ערכות נפרדות לא תמיד עובדות יחד במהירות המלאה שלהן. ערכה אחת עם כל המקלות יציבה יותר' });
+    const f = sel.ram.facts;
+    if (f.memory === 'DDR5' && (f.speed || 0) >= 6000 && u.modules >= 4 && (f.modules || 1) < 4)
+      notes.push({ step: 'ram', text: '4 מקלות DDR5 במהירות 6000 ומעלה פחות יציבים. ערכה של 2 מקלות עדיפה' });
+  }
+  // Added case fans: the board's fan headers (or the case's hub) for them.
+  const fans = (sel.extra || []).filter((p) => p.facts?.kind === 'fan').reduce((n, p) => n + (p.facts.fans || 1) * qtyOf(sel, p), 0);
+  if (fans && sel.board && !sel.case?.facts.hub && !(sel.board.facts.fanHeaders >= fans + (sel.case?.facts.fans || 0))) unverified.add(UNVERIFIED.fanHeaders);
+  return { problems, notes, unverified: [...unverified] };
 }
 
 /** Payments (the owner: interest-free up to 4, up to 12 with interest). `free` interest-free payments of the total
@@ -1320,4 +1672,92 @@ export function planBuilds(parts, { use = 'gaming', budget = 6000, includeOs = t
     const ordered = Object.fromEntries(ORDER.filter((k) => sel[k]).map((k) => [k, sel[k]]));
     return { ...tier, target, parts: ordered, total: sum(ordered), check: checkBuild(ordered) };
   });
+}
+
+/* ---------- search ----------
+   The search box of each step: every word typed must appear in the part's text (title, maker, model, chipset, socket,
+   memory, capacity, size…), in Hebrew or English. Case, spaces, dots and dashes do not count ("rtx5070" finds
+   "RTX 5070", "m2" finds "M.2", "1 tb" finds "1TB"), nor Hebrew final letters, geresh or gershayim. Makers and common
+   words also carry their Hebrew name (אינטל, גיגהבייט, לבן, נוזלי…). */
+
+const HEBREW_NAMES = {
+  AMD: 'איי אם די אמד', Intel: 'אינטל', Gigabyte: 'גיגהבייט גיגבייט גיגביט', ASUS: 'אסוס', MSI: 'אם אס איי', ASRock: 'אסרוק',
+  Corsair: 'קורסייר קורסר', Kingston: 'קינגסטון', Crucial: 'קרושיאל', KLEVV: 'קלב', ADATA: 'איידאטה', Lexar: 'לקסר',
+  Netac: 'נטאק', Samsung: 'סמסונג', WD: 'ווסטרן דיגיטל', Seagate: 'סיגייט', Toshiba: 'טושיבה', SanDisk: 'סנדיסק',
+  Antec: 'אנטק', 'Cooler Master': 'קולר מאסטר', DeepCool: 'דיפקול', Noctua: 'נוקטואה', NZXT: 'אנזקסט', 'Lian Li': 'ליאן לי',
+  'be quiet!': 'בי קוויט', Thermaltake: 'טרמלטייק', Microsoft: 'מיקרוסופט', PNY: 'פי אן וואי', NVIDIA: 'אנבידיה', SAMA: 'סאמא',
+};
+const WORDS = [
+  [/\bryzen\b/i, 'רייזן'], [/\bcore\b/i, 'קור'], [/\bultra\b/i, 'אולטרה'], [/\bgeforce\b|\brtx\b/i, 'ג׳יפורס'], [/\bradeon\b|\brx\s?\d/i, 'ראדאון'],
+  [/\bwhite\b|\bice\b|לבן/i, 'לבן white'], [/\bblack\b|שחור/i, 'שחור black'], [/wi-?fi|\bwf\d|\bax\b/i, 'אלחוטי wifi'], [/\bargb\b|\brgb\b/i, 'תאורה'],
+  [/\bwindows\b/i, 'ווינדוס'], [/\bhome\b/i, 'הום'], [/\bpro\b/i, 'פרו'], [/\bgaming\b/i, 'גיימינג'], [/\bgold\b/i, 'זהב'],
+  [/\bmodular\b/i, 'מודולרי'], [/\bnvme\b/i, 'נבמי'], [/\bssd\b/i, 'אס אס די'], [/\bhdd\b|rpm/i, 'קשיח hdd'],
+];
+
+/** Lower case, no diacritics, Hebrew final letters as regular ones, and none of: spaces, dots, dashes, quotes, slashes. */
+export function normalizeSearch(s) {
+  return String(s ?? '')
+    .normalize('NFKD')
+    .replace(/[֑-ׇ̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[ךםןףץ]/g, (c) => ({ ך: 'כ', ם: 'מ', ן: 'נ', ף: 'פ', ץ: 'צ' })[c])
+    .replace(/[\s.\-_,/\\|()[\]{}"'`״׳׳+:;!?]+/g, '');
+}
+
+/** Everything a customer may type to find the part, in Hebrew and English (normalised; cached on the part). */
+export function searchText(part) {
+  if (part._search) return part._search;
+  const f = part.facts || {};
+  const bits = [part.title, part.brand, HEBREW_NAMES[part.brand], part.sku];
+  for (const [re, words] of WORDS) if (re.test(part.title)) bits.push(words);
+  bits.push(f.model, f.chip, f.chipset, f.socket, f.socket && f.socket.replace(/^LGA/, ''), f.memory, f.formFactor, f.kind, f.rating, f.edition);
+  if (f.formFactor === 'mATX') bits.push('micro atx matx מיקרו');
+  if (f.formFactor === 'Mini-ITX') bits.push('mini itx מיני');
+  if (f.capacity) bits.push(`${f.capacity}gb ${f.capacity}גיגה`);
+  if (f.modules > 1 && f.capacity) bits.push(`${f.modules}x${f.capacity / f.modules}`);
+  if (f.vram) bits.push(`${f.vram}gb ${f.vram}גיגה`);
+  if (f.capacityGb) bits.push(f.capacityGb >= 1000 ? `${f.capacityGb / 1000}tb ${f.capacityGb / 1000}טרה ${f.capacityGb}gb` : `${f.capacityGb}gb ${f.capacityGb}גיגה`);
+  if (f.speed) bits.push(`${f.speed}mhz`);
+  if (f.watts) bits.push(`${f.watts}w ${f.watts}וואט`);
+  if (f.tdp) bits.push(`${f.tdp}w`);
+  if (f.gen) bits.push(`gen${f.gen} pcie${f.gen}`);
+  if (f.type === 'liquid') bits.push(`נוזלי liquid aio ${f.radiator || ''}`);
+  if (f.type === 'air') bits.push('אוויר air');
+  if (f.language === 'he') bits.push('עברית hebrew');
+  if (part.category === 'cpu') bits.push(f.igpu ? 'גרפיקה מובנית igpu' : 'בלי גרפיקה');
+  const text = normalizeSearch(bits.filter(Boolean).join(' '));
+  Object.defineProperty(part, '_search', { value: text, enumerable: false, configurable: true });
+  return text;
+}
+
+/* Hebrew words typed for an English name, so that "רייזן 7" reads as "ryzen 7" and finds "Ryzen 7 7700". */
+const QUERY_WORDS = Object.fromEntries([
+  ['רייזן', 'ryzen'], ['אינטל', 'intel'], ['גיגהבייט', 'gigabyte'], ['גיגבייט', 'gigabyte'], ['גיגביט', 'gigabyte'], ['גפורס', 'geforce'],
+  ['ג׳יפורס', 'geforce'], ['גיפורס', 'geforce'], ['ראדאון', 'radeon'], ['רדאון', 'radeon'], ['קור', 'core'], ['אולטרה', 'ultra'],
+  ['סמסונג', 'samsung'], ['קינגסטון', 'kingston'], ['קורסייר', 'corsair'], ['אנטק', 'antec'], ['אסוס', 'asus'], ['לקסר', 'lexar'],
+  ['סיגייט', 'seagate'], ['טושיבה', 'toshiba'], ['נוקטואה', 'noctua'], ['דיפקול', 'deepcool'], ['ווינדוס', 'windows'], ['פרו', 'pro'],
+  ['גיגה', 'gb'], ['טרה', 'tb'], ['וואט', 'w'],
+].map(([he, en]) => [normalizeSearch(he), en]));
+const UNIT = /^(gb|tb|w|mhz|mm|g|t)$/;
+
+/** The words of a query, normalised: a Hebrew name becomes its English one, and a short number joins its unit or the
+    word before it ("1 tb" → "1tb", "ryzen 7" → "ryzen7", "ddr 5" → "ddr5"), so a stray digit does not match anything. */
+export function queryWords(query) {
+  const raw = String(query ?? '').trim().split(/\s+/).map(normalizeSearch).filter(Boolean).map((w) => QUERY_WORDS[w] || w);
+  const out = [];
+  for (let i = 0; i < raw.length; i++) {
+    const w = raw[i];
+    if (/^\d{1,2}$/.test(w) && UNIT.test(raw[i + 1] || '')) { out.push(w + raw[++i]); continue; }
+    if ((/^\d{1,2}$/.test(w) || UNIT.test(w)) && out.length) { out[out.length - 1] += w; continue; }
+    out.push(w);
+  }
+  return out;
+}
+
+/** Whether a part matches what was typed: every word appears (or the whole query, spaces ignored). Empty: all. */
+export function matchesQuery(part, query) {
+  const words = queryWords(query);
+  if (!words.length) return true;
+  const text = searchText(part);
+  return text.includes(words.join('')) || words.every((w) => text.includes(w));
 }

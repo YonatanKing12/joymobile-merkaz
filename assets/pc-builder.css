@@ -643,6 +643,77 @@
   font-weight: 500;
 }
 
+/* The step's search box: filters the list as the customer types (pc-builder.js: stepListHtml). */
+.pcb-search {
+  position: relative;
+  margin-block-end: var(--space-xs);
+}
+
+.pcb-search__icon {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: var(--space-sm);
+  color: var(--color-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.pcb-search__input {
+  inline-size: 100%;
+  min-block-size: var(--tap-target);
+  padding-block: 0;
+  padding-inline: calc(var(--space-sm) + 1.75rem) calc(var(--tap-target) + var(--space-2xs));
+  border: 1px solid var(--pcb-line-strong);
+  border-radius: var(--radius-input, var(--radius-button));
+  background: var(--color-background);
+  color: var(--color-text);
+  font: inherit;
+  font-size: max(16px, var(--text-md)); /* no zoom on iOS */
+  appearance: none;
+}
+
+.pcb-search__input::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+.pcb-search__input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.pcb-search__input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+  border-color: var(--color-ink);
+}
+
+.pcb-search__clear {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: grid;
+  place-items: center;
+  inline-size: var(--tap-target);
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+}
+
+.pcb-search__clear[hidden] {
+  display: none;
+}
+
+.pcb-search__clear:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -4px;
+}
+
+.pcb-empty .link {
+  min-block-size: var(--tap-target);
+  margin-block-start: var(--space-2xs);
+  font-weight: 600;
+}
+
 .pcb-step__meta {
   margin-block: var(--space-xs);
   color: var(--color-muted);
@@ -757,6 +828,101 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: end;
+}
+
+/* Two of a part: the line total, and under it "2 × ₪X". */
+.pcb-row__each {
+  display: block;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+/* The quantity of a chosen part (memory kits, cards, drives, fan packs; two processors on a dual-socket board). */
+.pcb-qty {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--space-2xs);
+  margin-block-start: var(--space-2xs);
+}
+
+.pcb-qty__label {
+  margin-inline-end: var(--space-2xs);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.pcb-qty__btn {
+  display: grid;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border: 1px solid var(--pcb-line-strong);
+  border-radius: 50%;
+  background: var(--color-background);
+  color: var(--color-ink);
+}
+
+.pcb-qty__btn:disabled,
+.pcb-qty__btn[aria-disabled="true"] {
+  border-color: var(--pcb-line);
+  color: var(--color-muted);
+  opacity: 0.55;
+}
+
+.pcb-qty__btn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .pcb-qty__btn:not(:disabled):not([aria-disabled="true"]):hover {
+    border-color: var(--color-ink);
+  }
+}
+
+@media (pointer: coarse) {
+  .pcb-qty__btn {
+    inline-size: var(--tap-target);
+    block-size: var(--tap-target);
+  }
+}
+
+.pcb-qty__n {
+  min-inline-size: 1.5rem;
+  font-size: var(--text-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.pcb-qty__msg {
+  padding-inline-start: var(--space-xs);
+  border-inline-start: 2px solid var(--pcb-line-strong);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+
+.pcb-qty__msg.is-limit {
+  border-inline-start-color: var(--color-error);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.pcb-row__pick[aria-disabled="true"] {
+  border-color: var(--pcb-line-strong);
+  color: var(--color-muted);
+}
+
+@media (hover: hover) {
+  .pcb-row__pick[aria-disabled="true"]:hover {
+    background: transparent;
+    color: var(--color-muted);
+  }
 }
 
 .pcb-row__pick {
