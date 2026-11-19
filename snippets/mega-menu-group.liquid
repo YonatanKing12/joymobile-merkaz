@@ -1,0 +1,46 @@
+{% doc %}
+  One group of a desktop mega-menu panel (snippets/mega-menu-panel): the group's title as a
+  green link to its page, then its links. A link back to the group's own page is skipped (the
+  title is that link). Past `limit` links the rest stay in the list but are hidden behind an
+  "עוד N" button that @theme/header reveals in place; without JS the button stays hidden and
+  every link shows. One extra link is never hidden: "עוד 1" would save no room.
+
+  @param {link} group - A second-level menu link with links of its own.
+  @param {number} limit - Links shown before the "עוד" button.
+  @param {string} list_id - Id of the links list (the button's aria-controls). Blank: no button.
+
+  @example
+  {% render 'mega-menu-group', group: child, limit: 7, list_id: 'HeaderMenu-1-list-2' %}
+{% enddoc %}
+{%- liquid
+  assign shown = 0
+  for item in group.links
+    if item.url != group.url
+      assign shown = shown | plus: 1
+    endif
+  endfor
+  assign rest = shown | minus: limit
+  assign cut = shown
+  if rest > 1 and list_id != blank
+    assign cut = limit
+  endif
+-%}
+<a class="mega-menu__group-title" href="{{ group.url }}"{% if group.current %} aria-current="page"{% endif %}>{{ group.title | escape }}</a>
+<ul class="mega-menu__sublist" role="list"{% if list_id != blank %} id="{{ list_id }}"{% endif %}>
+  {%- assign position = 0 -%}
+  {%- for item in group.links -%}
+    {%- if item.url != group.url -%}
+      {%- assign position = position | plus: 1 -%}
+      <li{% if position > cut %} class="mega-menu__extra"{% endif %}>
+        <a class="mega-menu__link" href="{{ item.url }}"{% if item.current %} aria-current="page"{% endif %}>{{ item.title | escape }}</a>
+      </li>
+    {%- endif -%}
+  {%- endfor -%}
+</ul>
+{%- if cut < shown -%}
+  <button class="mega-menu__more" type="button" aria-expanded="false" aria-controls="{{ list_id }}" hidden>
+    <span class="mega-menu__more-open">{{ 'header.menu.show_more' | t: count: rest }}</span>
+    <span class="mega-menu__more-close">{{ 'header.menu.show_less' | t }}</span>
+    <span class="visually-hidden">: {{ group.title | escape }}</span>
+  </button>
+{%- endif -%}

@@ -169,6 +169,7 @@
             whatsapp_url: whatsapp_url,
             show_account: show_account,
             site_switch: site_switch_drawer,
+            open_first_group: section.settings.drawer_open_first,
             id_prefix: 'MenuDrawer'
           -%}
         </div>
@@ -396,7 +397,15 @@
 
     {%- if menu.links.size > 0 -%}
       <nav class="header__nav below-desktop-hide" aria-label="{{ 'header.menu.label' | t }}">
-        {%- render 'mega-menu', menu: menu, id_prefix: 'HeaderMenu' -%}
+        {%- render 'mega-menu',
+          menu: menu,
+          id_prefix: 'HeaderMenu',
+          group_limit: section.settings.mega_group_limit,
+          layout: section.settings.mega_layout,
+          tabs_from: section.settings.mega_tabs_from,
+          show_feature: section.settings.mega_feature,
+          promos: section.blocks
+        -%}
       </nav>
     {%- endif -%}
   </header>
@@ -429,6 +438,65 @@
       "id": "menu_secondary",
       "label": "תפריט משני במובייל",
       "info": "קישורים נוספים בתחתית תפריט המובייל (למשל אודות, צרו קשר)."
+    },
+    {
+      "type": "header",
+      "content": "התפריט הנפתח"
+    },
+    {
+      "type": "select",
+      "id": "mega_layout",
+      "label": "פריסה במחשב",
+      "options": [
+        {
+          "value": "auto",
+          "label": "אוטומטית"
+        },
+        {
+          "value": "columns",
+          "label": "עמודות"
+        },
+        {
+          "value": "tabs",
+          "label": "לשוניות"
+        }
+      ],
+      "default": "auto",
+      "info": "עמודות: כל קבוצה בעמודה משלה, זו לצד זו. לשוניות: רשימת הקבוצות בצד, והקבוצה שנבחרה לידה. אוטומטית: עמודות, ולשוניות כשיש הרבה קבוצות."
+    },
+    {
+      "type": "range",
+      "id": "mega_tabs_from",
+      "min": 3,
+      "max": 8,
+      "step": 1,
+      "label": "לשוניות מ (מספר קבוצות)",
+      "default": 5,
+      "info": "בפריסה האוטומטית."
+    },
+    {
+      "type": "range",
+      "id": "mega_group_limit",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "label": "קישורים גלויים בכל קבוצה",
+      "default": 7,
+      "info": "השאר נפתחים בכפתור עוד."
+    },
+    {
+      "type": "checkbox",
+      "id": "mega_feature",
+      "label": "אריח קטגוריה בתפריט רחב",
+      "default": true,
+      "info": "תמונת הבאנר של הקטגוריה וקישור אליה. בלוק \"קידום בתפריט הנפתח\" מחליף אותו בפריט אחד."
+    },
+    {
+      "type": "checkbox",
+      "id": "drawer_open_first",
+      "label": "בטלפון: הקבוצה הראשונה פתוחה",
+      "default": true,
+      "info": "בתפריט הצד כל קבוצה נפתחת בלחיצה. כשמסומן, הקבוצה הראשונה בכל קטגוריה כבר פתוחה."
     },
     {
       "type": "header",
@@ -657,6 +725,47 @@
       "label": "פונט טקסט",
       "default": "assistant_n4",
       "visible_if": "{{ section.settings.ss_custom_body_font }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "mega_promo",
+      "name": "קידום בתפריט הנפתח",
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "אריח בסוף התפריט הנפתח של פריט אחד בתפריט, במקום אריח הקטגוריה. מוצג במחשב, כשבפריט יש כמה קבוצות."
+        },
+        {
+          "type": "text",
+          "id": "menu_title",
+          "label": "שם הפריט בתפריט",
+          "info": "בדיוק כמו בתפריט, למשל מחשבים."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "תמונה",
+          "info": "יחס 4:3. אם ריק: תמונת הבאנר של הקטגוריה."
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "כותרת",
+          "info": "אם ריק: שם הפריט."
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "טקסט"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור",
+          "info": "אם ריק: הקטגוריה של הפריט."
+        }
+      ]
     }
   ],
   "presets": [

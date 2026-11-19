@@ -1,0 +1,163 @@
+{% doc %}
+  One department of the desktop mega menu (snippets/mega-menu): the `<li>`, its disclosure and
+  the panel. The second-level items are sorted into
+  - groups: an item with links of its own (a link back to the item's own page does not count:
+    "כל רכיבי המחשב" under "רכיבי מחשב" is the title again), one column each;
+  - loose links: items without links of their own, together in one column after the groups.
+  One column: the small panel at the item (`--compact`). More: a wide panel centred under the
+  bar with one column per group (`--columns`), or, from `tabs_from` columns (layout 'auto') or
+  always (layout 'tabs'), a rail of group tabs beside the open group (`--tabs`). Wide panels end
+  with the featured tile (snippets/mega-menu-feature) when there is one. The link to the
+  department's own page closes every panel; CSS hides it where the tile shows (the tile is that
+  link, and the tile is hidden under 1200px).
+
+  @param {link} link - The top-level menu link (has children).
+  @param {string} panel_id - Id of the `<details>`; tabs and panes derive theirs from it.
+  @param {string} side - 'start' or 'end': which edge of the item a compact panel hangs from.
+  @param {boolean} active - The current page is this item or below it.
+  @param {number} group_limit - Links a group shows before its "עוד" button.
+  @param {string} layout - 'auto', 'columns' or 'tabs'.
+  @param {number} tabs_from - With 'auto': tabs from this many columns.
+  @param {boolean} show_feature - Featured tile in wide panels.
+  @param {object} [promos] - The header section's blocks.
+
+  @example
+  {% render 'mega-menu-panel', link: link, panel_id: 'HeaderMenu-1', side: 'start', active: false, group_limit: 7, layout: 'auto', tabs_from: 5, show_feature: true, promos: section.blocks %}
+{% enddoc %}
+{%- liquid
+  assign kinds = ''
+  assign group_count = 0
+  assign loose_count = 0
+  assign first_group = -1
+  for child in link.links
+    assign own_links = 0
+    for grandchild in child.links
+      if grandchild.url != child.url
+        assign own_links = own_links | plus: 1
+      endif
+    endfor
+    if own_links > 0
+      assign kinds = kinds | append: 'g,'
+      if first_group == -1
+        assign first_group = forloop.index0
+      endif
+      assign group_count = group_count | plus: 1
+    else
+      assign kinds = kinds | append: 'l,'
+      assign loose_count = loose_count | plus: 1
+    endif
+  endfor
+  assign kinds = kinds | split: ','
+
+  assign columns = group_count
+  if loose_count > 0
+    assign columns = columns | plus: 1
+  endif
+
+  assign mode = 'compact'
+  if columns > 1
+    assign mode = 'columns'
+    if layout == 'tabs'
+      assign mode = 'tabs'
+    elsif layout == 'auto' and columns >= tabs_from
+      assign mode = 'tabs'
+    endif
+  endif
+
+  assign feature_html = ''
+  if mode != 'compact' and show_feature
+    capture feature_html
+      render 'mega-menu-feature', link: link, promos: promos
+    endcapture
+    assign feature_html = feature_html | strip
+  endif
+
+  assign grid_cols = columns
+  if grid_cols > 4
+    assign grid_cols = 4
+  endif
+-%}
+<li class="mega-menu__item{% if mode != 'compact' %} mega-menu__item--wide{% endif %}">
+  <details class="mega-menu__details" id="{{ panel_id }}">
+    <summary class="mega-menu__top{% if active %} is-active{% endif %}" aria-expanded="false">
+      <span class="mega-menu__label" data-text="{{ link.title | escape }}">{{ link.title | escape }}</span>
+    </summary>
+    <div
+      class="mega-menu__panel mega-menu__panel--{{ mode }} mega-menu__panel--{{ side }}{% if feature_html != blank %} mega-menu__panel--feature{% endif %}"
+      style="--mm-cols: {{ grid_cols }};"
+    >
+      <div class="mega-menu__body">
+        {%- if mode == 'tabs' -%}
+          <div class="mega-menu__tabs" data-mega-tabs>
+            <ul class="mega-menu__rail" role="list" aria-label="{{ link.title | escape }}">
+              {%- for child in link.links -%}
+                {%- assign tab_index = forloop.index0 -%}
+                <li>
+                  {%- if kinds[tab_index] == 'g' -%}
+                    <button
+                      class="mega-menu__tab"
+                      type="button"
+                      id="{{ panel_id }}-tab-{{ forloop.index }}"
+                      aria-controls="{{ panel_id }}-pane-{{ forloop.index }}"
+                      aria-expanded="{% if tab_index == first_group %}true{% else %}false{% endif %}"
+                    >
+                      {{- child.title | escape -}}
+                    </button>
+                  {%- else -%}
+                    <a class="mega-menu__tab mega-menu__tab--link" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a>
+                  {%- endif -%}
+                </li>
+              {%- endfor -%}
+            </ul>
+            <div class="mega-menu__panes">
+              {%- for child in link.links -%}
+                {%- assign pane_index = forloop.index0 -%}
+                {%- if kinds[pane_index] == 'g' -%}
+                  <div
+                    class="mega-menu__pane mega-menu__group{% if pane_index == first_group %} is-active{% endif %}"
+                    id="{{ panel_id }}-pane-{{ forloop.index }}"
+                    role="group"
+                    aria-labelledby="{{ panel_id }}-tab-{{ forloop.index }}"
+                  >
+                    {%- render 'mega-menu-group', group: child, limit: 99, list_id: '' -%}
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- else -%}
+          <ul class="mega-menu__columns" role="list">
+            {%- for child in link.links -%}
+              {%- assign col_index = forloop.index0 -%}
+              {%- if kinds[col_index] == 'g' -%}
+                {%- assign list_id = panel_id | append: '-list-' | append: forloop.index -%}
+                <li class="mega-menu__group">
+                  {%- render 'mega-menu-group', group: child, limit: group_limit, list_id: list_id -%}
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+            {%- if loose_count > 0 -%}
+              <li class="mega-menu__group mega-menu__group--loose">
+                <ul class="mega-menu__sublist" role="list">
+                  {%- for child in link.links -%}
+                    {%- assign loose_index = forloop.index0 -%}
+                    {%- if kinds[loose_index] == 'l' -%}
+                      <li><a class="mega-menu__link" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a></li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              </li>
+            {%- endif -%}
+          </ul>
+        {%- endif -%}
+        {{- feature_html -}}
+      </div>
+      {%- if link.url != blank and link.url != '#' -%}
+        <a class="mega-menu__all" href="{{ link.url }}">
+          {{- 'header.menu.view_all' | t -}}
+          <span class="visually-hidden">: {{ link.title | escape }}</span>
+        </a>
+      {%- endif -%}
+    </div>
+  </details>
+</li>

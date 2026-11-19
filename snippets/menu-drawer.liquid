@@ -10,9 +10,13 @@
   Opening a level slides its panel over the drawer and traps focus in it; "back" (or Escape)
   returns focus to the item. [data-close] (the overlay) closes the drawer. While open, the
   <menu-drawer> is a modal dialog for screen readers, named by data-dialog-label.
-  The third menu level is listed inside the second-level panel: each group title is a row
-  (a link to the group) followed by its links — as the old accordion showed them, one tap
-  fewer, and half the DOM of a third drill-down. Chevrons are CSS, not inline SVG.
+  The third menu level stays inside the second-level panel as an accordion: each group is a
+  <details class="menu-drawer__acc"> whose summary (the group's title) opens its links in
+  place, under a first row "הצגת הכל" to the group's page. A link back to the group's own page
+  is not repeated, and an item whose only links are such repeats is a plain row. The first
+  group of a level starts open (open_first_group), and so does the group of the page being
+  viewed. Accordions are not levels: they do not
+  trap focus, and Escape or closing the drawer leaves them as they are. Chevrons are CSS.
 
   Below the categories: account, branches, wishlist, WhatsApp and phone rows, then an
   optional secondary menu (e.g. footer-1).
@@ -25,6 +29,7 @@
   @param {boolean} [show_account] - Account row (only when customer accounts are enabled).
   @param {string} [site_switch] - Rendered snippets/site-switch (drawer variant), shown above the categories.
   @param {string} [id_prefix] - Prefix for element ids. Default 'MenuDrawer'.
+  @param {boolean} [open_first_group] - The first group of each level starts open. Default true.
 
   @example
   {% render 'menu-drawer', menu: section.settings.menu, secondary_menu: section.settings.menu_secondary, branches_url: branches_url, whatsapp_url: whatsapp_url, show_account: true %}
@@ -33,6 +38,11 @@
   assign drawer_prefix = id_prefix | default: 'MenuDrawer'
   assign back_label = 'header.menu.back' | t
   assign view_all_label = 'header.menu.view_all' | t
+  assign show_all_label = 'header.menu.show_all' | t
+  assign open_first = true
+  if open_first_group == false
+    assign open_first = false
+  endif
   assign branches_text = branches_label
   if branches_text == blank
     assign branches_text = 'header.branches' | t
@@ -72,15 +82,31 @@
                       {%- if link.url != blank and link.url != '#' -%}
                         <li><a class="menu-drawer__row menu-drawer__row--all" href="{{ link.url }}">{{ view_all_label }}<span class="visually-hidden">: {{ link.title | escape }}</span></a></li>
                       {%- endif -%}
+                      {%- assign groups_seen = 0 -%}
                       {%- for child in link.links -%}
-                        {%- if child.links.size > 0 -%}
+                        {%- assign own_links = child.links | where: 'url', child.url -%}
+                        {%- assign own_count = child.links.size | minus: own_links.size -%}
+                        {%- if own_count > 0 -%}
+                          {%- assign groups_seen = groups_seen | plus: 1 -%}
+                          {%- assign group_open = false -%}
+                          {%- if open_first and groups_seen == 1 -%}
+                            {%- assign group_open = true -%}
+                          {%- endif -%}
+                          {%- if child.active or child.child_active -%}
+                            {%- assign group_open = true -%}
+                          {%- endif -%}
                           <li class="menu-drawer__group">
-                            <a class="menu-drawer__row menu-drawer__row--group" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a>
-                            <ul class="menu-drawer__list" role="list">
-                              {%- for grandchild in child.links -%}
-                                <li><a class="menu-drawer__row menu-drawer__row--sub" href="{{ grandchild.url }}"{% if grandchild.current %} aria-current="page"{% endif %}>{{ grandchild.title | escape }}</a></li>
-                              {%- endfor -%}
-                            </ul>
+                            <details class="menu-drawer__acc"{% if group_open %} open{% endif %}>
+                              <summary class="menu-drawer__row menu-drawer__row--group" aria-expanded="{{ group_open }}">{{ child.title | escape }}</summary>
+                              <ul class="menu-drawer__list" role="list">
+                                <li><a class="menu-drawer__row menu-drawer__row--sub menu-drawer__row--all" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ show_all_label }}<span class="visually-hidden">: {{ child.title | escape }}</span></a></li>
+                                {%- for grandchild in child.links -%}
+                                  {%- if grandchild.url != child.url -%}
+                                    <li><a class="menu-drawer__row menu-drawer__row--sub" href="{{ grandchild.url }}"{% if grandchild.current %} aria-current="page"{% endif %}>{{ grandchild.title | escape }}</a></li>
+                                  {%- endif -%}
+                                {%- endfor -%}
+                              </ul>
+                            </details>
                           </li>
                         {%- else -%}
                           <li><a class="menu-drawer__row" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a></li>

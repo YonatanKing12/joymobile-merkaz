@@ -1,0 +1,79 @@
+{% doc %}
+  The featured tile at the end of a wide mega-menu panel (snippets/mega-menu-panel). A
+  "קידום בתפריט הנפתח" block of the header section whose "שם הפריט בתפריט" is the item's title
+  wins: its image, heading, text and link. Otherwise the tile is the department itself: the
+  artwork of its collection banner (snippets/collection-hero-map, the 720px file), its title and
+  the "view all" label. A department without its own artwork (the general showroom, e.g.
+  "עוד" → all products) and without a block gets no tile; the panel then ends with the plain
+  "view all" link. Prints nothing in that case.
+
+  @param {link} link - The top-level menu link.
+  @param {object} [promos] - The header section's blocks.
+
+  @example
+  {% render 'mega-menu-feature', link: link, promos: section.blocks %}
+{% enddoc %}
+{%- liquid
+  assign promo = nil
+  for block in promos
+    if block.type == 'mega_promo'
+      assign promo_title = block.settings.menu_title | strip
+      if promo_title == link.title
+        assign promo = block
+        break
+      endif
+    endif
+  endfor
+
+  assign tile_url = link.url
+  assign tile_heading = link.title
+  assign tile_text = ''
+  assign tile_asset = ''
+  if promo
+    if promo.settings.link != blank
+      assign tile_url = promo.settings.link
+    endif
+    if promo.settings.heading != blank
+      assign tile_heading = promo.settings.heading
+    endif
+    assign tile_text = promo.settings.text
+  endif
+
+  if promo == nil or promo.settings.image == blank
+    assign tile_handle = ''
+    if link.type == 'collection_link'
+      assign tile_handle = link.object.handle
+    elsif link.url contains '/collections/'
+      assign tile_handle = link.url | split: '/collections/' | last | split: '?' | first
+    endif
+    # The department page "computers" has no banner of its own; the old "computers-gaming" art fits it.
+    if tile_handle == 'computers'
+      assign tile_handle = 'computers-gaming'
+    endif
+    if tile_handle != blank
+      capture tile_family
+        render 'collection-hero-map', handle: tile_handle, vendor: '', format: 'family'
+      endcapture
+      assign tile_family = tile_family | strip
+      if tile_family != blank and tile_family != 'general'
+        assign tile_asset = 'collection-hero-' | append: tile_family | append: '-720.webp'
+      endif
+    endif
+  endif
+-%}
+{%- if promo or tile_asset != blank -%}
+  <a class="mega-menu__feature" href="{{ tile_url }}">
+    <span class="mega-menu__feature-media">
+      {%- if promo and promo.settings.image != blank -%}
+        {{- promo.settings.image | image_url: width: 640 | image_tag: loading: 'lazy', alt: '', sizes: '264px', widths: '320, 480, 640', class: 'mega-menu__feature-img' -}}
+      {%- elsif tile_asset != blank -%}
+        <img class="mega-menu__feature-img" src="{{ tile_asset | asset_url }}" alt="" width="720" height="241" loading="lazy">
+      {%- endif -%}
+    </span>
+    <span class="mega-menu__feature-heading">{{ tile_heading | escape_once }}</span>
+    {%- if tile_text != blank -%}
+      <span class="mega-menu__feature-text">{{ tile_text | escape_once }}</span>
+    {%- endif -%}
+    <span class="mega-menu__feature-cta">{{ 'header.menu.view_all' | t }}</span>
+  </a>
+{%- endif -%}
