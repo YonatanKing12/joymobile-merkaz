@@ -7,7 +7,8 @@
       "settings": {
         "show_view_cart": false,
         "show_payment_icons": true,
-        "show_whatsapp": false
+        "show_whatsapp": false,
+        "conditions": ""
       }
     },
     "accessibility-panel": {
