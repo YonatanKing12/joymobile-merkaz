@@ -919,5 +919,17 @@
     "dialog": {
       "close": "סגירה"
     }
+  },
+  "shopify": {
+    "checkout": {
+      "contact": {
+        "address1_label": "רחוב ומספר בית",
+        "address2_label": "כניסה, קומה ודירה",
+        "optional_address2_label": "כניסה, קומה ודירה (לא חובה)"
+      },
+      "field_errors": {
+        "address_address1_blank": "יש להזין רחוב ומספר בית"
+      }
+    }
   }
 }
