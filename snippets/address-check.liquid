@@ -1,0 +1,340 @@
+{% doc %}
+  "כתובת למשלוח" in the cart, above the checkout button (drawer and page): the city, the street and the house number
+  against Israel Post's lists, before the shopper pays. Shipper and Israel Post refuse a label when the street is not
+  spelled as on the list ("הגפן" for "גפן"), the house number is missing, the city is another form of the name ("תל
+  אביב", "Haifa") or the parts sit in the wrong fields (only "7" in the street). On a non Plus plan the checkout
+  itself cannot be checked or blocked (Shopify Functions in a custom app and checkout UI extensions on the
+  information step are Plus only), so the check happens here, and the checked address is set on the cart: Shopify
+  fills it in at checkout (Storefront API cartDeliveryAddressesReplace, tokenless; measured on the national store,
+  20/11/2026).
+
+  Theme settings › עגלה › "כתובת למשלוח בעגלה" (address_check_mode):
+  - off: nothing is rendered.
+  - optional (default): the box is there (open on the cart page, folded in the drawer); empty, checkout goes on as
+    before; filled, it is checked first, and an address that does not pass stops the press with the reason (with
+    "להמשיך לתשלום בלי הבדיקה" as the way out).
+  - required: the box is open and must be filled; the product page's quick buy goes through the drawer
+    (layout/theme.liquid window.theme.cartConsent, snippets/buy-buttons).
+  A street or a city that is not on the list can still be kept as typed ("הכתובת נכונה, להשאיר כפי שכתבתי"): the
+  lists can lag behind a new street, and the dashboard checks again before the label.
+
+  The lists are assets (assets/il-localities.json, assets/il-streets-NN.json, from .github/address-check/generate.mjs)
+  loaded when the shopper first types; the matching is assets/address-match.js (the dashboard's steps), the element
+  assets/address-check.js. No field has a name: nothing here is posted with the cart form, and Enter never submits
+  it. Needs JavaScript (.js-only); without it the cart works as before.
+
+  @param {string} [context] - 'drawer' (default) or 'page': the ids (stable, so focus survives the re-render).
+  @param {string} [form] - id of the cart form, when the box sits outside it (the cart page's summary).
+  @param {string} [class] - Extra classes on the element. In the drawer ('cart-drawer__address') the box sits after the
+    coupon field, outside the sticky totals, for the same reason: folded or open, it never covers the lines on a phone.
+
+  @example
+  {% render 'address-check', context: 'page', form: cart_form_id %}
+{% enddoc %}
+{%- liquid
+  assign ac_mode = settings.address_check_mode | default: 'optional'
+-%}
+{%- if ac_mode != 'off' -%}
+  {%- liquid
+    assign ac_id = 'CartDrawer-Address'
+    if context == 'page'
+      assign ac_id = 'CartPage-Address'
+    endif
+    assign ac_open = false
+    if context == 'page' or ac_mode == 'required'
+      assign ac_open = true
+    endif
+    capture ac_shards
+      for i in (0..11)
+        assign ac_n = i | prepend: '0' | slice: -2, 2
+        assign ac_file = 'il-streets-' | append: ac_n | append: '.json'
+        echo ac_file | asset_url | json
+        unless forloop.last
+          echo ','
+        endunless
+      endfor
+    endcapture
+  -%}
+  <script type="module" src="{{ 'address-check.js' | asset_url }}"></script>
+  <address-check
+    class="address-check js-only{% if class != blank %} {{ class }}{% endif %}"
+    id="{{ ac_id }}"
+    data-mode="{{ ac_mode | escape }}"
+    {% if form != blank %}data-form="{{ form | escape }}"{% endif %}
+    data-localities="{{ 'il-localities.json' | asset_url }}"
+  >
+    <script type="application/json" data-address-shards>[{{ ac_shards }}]</script>
+    <script type="application/json" data-address-strings>
+      {
+        "load_error": {{ 'cart.address_check.load_error' | t | json }},
+        "city_fixed": {{ 'cart.address_check.city_fixed' | t: name: '%name%' | json }},
+        "city_maybe": {{ 'cart.address_check.city_maybe' | t: name: '%name%' | json }},
+        "city_unknown": {{ 'cart.address_check.city_unknown' | t | json }},
+        "city_first": {{ 'cart.address_check.city_first' | t | json }},
+        "street_fixed": {{ 'cart.address_check.street_fixed' | t: name: '%name%' | json }},
+        "street_maybe": {{ 'cart.address_check.street_maybe' | t: name: '%name%' | json }},
+        "street_unknown": {{ 'cart.address_check.street_unknown' | t: city: '%city%' | json }},
+        "street_only_number": {{ 'cart.address_check.street_only_number' | t | json }},
+        "street_required": {{ 'cart.address_check.street_required' | t | json }},
+        "street": {{ 'cart.address_check.street' | t | json }},
+        "street_none": {{ 'cart.address_check.street_none' | t | json }},
+        "number_required": {{ 'cart.address_check.number_required' | t | json }},
+        "number_invalid": {{ 'cart.address_check.number_invalid' | t | json }},
+        "keep_typed": {{ 'cart.address_check.keep_typed' | t | json }},
+        "yes": {{ 'cart.address_check.yes' | t | json }},
+        "ok": {{ 'cart.address_check.ok' | t | json }},
+        "required": {{ 'cart.address_check.required' | t | json }},
+        "fix_first": {{ 'cart.address_check.fix_first' | t | json }}
+      }
+    </script>
+    <details class="address-check__box"{% if ac_open %} open{% endif %} data-address-details>
+      <summary class="address-check__summary">
+        {%- render 'icon', name: 'location', size: 18 -%}
+        <span class="address-check__title">{{ 'cart.address_check.title' | t }}</span>
+        {%- if ac_mode == 'optional' -%}
+          <span class="address-check__badge">{{ 'cart.address_check.optional' | t }}</span>
+        {%- endif -%}
+        {%- render 'icon', name: 'chevron-down', size: 16, class: 'address-check__chevron' -%}
+      </summary>
+      <div class="address-check__body">
+        <p class="address-check__intro">{{ 'cart.address_check.intro' | t }}</p>
+        <div class="address-check__grid">
+          {%- for ac_field in (1..4) -%}
+            {%- liquid
+              case ac_field
+                when 1
+                  assign ac_key = 'city'
+                  assign ac_label = 'cart.address_check.city' | t
+                  assign ac_combo = true
+                  assign ac_auto = 'address-level2'
+                when 2
+                  assign ac_key = 'street'
+                  assign ac_label = 'cart.address_check.street' | t
+                  assign ac_combo = true
+                  assign ac_auto = 'off'
+                when 3
+                  assign ac_key = 'number'
+                  assign ac_label = 'cart.address_check.number' | t
+                  assign ac_combo = false
+                  assign ac_auto = 'off'
+                else
+                  assign ac_key = 'extra'
+                  assign ac_label = 'cart.address_check.extra' | t
+                  assign ac_combo = false
+                  assign ac_auto = 'address-line2'
+              endcase
+              assign ac_input = ac_id | append: '-' | append: ac_key
+            -%}
+            <div class="address-check__field address-check__field--{{ ac_key }}" data-field="{{ ac_key }}">
+              <label class="address-check__label" for="{{ ac_input }}" data-label>{{ ac_label }}</label>
+              <input
+                class="input address-check__input"
+                type="text"
+                id="{{ ac_input }}"
+                dir="auto"
+                autocomplete="{% if ac_combo %}off{% else %}{{ ac_auto }}{% endif %}"
+                spellcheck="false"
+                {% if ac_key == 'number' %}inputmode="text" maxlength="6"{% endif %}
+                {% if ac_combo %}
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-controls="{{ ac_input }}-List"
+                {% endif %}
+                aria-describedby="{{ ac_input }}-Message"
+                data-input="{{ ac_key }}"
+              >
+              {%- if ac_combo -%}
+                <ul class="address-check__list" id="{{ ac_input }}-List" role="listbox" aria-label="{{ ac_label }}" hidden data-list></ul>
+              {%- endif -%}
+              <div class="address-check__message form-message" id="{{ ac_input }}-Message" data-message></div>
+            </div>
+          {%- endfor -%}
+        </div>
+        <p class="address-check__status form-message" role="status" data-status></p>
+        {%- if ac_mode == 'optional' -%}
+          <button class="link address-check__skip" type="button" hidden data-skip>{{ 'cart.address_check.skip' | t }}</button>
+        {%- endif -%}
+      </div>
+    </details>
+  </address-check>
+{%- endif -%}
+
+{% stylesheet %}
+  .address-check {
+    display: block;
+  }
+
+  /* In the drawer: scrolls with the lines, pushed down to the totals (as the coupon field, which it follows). */
+  .cart-drawer__address {
+    margin: auto var(--space-md) 0;
+    padding-block-end: var(--space-sm);
+  }
+
+  .cart-drawer__discount + .cart-drawer__address,
+  .cart-drawer__address + .cart-drawer__footer {
+    margin-block-start: 0;
+  }
+
+  /* A field (and its list) scrolled to is kept clear of the sticky totals under it (assets/address-check.js). */
+  .cart-drawer__address .address-check__field,
+  .cart-drawer__address .address-check__list {
+    scroll-margin-block: var(--space-sm) 16rem;
+  }
+
+  .address-check__box {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-background);
+  }
+
+  .address-check__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-height: 2.75rem;
+    padding-inline: var(--space-sm);
+    color: var(--color-ink);
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .address-check__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .address-check__badge {
+    padding: 0.125rem var(--space-xs);
+    border-radius: var(--radius-badge);
+    background-color: var(--color-hover-bg);
+    color: var(--color-brand);
+    font-size: var(--text-xs);
+    font-weight: 700;
+  }
+
+  .address-check__chevron {
+    margin-inline-start: auto;
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .address-check__box[open] .address-check__chevron {
+    transform: rotate(180deg);
+  }
+
+  .address-check__body {
+    padding: 0 var(--space-sm) var(--space-sm);
+  }
+
+  .address-check__intro {
+    margin: 0 0 var(--space-xs);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  /* One column: the messages under a field (with their buttons) get the full width. */
+  .address-check__grid {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .address-check__field {
+    min-width: 0;
+  }
+
+  .address-check__field--number .address-check__input {
+    max-width: 9rem;
+  }
+
+  .address-check__label {
+    display: block;
+    margin-block-end: var(--space-2xs);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .address-check__input {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .address-check__input[aria-invalid="true"] {
+    border-color: var(--color-error);
+  }
+
+  /* In the flow, under its field, not over the page: in the drawer the sticky totals would cover a floating list,
+     and on the cart page it would cover the checkout button. */
+  .address-check__list {
+    max-height: 15rem;
+    margin: 0.125rem 0 0;
+    padding: 0.25rem 0;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-control);
+    border-radius: var(--radius-input);
+    background-color: var(--color-background);
+    box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.12);
+    list-style: none;
+  }
+
+  .address-check__option {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--space-sm);
+    cursor: pointer;
+  }
+
+  .address-check__option[aria-selected="true"],
+  .address-check__option:hover {
+    background-color: var(--color-hover-bg);
+  }
+
+  /* The text wraps, and the buttons ("כן, גפן", "להשאיר כפי שכתבתי") follow it on their own lines. */
+  .address-check__message {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2xs) var(--space-xs);
+  }
+
+  .address-check__message > span {
+    flex: 1 0 100%;
+  }
+
+  .address-check__message:not(:empty),
+  .address-check__status:not(:empty) {
+    margin-block-start: var(--space-2xs);
+    font-size: var(--text-sm);
+  }
+
+  .address-check__message[data-tone="error"],
+  .address-check__status[data-tone="error"] {
+    color: var(--color-error);
+  }
+
+  .address-check__message[data-tone="ok"],
+  .address-check__status[data-tone="ok"] {
+    color: var(--color-brand);
+  }
+
+  .address-check__choice {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--space-xs);
+    border: 1px solid var(--color-border-control);
+    border-radius: var(--radius-badge);
+    background: none;
+    color: var(--color-ink);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .address-check__skip {
+    min-height: 2.75rem;
+    font-size: var(--text-sm);
+  }
+{% endstylesheet %}

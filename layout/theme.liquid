@@ -101,7 +101,8 @@
           "@theme/facets": {{ 'facets.js' | asset_url | json }},
           "@theme/product": {{ 'product.js' | asset_url | json }},
           "@theme/wishlist": {{ 'wishlist.js' | asset_url | json }},
-          "@theme/a11y": {{ 'a11y.js' | asset_url | json }}
+          "@theme/a11y": {{ 'a11y.js' | asset_url | json }},
+          "@theme/address-match": {{ 'address-match.js' | asset_url | json }}
         }
       }
     </script>
@@ -109,6 +110,10 @@
       # The 90-day VAT consent is collected in the cart (drawer or page): while it is on, no button may skip to checkout.
       assign vat_consent = false
       if settings.cart_vat_consent_enabled and settings.cart_vat_consent_text != blank
+        assign vat_consent = true
+      endif
+      # A required delivery address check (snippets/address-check) lives in the cart too.
+      if settings.address_check_mode == 'required'
         assign vat_consent = true
       endif
     -%}

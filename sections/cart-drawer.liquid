@@ -128,6 +128,7 @@
           {%- endif -%}
 
           {%- render 'cart-discount', context: 'drawer', class: 'cart-drawer__discount' -%}
+          {%- render 'address-check', context: 'drawer', class: 'cart-drawer__address' -%}
 
           <div class="drawer__footer cart-drawer__footer">
             {%- if cart.cart_level_discount_applications.size > 0 -%}

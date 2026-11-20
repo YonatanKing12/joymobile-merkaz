@@ -87,6 +87,10 @@
   if settings.cart_vat_consent_enabled and settings.cart_vat_consent_text != blank
     assign bb_to_checkout = false
   endif
+  # A required delivery address check (snippets/address-check) is filled in the cart as well.
+  if settings.address_check_mode == 'required'
+    assign bb_to_checkout = false
+  endif
 
   assign bb_available = bb_variant.available
 

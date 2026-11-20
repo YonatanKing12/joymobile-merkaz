@@ -293,6 +293,8 @@
             </div>
           {%- endif -%}
 
+          {%- render 'address-check', context: 'page', form: cart_form_id -%}
+
           {%- render 'cart-marketing', context: 'page', form: cart_form_id -%}
 
           <button

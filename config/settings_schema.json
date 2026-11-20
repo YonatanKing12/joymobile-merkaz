@@ -796,6 +796,31 @@
       },
       {
         "type": "header",
+        "content": "בדיקת כתובת למשלוח"
+      },
+      {
+        "type": "select",
+        "id": "address_check_mode",
+        "label": "כתובת למשלוח בעגלה",
+        "info": "עיר, רחוב ומספר בית מול רשימות דואר ישראל (data.gov.il), לפני המעבר לתשלום. כתובת שנבדקה ממולאת בקופה. ״חובה״ מעביר גם את כפתור הקנייה המהירה דרך העגלה. כפתורי תשלום מהיר (Apple Pay, Google Pay) עוקפים את הבדיקה.",
+        "options": [
+          {
+            "value": "off",
+            "label": "כבוי"
+          },
+          {
+            "value": "optional",
+            "label": "רשות (מומלץ)"
+          },
+          {
+            "value": "required",
+            "label": "חובה"
+          }
+        ],
+        "default": "optional"
+      },
+      {
+        "type": "header",
         "content": "מקדמה לשריון"
       },
       {
