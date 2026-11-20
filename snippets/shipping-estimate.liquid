@@ -1,0 +1,61 @@
+{%- comment -%}
+  The national store's home delivery for the current cart, as the checkout will charge it, in agorot; prints nothing
+  when the estimate is off. Captured by the cart drawer and the cart page (sections/cart-drawer, sections/main-cart),
+  which re-render on every cart change, so the figure follows the cart.
+
+  Shopify's rates (checked at checkout on 20.11.2026):
+  - every item outside the "מוצרים גדולים" profile: settings.shipping_rate_regular (39 ₪), free when the order reaches
+    settings.shipping_free_from (5,000 ₪). The order is the whole cart, large items included;
+  - any item of the "מוצרים גדולים" profile: settings.shipping_rate_large (89 ₪) once per order, never free;
+  - a cart with both pays both (39 + 89 = 128 ₪; over 5,000 ₪, 0 + 89).
+  A large item is a variant with the metafield shipping.profile (the profile's id), which the dashboard writes whenever
+  it moves products into or out of a profile. The shop metafield shipping.marks says every variant of the profile has
+  been marked; until then a large item would look regular and the line would understate the delivery, so nothing is
+  printed.
+  The free threshold is compared with the shipped lines after their discounts and after the whole order's discounts:
+  the lowest the checkout can count, so the line never says "free" where the checkout charges.
+
+  Output: an integer (agorot), or nothing.
+{%- endcomment -%}
+{%- liquid
+  assign se_on = settings.cart_shipping_estimate
+  if shop.metafields.shipping.marks == blank
+    assign se_on = false
+  endif
+  if se_on
+    assign se_regular = settings.shipping_rate_regular | default: 0 | times: 100 | round
+    assign se_large = settings.shipping_rate_large | default: 0 | times: 100 | round
+    assign se_free_from = settings.shipping_free_from | default: 0 | times: 100 | round
+
+    assign se_has_regular = false
+    assign se_has_large = false
+    assign se_shipped = 0
+    for se_item in cart.items
+      if se_item.requires_shipping
+        assign se_shipped = se_shipped | plus: se_item.final_line_price
+        if se_item.variant.metafields.shipping.profile != blank
+          assign se_has_large = true
+        else
+          assign se_has_regular = true
+        endif
+      endif
+    endfor
+
+    assign se_order_discounts = 0
+    for se_discount in cart.cart_level_discount_applications
+      assign se_order_discounts = se_order_discounts | plus: se_discount.total_allocated_amount
+    endfor
+    assign se_basis = se_shipped | minus: se_order_discounts | at_least: 0
+
+    assign se_total = 0
+    if se_has_regular
+      if se_free_from == 0 or se_basis < se_free_from
+        assign se_total = se_total | plus: se_regular
+      endif
+    endif
+    if se_has_large
+      assign se_total = se_total | plus: se_large
+    endif
+    echo se_total
+  endif
+-%}

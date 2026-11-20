@@ -16,6 +16,8 @@
   Right above the checkout button the marketing consent (snippets/cart-marketing, theme settings ›
   עגלה, preselected by default, never required): asked here too because this button goes straight to
   checkout, and posted with it as the cart attribute "אישור דיוור" ("כן" / "לא").
+  Above the total, the delivery as the checkout will charge it (snippets/shipping-estimate: 39 ₪, free, 89 ₪ or both
+  added), the total then "סה״כ לתשלום" with it, and one grey line that the checkout sets the final price by the address.
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
 {%- liquid
@@ -154,10 +156,32 @@
                 endfor
               endif
             -%}
+            {%- liquid
+              # The delivery as the checkout will charge it (snippets/shipping-estimate; blank: estimate off), and the
+              # total with it. Recomputed on every re-render, so it follows each cart change.
+              capture shipping_estimate
+                render 'shipping-estimate'
+              endcapture
+              assign shipping_estimate = shipping_estimate | strip
+              assign drawer_total = cart.total_price
+              if shipping_estimate != blank
+                assign shipping_minor = shipping_estimate | plus: 0
+                assign drawer_total = drawer_total | plus: shipping_minor
+              endif
+            -%}
+            {%- if shipping_estimate != blank -%}
+              <p class="cart-drawer__shipping">
+                <span>{{ 'cart.shipping_estimate.label' | t }}</span>
+                <span>{% if shipping_minor == 0 %}{{ 'cart.shipping_estimate.free' | t }}{% else %}{{ shipping_minor | money_without_trailing_zeros }}{% endif %}</span>
+              </p>
+            {%- endif -%}
             <p class="cart-drawer__total">
-              <span>{% if deposit_balance > 0 %}{{ 'deposit.pay_now' | t }}{% else %}{{ 'cart.drawer.subtotal' | t }}{% endif %}</span>
-              <span class="cart-drawer__total-amount" data-cart-total>{{ cart.total_price | money_without_trailing_zeros }}</span>
+              <span>{% if deposit_balance > 0 %}{{ 'deposit.pay_now' | t }}{% elsif shipping_estimate != blank %}{{ 'cart.shipping_estimate.total' | t }}{% else %}{{ 'cart.drawer.subtotal' | t }}{% endif %}</span>
+              <span class="cart-drawer__total-amount" data-cart-total>{{ drawer_total | money_without_trailing_zeros }}</span>
             </p>
+            {%- if shipping_estimate != blank -%}
+              <p class="cart-drawer__shipping-note">{{ 'cart.shipping_estimate.note' | t }}</p>
+            {%- endif -%}
             {%- if deposit_balance > 0 -%}
               <p class="cart-drawer__balance">
                 <span>{{ 'deposit.balance_total' | t }}</span>

@@ -420,6 +420,33 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   white-space: nowrap;
 }
 
+/* The estimated delivery (snippets/shipping-estimate) above the total, and its one grey line under it, pulled
+   up against the total like the VAT note. */
+.cart-drawer__shipping {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+}
+
+.cart-drawer__shipping span:last-child {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cart-drawer__shipping + .cart-drawer__total {
+  margin-block-start: calc(var(--space-sm) * -1 + 0.25rem);
+}
+
+.cart-drawer__shipping-note {
+  margin: 0;
+  margin-block-start: calc(var(--space-sm) * -1 + 0.125rem);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
 /* As on the cart page (.cart-summary__tax): printed only when every line is VAT-exempt. Pulled up
    against the total it qualifies. */
 .cart-drawer__tax {

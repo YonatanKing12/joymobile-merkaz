@@ -13,6 +13,10 @@
   default, never required), saved as the cart attribute "אישור דיוור" ("כן" / "לא") for
   the dashboard. The page has no phone / ID number block for it to follow.
 
+  In the totals, when the delivery is estimated (snippets/shipping-estimate): "סה״כ מוצרים", any order discounts,
+  "משלוח" (39 ₪, free, 89 ₪ or both added), "סה״כ לתשלום" with it, and one grey line that the checkout sets the final
+  price by the address.
+
   The lines are snippets/cart-line (context 'page'), the same snippet as the drawer's lines, which
   also holds the contract with @theme/cart (data-key, the stepper, [data-cart-remove],
   [data-line-error], stable ids so focus survives the re-render).
@@ -169,8 +173,21 @@
 
           {%- render 'cart-discount', context: 'page', class: 'cart-summary__discount' -%}
 
+          {%- liquid
+            # The delivery as the checkout will charge it (snippets/shipping-estimate; blank: estimate off), and the
+            # total with it. This section re-renders on every cart change, so the figures follow the cart.
+            capture shipping_estimate
+              render 'shipping-estimate'
+            endcapture
+            assign shipping_estimate = shipping_estimate | strip
+            assign summary_total = cart.total_price
+            if shipping_estimate != blank
+              assign shipping_minor = shipping_estimate | plus: 0
+              assign summary_total = summary_total | plus: shipping_minor
+            endif
+          -%}
           <dl class="cart-summary__rows">
-            {%- if cart.cart_level_discount_applications.size > 0 -%}
+            {%- if cart.cart_level_discount_applications.size > 0 or shipping_estimate != blank -%}
               <div class="cart-summary__row">
                 <dt>{{ 'cart.page.subtotal' | t }}</dt>
                 <dd>{{ cart.items_subtotal_price | money_without_trailing_zeros }}</dd>
@@ -184,6 +201,12 @@
                   <dd>{% render 'money-signed', amount: discount.total_allocated_amount %}</dd>
                 </div>
               {%- endfor -%}
+            {%- endif -%}
+            {%- if shipping_estimate != blank -%}
+              <div class="cart-summary__row cart-summary__row--shipping">
+                <dt>{{ 'cart.shipping_estimate.label' | t }}</dt>
+                <dd>{% if shipping_minor == 0 %}{{ 'cart.shipping_estimate.free' | t }}{% else %}{{ shipping_minor | money_without_trailing_zeros }}{% endif %}</dd>
+              </div>
             {%- endif -%}
             {%- liquid
               # Deposit lines (snippets/cart-line): the balance left to pay at the branch, over the whole cart.
@@ -199,7 +222,7 @@
             -%}
             <div class="cart-summary__row cart-summary__row--total">
               <dt>{% if deposit_balance > 0 %}{{ 'deposit.pay_now' | t }}{% else %}{{ 'cart.page.total' | t }}{% endif %}</dt>
-              <dd>{{ cart.total_price | money_without_trailing_zeros }}</dd>
+              <dd>{{ summary_total | money_without_trailing_zeros }}</dd>
             </div>
             {%- if deposit_balance > 0 -%}
               <div class="cart-summary__row cart-summary__row--balance">
@@ -208,6 +231,9 @@
               </div>
             {%- endif -%}
           </dl>
+          {%- if shipping_estimate != blank -%}
+            <p class="cart-summary__shipping-note">{{ 'cart.shipping_estimate.note' | t }}</p>
+          {%- endif -%}
 
           {%- if all_tax_free and settings.tax_free_labels -%}
             <p class="cart-summary__tax">
