@@ -7,9 +7,10 @@
     summary (brand logo, short description + "קרא עוד", מק"ט + "פרטים טכניים נוספים"),
     buy column (variant picker, price, buttons, wishlist, info lines, text, Liquid, apps) and, from
     the "למה לקוחות קונים אצלנו" box (trust_point blocks + image + WhatsApp) under it. From 992px the
-    info lines (stock, pickup, warranty, payment) and the trust box move under the gallery together,
-    and "השלימו את הערכה" moves up between the variant picker and the price row, so the price and the
-    buttons come after it (inline script after .product).
+    info lines (stock, pickup, warranty, payment) and the trust box move under the gallery together
+    (inline script after .product). "השלימו את הערכה" of a reviewed device is printed between the
+    variant picker and the price row, so the price and the buttons come after it; one whose tiles
+    come from search goes where its late appearance moves nothing on screen (the script again).
   - "מידע נוסף": description / specs / free tabs as an exclusive <details> group, an accordion at
     every width; all panels start closed, and "קרא עוד" / "פרטים טכניים נוספים" open their panel.
     Technical details written into the description (label/value lines, tables) are moved into the
@@ -25,12 +26,18 @@
   assign form_id = 'ProductForm-' | append: section.id
 
   assign buy_block = nil
+  assign addons_block = nil
+  assign has_price_block = false
   assign has_specs_tab = false
   assign has_description_tab = false
   for block in section.blocks
     case block.type
       when 'buy_buttons'
         assign buy_block = block
+      when 'price'
+        assign has_price_block = true
+      when 'addons'
+        assign addons_block = block
       when 'tab_specs'
         assign has_specs_tab = true
       when 'tab_description'
@@ -138,6 +145,33 @@
   {%- endfor -%}
 {%- endcapture -%}
 
+{%- comment -%}
+  "השלימו את הערכה" (snippets/product-addons.liquid), rendered before the buy column because a card that
+  is ready here (a reviewed device, custom.joy_addon_products: its tiles are known now) is printed right
+  above the price block, or the buttons when there is no price block: where it is shown at every width.
+  Printed there, it is in place from the first paint; moved there by script, the price and the buttons
+  were painted first and then pushed down (a layout shift). Its block keeps an empty wrapper in block
+  order (display: none) for the theme editor.
+  A card whose tiles still come from search is printed hidden in its block, and the script after
+  .product puts it where its appearance moves nothing on screen (assets/product-addons.js shows it).
+{%- endcomment -%}
+{%- liquid
+  assign addons_html = ''
+  assign addons_spot = ''
+  if addons_block != nil
+    capture addons_html
+      render 'product-addons', product: product, variant: current_variant, section_id: section.id, layout: addons_block.settings.layout
+    endcapture
+  endif
+  if addons_html contains 'data-pa-state="ready"'
+    if has_price_block
+      assign addons_spot = 'price'
+    elsif buy_block != nil
+      assign addons_spot = 'buy_buttons'
+    endif
+  endif
+-%}
+
 {%- comment -%} Buy column. {%- endcomment -%}
 {%- capture buy_html -%}
   {%- for block in section.blocks -%}
@@ -150,6 +184,7 @@
         {%- endunless -%}
 
       {%- when 'price' -%}
+        {%- if addons_spot == 'price' -%}{{ addons_html }}{%- endif -%}
         <div class="product-block product-block--price product__price" {{ block.shopify_attributes }}>
           <div class="product__price-live" aria-live="polite" aria-atomic="true">
             <div data-swap="price">
@@ -161,6 +196,7 @@
         </div>
 
       {%- when 'buy_buttons' -%}
+        {%- if addons_spot == 'buy_buttons' -%}{{ addons_html }}{%- endif -%}
         <div class="product-block product-block--buy" {{ block.shopify_attributes }}>
           {%- render 'buy-buttons',
             product: product,
@@ -194,16 +230,17 @@
       {%- when 'addons' -%}
         {%- comment -%}
           "השלימו את הערכה": ticked accessories are added by the buy buttons above, together with the
-          device (snippets/product-addons.liquid). Nothing is printed for products without accessory
-          groups, or whose reviewed accessories are all unavailable, so the block leaves no gap there.
-          A card whose tiles still come from search is printed hidden, and so is this wrapper:
-          assets/product-addons.js shows both with the first tile, and never when none comes.
+          device (snippets/product-addons.liquid, rendered above the buy column). Nothing is printed for
+          products without accessory groups, or whose reviewed accessories are all unavailable, so the
+          block leaves no gap there. A ready card is already printed above the price (addons_spot), so
+          the wrapper here stays empty and takes no room. A card whose tiles still come from search is
+          printed hidden, and so is this wrapper: assets/product-addons.js shows the card with the first
+          tile, once that moves nothing on screen, and never when none comes.
         {%- endcomment -%}
-        {%- capture addons_html -%}
-          {%- render 'product-addons', product: product, variant: current_variant, section_id: section.id, layout: block.settings.layout -%}
-        {%- endcapture -%}
         {%- if addons_html != blank -%}
-          <div class="product-block product-block--addons"{% if addons_html contains 'data-pa-state="loading"' %} hidden{% endif %} {{ block.shopify_attributes }}>{{ addons_html }}</div>
+          <div class="product-block product-block--addons"{% if addons_html contains 'data-pa-state="loading"' %} hidden{% endif %} {{ block.shopify_attributes }}>
+            {%- if addons_spot == blank -%}{{ addons_html }}{%- endif -%}
+          </div>
         {%- endif -%}
 
       {%- when 'wishlist' -%}
@@ -555,15 +592,23 @@
   </div>
 
   {%- comment -%}
-    At every width the add-ons card goes just before the price block (or the buttons when there is
-    no price block), so the price row and the buttons follow it. Desktop: the info lines (stock,
-    pickup, warranty, payment) and the trust box move under the gallery, in that order. Phones: the
-    trust box moves after the "מידע נוסף" panels, so the page reads like the desktop buy column.
-    The card stays a child of the buy column, so the one-row price + buttons layout is untouched.
-    A comment marker keeps the info lines' spot in the buy column for the way back below 992px.
-    Inline and right after the markup, so the move happens while the page is parsed, before
-    <product-addons> is upgraded and before either is painted in its phone position. Only the
-    elements move; the card's stylesheet and script stay in its block wrapper. Variant re-renders
+    "השלימו את הערכה": a card that is ready on the server (a reviewed device) is printed right above the
+    price block, or the buttons when there is no price block (addons_spot), so the price row and the
+    buttons follow it at every width and nothing moves it. A card whose tiles still come from search is
+    printed hidden and shows only when it has a tile; above the price its appearance would push the price
+    and the buttons down after they were painted (a layout shift, measured CLS 0.13 at 390px). It goes
+    where its appearance moves nothing on screen instead: below 992px at the end of the buy column (after
+    the buttons and the info lines, before "מידע נוסף"), usually below the first screen; from 992px at the
+    foot of the info column, under "מידע נוסף", where the taller gallery column keeps the rows below
+    in place. assets/product-addons.js shows it only when that moves nothing on screen.
+    Desktop: the info lines (stock, pickup, warranty, payment) and the trust box move under the gallery,
+    in that order. Phones: the trust box moves after the "מידע נוסף" panels, so the page reads like the
+    desktop buy column. A ready card stays a child of the buy column, so the one-row price + buttons
+    layout is untouched. A comment marker keeps the info lines' spot in the buy column for the way back
+    below 992px.
+    Inline and right after the markup, so the moves happen while the page is parsed, before
+    <product-addons> is upgraded and before anything moved is painted in its phone position. Only the
+    elements move; the card's stylesheet and script stay where they were printed. Variant re-renders
     swap [data-swap] regions by name anywhere in the section, and the product form finds the card
     anywhere in it too (assets/product.js).
   {%- endcomment -%}
@@ -574,27 +619,32 @@
       const panels = root?.querySelector('.product__panels');
       const aside = panels?.querySelector('.product__aside');
       const home = root?.querySelector('.product__buy .product-block--addons');
-      const card = home?.querySelector('product-addons');
       const buy = root?.querySelector('.product__buy');
+      const card = buy?.querySelector('product-addons');
+      const later = card?.dataset.paState === 'loading';
       const anchor = buy?.querySelector(':scope > .product-block--price, :scope > .product-block--buy');
       const lines = root?.querySelector('.product__buy .product-block--lines');
       const mark = lines && document.createComment('product-block--lines');
       lines?.before(mark);
       if (!slot || !panels || (!aside && !card && !lines)) return;
       const details = root?.querySelector('.product > .product__details');
+      const info = root?.querySelector('.product > .product__info');
       const wide = matchMedia('(min-width: 992px)');
       const phone = matchMedia('(max-width: 767px)');
       const place = () => {
-        /* Every width: the card sits right above the price and the buttons, so the price by the
+        /* A ready card sits right above the price and the buttons at every width, so the price by the
            buttons is the final one (device + ticked accessories, assets/product-addons.js). */
-        if (card && anchor && card.nextElementSibling !== anchor) anchor.before(card);
+        if (card && !later && anchor && card.nextElementSibling !== anchor) anchor.before(card);
         if (wide.matches) {
           if (lines && lines.parentElement !== slot) slot.prepend(lines);
           if (aside && aside.parentElement !== slot) slot.append(aside);
-          if (card && !anchor && card.parentElement !== panels) panels.append(card);
+          if (card && !later && !anchor && card.parentElement !== panels) panels.append(card);
+          const foot = details || info;
+          if (card && later && foot && (card.parentElement !== foot || card.nextElementSibling)) foot.append(card);
         } else {
-          if (card && !anchor && card.parentElement !== home) home.append(card);
+          if (card && !later && !anchor && card.parentElement !== home) home.append(card);
           if (lines && lines.parentElement === slot) mark.after(lines);
+          if (card && later && (card.parentElement !== buy || card.nextElementSibling)) buy.append(card);
           /* Phones read the desktop's buy column top to bottom: the panels ("מידע נוסף"…) right under
              the buttons, then the trust box, the way the gallery column ends on desktop. */
           if (aside && phone.matches && details) {

@@ -14,11 +14,11 @@
  *
  * Nothing is fetched until the module nears the viewport; then every group loads, one after another.
  * What fits differs per device and changes as stock comes and goes, so the card shapes itself to the
- * answer. It is printed hidden and shows with the first tile; a pill shows only once its group has a
- * tile, and the first such group opens. A group that comes back empty, or whose request still fails
- * after its retry, never shows, and a device with nothing in any group shows no card at all: the
- * owner's rule is that a customer never sees an empty or "nothing fits" card. A page nobody scrolls
- * costs nothing.
+ * answer. It is printed hidden and shows with the first tile, at a moment when that moves nothing on
+ * screen (reveal); a pill shows only once its group has a tile, and the first such group opens. A
+ * group that comes back empty, or whose request still fails after its retry, never shows, and a device
+ * with nothing in any group shows no card at all: the owner's rule is that a customer never sees an
+ * empty or "nothing fits" card. A page nobody scrolls costs nothing.
  *
  * Every price on a tile is server-rendered. The running total has to add numbers, so it cannot be,
  * and it is printed with the shop's own money_format string handed over in data-pa-money — which is
@@ -119,12 +119,13 @@ class ProductAddons extends HTMLElement {
     this.refresh();
   }
 
-  /* The card moves between the buy column and the space under the gallery when the window crosses
-     992px (sections/main-product), which disconnects and reconnects it. A load aborted on the way
-     must not stay 'pending', or load() would skip that panel for the rest of the visit. */
+  /* The card can move when the window crosses 992px (sections/main-product), which disconnects and
+     reconnects it. A load aborted on the way must not stay 'pending', or load() would skip that panel
+     for the rest of the visit. */
   disconnectedCallback() {
     this.observer?.disconnect();
     this.rowObserver?.disconnect();
+    this.stopWaiting();
     this.controllers?.forEach((c) => c.abort());
     this.controllers = [];
     this.panels?.forEach((panel) => {
@@ -308,9 +309,10 @@ class ProductAddons extends HTMLElement {
      one tile has a pill and a panel. One still loading, empty, or failed is out of view, so the row
      never shows a pill that leads nowhere. If the open group is not shown, the first shown one opens.
      The card itself shows only while some group has a tile, and with it the block's wrapper in
-     sections/main-product; otherwise both are hidden (display: none, so no box and no gap) and nothing
-     is ticked, so the buy buttons add the device alone. data-pa-state says which: loading, ready or
-     empty (every group answered empty or failed), for anyone debugging the page. */
+     sections/main-product (reveal: only when that moves nothing on screen); otherwise both are hidden
+     (display: none, so no box and no gap) and nothing is ticked, so the buy buttons add the device
+     alone. data-pa-state says which: loading, waiting (has tiles, waits for its place to leave the
+     screen), ready or empty (every group answered empty or failed), for anyone debugging the page. */
   prune() {
     const panelOf = (tab) => document.getElementById(tab.getAttribute('aria-controls'));
     const filled = (panel) => panel?.dataset.paLoaded === 'true' && Number(panel.dataset.paCount) > 0
@@ -332,10 +334,101 @@ class ProductAddons extends HTMLElement {
     }
     const show = visible.length > 0;
     const settled = this.panels.every((panel) => ['true', 'failed'].includes(panel.dataset.paLoaded));
-    this.hidden = !show;
-    this.dataset.paState = show ? 'ready' : settled ? 'empty' : 'loading';
-    this.root?.querySelectorAll?.('.product-block--addons').forEach((block) => { block.hidden = !show; });
-    if (!show) this.checked.forEach((c) => { c.checked = false; });
+    if (show) {
+      this.reveal();
+    } else {
+      this.stopWaiting();
+      this.setShown(false);
+      this.checked.forEach((c) => { c.checked = false; });
+      this.dataset.paState = settled ? 'empty' : 'loading';
+    }
+  }
+
+  /* The card and the block wrapper(s) of sections/main-product, in or out of view together. */
+  setShown(on) {
+    this.hidden = !on;
+    this.root?.querySelectorAll?.('.product-block--addons').forEach((block) => { block.hidden = !on; });
+  }
+
+  /* Showing the card never moves what the shopper is looking at: no jump under a finger on its way to
+     the buy button, and no layout shift (Core Web Vitals, CLS). Reviewed devices are printed visible
+     in place (sections/main-product) and are already shown here. A card whose tiles came from search
+     sits where its appearance moves nothing on screen (the end of the buy column on phones, under
+     "מידע נוסף" from 992px; sections/main-product), and is shown in a test within one task, before
+     anything is painted: what is on screen is measured, the card shown, and measured again.
+     - Nothing on screen moved (its place is below the screen, or at the foot of a column whose growth
+       moves nothing in view): it stays.
+     - Its place is above the screen: everything on screen moved down by its height, and the page
+       scrolls by that much, so the screen shows the same thing (Chrome's own scroll anchoring may have
+       done it already; then nothing moved).
+     - Otherwise it is hidden again, and tried again whenever scrolling stops or the window changes
+       size. data-pa-state is 'waiting' meanwhile. It is never ticked while hidden, so nothing extra is
+       added (selectedItems). */
+  reveal() {
+    if (!this.hidden) {
+      this.dataset.paState = 'ready';
+      return;
+    }
+    const probes = this.onScreen();
+    this.setShown(true);
+    const moved = () => probes.map(({ el, top }) => el.getBoundingClientRect().top - top).filter((d) => Math.abs(d) >= 1);
+    let shift = moved();
+    let scrolled = 0;
+    if (shift.length && this.getBoundingClientRect().bottom <= 0 && shift.every((d) => Math.abs(d - shift[0]) < 1)) {
+      scrolled = shift[0];
+      window.scrollBy({ top: scrolled, behavior: 'instant' });
+      shift = moved();
+    }
+    if (!shift.length) {
+      this.stopWaiting();
+      this.dataset.paState = 'ready';
+      return;
+    }
+    if (scrolled) window.scrollBy({ top: -scrolled, behavior: 'instant' });
+    this.setShown(false);
+    this.dataset.paState = 'waiting';
+    this.waitForRoom();
+  }
+
+  /* Elements on screen and where they are: everything under a grid of points across the viewport
+     (elementsFromPoint, so content under a fixed banner or bubble counts too), except the card's own
+     ancestors (<main>, the section, the column): they grow around the card, and when the page scrolls
+     to make room above, their top moves while everything of them on screen stays put. */
+  onScreen() {
+    const seen = new Set();
+    const out = [];
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    for (const fx of [0.05, 0.5, 0.95]) {
+      for (let fy = 0.01; fy < 1; fy += 0.098) {
+        for (const el of document.elementsFromPoint(w * fx, h * fy)) {
+          if (seen.has(el)) continue;
+          seen.add(el);
+          if (!el.contains(this)) out.push({ el, top: el.getBoundingClientRect().top });
+        }
+      }
+    }
+    return out;
+  }
+
+  waitForRoom() {
+    if (this.onRoom) return;
+    this.onRoom = () => {
+      clearTimeout(this.roomTimer);
+      this.roomTimer = setTimeout(() => {
+        if (this.isConnected && this.dataset.paState === 'waiting') this.reveal();
+      }, 150);
+    };
+    window.addEventListener('scroll', this.onRoom, { passive: true });
+    window.addEventListener('resize', this.onRoom);
+  }
+
+  stopWaiting() {
+    clearTimeout(this.roomTimer);
+    if (!this.onRoom) return;
+    window.removeEventListener('scroll', this.onRoom);
+    window.removeEventListener('resize', this.onRoom);
+    this.onRoom = null;
   }
 
   /* A group whose request failed twice is out of view. A press on a shown pill asks those groups once
