@@ -4,7 +4,8 @@
    Data: every product of the section's collection, read page by page from /collections/<handle>/products.json
    (250 a page) and turned into parts by assets/pc-builder-parser.js; frame-rate estimates come from
    assets/pc-builder-fps.js (both URLs in data-*-src, so the versioned assets are the ones imported). Metafield
-   overrides (pc.*) come from the section's JSON block.
+   overrides (pcb.*, else pc.*) come from the section's JSON block (the first 250 products) and from
+   sections/pc-builder-facts for the pages after it (fetchFacts).
 
    Two modes: guided (use, games and screen, budget → three compatible builds) and step by step (each step lists the
    parts that fit the steps before it; a part that clashes with a later choice says what it will replace).
@@ -127,9 +128,9 @@ class PcBuilder {
   async start() {
     try {
       // The parts download alongside the two modules (the section preloads them), not after them.
-      let products;
-      [this.P, this.F, products] = await Promise.all([import(this.d.parserSrc), import(this.d.fpsSrc), this.fetchProducts()]);
-      this.load(products);
+      let products, facts;
+      [this.P, this.F, products, facts] = await Promise.all([import(this.d.parserSrc), import(this.d.fpsSrc), this.fetchProducts(), this.fetchFacts()]);
+      this.load(products, facts);
     } catch (err) {
       console.error('[pc-builder]', err);
       this.say('לא הצלחנו לטעון את רשימת הרכיבים. אפשר לרענן את העמוד או לפנות אלינו בוואטסאפ.', true);
@@ -174,8 +175,33 @@ class PcBuilder {
     return seen;
   }
 
-  load(seen) {
-    const overrides = JSON.parse(this.$('[data-pcb-overrides]')?.textContent || '{}');
+  /**
+   * The parts' facts (pcb.* metafields, else pc.*), by product id. The section's JSON block holds the collection's first
+   * 250 products only (Liquid's paginate takes 250 at most); pages 2 to data-pages come from sections/pc-builder-facts
+   * through the Section Rendering API (data-facts), alongside the products. A page that fails leaves its products
+   * without facts (they show "לא אומת"), never the builder.
+   */
+  async fetchFacts() {
+    const facts = JSON.parse(this.$('[data-pcb-overrides]')?.textContent || '{}');
+    const source = this.d.facts;
+    const pages = Math.min(Math.max(Number(this.d.pages) || 1, 1), 40);
+    if (!source || pages < 2) return facts;
+    const more = await Promise.all(Array.from({ length: pages - 1 }, async (_, i) => {
+      try {
+        const res = await fetch(source.replace('{page}', i + 2));
+        if (!res.ok) throw new Error(`facts ${res.status}`);
+        const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+        return JSON.parse(doc.querySelector('[data-pcb-facts]')?.textContent || '{}');
+      } catch (e) {
+        console.warn('[pc-builder] facts', e);
+        return {};
+      }
+    }));
+    for (const page of more) for (const [id, f] of Object.entries(page)) if (!facts[id]) facts[id] = f;
+    return facts;
+  }
+
+  load(seen, overrides = JSON.parse(this.$('[data-pcb-overrides]')?.textContent || '{}')) {
     for (const product of seen.values()) {
       const part = this.P.toPart(product, overrides[product.id] || {});
       if (!part || !this.P.STEP_KEYS.includes(part.category)) continue;

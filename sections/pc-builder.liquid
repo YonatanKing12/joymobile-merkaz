@@ -34,6 +34,7 @@
   if coll != blank
     assign source = root | append: 'collections/' | append: coll.handle | append: '/products.json?limit=250&page={page}'
     assign source_pages = coll.products_count | plus: 249 | divided_by: 250 | at_least: 1 | at_most: 4
+    assign facts_source = root | append: 'collections/' | append: coll.handle | append: '?section_id=pc-builder-facts&page={page}'
   endif
   capture wa_url
     render 'whatsapp-url', phone: section.settings.whatsapp_number
@@ -74,7 +75,7 @@
   data-pc-builder
   data-parser-src="{{ 'pc-builder-parser.js' | asset_url }}"
   data-fps-src="{{ 'pc-builder-fps.js' | asset_url }}"
-  {% if source != blank %}data-source="{{ source }}" data-pages="{{ source_pages }}"{% endif %}
+  {% if source != blank %}data-source="{{ source }}" data-pages="{{ source_pages }}" data-facts="{{ facts_source }}"{% endif %}
   data-whatsapp="{{ wa_digits | escape }}"
   data-whatsapp-display="{{ wa_display | escape }}"
   data-shop-name="{{ shop.name | escape }}"
@@ -236,30 +237,19 @@
     <p class="visually-hidden" data-live aria-live="polite"></p>
     <noscript><p class="pcb-empty">כדי להרכיב מחשב צריך לאפשר JavaScript בדפדפן. אפשר גם לפנות אלינו בוואטסאפ.</p></noscript>
     {%- comment -%}
-      The parts' facts: product metafields pcb.<key> (the dashboard's "מרכיב המחשבים" writes them; Shopify takes a
-      namespace of 3 characters at least), each key falling back to the first name pc.<key>.
+      The parts' facts of the collection's first 250 products (snippets/pc-builder-facts: pcb.<key>, else pc.<key>); the
+      pages after it come from sections/pc-builder-facts (data-facts).
     {%- endcomment -%}
-    {%- assign pcb_keys = 'category,socket,memory,form_factor,watts,cooler_tdp,igpu,needs_cooler,back_connect,ram_slots,max_memory,m2_slots,sata_ports,pcie_x16,cpu_sockets,pcie_8pin,pcie_16pin' | split: ',' -%}
     <script type="application/json" data-pcb-overrides>
       {
       {%- assign first = true -%}
       {%- paginate coll.products by 250 -%}
         {%- for product in coll.products -%}
-          {%- assign pcb_new = product.metafields.pcb -%}
-          {%- assign pcb_old = product.metafields.pc -%}
-          {%- assign pcb_any = false -%}
-          {%- capture pcb_fields -%}
-            {%- for pcb_key in pcb_keys -%}
-              {%- assign pcb_mf = pcb_new[pcb_key] -%}
-              {%- if pcb_mf == blank -%}{%- assign pcb_mf = pcb_old[pcb_key] -%}{%- endif -%}
-              {%- if pcb_mf != blank -%}{%- assign pcb_any = true -%}{%- endif -%}
-              {%- unless forloop.first %}, {% endunless -%}"{{ pcb_key }}": {{ pcb_mf.value | json }}
-            {%- endfor -%}
-          {%- endcapture -%}
-          {%- if pcb_any -%}
+          {%- capture pcb_row -%}{%- render 'pc-builder-facts', product: product -%}{%- endcapture -%}
+          {%- if pcb_row != blank -%}
             {%- unless first %},{% endunless -%}
             {%- assign first = false -%}
-            "{{ product.id }}": { {{ pcb_fields }} }
+            {{ pcb_row }}
           {%- endif -%}
         {%- endfor -%}
       {%- endpaginate -%}

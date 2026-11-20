@@ -1,0 +1,30 @@
+{%- comment -%}
+  The PC builder's facts of one page (250 products) of a collection, for the pages after the first: assets/pc-builder.js
+  fetches /collections/<handle>?section_id=pc-builder-facts&page=<n> (Section Rendering API; Liquid's paginate takes
+  250 products at most, and sections/pc-builder prints the first page itself). Not added to any template.
+{%- endcomment -%}
+<script type="application/json" data-pcb-facts>
+  {
+  {%- if collection != blank -%}
+    {%- assign first = true -%}
+    {%- paginate collection.products by 250 -%}
+      {%- for product in collection.products -%}
+        {%- capture pcb_row -%}{%- render 'pc-builder-facts', product: product -%}{%- endcapture -%}
+        {%- if pcb_row != blank -%}
+          {%- unless first %},{% endunless -%}
+          {%- assign first = false -%}
+          {{ pcb_row }}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endpaginate -%}
+  {%- endif -%}
+  }
+</script>
+
+{% schema %}
+{
+  "name": "נתוני מרכיב המחשבים",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

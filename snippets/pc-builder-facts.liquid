@@ -1,0 +1,33 @@
+{%- comment -%}
+  One product's facts for the PC builder, as the JSON member "<product id>": {…} (nothing when it has none): product
+  metafields pcb.<key> (the dashboard's "מרכיב המחשבים" writes them; Shopify takes a namespace of 3 characters at least),
+  each key falling back to the first name pc.<key>. Used by sections/pc-builder (the collection's first 250 products) and
+  sections/pc-builder-facts (the pages after it, which assets/pc-builder.js reads through the Section Rendering API).
+
+  Accepts:
+  - product: {Object} a product of the builder's collection
+{%- endcomment -%}
+{%- liquid
+  assign pcb_keys = 'category,socket,memory,form_factor,watts,cooler_tdp,igpu,needs_cooler,back_connect,ram_slots,max_memory,m2_slots,sata_ports,pcie_x16,cpu_sockets,pcie_8pin,pcie_16pin' | split: ','
+  assign pcb_new = product.metafields.pcb
+  assign pcb_old = product.metafields.pc
+  assign pcb_any = false
+  assign pcb_fields = ''
+  for pcb_key in pcb_keys
+    assign pcb_mf = pcb_new[pcb_key]
+    if pcb_mf == blank
+      assign pcb_mf = pcb_old[pcb_key]
+    endif
+    if pcb_mf != blank
+      assign pcb_any = true
+    endif
+    unless forloop.first
+      assign pcb_fields = pcb_fields | append: ', '
+    endunless
+    assign pcb_value = pcb_mf.value | json
+    assign pcb_fields = pcb_fields | append: '"' | append: pcb_key | append: '": ' | append: pcb_value
+  endfor
+  if pcb_any
+    echo '"' | append: product.id | append: '": {' | append: pcb_fields | append: '}'
+  endif
+-%}
