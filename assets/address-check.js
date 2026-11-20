@@ -144,7 +144,9 @@ class AddressCheck extends HTMLElement {
   async cityState() {
     const ix = await this.index();
     if (!ix) return null;
-    const city = ix.byName.get(this.city()) || null;
+    // As listed, or a sure match not yet written back (the shopper typed on before the city was checked).
+    const sure = matchCity(this.city(), ix);
+    const city = ix.byName.get(this.city()) || (sure.confident ? sure.city : null);
     let streets = [];
     if (city?.shard != null) {
       try {
