@@ -62,27 +62,29 @@
 {%- endif -%}
 
 {% stylesheet %}
-  /* Secondary to the green checkout button: an outlined link in WhatsApp's colour, never a second
-     filled button competing with it. */
+  /* Secondary to the green checkout button: a compact link with the WhatsApp icon, no box, so it
+     never competes with the checkout button for room on a phone. Keeps the full tap height. */
   .cart-whatsapp {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-xs);
+    gap: var(--space-2xs);
     min-height: var(--tap-target);
-    padding: var(--space-2xs) var(--space-md);
-    border: 1px solid var(--color-whatsapp);
+    padding: 0 var(--space-sm);
     border-radius: var(--radius-button);
-    background-color: var(--color-background);
     color: var(--color-ink);
-    font-size: var(--text-md);
-    font-weight: 700;
-    text-decoration: none;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-whatsapp) 60%, transparent);
+    text-underline-offset: 0.2em;
     transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .cart-whatsapp .icon {
     flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
     color: var(--color-whatsapp);
   }
 

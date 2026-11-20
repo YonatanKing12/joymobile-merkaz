@@ -505,10 +505,9 @@ cart-items[aria-busy="true"] .cart-drawer__checkout {
   padding: 0 var(--space-md) var(--space-md);
 }
 
-/* Under the sticky footer, not in it: a second full-size button there would cost the lines a row
-   of screen on every phone. */
+/* Under the sticky footer, not in it, and compact: a small link, not a second full-width button. */
 .cart-drawer__whatsapp {
-  align-self: stretch;
+  align-self: center;
 }
 
 .cart-drawer__secondary {
