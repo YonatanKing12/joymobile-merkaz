@@ -19,7 +19,7 @@
   Label (default output), the words after the warranty months:
   - from a tag: "יבוא מקביל" for parallel (used and refurbished already say so in the title and
     the schema itemCondition), then the custom.warranty_channel text when it names a warranty
-    provider and not an import channel (no "יבוא" in it): "יבוא מקביל · DCS".
+    provider and not an import channel (no "יבוא", "מקביל" or "רשמי" in it): "יבוא מקביל · DCS".
   - from the metafields: the custom.warranty_channel text, else "יבואן רשמי" when
     custom.warranty_official is true (the rule product-specs and product-trust had before).
 
@@ -76,9 +76,10 @@
       if ic_key == 'parallel'
         assign ic_label = 'products.product.import_parallel' | t
       endif
-      # A provider ("DCS") is kept; a text that names an import channel would contradict the tag.
+      # A provider ("DCS") is kept; a text that names an import channel would contradict the tag, or repeat it
+      # ("12 חודשים · יבוא מקביל · מקביל", 20.11.2026).
       if ic_text != blank
-        unless ic_text contains 'יבוא'
+        unless ic_text contains 'יבוא' or ic_text contains 'מקביל' or ic_text contains 'רשמי'
           if ic_label != blank
             assign ic_label = ic_label | append: ' · '
           endif
