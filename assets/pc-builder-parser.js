@@ -4,8 +4,9 @@
    .github/pc-builder (coverage over the supplier's titles, unit tests, the static preview).
 
    The supplier's parts (Mor Levi, national drop-ship) arrive with a Hebrew + English title only: no vendor, no product
-   type, no compatibility fields. So everything here is read from the title, and a product metafield in the "pc"
-   namespace wins over the title when it is set (sections/pc-builder prints those as JSON):
+   type, no compatibility fields. So everything here is read from the title, and a product metafield in the "pcb"
+   namespace (else the first name "pc"; written below as pc.*) wins over the title when it is set (sections/pc-builder
+   prints those as JSON):
      pc.category      cpu | board | ram | gpu | storage | cooler | psu | case | os | extra | none (hide)
      pc.socket        LGA1851 | LGA1700 | AM5 | AM4                     (CPU, board)
      pc.memory        DDR4 | DDR5                                       (board, RAM)

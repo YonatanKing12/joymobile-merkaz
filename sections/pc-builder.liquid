@@ -235,20 +235,31 @@
 
     <p class="visually-hidden" data-live aria-live="polite"></p>
     <noscript><p class="pcb-empty">כדי להרכיב מחשב צריך לאפשר JavaScript בדפדפן. אפשר גם לפנות אלינו בוואטסאפ.</p></noscript>
+    {%- comment -%}
+      The parts' facts: product metafields pcb.<key> (the dashboard's "מרכיב המחשבים" writes them; Shopify takes a
+      namespace of 3 characters at least), each key falling back to the first name pc.<key>.
+    {%- endcomment -%}
+    {%- assign pcb_keys = 'category,socket,memory,form_factor,watts,cooler_tdp,igpu,needs_cooler,back_connect,ram_slots,max_memory,m2_slots,sata_ports,pcie_x16,cpu_sockets,pcie_8pin,pcie_16pin' | split: ',' -%}
     <script type="application/json" data-pcb-overrides>
       {
       {%- assign first = true -%}
       {%- paginate coll.products by 250 -%}
         {%- for product in coll.products -%}
-          {%- assign pc = product.metafields.pc -%}
-          {%- assign pc_slots = false -%}
-          {%- if pc.ram_slots != blank or pc.max_memory != blank or pc.m2_slots != blank or pc.sata_ports != blank or pc.pcie_x16 != blank or pc.cpu_sockets != blank or pc.pcie_8pin != blank or pc.pcie_16pin != blank -%}
-            {%- assign pc_slots = true -%}
-          {%- endif -%}
-          {%- if pc_slots or pc.category != blank or pc.socket != blank or pc.memory != blank or pc.form_factor != blank or pc.watts != blank or pc.cooler_tdp != blank or pc.igpu != blank or pc.needs_cooler != blank or pc.back_connect != blank -%}
+          {%- assign pcb_new = product.metafields.pcb -%}
+          {%- assign pcb_old = product.metafields.pc -%}
+          {%- assign pcb_any = false -%}
+          {%- capture pcb_fields -%}
+            {%- for pcb_key in pcb_keys -%}
+              {%- assign pcb_mf = pcb_new[pcb_key] -%}
+              {%- if pcb_mf == blank -%}{%- assign pcb_mf = pcb_old[pcb_key] -%}{%- endif -%}
+              {%- if pcb_mf != blank -%}{%- assign pcb_any = true -%}{%- endif -%}
+              {%- unless forloop.first %}, {% endunless -%}"{{ pcb_key }}": {{ pcb_mf.value | json }}
+            {%- endfor -%}
+          {%- endcapture -%}
+          {%- if pcb_any -%}
             {%- unless first %},{% endunless -%}
             {%- assign first = false -%}
-            "{{ product.id }}": {"category": {{ pc.category.value | json }}, "socket": {{ pc.socket.value | json }}, "memory": {{ pc.memory.value | json }}, "form_factor": {{ pc.form_factor.value | json }}, "watts": {{ pc.watts.value | json }}, "cooler_tdp": {{ pc.cooler_tdp.value | json }}, "igpu": {{ pc.igpu.value | json }}, "needs_cooler": {{ pc.needs_cooler.value | json }}, "back_connect": {{ pc.back_connect.value | json }}, "ram_slots": {{ pc.ram_slots.value | json }}, "max_memory": {{ pc.max_memory.value | json }}, "m2_slots": {{ pc.m2_slots.value | json }}, "sata_ports": {{ pc.sata_ports.value | json }}, "pcie_x16": {{ pc.pcie_x16.value | json }}, "cpu_sockets": {{ pc.cpu_sockets.value | json }}, "pcie_8pin": {{ pc.pcie_8pin.value | json }}, "pcie_16pin": {{ pc.pcie_16pin.value | json }} }
+            "{{ product.id }}": { {{ pcb_fields }} }
           {%- endif -%}
         {%- endfor -%}
       {%- endpaginate -%}
@@ -274,7 +285,7 @@
       "type": "collection",
       "id": "collection",
       "label": "קולקציית הרכיבים",
-      "info": "קולקציה אחת עם כל הרכיבים (מעבדים, לוחות, זיכרון, כרטיסי מסך, אחסון, קירור, ספקים, מארזים, מערכות הפעלה ותוספות). סוג הרכיב והתאימות נקראים משם המוצר; שדה מטא pc.* גובר על השם."
+      "info": "קולקציה אחת עם כל הרכיבים (מעבדים, לוחות, זיכרון, כרטיסי מסך, אחסון, קירור, ספקים, מארזים, מערכות הפעלה ותוספות). סוג הרכיב והתאימות נקראים משם המוצר; שדה מטא pcb.* (או pc.* הישן) גובר על השם."
     },
     {
       "type": "text",
