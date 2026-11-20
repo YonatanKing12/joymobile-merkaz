@@ -124,7 +124,8 @@
         "disabled": false,
         "settings": {}
       }
-    }
+    },
+    "address_check_mode": "off"
   },
   "presets": {
     "JOY Mobile": {
