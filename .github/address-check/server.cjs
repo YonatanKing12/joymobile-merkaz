@@ -30,9 +30,10 @@ module.exports = function start(port) {
       res.writeHead(200, { 'content-type': 'application/json' });
       return res.end('{"data":{"cartDeliveryAddressesReplace":{"userErrors":[]}}}');
     }
+    if (url.pathname === '/cart/update.js') { log.update = (log.update || []).concat(JSON.parse(body)); res.writeHead(200, { 'content-type': 'application/json' }); return res.end('{}'); }
     if (url.pathname === '/cart' && req.method === 'POST') { log.checkout.push(body); res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); return res.end('<p id="reached">CHECKOUT_REACHED</p>'); }
     if (url.pathname === '/__log') { res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify(log)); }
-    if (url.pathname === '/__reset') { log.graphql = []; log.checkout = []; failApi = url.searchParams.get('fail') === '1'; res.writeHead(204); return res.end(); }
+    if (url.pathname === '/__reset') { log.graphql = []; log.checkout = []; log.update = []; failApi = url.searchParams.get('fail') === '1'; res.writeHead(204); return res.end(); }
     if (url.pathname.startsWith('/assets/')) {
       const f = path.join(theme, 'assets', path.basename(url.pathname));
       if (fs.existsSync(f)) { res.writeHead(200, { 'content-type': types[path.extname(f)] || 'application/octet-stream' }); return res.end(fs.readFileSync(f)); }

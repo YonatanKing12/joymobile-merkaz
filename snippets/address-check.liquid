@@ -15,6 +15,8 @@
     "להמשיך לתשלום בלי הבדיקה" as the way out).
   - required: the box is open and must be filled; the product page's quick buy goes through the drawer
     (layout/theme.liquid window.theme.cartConsent, snippets/buy-buttons).
+  The order carries the cart attribute "_address_check": "checked", or "kept_as_typed" when a name not on the list was
+  kept (the leading _ hides it in checkout; the admin and the dashboard see it), to count how many orders the check saw.
   A street or a city that is not on the list can still be kept as typed ("הכתובת נכונה, להשאיר כפי שכתבתי"): the
   lists can lag behind a new street, and the dashboard checks again before the label.
 

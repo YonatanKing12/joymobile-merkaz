@@ -87,6 +87,26 @@ async function setCartAddress(address) {
   }
 }
 
+/**
+ * "_address_check" on the order ("checked", or "kept_as_typed" when a name not on the list was kept): how many orders
+ * went through the check, for the decision on "required". The leading _ keeps it out of checkout. Never throws.
+ */
+async function markCart(value) {
+  const controller = new AbortController();
+  try {
+    const root = window.Shopify?.routes?.root || '/';
+    const req = fetch(`${root}cart/update.js`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ attributes: { _address_check: value } }),
+    });
+    return await withTimeout(req, TIMEOUT, controller);
+  } catch {
+    return null;
+  }
+}
+
 class AddressCheck extends HTMLElement {
   connectedCallback() {
     this.mode = this.dataset.mode || 'optional';
@@ -480,7 +500,7 @@ class AddressCheck extends HTMLElement {
     this.checkAll()
       .then(async ({ address, unchecked }) => {
         if (!address && !unchecked) return false;
-        if (address) await setCartAddress(address);
+        if (address) await Promise.all([setCartAddress(address), markCart(memory.keep.city || memory.keep.street ? 'kept_as_typed' : 'checked')]);
         return true;
       })
       .catch(() => true)

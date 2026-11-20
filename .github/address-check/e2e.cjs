@@ -45,6 +45,7 @@ const ok = (name, cond, extra = '') => { results.push([cond ? 'ok' : 'FAIL', nam
   const sent = l.graphql[0]?.variables?.a?.[0]?.address?.deliveryAddress;
   ok('checked address sent and checkout reached', r && sent?.address1 === 'הרצל 12' && sent?.city === 'חיפה' && sent?.address2 === 'קומה 3 דירה 7' && sent?.countryCode === 'IL', JSON.stringify(sent));
   ok('cart id from /cart.js', l.graphql[0]?.variables?.id === 'gid://shopify/Cart/hWNtest?key=abc');
+  ok('order marked as checked', l.update?.[0]?.attributes?._address_check === 'checked', JSON.stringify(l.update));
 
   // 3. The refused street "הגפן" in אלפי מנשה is put right to "גפן"; typed "קריית" city.
   await reset(); await go();
@@ -83,7 +84,7 @@ const ok = (name, cond, extra = '') => { results.push([cond ? 'ok' : 'FAIL', nam
   await page.locator('[data-keep="street"]').click();
   await checkout();
   r = await reached(); l = await log();
-  ok('kept as typed goes on', r && l.graphql.at(-1)?.variables?.a?.[0]?.address?.deliveryAddress?.address1 === 'רחוב שאין כמותו 3');
+  ok('kept as typed goes on', r && l.graphql.at(-1)?.variables?.a?.[0]?.address?.deliveryAddress?.address1 === 'רחוב שאין כמותו 3' && l.update.at(-1)?.attributes?._address_check === 'kept_as_typed');
 
   // 7. Skip: clears and goes to checkout.
   await reset(); await go();
