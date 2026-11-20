@@ -59,6 +59,30 @@ const sized = (src, w) => {
   return `${src}${src.includes('?') ? '&' : '?'}width=${w}`;
 };
 
+/* Each part's line icon (24×24, the style of snippets/icon): the step strip, the build cards and the summary, and
+   in place of a missing product photo. */
+const ICON_PATHS = {
+  cpu: '<rect x="6" y="6" width="12" height="12" rx="1.5"/><rect x="9.5" y="9.5" width="5" height="5"/><path d="M9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5"/>',
+  board: '<rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="5" height="5"/><path d="M15 7h2.5M15 10h2.5M7 15.5h10.5M7 18h6"/>',
+  ram: '<path d="M2.5 8h19v8h-19z"/><path d="M6 11h2M10 11h2M14 11h2M5 16v2.5M9 16v2.5M15 16v2.5M19 16v2.5"/>',
+  gpu: '<rect x="2.5" y="6" width="19" height="10" rx="1.5"/><circle cx="9" cy="11" r="2.6"/><circle cx="16" cy="11" r="2.6"/><path d="M5 16v3h7v-3"/>',
+  storage: '<rect x="3" y="7.5" width="18" height="9" rx="1.5"/><path d="M6.5 12h6M17 12h.01"/>',
+  cooler: '<circle cx="12" cy="12" r="8.5"/><path d="M12 12c0-3 1.5-5 4-5.5M12 12c2.6 1.5 3.4 3.9 2.2 6.2M12 12c-2.6 1.5-5 1.1-6.6-.9"/><circle cx="12" cy="12" r="1.2"/>',
+  psu: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><circle cx="9" cy="12" r="3.5"/><path d="m16.5 9-1.5 3h2l-1.5 3"/>',
+  case: '<rect x="6.5" y="2.5" width="11" height="19" rx="1.5"/><path d="M9.5 6h5M9.5 9h5"/><circle cx="12" cy="15.5" r="2.2"/>',
+  os: '<path d="M3.5 5.5 11 4.5v7H3.5zM13 4.2l7.5-1v8.3H13zM3.5 13H11v7l-7.5-1zM13 13h7.5v8l-7.5-1z"/>',
+  extra: '<circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+};
+const icon = (key, size = 20, cls = 'pcb-icon') =>
+  `<svg class="${cls}" aria-hidden="true" focusable="false" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[key] || ICON_PATHS.extra}</svg>`;
+/* A part's photo at the size shown, or its icon on a soft tile. */
+const thumb = (part, w, cls) => (part?.image
+  ? `<img class="${cls}" src="${html(sized(part.image, w * 2))}" alt="" width="${w}" height="${w}" loading="lazy" decoding="async">`
+  : `<span class="${cls} ${cls}--icon" aria-hidden="true">${icon(part?.category || 'extra', Math.round(w * 0.5))}</span>`);
+/* A locale string's placeholders: the section prints them as "__price__" (sections/pc-builder: data-pcb-i18n). */
+const fill = (text, vars) => String(text || '').replace(/__(\w+)__/g, (m, k) => (k in vars ? vars[k] : m));
+
 const PAGE_SIZE = 24;
 const SAVED_KEY = 'pcb-compare-v1';
 const SAVED_MAX = 3;
@@ -103,7 +127,16 @@ class PcBuilder {
     this.notice = null;
     this.saved = store.read();
     this.$ = (s) => el.querySelector(s);
+    try {
+      this.t = JSON.parse(this.$('[data-pcb-i18n]')?.textContent || '{}');
+    } catch {
+      this.t = {};
+    }
     this.status = this.$('[data-status]');
+    // A game's logo that does not load leaves its name on the card instead (pc-builder.css: .is-noimg).
+    el.addEventListener('error', (e) => {
+      if (e.target.matches?.('.pcb-game__logo')) e.target.closest('.pcb-game')?.classList.add('is-noimg');
+    }, true);
     // The quote prints alone: its dialog lives directly under <body> (the print stylesheet hides every other child).
     this.quote = this.$('[data-quote-dialog]');
     if (this.quote) {
@@ -141,6 +174,7 @@ class PcBuilder {
     this.renderGames();
     this.restore();
     this.renderAll();
+    this.renderUseFrom();
   }
 
   /* ---------- data ---------- */
@@ -389,8 +423,39 @@ class PcBuilder {
   renderGames() {
     const box = this.$('[data-games]');
     if (!box) return;
+    const logos = this.t.logos || {};
+    // Warzone's card: the Call of Duty wordmark, with the game's own name under it.
     box.innerHTML = this.F.GAMES.map((g) => `
-      <label class="pcb-chip"><input type="checkbox" name="game" value="${html(g.key)}"><span>${html(g.short || g.label)}</span></label>`).join('');
+      <label class="pcb-game${logos[g.key] ? '' : ' is-noimg'}">
+        <input type="checkbox" name="game" value="${html(g.key)}">
+        <span class="pcb-game__tile">
+          ${logos[g.key] ? `<img class="pcb-game__logo" src="${html(logos[g.key])}" alt="${html(g.label)}" width="120" height="40" loading="lazy" decoding="async">` : ''}
+          ${g.key === 'warzone' ? '<span class="pcb-game__sub" aria-hidden="true">WARZONE</span>' : ''}
+          <span class="pcb-game__name">${html(g.short || g.label)}</span>
+          <span class="pcb-game__check" aria-hidden="true">${icon('check', 14)}</span>
+        </span>
+        <span class="pcb-game__hint">${html(fill(this.t.gameTarget || '__fps__ FPS', { fps: g.target }))}</span>
+      </label>`).join('');
+  }
+
+  /** Each use card's "החל מ־₪X": the cheapest computer the store can build for it right now (the planner's own
+      cheapest tier at the lowest budget), so the number is always one the customer can really order. */
+  renderUseFrom() {
+    const form = this.$('[data-guided-form]');
+    if (!form || !this.t.from) return;
+    const min = Number(form.budget?.min) || 0;
+    for (const out of this.el.querySelectorAll('[data-use-from]')) {
+      const use = out.dataset.useFrom;
+      if (!this.P.USES[use]) continue;
+      try {
+        const totals = this.P.planBuilds(this.parts, { use, budget: min, includeOs: this.guided.includeOs })
+          .filter((b) => Object.keys(b.parts).length && b.check?.ok !== false)
+          .map((b) => b.total);
+        out.textContent = totals.length ? fill(this.t.from, { price: fmt(Math.min(...totals)) }) : '';
+      } catch (e) {
+        out.textContent = '';
+      }
+    }
   }
 
   aim() {
@@ -443,33 +508,54 @@ class PcBuilder {
       ? `<p class="pcb-builds__note">המחשב המשתלם ביותר ל${html(this.P.USES[this.guided.use].label)} שאפשר להרכיב כרגע עולה ${fmt(floor)}.</p>`
       : '';
     const KEY_ROWS = ['cpu', 'gpu', 'ram', 'storage'];
+    const t = this.t;
     box.innerHTML = note + unique
       .map((b) => {
         const selected = idsOf(Object.values(b.parts)) === chosenIds;
         const over = b.total > this.guided.budget;
-        const row = (k) => `<div class="pcb-build__row"><dt>${html(this.label(k))}</dt><dd>${html(this.brief(b.parts[k]))}</dd></div>`;
-        const main = KEY_ROWS.filter((k) => b.parts[k]).map(row).join('');
-        const gfx = !b.parts.gpu && b.parts.cpu?.facts.igpu ? '<div class="pcb-build__row"><dt>גרפיקה</dt><dd>מובנית במעבד</dd></div>' : '';
+        // The four key parts read by their icon and value ("RTX 5060 Ti 8GB"); the rest name their kind.
+        const row = (k, named = false) => `<div class="pcb-build__row"><dt>${icon(k, 18)}<span class="${named ? 'pcb-build__k' : 'visually-hidden'}">${html(this.label(k))}</span></dt><dd>${html(this.brief(b.parts[k]))}</dd></div>`;
+        const main = KEY_ROWS.filter((k) => b.parts[k]).map((k) => row(k)).join('');
+        const gfx = !b.parts.gpu && b.parts.cpu?.facts.igpu ? `<div class="pcb-build__row"><dt>${icon('gpu', 18)}<span class="visually-hidden">גרפיקה</span></dt><dd>גרפיקה מובנית במעבד</dd></div>` : '';
         const rest = ['board', 'psu', 'case', 'cooler', 'os'].filter((k) => b.parts[k]);
         const fps = this.guided.use !== 'office' ? this.fpsLine(b.parts) : '';
+        // The picture: the build's case (it looks like the computer), with the card and the processor beside it.
+        const hero = b.parts.case || b.parts.gpu || b.parts.cpu;
+        const minis = [b.parts.gpu, b.parts.cpu].filter((p) => p && p !== hero);
         return `
           <article class="pcb-build${b.key === 'recommended' ? ' is-featured' : ''}${selected ? ' is-selected' : ''}" aria-labelledby="${this.uid}-b-${b.key}">
-            <h3 class="pcb-build__tier" id="${this.uid}-b-${b.key}">${html(b.label)}</h3>
-            <p class="pcb-build__price">${fmt(b.total)}${over ? ' <span class="pcb-build__over">מעל התקציב</span>' : ''}</p>
-            ${this.pay(b.total) ? `<p class="pcb-pay pcb-build__pay">${this.payText(b.total)}</p>` : ''}
-            <dl class="pcb-build__specs">${main}${gfx}</dl>
-            ${rest.length ? `<details class="pcb-build__more"><summary>ועוד ${rest.length} רכיבים <span class="visually-hidden">(${html(rest.map((k) => this.label(k)).join(', '))})</span></summary><dl class="pcb-build__specs">${rest.map(row).join('')}</dl></details>` : ''}
-            ${fps}
-            <div class="pcb-build__actions">
-              <button type="button" class="button button--full${selected ? ' is-on' : ''}" data-action="use-build" data-build="${b.key}" aria-pressed="${selected}">
-                ${selected ? 'נבחר' : 'בחירה'}
-              </button>
-              <button type="button" class="link pcb-build__edit" data-action="edit-build" data-build="${b.key}">שינוי רכיבים</button>
+            <div class="pcb-build__media">
+              ${hero?.image ? `<img class="pcb-build__img" src="${html(sized(hero.image, 480))}" alt="" width="240" height="240" loading="lazy" decoding="async">` : `<span class="pcb-build__img pcb-build__img--icon">${icon('case', 72)}</span>`}
+              ${minis.length ? `<span class="pcb-build__minis">${minis.map((p) => thumb(p, 40, 'pcb-build__mini')).join('')}</span>` : ''}
+              <h3 class="pcb-build__tier" id="${this.uid}-b-${b.key}">${html(b.label)}</h3>
+              ${selected ? `<span class="pcb-build__check" aria-hidden="true">${icon('check', 16)}</span>` : ''}
+            </div>
+            <div class="pcb-build__body">
+              <p class="pcb-build__price">${fmt(b.total)}${over ? ' <span class="pcb-build__over">מעל התקציב</span>' : ''}</p>
+              ${this.pay(b.total) ? `<p class="pcb-pay pcb-build__pay">${this.payText(b.total)}</p>` : ''}
+              <dl class="pcb-build__specs">${main}${gfx}</dl>
+              ${rest.length ? `<details class="pcb-build__more"><summary>ועוד ${rest.length} רכיבים <span class="visually-hidden">(${html(rest.map((k) => this.label(k)).join(', '))})</span></summary><dl class="pcb-build__specs">${rest.map((k) => row(k, true)).join('')}</dl></details>` : ''}
+              ${fps}
+              <div class="pcb-build__actions">
+                <button type="button" class="button button--full pcb-build__pick${selected ? ' is-on' : ''}" data-action="use-build" data-build="${b.key}" aria-pressed="${selected}">
+                  ${selected ? `${icon('check', 18)} ${html(t.selected || 'נבחר')}` : html(t.choose || 'בחירה')}
+                </button>
+                <button type="button" class="link pcb-build__edit" data-action="edit-build" data-build="${b.key}">${html(t.edit || 'שינוי רכיבים')}</button>
+              </div>
             </div>
           </article>`;
       })
       .join('');
     box.style.setProperty('--pcb-builds', unique.length);
+    if (!this.centred && box.scrollWidth > box.clientWidth + 4) {
+      const card = box.querySelector('.pcb-build.is-selected') || box.querySelector('.pcb-build.is-featured');
+      if (card) {
+        const b = box.getBoundingClientRect();
+        const c = card.getBoundingClientRect();
+        box.scrollBy({ left: c.left + c.width / 2 - (b.left + b.width / 2) });
+        this.centred = true;
+      }
+    }
     if (!this.builds.some((b) => Object.keys(b.parts).length)) box.innerHTML = '<p class="pcb-empty">אין עדיין מספיק רכיבים כדי להציע מחשב. אפשר לפנות אלינו בוואטסאפ ונרכיב לכם הצעה.</p>';
   }
 
@@ -545,7 +631,7 @@ class PcBuilder {
       const done = s.key === 'extra' ? this.sel.extra.length > 0 : !!this.sel[s.key];
       const optional = s.key !== 'extra' && !req.includes(s.key) && !done;
       return `<li><button type="button" class="pcb-progress__step${done ? ' is-done' : ''}${optional ? ' is-optional' : ''}" data-action="go-step" data-step="${s.key}"${current ? ' aria-current="step"' : ''}>
-        <span class="pcb-progress__label">${html(s.label)}</span><span class="visually-hidden">, ${html(this.stepState(s.key))}</span></button></li>`;
+        <span class="pcb-progress__icon">${icon(done ? 'check' : s.key, 18)}</span><span class="pcb-progress__label">${html(s.label)}</span><span class="visually-hidden">, ${html(this.stepState(s.key))}</span></button></li>`;
     }).join('')}</ol>`;
     const cur = nav.querySelector('[aria-current]');
     if (cur && nav.scrollWidth > nav.clientWidth) {
@@ -782,9 +868,9 @@ class PcBuilder {
     const blocked = !!reasons;
     const id = `${this.uid}-p-${part.id}`;
     const chips = this.specs(part);
-    const img = part.image
-      ? `<img class="pcb-row__img" src="${html(sized(part.image, 120))}" alt="" width="56" height="56" loading="lazy" decoding="async">`
-      : '<span class="pcb-row__img pcb-row__img--empty" aria-hidden="true"></span>';
+    const img = `<span class="pcb-row__media">${part.image
+      ? `<img class="pcb-row__img" src="${html(sized(part.image, 160))}" alt="" width="72" height="72" loading="lazy" decoding="async">`
+      : `<span class="pcb-row__img pcb-row__img--empty" aria-hidden="true">${icon(part.category, 28)}</span>`}${selected && !blocked ? `<span class="pcb-row__check" aria-hidden="true">${icon('check', 14)}</span>` : ''}</span>`;
     const dropText = drops.length ? `בחירה תסיר את ${drops.map((d) => this.label(d.step)).join(', ')}` : '';
     // One calm line of advice against the parts chosen so far, or what could not be checked ("לא אומת").
     // A row names only what decides whether the part physically fits; headers and memory profiles wait for the summary.
@@ -858,6 +944,7 @@ class PcBuilder {
         const p = this.sel[s.key];
         const bad = check.problems.some((x) => x.step === s.key);
         const added = s.key === 'storage' ? this.sel.drives.map((d) => `<li class="pcb-sum__extra">
+          ${thumb(d, 36, 'pcb-sum__img')}
           <span class="pcb-sum__k">אחסון נוסף</span>
           <span class="pcb-sum__v">${html(this.briefQty(d))}</span>
           <span class="pcb-sum__p">${fmt(d.price * this.P.qtyOf(this.sel, d))}</span>
@@ -866,12 +953,14 @@ class PcBuilder {
           </button>
         </li>`).join('') : '';
         return `<li><button type="button" class="pcb-sum__row${bad ? ' is-bad' : ''}${p ? '' : ' is-empty'}" data-action="go-step" data-step="${s.key}">
+          ${p ? thumb(p, 36, 'pcb-sum__img') : `<span class="pcb-sum__img pcb-sum__img--icon" aria-hidden="true">${icon(s.key, 18)}</span>`}
           <span class="pcb-sum__k">${html(s.label)}</span>
           <span class="pcb-sum__v">${p ? html(this.briefQty(p)) : 'לבחירה'}</span>
           <span class="pcb-sum__p">${p ? fmt(p.price * this.P.qtyOf(this.sel, p)) : ''}</span>
         </button></li>${added}`;
       })
       .concat(this.sel.extra.map((p) => `<li class="pcb-sum__extra">
+          ${thumb(p, 36, 'pcb-sum__img')}
           <span class="pcb-sum__k">תוספת</span>
           <span class="pcb-sum__v">${this.P.qtyOf(this.sel, p) > 1 ? `${this.P.qtyOf(this.sel, p)} × ` : ''}${html(shortName(p.title))}</span>
           <span class="pcb-sum__p">${fmt(p.price * this.P.qtyOf(this.sel, p))}</span>
@@ -907,9 +996,22 @@ class PcBuilder {
       payBar.textContent = pay ? `או ${pay.count} תשלומים של ${fmt(pay.each)} ללא ריבית` : '';
       payBar.hidden = !pay;
     }
+    // The phone bar: the chosen parts' photos (the case, the card and the processor first; three, then "+N"), or with
+    // nothing chosen a friendly prompt (no "₪0").
+    this.el.classList.toggle('pcb--empty', !count);
+    const thumbs = this.$('[data-thumbs]');
+    if (thumbs) {
+      const first = ['case', 'gpu', 'cpu'];
+      const parts = this.selectedList().filter((p) => p.category !== 'extra')
+        .sort((a, b) => ((first.indexOf(a.category) + 1) || 9) - ((first.indexOf(b.category) + 1) || 9));
+      const shown = parts.filter((p) => p.image).slice(0, 3);
+      const more = parts.length - shown.length;
+      thumbs.innerHTML = shown.map((p) => `<img class="pcb-sum__thumb" src="${html(sized(p.image, 80))}" alt="" width="32" height="32" decoding="async">`).join('')
+        + (more > 0 ? `<span class="pcb-sum__thumb pcb-sum__thumb--more">+${more}</span>` : '');
+    }
     const chip = this.$('[data-summary-chip]');
     if (chip) {
-      chip.textContent = !count ? 'עוד לא נבחרו רכיבים' : check.ok ? 'מוכן להזמנה' : check.problems.length ? 'יש אי־התאמה' : check.missing.length === 1 ? 'חסר רכיב אחד' : `חסרים ${check.missing.length} רכיבים`;
+      chip.textContent = !count ? '' : check.ok ? (this.t.ready || 'מוכן להזמנה') : check.problems.length ? 'יש אי־התאמה' : check.missing.length === 1 ? 'חסר רכיב אחד' : `חסרים ${check.missing.length} רכיבים`;
       chip.className = `pcb-sum__state${count && check.ok ? ' is-ok' : ''}`;
     }
     const countEl = this.$('[data-count]');
@@ -1550,12 +1652,15 @@ class PcBuilder {
     form.budget.setAttribute('aria-valuetext', fmt(v));
     const min = Number(form.budget.min);
     const max = Number(form.budget.max);
-    form.budget.style.setProperty('--fill', `${((v - min) / (max - min)) * 100}%`);
+    const p = max > min ? (v - min) / (max - min) : 0;
+    form.budget.style.setProperty('--fill', `${p * 100}%`);
+    form.budget.parentElement?.style.setProperty('--p', p.toFixed(3));
     const [lo, hi] = form.querySelectorAll('.pcb-range__scale span');
     if (lo && hi) { lo.textContent = fmt(min); hi.textContent = fmt(max); }
   }
 
   readGuided(form) {
+    const os = this.guided.includeOs;
     this.guided = {
       use: form.querySelector('input[name="use"]:checked')?.value || 'gaming',
       budget: Number(form.budget.value),
@@ -1566,6 +1671,7 @@ class PcBuilder {
     this.renderGuided();
     this.renderSummary();
     this.syncUrl();
+    if (os !== this.guided.includeOs) this.renderUseFrom();
   }
 }
 

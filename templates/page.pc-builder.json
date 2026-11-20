@@ -3,13 +3,18 @@
     "main": {
       "type": "pc-builder",
       "settings": {
-        "heading": "מרכיב מחשבים",
         "default_mode": "guided",
         "budget_min": 3500,
         "budget_max": 20000,
         "budget_default": 6000,
         "include_os": true,
-        "collection": "pc-builder-parts"
+        "collection": "pc-builder-parts",
+        "heading": "",
+        "intro": "",
+        "hero_product": "c5-argb-850w-b860m-wifi-u7-265k-32gb-1tb-rtx-5070",
+        "gaming_product": "cx300-argb-750w-b850m-wifi-r5-7500x3d-32gb-1tb-5060-ice",
+        "work_product": "gigabyte-aorus-radeon-rx9070-xt-elite-16g",
+        "office_product": "lenovo-thinkcenter-neo-50t-gen-5-i5-14400-8gb-256nvme-dos"
       }
     }
   },

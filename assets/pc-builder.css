@@ -14,79 +14,158 @@
   --pcb-line: var(--color-border);
   --pcb-line-strong: var(--color-border-strong);
   --pcb-bar-h: calc(var(--tap-target) + 2 * var(--space-xs) + 1px);
+  /* The brand's palette: navy ink, mint for "chosen" and "fits", the soft lavender surface for tracks and tiles. */
+  --pcb-mint: #56d2aa;
+  --pcb-mint-soft: #e0fff2;
+  --pcb-surface: #f0f3ff;
+  --pcb-surface-strong: #dfe3f5;
+  --pcb-radius: 0.875rem;
+  --pcb-radius-lg: 1.125rem;
   /* No text under 13px in the builder: the theme's two smallest sizes (11 and 12px on phones) are raised here. */
   --text-2xs: 0.8125rem;
   --text-xs: 0.8125rem;
-  padding-block: var(--space-lg) var(--section-space);
+  padding-block: var(--space-sm) var(--section-space);
   color: var(--color-ink);
 }
 
-/* ---------- intro ---------- */
-.pcb__intro {
+/* ---------- hero: headline, one line, three chips, and a real computer from the catalog ---------- */
+.pcb-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(7.5rem, 36vw, 11rem);
+  align-items: center;
+  gap: var(--space-sm);
+  margin-block-end: var(--space-md);
+  padding: var(--space-md);
+  overflow: hidden;
+  border-radius: var(--pcb-radius-lg);
+  background:
+    radial-gradient(120% 140% at 0% 100%, color-mix(in srgb, var(--pcb-mint) 38%, transparent) 0%, transparent 55%),
+    linear-gradient(135deg, var(--color-ink) 0%, #12105a 100%);
+  color: #fff;
+}
+
+.pcb-hero__text {
   display: grid;
   gap: var(--space-xs);
-  margin-block-end: var(--space-lg);
+  min-inline-size: 0;
 }
 
-.pcb__heading {
-  font-size: var(--pcb-t-1);
-  font-weight: 700;
-  line-height: var(--leading-tight);
+.pcb-hero__title {
+  color: #fff;
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  line-height: 1.1;
 }
 
-.pcb__lead {
-  max-inline-size: 38rem;
-  color: var(--color-muted);
-  font-size: var(--pcb-t-2);
+.pcb-hero__sub {
+  color: color-mix(in srgb, #fff 82%, transparent);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
 }
 
-.pcb__promises {
+.pcb-hero__chips {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2xs) var(--space-sm);
+  gap: var(--space-2xs) var(--space-xs);
   margin: 0;
-  color: var(--color-ink);
-  font-size: var(--pcb-t-3);
-  font-weight: 600;
 }
 
-.pcb__promises li {
+.pcb-hero__chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: 0.375rem;
+  padding: 0.3125rem 0.625rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 12%, transparent);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.pcb__promises li::before {
-  content: "";
-  inline-size: 4px;
-  block-size: 4px;
-  border-radius: 50%;
-  background: var(--color-brand);
+.pcb-hero__chip .pcb-icon {
+  flex: none;
+  color: var(--pcb-mint);
 }
 
-/* ---------- mode tabs ---------- */
+.pcb-hero__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--pcb-radius);
+  background: #fff;
+  box-shadow: 0 0.75rem 2rem -0.75rem rgb(0 0 0 / 0.55);
+}
+
+.pcb-hero__img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: 6%;
+  object-fit: contain;
+}
+
+.pcb-hero__fallback {
+  inline-size: 55%;
+  block-size: 55%;
+  color: var(--color-ink);
+}
+
+/* Phones: the chips run under both columns, so the text keeps its width beside the picture. */
+.pcb-hero > .pcb-hero__text {
+  display: contents;
+}
+
+.pcb-hero__title,
+.pcb-hero__sub {
+  grid-column: 1;
+}
+
+.pcb-hero__title {
+  align-self: end;
+}
+
+.pcb-hero__sub {
+  align-self: start;
+}
+
+.pcb-hero__media {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+
+/* ---------- mode tabs: one pill control ---------- */
 .pcb__tabs {
-  display: flex;
-  gap: var(--space-lg);
-  margin-block-end: var(--space-lg);
-  border-block-end: 1px solid var(--pcb-line);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-block-end: var(--space-md);
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--pcb-surface);
 }
 
 .pcb__tab {
   min-block-size: var(--tap-target);
-  margin-block-end: -1px;
-  padding: 0;
+  padding: 0 var(--space-sm);
   border: 0;
-  border-block-end: 2px solid transparent;
-  background: none;
+  border-radius: 999px;
+  background: transparent;
   color: var(--color-muted);
-  font-size: var(--pcb-t-2);
-  font-weight: 600;
+  font-size: var(--text-md);
+  font-weight: 700;
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
 }
 
 .pcb__tab[aria-selected="true"] {
-  border-block-end-color: var(--color-ink);
+  background: var(--color-background);
   color: var(--color-ink);
+  box-shadow: 0 1px 3px rgb(6 4 51 / 0.14);
 }
 
 .pcb__tab:focus-visible {
@@ -160,42 +239,282 @@
 /* ---------- guided ---------- */
 .pcb-guided {
   display: grid;
-  gap: var(--space-lg);
-  margin-block-end: var(--space-xl);
+  gap: var(--space-md);
+  margin-block-end: var(--space-lg);
 }
 
 .pcb-field {
   display: grid;
   gap: var(--space-xs);
+  min-inline-size: 0;
   margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .pcb-field__label {
   padding: 0;
-  font-size: var(--pcb-t-3);
-  font-weight: 700;
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 800;
 }
 
 .pcb-field__opt {
   margin-inline-start: var(--space-2xs);
   color: var(--color-muted);
-  font-weight: 400;
+  font-size: var(--text-xs);
+  font-weight: 500;
 }
 
-.pcb-field__row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+/* Use cards: a picture, the use and what it starts at. The radio covers the card; the chosen one has a ring and a check. */
+.pcb-uses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
 }
 
-/* Segmented control: one outline, the chosen option filled navy. */
+.pcb-use {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.pcb-use input,
+.pcb-game input,
+.pcb-seg__opt input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pcb-use__card {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 2px;
+  block-size: 100%;
+  padding: 4px 4px var(--space-xs);
+  border: 1.5px solid var(--pcb-line);
+  border-radius: var(--pcb-radius);
+  background: var(--color-background);
+  text-align: center;
+  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.pcb-use__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  margin-block-end: 4px;
+  overflow: hidden;
+  border-radius: calc(var(--pcb-radius) - 4px);
+  background: #fff;
+}
+
+.pcb-use__img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: 4px;
+  object-fit: contain;
+}
+
+.pcb-use__img--photo {
+  padding: 0;
+  object-fit: cover;
+}
+
+.pcb-use__fallback {
+  color: var(--color-ink);
+}
+
+.pcb-use__name {
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* "החל מ־₪3,215": filled once the parts load; the line keeps its height before that. */
+.pcb-use__from {
+  min-block-size: 1.2em;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.pcb-use__check,
+.pcb-game__check {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-start: 6px;
+  display: grid;
+  place-items: center;
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--pcb-mint);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+
+.pcb-use input:checked + .pcb-use__card {
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 2px var(--color-ink);
+  background: var(--pcb-mint-soft);
+}
+
+.pcb-use input:checked + .pcb-use__card .pcb-use__check,
+.pcb-game input:checked + .pcb-game__tile .pcb-game__check {
+  opacity: 1;
+  transform: none;
+}
+
+.pcb-use input:focus-visible + .pcb-use__card,
+.pcb-game input:focus-visible + .pcb-game__tile,
+.pcb-seg__opt input:focus-visible + span {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .pcb-use:hover .pcb-use__card {
+    border-color: var(--color-ink);
+  }
+}
+
+/* Games: the game's logo on a navy tile and its frame-rate target under it. */
+.pcb-games {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.pcb-game {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.pcb-game__tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  block-size: 3.5rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--pcb-radius);
+  background: linear-gradient(160deg, #13115a 0%, var(--color-ink) 70%);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.pcb-game__logo {
+  inline-size: auto;
+  max-inline-size: min(100%, 7.5rem);
+  block-size: auto;
+  max-block-size: 1.75rem;
+  object-fit: contain;
+}
+
+/* Warzone: the series wordmark, and the game's name under it in small capitals. */
+.pcb-game__sub {
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.2em;
+}
+
+.pcb-game__logo + .pcb-game__sub {
+  margin-block-start: 1px;
+}
+
+.pcb-game:has(.pcb-game__sub) .pcb-game__logo {
+  max-block-size: 1.125rem;
+}
+
+/* The name is for screen readers (the logo's alt says it too) until a logo fails to load: then it is the card. */
+.pcb-game__name {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.pcb-game.is-noimg .pcb-game__logo,
+.pcb-game.is-noimg .pcb-game__sub {
+  display: none;
+}
+
+.pcb-game.is-noimg .pcb-game__name {
+  position: static;
+  inline-size: auto;
+  block-size: auto;
+  overflow: visible;
+  clip-path: none;
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  text-align: center;
+  white-space: normal;
+}
+
+.pcb-game__check {
+  inset-block-start: 4px;
+  inset-inline-start: 4px;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  background: var(--pcb-mint);
+  color: var(--color-ink);
+}
+
+.pcb-game input:checked + .pcb-game__tile {
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4.5px var(--pcb-mint);
+}
+
+.pcb-game__hint {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.pcb-game input:checked ~ .pcb-game__hint {
+  color: var(--color-ink);
+}
+
+.pcb-games__fine {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+
+/* Segmented control (screen): one soft track, the chosen option a white pill. */
 .pcb-seg {
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  overflow: hidden;
-  border: 1px solid var(--pcb-line-strong);
-  border-radius: var(--radius-md);
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--pcb-radius);
+  background: var(--pcb-surface);
 }
 
 .pcb-seg--narrow {
@@ -208,82 +527,66 @@
   cursor: pointer;
 }
 
-.pcb-seg__opt + .pcb-seg__opt {
-  border-inline-start: 1px solid var(--pcb-line-strong);
-}
-
-.pcb-seg__opt input,
-.pcb-chip input {
-  position: absolute;
-  inset: 0;
-  inline-size: 100%;
-  block-size: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
 .pcb-seg__opt span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-block-size: var(--tap-target);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  min-block-size: 3rem;
   padding-inline: var(--space-xs);
-  font-size: var(--text-md);
-  font-weight: 600;
+  border-radius: calc(var(--pcb-radius) - 3px);
+  color: var(--color-muted);
   text-align: center;
-  line-height: var(--leading-tight);
+  line-height: 1.15;
   transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.pcb-seg__opt b {
+  font-size: var(--text-md);
+  font-weight: 800;
+}
+
+.pcb-seg__opt small {
+  font-size: var(--text-xs);
 }
 
 .pcb-seg__opt input:checked + span {
-  background: var(--color-ink);
-  color: var(--color-button-text);
+  background: var(--color-background);
+  color: var(--color-ink);
+  box-shadow: 0 1px 3px rgb(6 4 51 / 0.16);
 }
 
-.pcb-seg__opt input:focus-visible + span,
-.pcb-chip input:focus-visible + span {
-  outline: 2px solid var(--color-focus);
-  outline-offset: -4px;
+/* Budget: the slider with its value in a bubble that rides above the thumb. */
+.pcb-field--budget {
+  gap: 0;
 }
 
-.pcb-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-}
-
-.pcb-chip {
+.pcb-range-wrap {
+  --p: 0.5;
+  --thumb: 1.75rem;
   position: relative;
-}
-
-.pcb-chip span {
-  display: flex;
-  align-items: center;
-  min-block-size: var(--tap-target);
-  padding-inline: var(--space-sm);
-  border: 1px solid var(--pcb-line-strong);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  font-weight: 500;
-  white-space: nowrap;
-  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
-}
-
-.pcb-chip input:checked + span {
-  border-color: var(--color-ink);
-  background: var(--color-ink);
-  color: var(--color-button-text);
+  padding-block-start: 2.25rem;
 }
 
 .pcb-budget {
-  font-size: var(--text-xl);
-  font-weight: 700;
+  position: absolute;
+  inset-block-start: 0;
+  /* The thumb's centre, the bubble centred over it but never past either end. */
+  inset-inline-start: clamp(0px, calc(var(--p) * (100% - var(--thumb)) + var(--thumb) / 2 - 2.75rem), calc(100% - 5.5rem));
+  inline-size: 5.5rem;
+  padding: 0.25rem 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: var(--text-md);
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
 .pcb-range {
   --fill: 50%;
+  display: block;
   inline-size: 100%;
   block-size: var(--tap-target);
   margin: 0;
@@ -294,42 +597,45 @@
 }
 
 .pcb-range::-webkit-slider-runnable-track {
-  block-size: 2px;
-  background: linear-gradient(to left, var(--color-ink) var(--fill), var(--pcb-line-strong) var(--fill));
+  block-size: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to left, var(--pcb-mint) var(--fill), var(--pcb-surface-strong) var(--fill));
 }
 
 [dir="ltr"] .pcb-range::-webkit-slider-runnable-track {
-  background: linear-gradient(to right, var(--color-ink) var(--fill), var(--pcb-line-strong) var(--fill));
+  background: linear-gradient(to right, var(--pcb-mint) var(--fill), var(--pcb-surface-strong) var(--fill));
 }
 
 .pcb-range::-moz-range-track {
-  block-size: 2px;
-  background: var(--pcb-line-strong);
+  block-size: 6px;
+  border-radius: 999px;
+  background: var(--pcb-surface-strong);
 }
 
 .pcb-range::-moz-range-progress {
-  block-size: 2px;
-  background: var(--color-ink);
+  block-size: 6px;
+  border-radius: 999px;
+  background: var(--pcb-mint);
 }
 
 .pcb-range::-webkit-slider-thumb {
-  inline-size: 1.375rem;
-  block-size: 1.375rem;
-  margin-block-start: -0.65rem;
-  border: 2px solid var(--color-background);
+  inline-size: var(--thumb, 1.75rem);
+  block-size: var(--thumb, 1.75rem);
+  margin-block-start: calc((6px - var(--thumb, 1.75rem)) / 2);
+  border: 3px solid #fff;
   border-radius: 50%;
   background: var(--color-ink);
-  box-shadow: 0 0 0 1px var(--color-ink);
+  box-shadow: 0 1px 4px rgb(6 4 51 / 0.35);
   appearance: none;
 }
 
 .pcb-range::-moz-range-thumb {
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
-  border: 2px solid var(--color-background);
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  border: 3px solid #fff;
   border-radius: 50%;
   background: var(--color-ink);
-  box-shadow: 0 0 0 1px var(--color-ink);
+  box-shadow: 0 1px 4px rgb(6 4 51 / 0.35);
 }
 
 .pcb-range:focus-visible {
@@ -340,59 +646,214 @@
 .pcb-range__scale {
   display: flex;
   justify-content: space-between;
-  margin-block-start: calc(-1 * var(--space-xs));
+  margin-block-start: -0.375rem;
   color: var(--color-muted);
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
 }
 
+/* Windows: one row that reads as a switch. */
 .pcb-check {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  min-block-size: var(--tap-target);
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-block-size: 3.25rem;
+  padding: 0 var(--space-sm);
+  border-radius: var(--pcb-radius);
+  background: var(--pcb-surface);
+  color: var(--color-ink);
   font-size: var(--text-md);
+  font-weight: 600;
   cursor: pointer;
 }
 
 .pcb-check input {
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
+  order: 2;
+  flex: none;
+  position: relative;
+  inline-size: 2.75rem;
+  block-size: 1.625rem;
   margin: 0;
-  accent-color: var(--color-ink);
+  border-radius: 999px;
+  background: var(--pcb-surface-strong);
+  cursor: pointer;
+  appearance: none;
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-/* ---------- the three builds ---------- */
+.pcb-check input::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 3px;
+  inset-inline-start: 3px;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(6 4 51 / 0.3);
+  transition: inset-inline-start var(--duration-fast) var(--ease-out);
+}
+
+.pcb-check input:checked {
+  background: var(--color-brand);
+}
+
+.pcb-check input:checked::after {
+  inset-inline-start: calc(100% - 1.25rem - 3px);
+}
+
+.pcb-check input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ---------- the three builds: cards with the build's own photos (a strip that scrolls sideways on phones) ---------- */
+.pcb-builds__title {
+  margin-block-end: var(--space-sm);
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
 .pcb-builds {
+  /* The containing block of the cards' visually-hidden labels, so the strip clips them (else they widen the page). */
+  position: relative;
   display: grid;
-  gap: var(--space-xl);
+  grid-auto-columns: min(80vw, 20rem);
+  grid-auto-flow: column;
+  gap: var(--space-sm);
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding: 4px var(--page-gutter) var(--space-sm);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--page-gutter);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.pcb-builds::-webkit-scrollbar {
+  display: none;
 }
 
 .pcb-builds__note {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: start;
+  max-inline-size: 18rem;
   color: var(--color-muted);
   font-size: var(--pcb-t-3);
 }
 
+.pcb-builds > .pcb-empty {
+  grid-column: 1 / -1;
+}
+
 .pcb-build {
+  position: relative;
   display: flex;
   flex-direction: column;
-  padding-block-start: var(--space-md);
-  border-block-start: 1px solid var(--pcb-line-strong);
+  overflow: hidden;
+  border: 1.5px solid var(--pcb-line);
+  border-radius: var(--pcb-radius-lg);
+  background: var(--color-background);
+  scroll-snap-align: center;
 }
 
 .pcb-build.is-featured {
-  border-block-start: 2px solid var(--color-ink);
+  border-color: var(--pcb-mint);
+  box-shadow: 0 0.5rem 1.5rem -0.75rem rgb(48 157 122 / 0.45);
+}
+
+.pcb-build.is-selected {
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 2px var(--color-ink);
+}
+
+.pcb-build__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fff 0%, var(--pcb-surface) 100%);
+}
+
+.pcb-build__img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: var(--space-sm) var(--space-2xl);
+  object-fit: contain;
+}
+
+.pcb-build__img--icon {
+  display: grid;
+  place-items: center;
+  color: var(--color-ink);
+}
+
+.pcb-build__minis {
+  position: absolute;
+  inset-block-end: var(--space-xs);
+  inset-inline-end: var(--space-xs);
+  display: grid;
+  gap: 4px;
+}
+
+.pcb-build__mini {
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  padding: 3px;
+  border: 1px solid var(--pcb-line);
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--color-ink);
+  object-fit: contain;
 }
 
 .pcb-build__tier {
-  font-size: var(--pcb-t-3);
-  font-weight: 700;
+  position: absolute;
+  inset-block-start: var(--space-xs);
+  inset-inline-start: var(--space-xs);
+  padding: 0.1875rem 0.625rem;
+  border-radius: 999px;
+  background: var(--color-background);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  box-shadow: 0 1px 3px rgb(6 4 51 / 0.14);
+}
+
+.pcb-build.is-featured .pcb-build__tier {
+  background: var(--pcb-mint);
+}
+
+.pcb-build__check {
+  position: absolute;
+  inset-block-start: var(--space-xs);
+  inset-inline-end: var(--space-xs);
+  display: grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--pcb-mint);
+}
+
+.pcb-build__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: var(--space-sm) var(--space-md) var(--space-sm);
 }
 
 .pcb-build__price {
-  margin-block: var(--space-2xs) var(--space-sm);
-  font-size: var(--pcb-t-1);
-  font-weight: 700;
+  font-size: var(--text-3xl);
+  font-weight: 800;
   line-height: var(--leading-tight);
   font-variant-numeric: tabular-nums;
 }
@@ -422,35 +883,45 @@
   font-size: var(--text-xs);
 }
 
-.pcb-build__price:has(+ .pcb-build__pay) {
-  margin-block-end: 2px;
-}
-
 .pcb-build__pay {
-  margin-block-end: var(--space-sm);
+  margin-block-start: 2px;
 }
 
 .pcb-build__specs {
-  margin: 0;
+  display: grid;
+  gap: 2px;
+  margin: var(--space-sm) 0 0;
 }
 
 .pcb-build__row {
-  display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
+  display: flex;
+  align-items: center;
   gap: var(--space-xs);
-  padding-block: 0.375rem;
-  border-block-end: 1px solid var(--pcb-line);
+  min-block-size: 1.75rem;
   font-size: var(--text-md);
 }
 
 .pcb-build__row dt {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--color-brand-text);
+}
+
+.pcb-build__k {
+  min-inline-size: 4.5rem;
   color: var(--color-muted);
+  font-size: var(--text-sm);
 }
 
 .pcb-build__row dd {
+  min-inline-size: 0;
   margin: 0;
-  font-weight: 600;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pcb-build__more summary {
@@ -481,13 +952,13 @@
 }
 
 .pcb-build__more .pcb-build__specs {
-  margin-block-end: var(--space-xs);
+  margin-block: 0 var(--space-xs);
 }
 
 .pcb-fps {
   display: grid;
-  gap: 2px;
-  margin-block: var(--space-xs) var(--space-md);
+  gap: 4px;
+  margin-block: var(--space-2xs) var(--space-sm);
   font-size: var(--pcb-t-3);
 }
 
@@ -499,15 +970,24 @@
 .pcb-fps__list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 var(--space-sm);
+  gap: 4px;
+}
+
+.pcb-fps__g {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--pcb-mint-soft);
+  color: var(--color-ink);
+  font-size: var(--text-xs);
 }
 
 .pcb-fps__g b {
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .pcb-fps__g.is-under {
+  background: var(--pcb-surface);
   color: var(--color-muted);
 }
 
@@ -522,15 +1002,19 @@
   padding-block-start: var(--space-xs);
 }
 
+.pcb-build__pick {
+  gap: var(--space-2xs);
+}
+
 .pcb-build__edit {
   min-block-size: var(--tap-target);
   font-size: var(--pcb-t-3);
 }
 
 .button.is-on {
-  --button-bg: var(--color-background);
+  --button-bg: var(--pcb-mint);
   --button-text: var(--color-ink);
-  --button-border: var(--color-ink);
+  --button-border: var(--pcb-mint);
 }
 
 /* ---------- step by step ---------- */
@@ -557,22 +1041,34 @@
 .pcb-progress__list li {
   flex: 1 0 auto;
   min-inline-size: 4.25rem;
+  padding-block-start: 6px;
 }
 
 .pcb-progress__step {
-  display: block;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
   inline-size: 100%;
   min-block-size: var(--tap-target);
-  padding: var(--space-xs) 0 0;
-  padding-inline-end: var(--space-xs);
+  padding: 0 0 var(--space-2xs);
   border: 0;
-  border-block-start: 3px solid var(--pcb-line);
   background: none;
   color: var(--color-muted);
-  font-size: var(--pcb-t-3);
+  font-size: var(--text-xs);
   font-weight: 600;
-  text-align: start;
+  text-align: center;
   white-space: nowrap;
+}
+
+.pcb-progress__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  background: var(--pcb-surface);
+  color: var(--color-ink);
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
 }
 
 .pcb-progress__step.is-optional {
@@ -580,14 +1076,23 @@
 }
 
 .pcb-progress__step.is-done {
-  border-block-start-color: var(--color-brand);
+  color: var(--color-ink);
+}
+
+.pcb-progress__step.is-done .pcb-progress__icon {
+  background: var(--pcb-mint);
   color: var(--color-ink);
 }
 
 .pcb-progress__step[aria-current="step"] {
-  border-block-start-color: var(--color-ink);
   color: var(--color-ink);
-  font-weight: 700;
+  font-weight: 800;
+}
+
+.pcb-progress__step[aria-current="step"] .pcb-progress__icon {
+  background: var(--color-ink);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--pcb-mint-soft), 0 0 0 4.5px var(--pcb-mint);
 }
 
 .pcb-progress__step:focus-visible {
@@ -721,48 +1226,67 @@
 }
 
 .pcb-list {
+  display: grid;
+  gap: var(--space-xs);
   margin: 0;
-  border-block-start: 1px solid var(--pcb-line);
 }
 
+/* A part: its photo, name, key facts and price on a card; the chosen one has a navy ring and a check on the photo. */
 .pcb-row {
   position: relative;
   display: grid;
-  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
   grid-template-areas:
-    "img info price"
-    "img info pick";
+    "img info info"
+    "img price pick";
   align-items: center;
   gap: var(--space-2xs) var(--space-sm);
-  padding: var(--space-sm) var(--space-xs);
-  border-block-end: 1px solid var(--pcb-line);
+  padding: var(--space-xs);
+  border: 1.5px solid var(--pcb-line);
+  border-radius: var(--pcb-radius);
+  background: var(--color-background);
 }
 
 .pcb-row.is-selected {
-  background: var(--color-surface-soft);
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 1px var(--color-ink);
+  background: var(--pcb-mint-soft);
 }
 
-.pcb-row.is-selected::before {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  inline-size: 3px;
-  background: var(--color-brand);
+.pcb-row__media {
+  position: relative;
+  grid-area: img;
+  align-self: start;
 }
 
 .pcb-row__img {
-  grid-area: img;
-  align-self: start;
-  inline-size: 3rem;
-  block-size: 3rem;
-  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+  padding: 4px;
+  border-radius: calc(var(--pcb-radius) - 4px);
   background: #fff;
   object-fit: contain;
 }
 
 .pcb-row__img--empty {
-  background: var(--color-surface);
+  background: var(--pcb-surface);
+  color: var(--color-ink);
+}
+
+.pcb-row__check {
+  position: absolute;
+  inset-block-start: -6px;
+  inset-inline-start: -6px;
+  display: grid;
+  place-items: center;
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  border: 2px solid var(--color-background);
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--pcb-mint);
 }
 
 .pcb-row__info {
@@ -823,7 +1347,7 @@
 
 .pcb-row__price {
   grid-area: price;
-  justify-self: end;
+  justify-self: start;
   font-size: var(--text-md);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -967,7 +1491,10 @@
 }
 
 .pcb-row.is-blocked {
-  grid-template-areas: "img info price";
+  grid-template-areas:
+    "img info info"
+    "img price price";
+  background: var(--pcb-surface);
 }
 
 .pcb-list__more {
@@ -1018,25 +1545,29 @@
   display: flex;
   flex-direction: column-reverse;
   max-block-size: 100dvh;
-  border-block-start: 1px solid var(--pcb-line-strong);
+  border-block-start: 1px solid var(--pcb-line);
   background: var(--color-background);
+  box-shadow: 0 -0.5rem 1.5rem -1rem rgb(6 4 51 / 0.35);
   padding-block-end: env(safe-area-inset-bottom, 0px);
 }
 
+/* The phone bar: the chosen parts' photos, the total and the cart. Its two outer slots (--pcb-slot-start/-end) are
+   left free for the chat bubble and the accessibility button, which sit inside the bar on this page instead of over
+   the form (see "floating buttons" below). */
 .pcb-sum__bar {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-xs) var(--page-gutter);
+  gap: var(--space-xs);
+  min-block-size: var(--pcb-bar-h);
+  padding-block: var(--space-xs);
+  padding-inline: calc(var(--page-gutter) + var(--pcb-slot-start, 0px)) calc(var(--page-gutter) + var(--pcb-slot-end, 0px));
 }
 
 .pcb-sum__toggle {
-  display: grid;
+  display: flex;
   flex: 1;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: baseline;
-  align-content: center;
-  column-gap: var(--space-xs);
+  align-items: center;
+  gap: var(--space-xs);
   min-inline-size: 0;
   min-block-size: var(--tap-target);
   padding: 0;
@@ -1046,9 +1577,49 @@
   text-align: start;
 }
 
+.pcb-sum__thumbs {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.pcb-sum__thumbs:empty {
+  display: none;
+}
+
+.pcb-sum__thumb {
+  display: grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  padding: 2px;
+  border: 1.5px solid var(--color-background);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--pcb-line);
+  object-fit: contain;
+}
+
+.pcb-sum__thumb + .pcb-sum__thumb {
+  margin-inline-start: -0.75rem;
+}
+
+.pcb-sum__thumb--more {
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.pcb-sum__figures {
+  display: grid;
+  min-inline-size: 0;
+  line-height: 1.2;
+}
+
 .pcb-sum__toggle-total {
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1061,31 +1632,62 @@
   white-space: nowrap;
 }
 
-/* The bar's second line: "או 4 תשלומים של ₪X ללא ריבית", under the total and the state. */
-.pcb-sum__toggle-pay {
-  grid-column: 1 / 3;
-  overflow: hidden;
-  color: var(--color-muted);
-  font-size: var(--text-xs);
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pcb-sum__toggle-pay[hidden] {
+.pcb-sum__state:empty {
   display: none;
 }
 
 .pcb-sum__state.is-ok {
   color: var(--color-brand-text);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+/* "או 4 תשלומים של ₪X ללא ריבית", under the total; the state takes its place when it has something to say. */
+.pcb-sum__toggle-pay {
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcb-sum__state:not(:empty):not(.is-ok) + .pcb-sum__toggle-pay,
+.pcb-sum__toggle-pay[hidden] {
+  display: none;
+}
+
+.pcb-sum__state.is-ok:has(+ .pcb-sum__toggle-pay:not([hidden])) {
+  display: none;
+}
+
+/* Nothing chosen yet: a friendly line instead of "₪0", and no cart button. */
+.pcb-sum__prompt {
+  display: none;
+  align-items: center;
+  gap: var(--space-xs);
+  min-inline-size: 0;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.pcb-sum__prompt .pcb-icon {
+  flex: none;
+  color: var(--color-brand);
+}
+
+.pcb--empty .pcb-sum__prompt {
+  display: flex;
+}
+
+.pcb--empty .pcb-sum__figures,
+.pcb--empty .pcb-sum__bar-cart,
+.pcb--empty .pcb-sum__total {
+  display: none;
 }
 
 .pcb-sum__chev {
   flex: none;
-  grid-column: 3;
-  grid-row: 1 / 3;
-  align-self: center;
   margin-inline-start: auto;
   transition: rotate var(--duration-fast) var(--ease-out);
 }
@@ -1096,7 +1698,8 @@
 
 .pcb-sum__bar-cart {
   flex: none;
-  min-inline-size: 5.5rem;
+  min-inline-size: 4.75rem;
+  padding-inline: var(--space-sm);
 }
 
 .pcb-sum__panel {
@@ -1116,13 +1719,41 @@
   display: block;
 }
 
-/* Phones: keep the page end and the floating buttons (WhatsApp, back to top, accessibility) clear of the bar. */
+/* Phones: the page ends above the bar, and the floating buttons never sit over the form.
+   - Heyy's chat bubble (bottom right, our inline start) docks into the bar's start slot, and the accessibility
+     button (bottom left) into its end slot, so the bar is the only thing fixed at the bottom of the screen. Before,
+     they floated just above the bar, over the budget slider's end and the Windows switch.
+   - The back-to-top button is not shown on this page on phones: the bar is always there, and it covered the form.
+   - With the cookie banner open, both rise with it (--cookie-offset), as they do elsewhere. */
 @media (max-width: 991px) {
   body:has(.pcb--ready) {
-    --buybar-offset: var(--pcb-bar-h, 3.75rem);
-    --pcb-bar-h: calc(var(--tap-target) + 2 * var(--space-xs) + 1px);
+    --pcb-bar-h: 4.25rem;
+    --buybar-offset: var(--pcb-bar-h);
     --floating-offset-bottom: calc(var(--cookie-offset, 0px) + var(--buybar-offset));
     padding-block-end: calc(var(--buybar-offset) + env(safe-area-inset-bottom, 0px));
+  }
+
+  body:has(.pcb--ready) .pcb {
+    --pcb-slot-end: calc(var(--tap-target) + var(--space-2xs));
+  }
+
+  body:has(.heyy-live-chat-button-container) .pcb {
+    --pcb-slot-start: calc(3.5rem + var(--space-2xs));
+  }
+
+  body:has(.pcb--ready) .heyy-live-chat-button-container {
+    bottom: calc((var(--pcb-bar-h) - 3.5rem) / 2 + var(--cookie-offset, 0px) + env(safe-area-inset-bottom, 0px)) !important;
+    right: var(--page-gutter) !important;
+    z-index: calc(var(--z-sticky) + 1) !important;
+  }
+
+  body:has(.pcb--ready) .a11y-trigger {
+    z-index: calc(var(--z-sticky) + 1);
+    inset-block-end: calc((var(--pcb-bar-h) - var(--tap-target)) / 2 + var(--cookie-offset, 0px) + env(safe-area-inset-bottom, 0px));
+  }
+
+  body:has(.pcb--ready) .floating-actions__stack {
+    display: none;
   }
 
   /* The open summary sheet covers the page: the floating buttons (accessibility, back to top, wishlist) and Heyy's
@@ -1166,11 +1797,11 @@
 .pcb-sum__row,
 .pcb-sum__extra {
   display: grid;
-  grid-template-columns: 4.75rem minmax(0, 1fr) auto;
-  align-items: baseline;
+  grid-template-columns: 2.25rem 4.25rem minmax(0, 1fr) auto;
+  align-items: center;
   column-gap: var(--space-xs);
   inline-size: 100%;
-  min-block-size: 2.25rem;
+  min-block-size: var(--tap-target);
   padding: var(--space-2xs) 0;
   border: 0;
   border-block-end: 1px solid var(--pcb-line);
@@ -1181,8 +1812,28 @@
 }
 
 .pcb-sum__extra {
-  grid-template-columns: 4.75rem minmax(0, 1fr) auto auto;
+  grid-template-columns: 2.25rem 4.25rem minmax(0, 1fr) auto auto;
   align-items: center;
+}
+
+/* Each part's photo in the summary, or its icon while the step is still open. */
+.pcb-sum__img {
+  display: grid;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  padding: 2px;
+  border-radius: 0.5rem;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--pcb-line);
+  color: var(--color-ink);
+  object-fit: contain;
+}
+
+.pcb-sum__img--icon {
+  background: var(--pcb-surface);
+  box-shadow: none;
+  color: var(--color-muted);
 }
 
 @media (pointer: coarse) {
@@ -1785,18 +2436,6 @@ html:has(.pcb-dialog[open]) {
 
 /* ---------- tablet / desktop ---------- */
 @media (min-width: 640px) {
-  .pcb-row {
-    grid-template-columns: 3.5rem minmax(0, 1fr) auto auto;
-    grid-template-areas: "img info price pick";
-    column-gap: var(--space-md);
-  }
-
-  .pcb-row__img {
-    inline-size: 3.5rem;
-    block-size: 3.5rem;
-    align-self: center;
-  }
-
   .pcb-quote__doc {
     padding: var(--space-xl);
   }
@@ -1809,20 +2448,40 @@ html:has(.pcb-dialog[open]) {
   .pcb-dialog__actions {
     padding-inline: var(--space-xl);
   }
+
+  .pcb-hero {
+    grid-template-columns: minmax(0, 1fr) 13rem;
+    padding: var(--space-lg) var(--space-xl);
+  }
 }
 
-@media (min-width: 768px) {
-  .pcb {
-    --pcb-t-1: var(--text-4xl);
+/* The main column decides the layout of what is in it (it is narrower beside the summary from 992px). */
+.pcb__main {
+  container-type: inline-size;
+}
+
+@container (min-width: 36rem) {
+  .pcb-row {
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto auto;
+    grid-template-areas: "img info price pick";
+    column-gap: var(--space-md);
+    padding: var(--space-xs) var(--space-sm) var(--space-xs) var(--space-xs);
   }
 
-  .pcb-builds {
-    grid-template-columns: repeat(var(--pcb-builds, 3), minmax(0, 1fr));
-    gap: var(--space-lg);
+  .pcb-row__media {
+    align-self: center;
   }
 
-  .pcb-builds__note {
-    grid-column: 1 / -1;
+  .pcb-row__price {
+    justify-self: end;
+  }
+
+  .pcb-row.is-blocked {
+    grid-template-areas: "img info price price";
+  }
+
+  .pcb-games {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .pcb-guided {
@@ -1831,22 +2490,133 @@ html:has(.pcb-dialog[open]) {
     align-items: start;
   }
 
-  .pcb-guided > .pcb-field:first-child,
+  .pcb-guided > .pcb-field--uses,
   .pcb-guided > [data-games-field] {
     grid-column: 1 / -1;
+  }
+
+  .pcb-uses {
+    gap: var(--space-sm);
+  }
+
+  .pcb-use__card {
+    padding: 6px 6px var(--space-sm);
+  }
+}
+
+/* Wide: each use card lays its picture beside its words, so the row stays low. */
+@container (min-width: 50rem) {
+  .pcb-use__card {
+    grid-template-columns: 9rem minmax(0, 1fr);
+    grid-template-rows: 1fr auto auto 1fr;
+    column-gap: var(--space-sm);
+    padding: 6px;
+    text-align: start;
+  }
+
+  .pcb-use__media {
+    grid-row: 1 / -1;
+    margin: 0;
+  }
+
+  .pcb-use__name {
+    grid-row: 2;
+  }
+
+  .pcb-use__from {
+    grid-row: 3;
+  }
+
+  .pcb-use__name {
+    font-size: var(--text-lg);
+  }
+
+  .pcb-use__from {
+    font-size: var(--text-sm);
+  }
+}
+
+/* Three builds side by side once each can be about 14rem wide. */
+@container (min-width: 44rem) {
+  .pcb-builds {
+    grid-template-columns: repeat(var(--pcb-builds, 3), minmax(0, 1fr));
+    grid-auto-columns: auto;
+    grid-auto-flow: row;
+    gap: var(--space-sm);
+    margin-inline: 0;
+    padding: 4px;
+    overflow: visible;
+  }
+
+  .pcb-builds__note {
+    grid-column: 1 / -1;
+    max-inline-size: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .pcb {
+    --pcb-t-1: var(--text-4xl);
+  }
+
+  .pcb-hero {
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    gap: var(--space-xl);
+    margin-block-end: var(--space-lg);
+  }
+
+  .pcb-hero > .pcb-hero__text {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .pcb-hero__media {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .pcb-hero__title {
+    font-size: var(--text-4xl);
+  }
+
+  .pcb-hero__sub {
+    font-size: var(--text-lg);
+  }
+
+  .pcb-hero__chips {
+    gap: var(--space-xs);
+    margin-block-start: var(--space-2xs);
+  }
+
+  .pcb-hero__chip {
+    padding: 0.375rem 0.75rem;
+    font-size: var(--text-sm);
+  }
+
+  .pcb__tabs {
+    max-inline-size: 26rem;
   }
 }
 
 @media (min-width: 992px) {
+  /* The chat bubble (bottom right) and the accessibility button (bottom left) stay in the page's margins: on
+     screens too narrow to have one, the page makes room for them. */
   .pcb {
-    padding-block-start: var(--space-xl);
+    padding-block-start: var(--space-lg);
+    --pcb-margin: calc((100vw - min(100vw, var(--page-width) + 2 * var(--page-gutter))) / 2);
+    padding-inline: max(var(--page-gutter), calc(4.75rem - var(--pcb-margin))) max(var(--page-gutter), calc(3.5rem - var(--pcb-margin)));
+  }
+
+  .pcb-hero {
+    grid-template-columns: minmax(0, 1fr) 14rem;
+    padding: var(--space-lg) var(--space-2xl);
   }
 
   .pcb__body {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 21rem;
     align-items: start;
-    gap: var(--space-2xl);
+    gap: var(--space-xl);
   }
 
   .pcb-progress {
@@ -1871,9 +2641,10 @@ html:has(.pcb-dialog[open]) {
     max-block-size: calc(100dvh - var(--header-height, 0px) - 2 * var(--space-md));
     overflow-y: auto;
     padding: 0;
-    border: 0;
-    border-radius: var(--radius-card);
-    background: var(--color-surface-soft);
+    border: 1.5px solid var(--pcb-line);
+    border-radius: var(--pcb-radius-lg);
+    background: var(--color-background);
+    box-shadow: 0 0.75rem 2rem -1.5rem rgb(6 4 51 / 0.35);
   }
 
   .pcb-sum__bar {
@@ -1900,6 +2671,7 @@ html:has(.pcb-dialog[open]) {
 @media (min-width: 1200px) {
   .pcb__body {
     grid-template-columns: minmax(0, 1fr) 23rem;
+    gap: var(--space-2xl);
   }
 }
 
@@ -1907,7 +2679,14 @@ html:has(.pcb-dialog[open]) {
   .pcb-sum__chev,
   .pcb-more__toggle svg,
   .pcb-seg__opt span,
-  .pcb-chip span,
+  .pcb-use__card,
+  .pcb-use__check,
+  .pcb-game__check,
+  .pcb-game__tile,
+  .pcb-check input,
+  .pcb-check input::after,
+  .pcb__tab,
+  .pcb-progress__icon,
   .pcb-row__pick {
     transition: none;
   }
