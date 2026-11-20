@@ -60,22 +60,6 @@
             "text_color": "dark"
           }
         },
-        "slide_LxnXfg": {
-          "type": "slide",
-          "settings": {
-            "image": "shopify://shop_images/c7085f4be235a40a571049a5aa712e7f_fe7e2157-1ad8-4209-9ecd-01c3ab30f931.png",
-            "image_mobile": "shopify://shop_images/3dbd9205b7a539680f3978eb47d36fe1_36005116-634a-4a38-b2ab-6c408c192b33.png",
-            "alt": "IPHONE DOU HELLO HELLO הזמנה מוקדמת החל מ-16.10",
-            "link": "/pages/iphone-duo",
-            "video_on_mobile": false,
-            "heading": "",
-            "text": "",
-            "button_label": "",
-            "text_position": "start",
-            "text_position_mobile": "bottom",
-            "text_color": "dark"
-          }
-        },
         "slide-galaxy-s26": {
           "type": "slide",
           "settings": {
@@ -108,38 +92,6 @@
             "text_color": "dark"
           }
         },
-        "slide_hNxEAV": {
-          "type": "slide",
-          "settings": {
-            "image": "shopify://shop_images/2_957dfa16-f570-4fd7-afa8-2435587eea69.png",
-            "image_mobile": "shopify://shop_images/2_fa5ce580-1fda-4d81-8aef-fa5a77527bfb.png",
-            "alt": "aipods max 2 סאונד עוצמתי, איכות ויוקרה שאין כמוה במחירי joy",
-            "link": "shopify://collections/air-pods-max-2",
-            "video_on_mobile": false,
-            "heading": "",
-            "text": "",
-            "button_label": "",
-            "text_position": "start",
-            "text_position_mobile": "bottom",
-            "text_color": "dark"
-          }
-        },
-        "slide-telegram-vip": {
-          "type": "slide",
-          "settings": {
-            "image": "shopify://shop_images/180_daa8db9d-d808-4d33-8d26-86e1a3181dbf.png",
-            "image_mobile": "shopify://shop_images/180.png",
-            "alt": "לשמור על דופק בסטייל",
-            "link": "shopify://collections/infinix-xband-xwatch-pods",
-            "video_on_mobile": false,
-            "heading": "",
-            "text": "",
-            "button_label": "",
-            "text_position": "start",
-            "text_position_mobile": "bottom",
-            "text_color": "dark"
-          }
-        },
         "slide_KAWt9g": {
           "type": "slide",
           "settings": {
@@ -161,11 +113,8 @@
         "slide_black_november",
         "slide_6A4MiP",
         "slide_C6EFG3",
-        "slide_LxnXfg",
         "slide-galaxy-s26",
         "slide_rJ7Ppd",
-        "slide_hNxEAV",
-        "slide-telegram-vip",
         "slide_KAWt9g"
       ],
       "settings": {
@@ -389,10 +338,12 @@
         "title": "סמארטפונים",
         "collection": "smartphones",
         "pinned_products": [
-          "apple-iphone-18-pro-max",
-          "apple-iphone-18-pro",
+          "apple-iphone-17",
           "apple-iphone-17-pro-max",
-          "apple-iphone-17-pro"
+          "samsung-galaxy-s26-plus",
+          "google-pixel-11-pro",
+          "samsung-galaxy-s26",
+          "samsung-galaxy-a57"
         ],
         "first_collection": "iphone-17-18",
         "first_title_keywords": "iPhone 18 Pro Max, iPhone 18 Pro, iPhone 18 Air, iPhone 18, iPhone 17 Pro Max, iPhone 17 Pro, iPhone 17",
@@ -485,8 +436,8 @@
         "pinned_products": [
           "apple-ipad-air-11-m4-wi-fi",
           "apple-ipad-air-13-m4-wi-fi-128gb-blue",
-          "apple-ipad-pro-11-m5-wi-fi",
-          "apple-ipad-11-a16-wi-fi"
+          "apple-ipad-air-11-m4-wi-fi-128gb",
+          "galaxy-tab-s10-fe-sm-x526-256-12gb-lte-11-8806097206491"
         ],
         "first_collection": "",
         "first_title_keywords": "iPad Pro 13, iPad Pro 11, iPad Air 13\" M4, iPad Air 11\" M4, iPad 11, iPad mini, Galaxy Tab S12 Ultra, Galaxy Tab S12+, Galaxy Tab S12, Galaxy Tab S11 Ultra, Galaxy Tab S11, Galaxy Tab S10 FE",
@@ -520,13 +471,14 @@
         "title": "שואבי אבק",
         "collection": "vacuums",
         "pinned_products": [
-          "dreame-x60-ultra-complete",
+          "roborock-saros-20-complete-6936905905666",
           "roborock-saros-20-flow-complete-black",
-          "roborock-saros-20-sonic-6936905905581",
-          "mova-v70-ultra-complete-x-6978794735177"
+          "roborock-f25-ace-combo-6974653812461",
+          "dreame-x50-ultra-complete-6977328065568",
+          "roborock-qrevo-2-pro-white"
         ],
         "first_collection": "",
-        "first_title_keywords": "Saros 20, Dreame X60 Ultra, Saros 10R, Saros 10, Qrevo 2 Pro, MOVA V70 Ultra, Dreame X50 Ultra, Dyson V15s Detect, Dyson V15 Detect, Dyson V12 Detect, Dyson WashG1, Dreame Aqua 10 Ultra, Dreame Z30, Roborock F25 Ultra",
+        "first_title_keywords": "Saros 20 Complete, Saros 20 Flow, F25 ACE, Saros 10R, Saros 10, Qrevo 2 Pro, Dreame X50 Ultra, Dyson V15s Detect, Dyson V15 Detect, Dyson V12 Detect, Dyson WashG1, Dreame Aqua 10 Ultra, Dreame Z30, Roborock F25 Ultra",
         "products_limit": 10,
         "hide_sold_out": true,
         "photos_only": false,
@@ -557,13 +509,14 @@
         "title": "שמע ואוזניות",
         "collection": "audio",
         "pinned_products": [
-          "apple-airpodsmax-2-dcs-black-195951039152",
-          "samsung-galaxy-buds-4-pro",
           "samsung-galaxy-buds-4",
-          "apple-airpods-pro-3-usb-c"
+          "jbl-partybox-stage-320-50036398817",
+          "nothing-ear-3",
+          "anker-soundcore-p41i",
+          "galaxy-buds-core-8806097349235"
         ],
         "first_collection": "",
-        "first_title_keywords": "AirPods Pro 3, AirPods Max 2, AirPods 5, AirPods 4, Galaxy Buds 4 Pro, Galaxy Buds 4, WH-1000XM6, Bose QuietComfort Ultra, Nothing Ear (3), Liberty 5 Pro, JBL Tune 720BT",
+        "first_title_keywords": "Galaxy Buds 4, AirPods 5, AirPods 4, WH-1000XM6, Bose QuietComfort Ultra, Nothing Ear (3), Liberty 5 Pro, JBL Tune 720BT",
         "products_limit": 10,
         "hide_sold_out": true,
         "photos_only": false,
@@ -593,9 +546,16 @@
       "settings": {
         "title": "מחשבים וגיימינג",
         "collection": "computers-gaming",
-        "pinned_products": [],
+        "pinned_products": [
+          "sony-ps5-bluray-slim-1tb-711719021308",
+          "sony-ps5-digital-slim-1tb-711719021278",
+          "meta-quest-3s",
+          "oculus-quest-3-512gb-815820024170",
+          "nintendo-switch-oled-heg-001-4902370548495",
+          "apple-macbook-neo-13-a18-pro-8gb-ram"
+        ],
         "first_collection": "",
-        "first_title_keywords": "Sony | PS5 Pro, Sony | PS5, Nintendo | Switch 2, Xbox | Series X, Microsoft Xbox Series X, Xbox | Series S, Microsoft Xbox Series S, MacBook Neo, Mac mini M6, Meta Quest 3S, Quest 3, Nintendo Switch OLED, RTX 5060",
+        "first_title_keywords": "PlayStation 5 Slim, PlayStation 5 Pro, Quest 3S, Quest 3, Switch OLED, MacBook Neo, Mac mini M6",
         "products_limit": 10,
         "hide_sold_out": true,
         "photos_only": false,
@@ -815,10 +775,98 @@
         "ss_custom_body_font": false,
         "ss_body_font": "assistant_n4"
       }
+    },
+    "products-black-november": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "Black November: הדילים החמים",
+        "collection": "black-november",
+        "pinned_products": [
+          "apple-iphone-17",
+          "google-pixel-11-pro",
+          "roborock-f25-ace-combo-6974653812461",
+          "apple-watch-ultra-2-49mm-cellular",
+          "dreame-x50-ultra-complete-6977328065568",
+          "dji-osmo-pocket-4-standart-combo-6937224133099",
+          "xiaomi-poco-x8-pro-512gb-12gb-ram",
+          "galaxy-watch-9-l350-44mm-bt-8806099325312",
+          "energy-echo-cx1000-80w-bt-7290120604223",
+          "nothing-ear-3",
+          "roborock-qrevo-2-pro-white",
+          "sensica-sensilight-pro-5060445341439"
+        ],
+        "first_collection": "",
+        "first_title_keywords": "",
+        "products_limit": 12,
+        "hide_sold_out": true,
+        "photos_only": false,
+        "title_size": "medium",
+        "background": "",
+        "show_view_all": true,
+        "view_all_label": "לכל מבצעי Black November",
+        "padding_top": 44,
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
+      }
+    },
+    "products-gifts": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "מתנות עד 500 ₪",
+        "collection": "audio",
+        "pinned_products": [
+          "samsung-galaxy-buds-4",
+          "galaxy-buds-core-8806097349235",
+          "anker-soundcore-p41i",
+          "jbl-tune-520-50036395007",
+          "anker-soundcore-boom-3i-50w",
+          "dji-mic-mini-single-6941565991430",
+          "jbl-tune-t570bt-6925281993923"
+        ],
+        "first_collection": "",
+        "first_title_keywords": "",
+        "products_limit": 10,
+        "hide_sold_out": true,
+        "photos_only": true,
+        "max_price": 500,
+        "title_size": "medium",
+        "background": "#e0fff2",
+        "show_view_all": false,
+        "view_all_label": "",
+        "padding_top": 44,
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
+      }
     }
   },
   "order": [
     "hero",
+    "products-black-november",
+    "products-gifts",
     "usp",
     "categories",
     "products-smartphones",
