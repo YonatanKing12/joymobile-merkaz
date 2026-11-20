@@ -5,8 +5,9 @@
     "cart-drawer": {
       "type": "cart-drawer",
       "settings": {
-        "show_view_cart": true,
-        "show_payment_icons": true
+        "show_view_cart": false,
+        "show_payment_icons": true,
+        "show_whatsapp": false
       }
     },
     "accessibility-panel": {

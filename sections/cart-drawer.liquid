@@ -197,11 +197,6 @@
             <button class="button button--accent button--full button--large cart-drawer__checkout" type="submit" name="checkout">
               {{- 'cart.drawer.checkout' | t -}}
             </button>
-            <p class="cart-drawer__checkout-note">
-              {%- render 'icon', name: 'lock', size: 14 -%}
-              {{ 'cart.drawer.checkout_note' | t }}
-            </p>
-
             {%- comment -%}
               The card marks sit under the checkout button, not at the bottom of the panel: they are
               there to answer "can I pay with my card" at the moment of pressing it. Below the fold
@@ -212,17 +207,23 @@
             {%- endif -%}
           </div>
 
-          <div class="cart-drawer__extras">
-            {%- if section.settings.show_whatsapp -%}
-              {%- render 'cart-whatsapp', class: 'cart-drawer__whatsapp' -%}
-            {%- endif -%}
-            <div class="cart-drawer__secondary">
-              <button class="link cart-drawer__continue" type="button" data-close>{{ 'cart.drawer.continue' | t }}</button>
+          {%- comment -%}
+            Under the checkout area only what the owner turns on: no "continue shopping" (the panel's X
+            does that) and, by default, no cart page link or WhatsApp link (the site has its own
+            WhatsApp button). Nothing renders when both are off.
+          {%- endcomment -%}
+          {%- if section.settings.show_whatsapp or section.settings.show_view_cart -%}
+            <div class="cart-drawer__extras">
+              {%- if section.settings.show_whatsapp -%}
+                {%- render 'cart-whatsapp', class: 'cart-drawer__whatsapp' -%}
+              {%- endif -%}
               {%- if section.settings.show_view_cart -%}
-                <a class="link cart-drawer__view-cart" href="{{ routes.cart_url }}">{{ 'cart.drawer.view_cart' | t }}</a>
+                <div class="cart-drawer__secondary">
+                  <a class="link cart-drawer__view-cart" href="{{ routes.cart_url }}">{{ 'cart.drawer.view_cart' | t }}</a>
+                </div>
               {%- endif -%}
             </div>
-          </div>
+          {%- endif -%}
         </form>
       </cart-items>
     {%- else -%}
