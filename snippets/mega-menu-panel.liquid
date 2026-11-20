@@ -3,7 +3,10 @@
   the panel. The second-level items are sorted into
   - groups: an item with links of its own (a link back to the item's own page does not count:
     "כל רכיבי המחשב" under "רכיבי מחשב" is the title again), one column each;
-  - loose links: items without links of their own, together in one column after the groups.
+  - lead links: items without links of their own that come before the first group (e.g.
+    "בניית מחשב" at the top of מחשבים), together in one column before the groups, styled as
+    group titles: they are the department's first entries, so they stay first;
+  - loose links: the other items without links of their own, together in one column after the groups.
   One column: the small panel at the item (`--compact`). More: a wide panel centred under the
   bar with one column per group (`--columns`), or, from `tabs_from` columns (layout 'auto') or
   always (layout 'tabs'), a rail of group tabs beside the open group (`--tabs`). Wide panels end
@@ -28,6 +31,7 @@
   assign kinds = ''
   assign group_count = 0
   assign loose_count = 0
+  assign lead_count = 0
   assign first_group = -1
   for child in link.links
     assign own_links = 0
@@ -42,14 +46,26 @@
         assign first_group = forloop.index0
       endif
       assign group_count = group_count | plus: 1
+    elsif first_group == -1
+      assign kinds = kinds | append: 'f,'
+      assign lead_count = lead_count | plus: 1
     else
       assign kinds = kinds | append: 'l,'
       assign loose_count = loose_count | plus: 1
     endif
   endfor
+  # Without any group there is nothing to come first before: all of them stay loose links.
+  if group_count == 0 and lead_count > 0
+    assign kinds = kinds | replace: 'f,', 'l,'
+    assign loose_count = loose_count | plus: lead_count
+    assign lead_count = 0
+  endif
   assign kinds = kinds | split: ','
 
   assign columns = group_count
+  if lead_count > 0
+    assign columns = columns | plus: 1
+  endif
   if loose_count > 0
     assign columns = columns | plus: 1
   endif
@@ -127,6 +143,16 @@
           </div>
         {%- else -%}
           <ul class="mega-menu__columns" role="list">
+            {%- if lead_count > 0 -%}
+              <li class="mega-menu__group mega-menu__group--lead">
+                {%- for child in link.links -%}
+                  {%- assign lead_index = forloop.index0 -%}
+                  {%- if kinds[lead_index] == 'f' -%}
+                    <a class="mega-menu__group-title" href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a>
+                  {%- endif -%}
+                {%- endfor -%}
+              </li>
+            {%- endif -%}
             {%- for child in link.links -%}
               {%- assign col_index = forloop.index0 -%}
               {%- if kinds[col_index] == 'g' -%}
