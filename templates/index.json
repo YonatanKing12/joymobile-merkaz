@@ -865,10 +865,10 @@
   },
   "order": [
     "hero",
-    "products-black-november",
-    "products-gifts",
     "usp",
     "categories",
+    "products-black-november",
+    "products-gifts",
     "products-smartphones",
     "promo-banners",
     "products-tablets",
