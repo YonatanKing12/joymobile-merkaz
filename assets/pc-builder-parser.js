@@ -843,6 +843,22 @@ const RTX_ATX3 = /^RTX [45]0\d0/; // GeForce RTX 40 and 50 series
 const BASE_SPEED = { DDR4: 3200, DDR5: 5600 };
 const fmtMm = (n) => `${n} מ״מ`;
 
+/* A 12V-2x6 card's adapter (in the box) takes 2 PCIe 8-pin connectors up to about 300W, 3 up to 450W and 4 above
+   (NVIDIA's guidance per card class); the card's peak draw when known, else 3. */
+const V2X6 = '12V\u20112x6'; // a non-breaking hyphen: the connector's name never breaks across lines
+export const ADAPTER_NOTE = `הכרטיס מגיע עם מתאם לחיבורי 8 פין, מומלץ ספק עם חיבור ${V2X6} מקורי`;
+export const adapterPins = (gpu) => {
+  const w = gpu.facts.watts;
+  return !w ? 3 : w <= 300 ? 2 : w <= 450 ? 3 : 4;
+};
+/* "אין בו מחבר 12V‑2x6, ויש בו רק 2 מחברי PCIe של 8 פין": what a PSU has, for a block reason. */
+function connectorsIn(where, native, eight) {
+  const e = eight === 0 ? 'אין בו מחברי PCIe של 8 פין' : eight === 1 ? 'מחבר PCIe אחד של 8 פין' : `${eight} מחברי PCIe של 8 פין`;
+  if (!native) return `אין ${where} מחבר ${V2X6}, ${eight === 0 ? `ו${e}` : `ויש בו רק ${e}`}`;
+  const n16 = native === 1 ? `מחבר ${V2X6} אחד` : `${native} מחברי ${V2X6}`;
+  return eight === 0 ? `יש ${where} ${n16}, ו${e}` : `יש ${where} ${n16} ו${/^\d/.test(e) ? '־' : ''}${e}`;
+}
+
 /** The checks Lior's six rules add, for `part` against every other chosen part: hard reasons (both sides known and
     they clash), advice (notes) and what could not be checked (unverified labels). */
 function lior(part, sel) {
@@ -901,7 +917,7 @@ function lior(part, sel) {
     const atx3 = psu.facts.atx3;
     if (pin16 === true) {
       if (atx3 === false) reasons.push(me('gpu') ? 'הכרטיס מתחבר במחבר 12V-2x6 (16 פין), והספק שנבחר בתקן ATX ישן בלי המחבר הזה' : 'בתקן ATX ישן בלי מחבר 12V-2x6 (16 פין), וכרטיס המסך שנבחר צריך אותו');
-      else if (atx3 !== true) unv.add(UNVERIFIED.atx3);
+      else if (atx3 !== true && !(psu.facts.pin16Count >= 1)) unv.add(UNVERIFIED.atx3); // a native 12V-2x6 (pc.pcie_16pin) is what the rule asks
     } else if (pin16 === false) {
       if (rtx && atx3 === false) notes.push('הספק בתקן ATX ישן. הכרטיס מתחבר במחברי 8 פין ויעבוד איתו; ספק ATX 3 עמיד יותר לקפיצות הצריכה של RTX 40/50');
     } else if (rtx && atx3 !== true) unv.add(atx3 === false ? UNVERIFIED.gpuPower : UNVERIFIED.atx3);
@@ -909,15 +925,28 @@ function lior(part, sel) {
   if (pair('gpu', 'psu') && gpu.facts.recPsu && psu.facts.watts && psu.facts.watts < gpu.facts.recPsu)
     notes.push(`יצרן כרטיס המסך ממליץ על ספק של ${fmtW(gpu.facts.recPsu)} לפחות`);
   // The power connectors every card needs, times the number of cards, against what the PSU has (pc.pcie_8pin,
-  // pc.pcie_16pin). Two cards and a count not known: a representative checks it.
-  if (pair('gpu', 'psu')) {
+  // pc.pcie_16pin). A 12V-2x6 card ships with an adapter to 8-pin connectors (adapterPins), so it takes a native
+  // 12V-2x6 or, short of one, enough 8-pin connectors: allowed with a notice. A count not known: "לא אומת", as before.
+  // An ATX12V 2.x PSU under a 12V-2x6 card is already blocked above (Lior's rule), so it is not counted again.
+  if (pair('gpu', 'psu') && !(gpu.facts.pin16 === true && psu.facts.atx3 === false)) {
     const n = qtyOf(sel, gpu) || 1;
     const both = n > 1 ? `ל־${n} כרטיסי מסך` : 'לכרטיס המסך';
     let known = false;
     if (gpu.facts.pin16 === true && psu.facts.pin16Count != null) {
-      known = true;
-      const has = psu.facts.pin16Count === 1 ? 'מחבר 12V-2x6 אחד' : `${psu.facts.pin16Count} מחברי 12V-2x6`;
-      if (psu.facts.pin16Count < n) reasons.push(me('psu') ? `יש בו ${has}, ו${both} צריך ${n}` : `צריך ${n} מחברי 12V-2x6, ובספק שנבחר יש ${has}`);
+      const native = psu.facts.pin16Count;
+      const eight = psu.facts.eightPin;
+      const per = adapterPins(gpu);
+      if (native >= n) known = true;
+      else if (eight != null) {
+        known = true;
+        if (native + Math.floor(eight / per) >= n) notes.push(ADAPTER_NOTE);
+        else {
+          const need = n > 1
+            ? `${n} מחברי ${V2X6}, או ${per} מחברי PCIe של 8 פין למתאם של כל כרטיס בלי מחבר כזה`
+            : `מחבר ${V2X6}, או ${per} מחברי PCIe של 8 פין למתאם שמגיע איתו`;
+          reasons.push(me('psu') ? `${both} צריך ${need}. ${connectorsIn('בו', native, eight)}` : `${n > 1 ? `ל־${n} כרטיסים` : 'לכרטיס'} צריך ${need}. ${connectorsIn('בספק שנבחר', native, eight)}`);
+        }
+      } else unv.add(n > 1 ? UNVERIFIED.gpuConnectors : UNVERIFIED.gpuPower);
     } else if (gpu.facts.pin16 === false && gpu.facts.eightPin && psu.facts.eightPin != null) {
       known = true;
       const need = gpu.facts.eightPin * n;

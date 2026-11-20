@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { applyChoice, checkBuild, fitOf, isOrderable, planBuilds, powerOf, PSU_HEADROOM, SPECS, STEP_KEYS, toPart, UNVERIFIED } from '../../assets/pc-builder-parser.js';
+import { ADAPTER_NOTE, adapterPins, applyChoice, checkBuild, fitOf, isOrderable, planBuilds, powerOf, PSU_HEADROOM, SPECS, STEP_KEYS, toPart, UNVERIFIED } from '../../assets/pc-builder-parser.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const live = JSON.parse(readFileSync(join(here, 'fixtures/live-2026-11-18.json'), 'utf8')).products;
@@ -158,6 +158,98 @@ test('3b. GPU ⟷ PSU: +100W headroom, a 12V-2x6 card on an ATX 3 PSU, the card 
   // Not RTX 40/50: no ATX 3 rule.
   passes(sku('GVR9070201'), sku('94P10202'));
   assert.deepEqual(fitOf(sku('GVR76001'), { psu: sku('CLM-P7015') }).unverified, []);
+});
+
+test('3b2. GPU ⟷ PSU connectors: a 12V-2x6 card takes a native 12V-2x6 or its adapter on enough 8-pin connectors', () => {
+  // The live parts with the pc.* counts of pc-metafields.csv (PSU: what it has; card: what it needs).
+  const meta = (code, overrides) => {
+    const p = live.find((x) => x.variants.some((v) => v.sku === code));
+    assert.ok(p, `no live product ${code}`);
+    return toPart(p, overrides);
+  };
+  const r5070 = meta('GVN50701220', { pcie_8pin: 0, pcie_16pin: 1 }); // RTX 5070 GAMING OC, 250W
+  const r5080 = meta('GVN50801640', { pcie_8pin: 0, pcie_16pin: 1 }); // RTX 5080 GAMING OC, 360W
+  const cx750 = meta('220-CX750279', { pcie_8pin: 3, pcie_16pin: 0 }); // Corsair CX750
+  const p750 = meta('94P7520', { pcie_8pin: 4, pcie_16pin: 0 }); // Gigabyte P750BS
+  const gme = meta('94P10206', { pcie_8pin: 4, pcie_16pin: 1 }); // GME1000GM PG5, ATX 3.1
+  const nex = meta('CLM-P7015', { pcie_8pin: 2, pcie_16pin: 0 }); // Elite NEX W700, ATX12V 2.41
+  const cx650 = meta('220-CX650278', { pcie_8pin: 2, pcie_16pin: 0 }); // CX650, ATX12V 2.31
+  const thin = { ...cx750, id: 'thin', facts: { ...cx750.facts, eightPin: 1 } }; // synthetic: a single 8-pin
+  const pair = (gpu, psu, qty = 1) => {
+    const q = { [gpu.id]: qty };
+    return [fitOf(psu, { gpu, qty: q }), fitOf(gpu, { psu, qty: q })];
+  };
+  const connectorReasons = (f) => f.reasons.filter((r) => /8 פין|12V.2x6/.test(r));
+
+  // The adapter: 2 × 8-pin up to about 300W, 3 to 450W, 4 above; 3 when the card's draw is not known.
+  assert.deepEqual([r5070, r5080].map(adapterPins), [2, 3]);
+  assert.equal(adapterPins({ facts: { watts: 575 } }), 4);
+  assert.equal(adapterPins({ facts: { watts: null } }), 3);
+  assert.match(ADAPTER_NOTE, /^הכרטיס מגיע עם מתאם לחיבורי 8 פין, מומלץ ספק עם חיבור 12V\u20112x6 מקורי$/);
+  assert.doesNotMatch(ADAPTER_NOTE, / [-\u2013\u2014] /, 'no dash as punctuation');
+
+  // One card, no native 12V-2x6, enough 8-pin for the adapter: allowed, with the notice (RTX 5070 + CX750).
+  for (const f of pair(r5070, cx750)) {
+    assert.equal(f.ok, true, f.reasons.join(' | '));
+    assert.ok(f.notes.includes(ADAPTER_NOTE), f.notes.join(' | '));
+  }
+  for (const f of pair(r5080, p750)) assert.deepEqual(connectorReasons(f), []); // 360W card: 3 of P750BS's 4
+  // The whole build orders, with the notice once in the summary.
+  const sel = { cpu: sku('AMD-R77700XT'), board: sku('95B65030'), ram: sku('2CK5-32603809'), gpu: r5070, storage: sku('KSSD-SNV3S1000'), cooler: sku('AN3-F400A'), psu: cx750, case: sku('AN1-C5AR'), extra: [] };
+  const check = checkBuild(sel);
+  assert.equal(check.ok, true, check.problems.map((p) => p.text).join(' | '));
+  assert.equal(isOrderable(sel), true);
+  assert.equal(check.notes.filter((n) => n.text === ADAPTER_NOTE).length, 1);
+  // A native 12V-2x6: no notice, and the PSU's ATX 3 is not in doubt.
+  for (const f of pair(r5070, gme)) {
+    assert.equal(f.ok, true, f.reasons.join(' | '));
+    assert.ok(!f.notes.includes(ADAPTER_NOTE));
+    assert.deepEqual(f.unverified, []);
+  }
+
+  // Not enough 8-pin for the adapter: blocked, saying what the card needs and what the PSU has.
+  for (const f of pair(r5070, thin)) {
+    assert.equal(f.ok, false);
+    assert.match(f.reasons.join(' | '), /2 מחברי PCIe של 8 פין למתאם/);
+    assert.match(f.reasons.join(' | '), /אין (בו|בספק שנבחר) מחבר 12V.2x6, ויש בו רק מחבר PCIe אחד של 8 פין/);
+  }
+  for (const f of pair(r5080, nex)) assert.equal(f.ok, false); // 3 × 8-pin needed, and ATX 2.x anyway
+
+  // Lior's rule stays: a 12V-2x6 card on an ATX12V 2.x PSU blocks, even with 8-pin connectors to spare.
+  for (const f of pair(r5070, cx650)) {
+    assert.equal(f.ok, false);
+    assert.match(f.reasons.join(' | '), /ATX ישן/);
+    assert.equal(f.reasons.length, 1, f.reasons.join(' | '));
+    assert.ok(!f.notes.includes(ADAPTER_NOTE));
+  }
+
+  // Two cards: native 12V-2x6 plus adapter groups. GME1000GM: 1 native + 4 × 8-pin (two adapters) for 2 × RTX 5070.
+  for (const f of pair(r5070, gme, 2)) {
+    assert.deepEqual(connectorReasons(f), [], f.reasons.join(' | '));
+    assert.ok(f.notes.includes(ADAPTER_NOTE));
+  }
+  const two = { ...sel, psu: gme, qty: { [r5070.id]: 2 } };
+  assert.equal(checkBuild(two).problems.length, 0, checkBuild(two).problems.map((p) => p.text).join(' | '));
+  // CX750: 3 × 8-pin is one adapter, and two cards need two.
+  for (const f of pair(r5070, cx750, 2)) assert.match(connectorReasons(f).join(' | '), /2 מחברי 12V.2x6, או 2 מחברי PCIe של 8 פין למתאם של כל כרטיס/);
+  // Two native connectors: no adapter, no notice.
+  const x2000 = { ...gme, id: 'x2', facts: { ...gme.facts, pin16Count: 2, eightPin: 4 } };
+  for (const f of pair(r5070, x2000, 2)) assert.ok(!f.notes.includes(ADAPTER_NOTE));
+
+  // 8-pin cards: unchanged, their 8-pin count times the quantity.
+  const xt = meta('GVR9070201', { pcie_8pin: 2, pcie_16pin: 0 }); // RX 9070 XT GAMING OC
+  for (const f of pair(xt, cx750)) assert.deepEqual(connectorReasons(f), []);
+  for (const f of pair(xt, cx750, 2)) assert.match(connectorReasons(f).join(' | '), /צריך 4/);
+
+  // Counts not known: "לא אומת", never a block.
+  const noEight = { ...cx750, id: 'n8', facts: { ...cx750.facts, eightPin: undefined } };
+  for (const f of pair(r5070, noEight)) {
+    assert.equal(f.ok, true, f.reasons.join(' | '));
+    assert.ok(f.unverified.includes(UNVERIFIED.gpuPower));
+  }
+  for (const f of pair(r5070, noEight, 2)) assert.ok(f.unverified.includes(UNVERIFIED.gpuConnectors));
+  for (const f of pair(r5070, sku('220-CX750279'))) assert.deepEqual(connectorReasons(f), []); // no pc.* at all
+  for (const f of pair(r5070, sku('220-CX750279'), 2)) assert.ok(f.unverified.includes(UNVERIFIED.gpuConnectors));
 });
 
 test('3c. a water-cooled card needs its own radiator place, next to an AIO', () => {

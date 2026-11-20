@@ -144,10 +144,19 @@ test('GPU: the PSU connectors for two cards, when the PSU and the card say them'
   const fine = checkBuild({ ...sel, psu: many });
   assert.equal(fine.problems.length, 0, fine.problems.map((p) => p.text).join());
   assert.equal(fine.unverified.includes(UNVERIFIED.gpuConnectors), false);
-  // Two 12V-2x6 cards on a PSU with one such connector.
+  // Two 12V-2x6 cards on a PSU with one such connector: the second card's adapter needs 8-pin connectors.
   const pin16 = { ...gpu, facts: { ...gpu.facts, pin16: true } };
-  const one16 = part('ספק כוח Antec Signature 1300W Platinum ATX 3.1', 1500, { pcie_16pin: 1 });
-  assert.match(checkBuild({ ...base(), gpu: pin16, psu: one16, qty: { [pin16.id]: 2 } }).problems.map((p) => p.text).join(), /מחבר 12V-2x6 אחד, ול־2 כרטיסי מסך צריך 2/);
+  const one16 = part('ספק כוח Antec Signature 1300W Platinum ATX 3.1', 1500, { pcie_16pin: 1, pcie_8pin: 1 });
+  assert.match(checkBuild({ ...base(), gpu: pin16, psu: one16, qty: { [pin16.id]: 2 } }).problems.map((p) => p.text).join(), /יש בו מחבר 12V.2x6 אחד ומחבר PCIe אחד של 8 פין/);
+  const one16two8 = part('ספק כוח Antec Signature 1300W Platinum ATX 3.1', 1500, { pcie_16pin: 1, pcie_8pin: 2 });
+  const adapted = checkBuild({ ...base(), gpu: pin16, psu: one16two8, qty: { [pin16.id]: 2 } });
+  assert.equal(adapted.problems.length, 0, adapted.problems.map((p) => p.text).join());
+  assert.ok(adapted.notes.some((n) => /מתאם לחיבורי 8 פין/.test(n.text)));
+  // The 8-pin count not known: a representative checks it.
+  const only16 = part('ספק כוח Antec Signature 1300W Platinum ATX 3.1', 1500, { pcie_16pin: 1 });
+  const open = checkBuild({ ...base(), gpu: pin16, psu: only16, qty: { [pin16.id]: 2 } });
+  assert.equal(open.ok, true, open.problems.map((p) => p.text).join());
+  assert.ok(open.unverified.includes(UNVERIFIED.gpuConnectors));
 });
 
 /* ---------- CPU ---------- */
