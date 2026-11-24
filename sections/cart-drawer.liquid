@@ -16,8 +16,8 @@
   Right above the checkout button the marketing consent (snippets/cart-marketing, theme settings ›
   עגלה, preselected by default, never required): asked here too because this button goes straight to
   checkout, and posted with it as the cart attribute "אישור דיוור" ("כן" / "לא").
-  Above the total, the delivery as the checkout will charge it (snippets/shipping-estimate: 39 ₪, free, 89 ₪ or both
-  added), the total then "סה״כ לתשלום" with it, and one grey line that the checkout sets the final price by the address.
+  Above the total, the delivery as the checkout will charge it (snippets/shipping-estimate: 39 ₪ and each
+  delivery profile's rate in the cart, 49 ₪ or 115 ₪, added), the total then "סה״כ לתשלום" with it, and one grey line that the checkout sets the final price by the address.
 {%- endcomment -%}
 {%- render 'section-style', section: section -%}
 {%- liquid
@@ -284,7 +284,7 @@
       "type": "richtext",
       "id": "conditions",
       "label": "תנאי ההזמנה",
-      "default": "<p>ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 39 ₪, וחינם בהזמנה מעל 5,000 ₪ (מוצרים גדולים: 89 ₪ בכל הזמנה). כל המחירים כוללים מע״מ.</p>"
+      "default": "<p>ההזמנות באתר נשלחות עד הבית תוך 7 ימי עסקים. משלוח 39 ₪, מוצרים בינוניים 49 ₪, מוצרים גדולים וטלוויזיות 115 ₪. כל המחירים כוללים מע״מ.</p>"
     },
     {
       "type": "checkbox",

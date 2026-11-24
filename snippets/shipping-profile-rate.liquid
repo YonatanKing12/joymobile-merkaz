@@ -1,0 +1,30 @@
+{%- comment -%}
+  The fixed home-delivery rate of one national delivery profile, in agorot, from the theme setting
+  settings.shipping_profile_rates ("148825440625:115,148930593137:49,148971520369:115": the profile's id, a colon, the
+  rate in shekels, comma separated; Cart › משלוח בסיכום העגלה). Prints nothing when the profile is not listed, so a
+  caller can tell an unknown profile from a free one.
+
+  The id is the one the dashboard writes into the variant metafield shipping.profile when it moves products into a
+  profile other than the default (services/shipping-marks in joyMobile-Online-Dashboard).
+
+  @param {string} profile - the profile's id (variant.metafields.shipping.profile).
+
+  Output: an integer (agorot), or nothing.
+{%- endcomment -%}
+{%- liquid
+  assign spr_id = profile | strip
+  if spr_id != blank
+    assign spr_pairs = settings.shipping_profile_rates | default: '' | split: ','
+    for spr_pair in spr_pairs
+      assign spr_parts = spr_pair | split: ':'
+      if spr_parts.size == 2
+        assign spr_key = spr_parts[0] | strip
+        if spr_key == spr_id
+          assign spr_value = spr_parts[1] | strip | times: 100 | round
+          echo spr_value
+          break
+        endif
+      endif
+    endfor
+  endif
+-%}

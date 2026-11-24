@@ -3,17 +3,20 @@
   when the estimate is off. Captured by the cart drawer and the cart page (sections/cart-drawer, sections/main-cart),
   which re-render on every cart change, so the figure follows the cart.
 
-  Shopify's rates (checked at checkout on 20.11.2026):
-  - every item outside the "מוצרים גדולים" profile: settings.shipping_rate_regular (39 ₪), free when the order reaches
-    settings.shipping_free_from (5,000 ₪). The order is the whole cart, large items included;
-  - any item of the "מוצרים גדולים" profile: settings.shipping_rate_large (89 ₪) once per order, never free;
-  - a cart with both pays both (39 + 89 = 128 ₪; over 5,000 ₪, 0 + 89).
-  A large item is a variant with the metafield shipping.profile (the profile's id), which the dashboard writes whenever
-  it moves products into or out of a profile. The shop metafield shipping.marks says every variant of the profile has
-  been marked; until then a large item would look regular and the line would understate the delivery, so nothing is
-  printed.
-  The free threshold is compared with the shipped lines after their discounts and after the whole order's discounts:
-  the lowest the checkout can count, so the line never says "free" where the checkout charges.
+  Shopify's rates (the owner, 24.11.2026: no free shipping any more):
+  - every item of the default profile ("General profile"): settings.shipping_rate_regular (39 ₪) once per order. Free
+    only if settings.shipping_free_from is set (0 since 24.11.2026: never free); the order is then the whole cart,
+    profile items included, as the checkout counted it on 20.11.2026;
+  - every other profile ("מוצרים בינוניים" 49 ₪, "מוצרים גדולים" 115 ₪, "טלוויזיות" 115 ₪): its rate from
+    settings.shipping_profile_rates (snippets/shipping-profile-rate), once per order for each profile in the cart,
+    never free;
+  - the rates of every profile in the cart are added (39 + 49 + 115 = 203 ₪ for one item of each of three).
+  A profile item is a variant with the metafield shipping.profile (the profile's id), which the dashboard writes whenever
+  it moves products into or out of a profile. The shop metafield shipping.marks says the dashboard has marked a
+  profile's variants; until then a profile item would look regular and the line would understate the delivery, so
+  nothing is printed. Nothing is printed either for an item of a profile the setting does not list.
+  The free threshold, when set, is compared with the shipped lines after their discounts and after the whole order's
+  discounts: the lowest the checkout can count, so the line never says "free" where the checkout charges.
 
   Output: an integer (agorot), or nothing.
 {%- endcomment -%}
@@ -24,38 +27,51 @@
   endif
   if se_on
     assign se_regular = settings.shipping_rate_regular | default: 0 | times: 100 | round
-    assign se_large = settings.shipping_rate_large | default: 0 | times: 100 | round
     assign se_free_from = settings.shipping_free_from | default: 0 | times: 100 | round
 
     assign se_has_regular = false
-    assign se_has_large = false
+    assign se_unknown = false
+    assign se_profiles = '|'
+    assign se_profile_total = 0
     assign se_shipped = 0
     for se_item in cart.items
       if se_item.requires_shipping
         assign se_shipped = se_shipped | plus: se_item.final_line_price
-        if se_item.variant.metafields.shipping.profile != blank
-          assign se_has_large = true
+        assign se_profile = se_item.variant.metafields.shipping.profile | strip
+        if se_profile != blank
+          assign se_key = '|' | append: se_profile | append: '|'
+          unless se_profiles contains se_key
+            assign se_profiles = se_profiles | append: se_profile | append: '|'
+            capture se_rate
+              render 'shipping-profile-rate', profile: se_profile
+            endcapture
+            assign se_rate = se_rate | strip
+            if se_rate == blank
+              assign se_unknown = true
+            else
+              assign se_profile_total = se_profile_total | plus: se_rate
+            endif
+          endunless
         else
           assign se_has_regular = true
         endif
       endif
     endfor
 
-    assign se_order_discounts = 0
-    for se_discount in cart.cart_level_discount_applications
-      assign se_order_discounts = se_order_discounts | plus: se_discount.total_allocated_amount
-    endfor
-    assign se_basis = se_shipped | minus: se_order_discounts | at_least: 0
+    unless se_unknown
+      assign se_order_discounts = 0
+      for se_discount in cart.cart_level_discount_applications
+        assign se_order_discounts = se_order_discounts | plus: se_discount.total_allocated_amount
+      endfor
+      assign se_basis = se_shipped | minus: se_order_discounts | at_least: 0
 
-    assign se_total = 0
-    if se_has_regular
-      if se_free_from == 0 or se_basis < se_free_from
-        assign se_total = se_total | plus: se_regular
+      assign se_total = se_profile_total
+      if se_has_regular
+        if se_free_from == 0 or se_basis < se_free_from
+          assign se_total = se_total | plus: se_regular
+        endif
       endif
-    endif
-    if se_has_large
-      assign se_total = se_total | plus: se_large
-    endif
-    echo se_total
+      echo se_total
+    endunless
   endif
 -%}

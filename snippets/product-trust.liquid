@@ -37,7 +37,8 @@
   @param {number} [low_stock] - lines: show the exact count at or under this stock level. Default 5; 0 turns it off.
   @param {string} [pickup_label] - lines: label before the pickup address.
   @param {boolean} [show_address] - lines: print the store address from the theme settings. Default true.
-  @param {string} [pickup_note] - lines: note under the pickup line.
+  @param {string} [pickup_note] - lines: note under the pickup line. "[shipping]" in it becomes the variant's delivery rate
+    (its profile's rate from snippets/shipping-profile-rate, else settings.shipping_rate_regular).
   @param {boolean} [show_warranty] - lines: warranty line from the metafields. Default true.
   @param {string} [warranty_fallback] - lines: text when the product has no warranty data.
   @param {string} [payment_text] - lines: payment note.
@@ -160,6 +161,26 @@
       if pt_dropship != blank
         assign pickup_label = blank
         assign pickup_note = blank
+      endif
+      # "[shipping]": the delivery this variant pays, by its delivery profile (39 ₪, 49 ₪ or 115 ₪; no free shipping
+      # since 24.11.2026). A profile the setting does not list: the words "משלוח [shipping]" are left out.
+      if pickup_note contains '[shipping]'
+        assign pt_ship = ''
+        assign pt_profile = pt_variant.metafields.shipping.profile | strip
+        if pt_profile != blank
+          capture pt_ship
+            render 'shipping-profile-rate', profile: pt_profile
+          endcapture
+          assign pt_ship = pt_ship | strip
+        elsif settings.shipping_rate_regular != blank
+          assign pt_ship = settings.shipping_rate_regular | times: 100 | round
+        endif
+        if pt_ship != blank
+          assign pt_ship_text = pt_ship | plus: 0 | money_without_trailing_zeros
+          assign pickup_note = pickup_note | replace: '[shipping]', pt_ship_text
+        else
+          assign pickup_note = pickup_note | remove: ' · משלוח [shipping]' | remove: 'משלוח [shipping]' | remove: '[shipping]' | strip
+        endif
       endif
       if show_address != false and pt_dropship == blank
         assign pt_street = settings.store_street | strip

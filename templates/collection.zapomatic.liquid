@@ -1,14 +1,17 @@
 {%- layout none -%}
 {%- comment -%}
   Zap (zapomatic) product feed for one collection, 250 products per page
-  (?page=N). Only in-stock products with a price are listed. SHIPMENT_COST 0 and
-  delivery 1 day were set when the store was pickup only; the national store ships
-  (24 ₪, free from 3,000 ₪, up to 7 business days), so these values await the owner's
-  decision. Linked from templates/list-collections.zapomatic-mirror.liquid.
+  (?page=N). Only in-stock products with a price are listed. SHIPMENT_COST is the
+  first variant's delivery by its profile (snippets/shipping-profile-rate, else
+  settings.shipping_rate_regular; no free shipping since 24.11.2026). Delivery 1 day
+  was set when the store was pickup only; the national store ships in up to 7
+  business days, so that value awaits the owner's decision. The live Zap feed is the
+  dashboard's (/system/feed); this mirror is a fallback.
+  Linked from templates/list-collections.zapomatic-mirror.liquid.
   The XML is echoed as strings: the theme's HTML parser rejects these tags.
 {%- endcomment -%}
 {%- liquid
-  assign zap_shipping = '0'
+  assign zap_regular_shipping = settings.shipping_rate_regular | default: 0 | append: ''
   assign zap_delivery_days = '1'
   echo '<?xml version="1.0" encoding="UTF-8"?>'
   assign zap_date = 'now' | date: '%d/%m/%Y'
@@ -26,6 +29,17 @@
       assign zap_sku = v.sku | escape
       assign zap_vendor = product.vendor | escape
       assign zap_price = v.price | money_without_currency | remove: ','
+      assign zap_shipping = zap_regular_shipping
+      assign zap_profile = v.metafields.shipping.profile | strip
+      if zap_profile != blank
+        capture zap_profile_rate
+          render 'shipping-profile-rate', profile: zap_profile
+        endcapture
+        assign zap_profile_rate = zap_profile_rate | strip
+        if zap_profile_rate != blank
+          assign zap_shipping = zap_profile_rate | divided_by: 100 | append: ''
+        endif
+      endif
       assign zap_image = ''
       if product.featured_image
         assign zap_image = product.featured_image | image_url: width: 1000 | prepend: 'https:' | escape
