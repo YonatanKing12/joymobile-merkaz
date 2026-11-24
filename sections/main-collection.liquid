@@ -36,18 +36,20 @@
   # rest (the headed SEO text and FAQs) under the products; "top" / "bottom" show it whole there.
   assign desc_top = ''
   assign desc_bottom = ''
-  if collection.description != blank
+  # Old shipping sentence in a collection's admin description (24.11.2026: no free shipping, 39 ₪ base).
+  assign coll_desc = collection.description | replace: 'משלוח עולה 24 ₪ להזמנה, וחינם בהזמנה בסך 3,000 ₪ ומעלה.', 'משלוח עד הבית עולה 39 ₪ להזמנה, במוצרים בינוניים 49 ₪ ובמוצרים גדולים ובטלוויזיות 115 ₪.'
+  if coll_desc != blank
     case section.settings.description_position
       when 'top'
-        assign desc_top = collection.description
+        assign desc_top = coll_desc
       when 'bottom'
-        assign desc_bottom = collection.description
+        assign desc_bottom = coll_desc
       when 'split'
-        if collection.description contains '<h2'
-          assign desc_top = collection.description | split: '<h2' | first
-          assign desc_bottom = collection.description | remove_first: desc_top
+        if coll_desc contains '<h2'
+          assign desc_top = coll_desc | split: '<h2' | first
+          assign desc_bottom = coll_desc | remove_first: desc_top
         else
-          assign desc_top = collection.description
+          assign desc_top = coll_desc
         endif
     endcase
     assign desc_probe = desc_top | strip_html | strip
@@ -130,7 +132,7 @@
     assign hero_copy = hero_copy | strip
     assign desc_top = ''
     if section.settings.description_position != 'none'
-      assign desc_bottom = collection.description
+      assign desc_bottom = coll_desc
     endif
   endif
 -%}
