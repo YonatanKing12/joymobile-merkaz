@@ -217,7 +217,7 @@
           "type": "circle",
           "settings": {
             "collection": "black-november",
-            "image": "shopify://shop_images/BF.png",
+            "image": "shopify://shop_images/BF1.png",
             "label": "Black Friday",
             "link": "",
             "image_fill": true
