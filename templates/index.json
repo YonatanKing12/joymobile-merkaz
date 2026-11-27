@@ -12,6 +12,22 @@
     "hero": {
       "type": "hero-slideshow",
       "blocks": {
+        "slide_bf_smartphones": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/bf-smartphones-desktop.png",
+            "image_mobile": "shopify://shop_images/bf-smartphones-mobile.png",
+            "alt": "כל הסמארטפונים במחירי בלאק-פריידי באתר! לרכישה",
+            "link": "shopify://collections/smartphones",
+            "video_on_mobile": false,
+            "heading": "",
+            "text": "",
+            "button_label": "",
+            "text_position": "start",
+            "text_position_mobile": "bottom",
+            "text_color": "dark"
+          }
+        },
         "slide_black_november": {
           "type": "slide",
           "settings": {
@@ -110,6 +126,7 @@
         }
       },
       "block_order": [
+        "slide_bf_smartphones",
         "slide_black_november",
         "slide_6A4MiP",
         "slide_C6EFG3",

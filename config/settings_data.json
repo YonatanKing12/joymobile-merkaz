@@ -69,6 +69,8 @@
     "price_show_label": false,
     "badge_show_tax_free": true,
     "badge_tax_free_all": true,
+    "sale_badge_image": "shopify://shop_images/sale-badge-black-friday.png",
+    "sale_badge_image_2": "shopify://shop_images/sale-badge-cyber-monday.png",
     "badge_tax_free_hide_dropship": true,
     "price_show_compare": true,
     "price_show_from": false,
