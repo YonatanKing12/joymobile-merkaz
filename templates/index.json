@@ -217,8 +217,9 @@
           "type": "circle",
           "settings": {
             "collection": "black-november",
-            "image": "shopify://shop_images/black-november-circle-round.png",
-            "label": "Black November",
+            "image": "shopify://shop_images/BF.png",
+            "label": "Black Friday",
+            "link": "",
             "image_fill": true
           }
         },
@@ -228,6 +229,7 @@
             "collection": "metziaon",
             "image": "shopify://shop_images/metziaon-circle-v2.png",
             "label": "מציאון",
+            "link": "",
             "image_fill": true
           }
         },
@@ -236,7 +238,9 @@
           "settings": {
             "collection": "smartphones",
             "image": "shopify://shop_images/01-smartphones-1024.png",
-            "label": "סמארטפונים"
+            "label": "סמארטפונים",
+            "link": "",
+            "image_fill": false
           }
         },
         "circle-tablets": {
@@ -244,7 +248,9 @@
           "settings": {
             "collection": "tablets",
             "image": "shopify://shop_images/02-tablets-1024.png",
-            "label": "טאבלטים"
+            "label": "טאבלטים",
+            "link": "",
+            "image_fill": false
           }
         },
         "circle-smartwatches": {
@@ -252,7 +258,9 @@
           "settings": {
             "collection": "smartwatches",
             "image": "shopify://shop_images/03-smartwatches-1024.png",
-            "label": "שעונים חכמים"
+            "label": "שעונים חכמים",
+            "link": "",
+            "image_fill": false
           }
         },
         "circle-vacuums": {
@@ -260,7 +268,9 @@
           "settings": {
             "collection": "vacuums",
             "image": "shopify://shop_images/04-vacuums-1024_74ab66a7-44b3-4351-9b1f-49a62a909ef7.png",
-            "label": "שואבי אבק"
+            "label": "שואבי אבק",
+            "link": "",
+            "image_fill": false
           }
         },
         "circle-computers": {
@@ -268,7 +278,9 @@
           "settings": {
             "collection": "computers-gaming",
             "image": "shopify://shop_images/05-computers-1024.png",
-            "label": "מחשבים"
+            "label": "מחשבים",
+            "link": "",
+            "image_fill": false
           }
         },
         "circle-consoles": {
@@ -276,7 +288,9 @@
           "settings": {
             "collection": "gaming-consoles",
             "image": "shopify://shop_images/06-consoles-gaming-1024.png",
-            "label": "קונסולות וגיימינג"
+            "label": "קונסולות וגיימינג",
+            "link": "",
+            "image_fill": false
           }
         },
         "circle-appliances": {
@@ -284,7 +298,9 @@
           "settings": {
             "collection": "appliances",
             "image": "shopify://shop_images/07-appliances-1024.png",
-            "label": "מוצרי חשמל"
+            "label": "מוצרי חשמל",
+            "link": "",
+            "image_fill": false
           }
         },
         "circle-audio": {
@@ -292,7 +308,9 @@
           "settings": {
             "collection": "audio",
             "image": "shopify://shop_images/exec-1ff75f9d-4bb8-475e-a078-7ee45fa4f049.png",
-            "label": "שמע ואוזניות"
+            "label": "שמע ואוזניות",
+            "link": "",
+            "image_fill": false
           }
         }
       },
@@ -319,6 +337,92 @@
         "padding_bottom": 27,
         "ss_visibility": "all",
         "ss_background": "linear-gradient(89deg, rgba(224, 255, 242, 1), rgba(224, 254, 241, 1) 100%)",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
+      }
+    },
+    "products-black-november": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "Black November: הדילים החמים",
+        "collection": "black-november",
+        "pinned_products": [
+          "apple-iphone-17",
+          "google-pixel-11-pro",
+          "roborock-f25-ace-combo-6974653812461",
+          "apple-watch-ultra-2-49mm-cellular",
+          "dreame-x50-ultra-complete-6977328065568",
+          "dji-osmo-pocket-4-standart-combo-6937224133099",
+          "xiaomi-poco-x8-pro-512gb-12gb-ram",
+          "galaxy-watch-9-l350-44mm-bt-8806099325312",
+          "energy-echo-cx1000-80w-bt-7290120604223",
+          "nothing-ear-3",
+          "roborock-qrevo-2-pro-white",
+          "sensica-sensilight-pro-5060445341439"
+        ],
+        "first_collection": "",
+        "first_title_keywords": "",
+        "products_limit": 12,
+        "hide_sold_out": true,
+        "photos_only": false,
+        "title_size": "medium",
+        "background": "",
+        "show_view_all": true,
+        "view_all_label": "לכל מבצעי Black November",
+        "padding_top": 44,
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
+        "ss_text_color": "",
+        "ss_heading_color": "",
+        "ss_accent_color": "",
+        "ss_button_bg": "",
+        "ss_button_text": "",
+        "ss_text_scale": 100,
+        "ss_radius": "theme",
+        "ss_custom_heading_font": false,
+        "ss_heading_font": "assistant_n7",
+        "ss_custom_body_font": false,
+        "ss_body_font": "assistant_n4"
+      }
+    },
+    "products-gifts": {
+      "type": "product-carousel",
+      "settings": {
+        "title": "מתנות עד 500 ₪",
+        "collection": "audio",
+        "pinned_products": [
+          "samsung-galaxy-buds-4",
+          "galaxy-buds-core-8806097349235",
+          "anker-soundcore-p41i",
+          "jbl-tune-520-50036395007",
+          "anker-soundcore-boom-3i-50w",
+          "dji-mic-mini-single-6941565991430",
+          "jbl-tune-t570bt-6925281993923"
+        ],
+        "first_collection": "",
+        "first_title_keywords": "",
+        "products_limit": 10,
+        "hide_sold_out": true,
+        "photos_only": true,
+        "max_price": 500,
+        "title_size": "medium",
+        "background": "#e0fff2",
+        "show_view_all": false,
+        "view_all_label": "",
+        "padding_top": 44,
+        "padding_bottom": 0,
+        "ss_visibility": "all",
+        "ss_background": "",
         "ss_text_color": "",
         "ss_heading_color": "",
         "ss_accent_color": "",
@@ -761,92 +865,6 @@
         "autoplay_speed": 6,
         "padding_top": 30,
         "padding_bottom": 20,
-        "ss_visibility": "all",
-        "ss_background": "",
-        "ss_text_color": "",
-        "ss_heading_color": "",
-        "ss_accent_color": "",
-        "ss_button_bg": "",
-        "ss_button_text": "",
-        "ss_text_scale": 100,
-        "ss_radius": "theme",
-        "ss_custom_heading_font": false,
-        "ss_heading_font": "assistant_n7",
-        "ss_custom_body_font": false,
-        "ss_body_font": "assistant_n4"
-      }
-    },
-    "products-black-november": {
-      "type": "product-carousel",
-      "settings": {
-        "title": "Black November: הדילים החמים",
-        "collection": "black-november",
-        "pinned_products": [
-          "apple-iphone-17",
-          "google-pixel-11-pro",
-          "roborock-f25-ace-combo-6974653812461",
-          "apple-watch-ultra-2-49mm-cellular",
-          "dreame-x50-ultra-complete-6977328065568",
-          "dji-osmo-pocket-4-standart-combo-6937224133099",
-          "xiaomi-poco-x8-pro-512gb-12gb-ram",
-          "galaxy-watch-9-l350-44mm-bt-8806099325312",
-          "energy-echo-cx1000-80w-bt-7290120604223",
-          "nothing-ear-3",
-          "roborock-qrevo-2-pro-white",
-          "sensica-sensilight-pro-5060445341439"
-        ],
-        "first_collection": "",
-        "first_title_keywords": "",
-        "products_limit": 12,
-        "hide_sold_out": true,
-        "photos_only": false,
-        "title_size": "medium",
-        "background": "",
-        "show_view_all": true,
-        "view_all_label": "לכל מבצעי Black November",
-        "padding_top": 44,
-        "padding_bottom": 0,
-        "ss_visibility": "all",
-        "ss_background": "",
-        "ss_text_color": "",
-        "ss_heading_color": "",
-        "ss_accent_color": "",
-        "ss_button_bg": "",
-        "ss_button_text": "",
-        "ss_text_scale": 100,
-        "ss_radius": "theme",
-        "ss_custom_heading_font": false,
-        "ss_heading_font": "assistant_n7",
-        "ss_custom_body_font": false,
-        "ss_body_font": "assistant_n4"
-      }
-    },
-    "products-gifts": {
-      "type": "product-carousel",
-      "settings": {
-        "title": "מתנות עד 500 ₪",
-        "collection": "audio",
-        "pinned_products": [
-          "samsung-galaxy-buds-4",
-          "galaxy-buds-core-8806097349235",
-          "anker-soundcore-p41i",
-          "jbl-tune-520-50036395007",
-          "anker-soundcore-boom-3i-50w",
-          "dji-mic-mini-single-6941565991430",
-          "jbl-tune-t570bt-6925281993923"
-        ],
-        "first_collection": "",
-        "first_title_keywords": "",
-        "products_limit": 10,
-        "hide_sold_out": true,
-        "photos_only": true,
-        "max_price": 500,
-        "title_size": "medium",
-        "background": "#e0fff2",
-        "show_view_all": false,
-        "view_all_label": "",
-        "padding_top": 44,
-        "padding_bottom": 0,
         "ss_visibility": "all",
         "ss_background": "",
         "ss_text_color": "",
